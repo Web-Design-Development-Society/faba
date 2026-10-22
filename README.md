@@ -41,3 +41,17 @@ All commands are run from the root of the project, from a terminal:
 ## 👀 Want to learn more?
 
 Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+
+FABA Stack and Roles
+Frontend - Sam
+Backend - Alex
+Google OAuth - Josh
+Deployment - UNKNOWN
+Postgres - Nefi
+Hosting - Alvey
+
+Float - Zelda
+
+FABA - Faculty Associations Board Activities: A hub for Faculty Members at ___ to
+view, save and add activities and events for other members of the faculty. Goal is to keep 
+it light so that it will run easily on mobile devices. We hope to add the capacity to notify users of upcoming events, and maybe even add events to google calander.
