@@ -15,6 +15,7 @@ Inside of your Astro project, you'll see the following folders and files:
 ├── public/
 ├── src/
 │   └── pages/
+|       └── api/health.ts
 │       └── index.astro
 └── package.json
 ```
