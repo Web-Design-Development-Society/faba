@@ -18,7 +18,7 @@
     {
       "files": "*.sql",
       "options": {
-        "parser": "sql"
+        "parser": "postgresql"
       }
     }
   ]
