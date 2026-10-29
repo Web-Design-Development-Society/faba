@@ -369,7 +369,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** any user-facing feature beyond sign-in and a placeholder home; visual polish.
 
-**User stories:** `AUTH-01`, `AUTH-02`, `AUTH-03` (skeleton versions only).
+**User stories:** `FND-01` to `FND-10`. `FND-10` covers skeleton versions of `AUTH-01` to `AUTH-03`.
 
 **Acceptance criteria**
 
@@ -411,7 +411,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** notifications of any kind (the on-screen state is the confirmation), search, capacity, maybe, guests, waitlists, recurring activities, groups, leagues, images or uploads, comments, email, SMS, and admin UI for categories and moderators (SQL runbooks are used instead).
 
-**User stories:** `AUTH-01` to `AUTH-05`, `PROF-01` to `PROF-05`, `ACT-01` to `ACT-06`, `RSVP-01` to `RSVP-03`, `MOD-01` to `MOD-06`.
+**User stories:** `AUTH-01` to `AUTH-05`, `PROF-01` to `PROF-05`, `ACT-01` to `ACT-06`, `RSVP-01` to `RSVP-03`, `MOD-01` to `MOD-06`, `HIST-02`, `INFO-01`, `OPS-01`.
 
 **Acceptance criteria**
 
@@ -466,7 +466,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** notification preferences beyond per-activity mute (Phase 3); new-activity notifications for category follows (Phase 3); waitlist (Phase 3); real-time push (polling only); email and SMS (Phase 5); comments.
 
-**User stories:** `SRCH-01` to `SRCH-03`, `RSVP-04` to `RSVP-06`, `RSVP-08`, `NOTIF-01` to `NOTIF-08`, `ACT-07` to `ACT-09`, `MOD-07`.
+**User stories:** `SRCH-01` to `SRCH-03`, `RSVP-04` to `RSVP-06`, `RSVP-08`, `NOTIF-01` to `NOTIF-08`, `ACT-07` to `ACT-09`, `ACT-11`, `MOD-07`.
 
 **Acceptance criteria**
 
@@ -511,7 +511,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** leagues, teams, scores; comments (re-evaluate at the end of the phase); image uploads; email and SMS.
 
-**User stories:** `GRP-01` to `GRP-05`, `REC-01` to `REC-04`, `RSVP-07`, `ACT-10`, `NOTIF-09`, `NOTIF-10`, `MOD-08`, `HIST-01`, `CAL-01`.
+**User stories:** `GRP-01` to `GRP-05`, `REC-01` to `REC-04`, `RSVP-07`, `RSVP-09`, `ACT-10`, `NOTIF-09`, `NOTIF-10`, `MOD-08`, `HIST-01`, `CAL-01`, `PWA-01`.
 
 **Acceptance criteria**
 
@@ -550,7 +550,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** brackets and playoffs (Could Have, later); player statistics; payments and dues; officials; scheduling optimization.
 
-**User stories:** `LEAG-01` to `LEAG-06`.
+**User stories:** `LEAG-01` to `LEAG-08`.
 
 **Acceptance criteria**
 
@@ -586,7 +586,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** SMS (Phase 5b); marketing emails; per-person tracking pixels (open tracking is disabled).
 
-**User stories:** `NOTIF-11` to `NOTIF-13`, `ANLY-01`.
+**User stories:** `NOTIF-11` to `NOTIF-13`, `NOTIF-15`, `NOTIF-16`, `ANLY-01`.
 
 **Acceptance criteria**
 
@@ -616,7 +616,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** marketing texts, reminders by SMS, and two-way SMS.
 
-**User stories:** `NOTIF-14`.
+**User stories:** `NOTIF-14`, `NOTIF-17`, `NOTIF-18`.
 
 **Acceptance criteria:**
 
@@ -652,6 +652,8 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02`.
+
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
 **Suggested success metrics:**
@@ -672,26 +674,154 @@ Every phase ends in a production release that is usable on its own. If funding o
   - **Should:** important, but the phase can ship without it if time runs out. It then moves to the next phase.
   - **Could:** include it only if it is cheap.
   - **Won't Have Yet:** explicitly out of scope for now.
+- Phase 0 stories are for the people building and running FABA (the FABA board, technical owners, and developers). They set up the project rather than add member features.
 - Phase 1 and 2 stories are written at implementation detail. Phase 3 and later stories are intentionally lighter, and should be refined during that phase's kickoff using what the team has learned.
+- Phase 6 stories are candidates. Prioritize them each semester using metrics and costs.
 - "Member" means an authenticated, eligible, non-suspended faculty member who has accepted the guidelines.
 
 ### 6.2 Story index
 
-| Area               | Phase 1            | Phase 2                     | Phase 3                            | Phase 4            | Phase 5              |
-| ------------------ | ------------------ | --------------------------- | ---------------------------------- | ------------------ | -------------------- |
-| Auth               | AUTH-01 to AUTH-05 |                             |                                    |                    |                      |
-| Profiles           | PROF-01 to PROF-05 |                             |                                    |                    |                      |
-| Activities         | ACT-01 to ACT-06   | ACT-07 to ACT-09            | ACT-10                             |                    |                      |
-| RSVP               | RSVP-01 to RSVP-03 | RSVP-04 to RSVP-06, RSVP-08 | RSVP-07                            |                    |                      |
-| Search             |                    | SRCH-01 to SRCH-03          |                                    |                    |                      |
-| Notifications      |                    | NOTIF-01 to NOTIF-08        | NOTIF-09, NOTIF-10                 |                    | NOTIF-11 to NOTIF-14 |
-| Moderation         | MOD-01 to MOD-06   | MOD-07                      | MOD-08                             |                    |                      |
-| Groups / recurring |                    |                             | GRP-01 to GRP-05, REC-01 to REC-04 |                    |                      |
-| History / calendar |                    |                             | HIST-01, CAL-01                    |                    |                      |
-| Leagues            |                    |                             |                                    | LEAG-01 to LEAG-06 |                      |
-| Analytics          |                    |                             |                                    |                    | ANLY-01              |
+| Area                   | Phase 0          | Phase 1            | Phase 2                     | Phase 3                            | Phase 4            | Phase 5              | Phase 6                  |
+| ---------------------- | ---------------- | ------------------ | --------------------------- | ---------------------------------- | ------------------ | -------------------- | ------------------------ |
+| Foundation             | FND-01 to FND-10 |                    |                             |                                    |                    |                      |                          |
+| Auth                   |                  | AUTH-01 to AUTH-05 |                             |                                    |                    |                      |                          |
+| Profiles               |                  | PROF-01 to PROF-05 |                             |                                    |                    |                      |                          |
+| Public pages           |                  | INFO-01            |                             |                                    |                    |                      |                          |
+| Activities             |                  | ACT-01 to ACT-06   | ACT-07 to ACT-09, ACT-11    | ACT-10                             |                    |                      | ACT-12                   |
+| RSVP                   |                  | RSVP-01 to RSVP-03 | RSVP-04 to RSVP-06, RSVP-08 | RSVP-07, RSVP-09                   |                    |                      |                          |
+| Search                 |                  |                    | SRCH-01 to SRCH-03          |                                    |                    |                      |                          |
+| Notifications          |                  |                    | NOTIF-01 to NOTIF-08        | NOTIF-09, NOTIF-10                 |                    | NOTIF-11 to NOTIF-18 | NOTIF-19, NOTIF-20       |
+| Moderation             |                  | MOD-01 to MOD-06   | MOD-07                      | MOD-08                             |                    |                      |                          |
+| Groups / recurring     |                  |                    |                             | GRP-01 to GRP-05, REC-01 to REC-04 |                    |                      |                          |
+| History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |                      |                          |
+| Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |                      | LEAG-09                  |
+| Analytics              |                  |                    |                             |                                    |                    | ANLY-01              |                          |
+| App and media          |                  |                    |                             | PWA-01                             |                    |                      | MEDIA-01                 |
+| Privacy                |                  |                    |                             |                                    |                    |                      | PRIV-01, PRIV-02         |
+| Operations and quality |                  | OPS-01             |                             |                                    |                    |                      | OPS-02, PERF-01, A11Y-01 |
 
-### 6.3 Phase 1 stories
+### 6.3 Phase 0 stories
+
+#### FND-01 · Hear from faculty before building
+
+- **Role:** FABA board · **Priority:** Should · **Phase:** 0
+- **Story:** As the FABA board, I want to hear from a mix of faculty before the team builds anything, so that the MVP fits how faculty actually find and organize activities.
+- **Acceptance criteria**
+  1. 6 to 10 faculty are interviewed, including at least 3 part-time and 2 remote, about how they find activities today, what gets in the way, and which devices they use.
+  2. Synthesis notes are shared with the team, and the top insights are reflected in the Phase 1 backlog.
+  3. A pilot cohort of about 25 faculty (full-time, part-time, and remote) is recruited, with names and consent recorded.
+- **Dependencies:** board sponsorship.
+- **Notes / edge cases:** Iteration 1 tasks UX-1 and PRD-4. The interviews also inform open questions 5 and 9.
+
+#### FND-02 · Settle the open questions
+
+- **Role:** FABA board · **Priority:** Must · **Phase:** 0
+- **Story:** As the FABA board, I want every blocking question answered or given an owner, so that development isn't stalled by unknowns.
+- **Acceptance criteria**
+  1. Each [unresolved question](#unresolved-questions-to-answer-before-development) has an answer, or a decision date and an owner.
+  2. Decisions are recorded as ADRs in `docs/adr/`, including rendering mode, data access, environments, and auth.
+  3. The board confirms or rejects the Phase 1 scope change (ADR-010).
+  4. The Phase 1 backlog is estimated and prioritized.
+- **Dependencies:** FND-01 (for open questions 5 and 9).
+- **Notes / edge cases:** Iteration 1 tasks PRD-1 and PRD-2. Each question has a recommended default, so work can start before every answer is in.
+
+#### FND-03 · Confirm the university allows Google sign-in
+
+- **Role:** Technical owner · **Priority:** Must · **Phase:** 0
+- **Story:** As a technical owner, I want BYU-Idaho IT to confirm that `@byui.edu` Google accounts can authorize FABA, so that we don't build on a sign-in path the university blocks.
+- **Acceptance criteria**
+  1. IT confirms whether FABA's OAuth app is allowed, and whether it can be an **Internal** app.
+  2. The Google OAuth consent screen is configured (Internal or External, per IT) and requests only the `openid email profile` scopes.
+  3. The outcome is recorded in ADR-005.
+- **Dependencies:** an institutional contact (open question 3).
+- **Notes / edge cases:**
+  - Risk R-AUTH-2. Phase 0 is not done until a real `byui.edu` sign-in succeeds in production (FND-10).
+  - Ask IT at the same time whether students or staff also have `@byui.edu` accounts (R-AUTH-1, open question 1).
+
+#### FND-04 · Test wireframes with faculty
+
+- **Role:** Product and UX · **Priority:** Should · **Phase:** 0
+- **Story:** As the product and UX lead, I want low-fidelity wireframes tested on phones with faculty, so that the core flows meet the tap budget before we build them.
+- **Acceptance criteria**
+  1. Wireframes cover Landing, Welcome, Not eligible, Discover, Activity detail, Create/Edit, and Me.
+  2. 5 faculty test them on phones against the tap budget (Section 7.2).
+  3. Issues found are logged, and the wireframes are revised.
+- **Dependencies:** FND-01.
+- **Notes / edge cases:** Iteration 1 tasks UX-2 and UX-3. Design tokens, component specs, and the copy deck (UX-4 to UX-6) build on the revised wireframes.
+
+#### FND-05 · Approve the guidelines, privacy notice, and disclaimer
+
+- **Role:** FABA board · **Priority:** Must · **Phase:** 0
+- **Story:** As the FABA board, I want the community guidelines, privacy notice, and participation disclaimer approved before launch, so that members know the rules, and that FABA is unofficial, from day one.
+- **Acceptance criteria**
+  1. Drafts exist for community guidelines v1, the privacy notice, and the participation disclaimer.
+  2. The board approves each one, and the approved text is merged into `src/content` or the pages.
+  3. The privacy notice matches the data inventory and retention table in Section 9.14, and any institutional policy found under open question 10.
+- **Dependencies:** FND-02 (open questions 3, 6, and 10).
+- **Notes / edge cases:** Iteration 1 task PRD-3. Ask university risk management whether a disclaimer is enough for outdoor and sports activities (R-SAFE-1, open question 6).
+
+#### FND-06 · Run FABA locally in under 30 minutes
+
+- **Role:** Developer · **Priority:** Must · **Phase:** 0
+- **Story:** As a new developer, I want to run FABA locally from a clean clone in under 30 minutes, so that volunteers can start contributing quickly.
+- **Acceptance criteria**
+  1. Following `CONTRIBUTING.md`, `supabase start` and `astro dev` work from a clean clone.
+  2. `seed.sql` loads personas (member, organizer, moderator, admin, and suspended) and about 50 activities over the next 6 weeks.
+  3. `.dev.vars.example` and `supabase/.env.example` list every variable with placeholder values. Nothing secret is committed.
+  4. Every variable is declared in Astro's `env.schema`, so a missing variable fails at startup.
+- **Dependencies:** none.
+- **Notes / edge cases:**
+  - Iteration 1 tasks DB-1, DB-8, AS-1, and DP-6.
+  - The repository currently uses Docker Compose Postgres (`compose.yml`) and the `@astrojs/node` adapter, while this design specifies the Supabase CLI and `@astrojs/cloudflare`. Reconcile the two in an ADR.
+
+#### FND-07 · Check every pull request automatically
+
+- **Role:** Developer · **Priority:** Must · **Phase:** 0
+- **Story:** As a developer, I want every pull request checked automatically, so that `main` is always deployable.
+- **Acceptance criteria**
+  1. `ci.yml` runs lint and format, typecheck (`astro check`), unit tests (Vitest), the database job (migrations from zero, `seed.sql`, pgTAP, and the generated-types drift check), build, and end-to-end and accessibility tests (Playwright with axe).
+  2. A full run takes under 10 minutes.
+  3. `main` is protected with required checks, 1 approving review, and squash-merge only. `CODEOWNERS`, a PR template, Dependabot, and secret scanning are set up.
+- **Dependencies:** FND-06.
+- **Notes / edge cases:** Iteration 1 tasks DP-1, DP-2, TS-1, TS-2, and TS-4. Section 11.5 lists each job.
+
+#### FND-08 · Deploy from preview to staging to production
+
+- **Role:** Developer · **Priority:** Must · **Phase:** 0
+- **Story:** As a developer, I want every change to flow from a pull request preview to staging to production through one pipeline, so that releases are routine and easy to roll back.
+- **Acceptance criteria**
+  1. Every PR push produces a preview URL, posted as a PR comment.
+  2. Merging to `main` pushes migrations to the staging database, then builds and deploys the `faba-staging` Worker and runs smoke tests.
+  3. A release tag with a technical owner's approval deploys to production the same way.
+  4. Migrations always run before the Worker deploys.
+- **Dependencies:** FND-07; FND-09.
+- **Notes / edge cases:** Iteration 1 tasks DP-3 to DP-5. Smoke tests check that the landing page loads, the health endpoint returns OK, protected routes redirect to sign-in, and the Google redirect starts.
+
+#### FND-09 · Set up separate, organization-owned environments
+
+- **Role:** Technical owner · **Priority:** Must · **Phase:** 0
+- **Story:** As a technical owner, I want staging and production on separate, organization-owned accounts, so that testing never touches real data and no single volunteer holds the keys.
+- **Acceptance criteria**
+  1. Staging and production each have their own Supabase project. Production is on a paid plan in a US West region, with backups verified.
+  2. The `faba-staging` and `faba` Workers serve the app on their own domains.
+  3. Google OAuth clients exist for dev, staging, and production.
+  4. Cloudflare, Supabase, Google Cloud, and GitHub accounts belong to a FABA organization with at least 2 owners, and MFA is required.
+  5. Staging holds only synthetic data.
+- **Dependencies:** a domain decision; a payment method (open question 7).
+- **Notes / edge cases:** Iteration 1 tasks AU-1, AU-2, CF-1, and DP-8.
+
+#### FND-10 · Walking skeleton
+
+- **Role:** Member · **Priority:** Must · **Phase:** 0
+- **Story:** As a faculty member, I want to sign in to the deployed app with my school account, see sample activities, and sign out, so that the team proves the whole path works before building features.
+- **Acceptance criteria**
+  1. A real `@byui.edu` account can sign in on staging and production, see seeded data on a placeholder home page, and sign out.
+  2. A personal Gmail account is rejected, and no `auth.users` row is created.
+  3. The skeleton ships through the full pipeline (FND-08).
+- **Dependencies:** FND-03; FND-08; FND-09.
+- **Notes / edge cases:** This is the skeleton version of AUTH-01 to AUTH-03. The full stories ship in Phase 1.
+
+### 6.4 Phase 1 stories
 
 #### AUTH-01 · Sign in with Google
 
@@ -1019,7 +1149,41 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Dependencies:** MOD-05.
 - **Notes / edge cases:** A UI arrives in Phase 3 (MOD-08). At least 2 admins should exist at all times.
 
-### 6.4 Phase 2 stories
+#### HIST-02 · My activities
+
+- **Role:** Member · **Priority:** Must · **Phase:** 1
+- **Story:** As a member, I want a simple list of what I'm going to and what I organize, so that I can find my plans without scrolling the feed.
+- **Acceptance criteria**
+  1. **My activities** lists upcoming activities I'm going to and upcoming activities I organize, soonest first.
+  2. Cancelled activities stay in the list, marked cancelled (ACT-05).
+  3. Each item opens the activity's detail page.
+- **Dependencies:** ACT-03; RSVP-01.
+- **Notes / edge cases:** Requirement FR-HIST-1. The **Plans** tab replaces this list in Phase 2 (RSVP-08).
+
+#### INFO-01 · Public pages and disclaimers
+
+- **Role:** Unauthenticated visitor · **Priority:** Must · **Phase:** 1
+- **Story:** As a visitor, I want to read what FABA is, its guidelines, and its privacy notice before I sign in, so that I know what I'm joining and that it isn't an official university channel.
+- **Acceptance criteria**
+  1. Signed-out visitors can open only the landing page, **About**, the **Privacy notice**, and the **Community guidelines**. No profile or activity data is visible to them, and every app page sends `noindex`.
+  2. About, Privacy, and Guidelines are prerendered. The landing page is rendered on demand and sends signed-in members to Discover.
+  3. Every page footer says FABA is informal and not an official BYU-Idaho channel.
+  4. The participation disclaimer appears on the guidelines page and on Outdoors and Sports & Fitness activity pages.
+  5. The guidelines page gives an out-of-app contact for urgent safety concerns (the board's email), and says emergencies go to 911 or campus security.
+- **Dependencies:** FND-05.
+- **Notes / edge cases:** Requirements FR-PROF-7 and FR-REP-5. Use no university logo or marks (R-POL-1).
+
+#### OPS-01 · Launch runbooks
+
+- **Role:** Admin · **Priority:** Must · **Phase:** 1
+- **Story:** As an admin, I want written procedures for rare but serious tasks, so that any admin can handle them without the original developers.
+- **Acceptance criteria**
+  1. `docs/runbooks/` has runbooks to grant a moderator, merge or transfer an account, handle a takedown request, and restore from backup.
+  2. Runbook steps that change data go through audited functions (MOD-05), such as `set_member_role()`.
+- **Dependencies:** MOD-05; MOD-06.
+- **Notes / edge cases:** Part of the Phase 1 definition of done. Iteration 1 task DP-7 covers the rollback, backup restore, key rotation, grant moderator, and Supabase settings runbooks.
+
+### 6.5 Phase 2 stories
 
 #### SRCH-01 · Search activities
 
@@ -1232,7 +1396,18 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Dependencies:** NOTIF-01.
 - **Notes / edge cases:** Fan-out to about 2,600 rows is a single `INSERT … SELECT`, which takes milliseconds.
 
-### 6.5 Phase 3 stories (lighter, to be refined at phase kickoff)
+#### ACT-11 · New since your last visit
+
+- **Role:** Member · **Priority:** Should · **Phase:** 2
+- **Story:** As a member, I want Home to mark activities posted since my last visit, so that I notice new things without getting a notification for each one.
+- **Acceptance criteria**
+  1. Activity cards on Home show a **NEW** marker when the activity was created after the member's previous visit.
+  2. The previous visit comes from `profile_private.last_seen_at`.
+  3. No notification goes to every member when a new activity is posted.
+- **Dependencies:** ACT-01.
+- **Notes / edge cases:** This is the main defense against notification overload (R-NOTIF-1). Decide how often `last_seen_at` updates, so that markers don't disappear while a member is still browsing.
+
+### 6.6 Phase 3 stories (lighter, to be refined at phase kickoff)
 
 #### GRP-01 · Create an interest group
 
@@ -1402,7 +1577,29 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Dependencies:** ACT-08.
 - **Notes / edge cases:** The URL is a credential: show it once, offer **Reset link**, and rate-limit the endpoint.
 
-### 6.6 Phase 4 stories
+#### RSVP-09 · Manage my attendee list
+
+- **Role:** Activity organizer · **Priority:** Should · **Phase:** 3
+- **Story:** As an organizer, I want to remove an attendee, see guest totals, and export the list, so that I can plan for the people who are actually coming.
+- **Acceptance criteria:**
+  - Organizers and co-organizers can remove an attendee. Group organizers can do the same for group activities, and moderators for any activity.
+  - The attendee list shows the guest total.
+  - **Export CSV** downloads attendee names only.
+- **Dependencies:** RSVP-03; RSVP-06; ACT-10.
+- **Notes / edge cases:** Requirement FR-ACT-12. Decide at kickoff whether a removed attendee is notified, and whether they can RSVP again.
+
+#### PWA-01 · Install FABA on my home screen
+
+- **Role:** Member · **Priority:** Should · **Phase:** 3
+- **Story:** As a member, I want to add FABA to my phone's home screen, so that it opens like an app.
+- **Acceptance criteria:**
+  - A web app manifest and icons make FABA installable on iOS and Android.
+  - The service worker is limited to an offline fallback page.
+  - The offline state follows Section 7.13.
+- **Dependencies:** none.
+- **Notes / edge cases:** Native apps stay out of scope (WH-04). An installed PWA is also what makes Web Push possible later (NOTIF-20).
+
+### 6.7 Phase 4 stories
 
 #### LEAG-01 · Create a league and season
 
@@ -1465,7 +1662,29 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Dependencies:** LEAG-04.
 - **Notes / edge cases:** Rate-limited per game.
 
-### 6.7 Phase 5 stories
+#### LEAG-07 · Game availability
+
+- **Role:** Member (player) · **Priority:** Should · **Phase:** 4
+- **Story:** As a player, I want to say whether I can play each game, so that my captain knows if we have enough players.
+- **Acceptance criteria:**
+  - On game activities, the RSVP choices become **Can play** and **Can't play**.
+  - Games appear in the player's **Plans**.
+  - Captains see their roster's availability for each game.
+- **Dependencies:** LEAG-03; LEAG-04.
+- **Notes / edge cases:** Games are activities, so this reuses the RSVP model instead of adding a new one.
+
+#### LEAG-08 · Individual ladder
+
+- **Role:** League organizer · **Priority:** Should · **Phase:** 4
+- **Story:** As an organizer of a one-on-one sport or game, I want to run a season for individual players instead of teams.
+- **Acceptance criteria:**
+  - A season with the individual-ladder format registers players, not teams.
+  - Each game is between two players.
+  - Standings come from confirmed results only, as in LEAG-05.
+- **Dependencies:** LEAG-01; LEAG-05.
+- **Notes / edge cases:** Ladder rules (for example, who may challenge whom) are decided at phase kickoff, with the pilot league.
+
+### 6.8 Phase 5 stories
 
 #### NOTIF-11 · Email for urgent changes
 
@@ -1523,7 +1742,159 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Dependencies:** Phase 2 data.
 - **Notes / edge cases:** Cloudflare Web Analytics (cookieless) covers page views. No third-party trackers.
 
-### 6.8 Won't Have Yet
+#### NOTIF-15 · One-click unsubscribe
+
+- **Role:** Member · **Priority:** Must · **Phase:** 5a
+- **Story:** As a member, I want to turn off an email type straight from the email, so that I don't have to sign in to change my settings.
+- **Acceptance criteria:**
+  - Every email has an unsubscribe link with a signed token that works without signing in.
+  - One click turns off that email type, as mapped in NOTIF-13, and takes effect within 1 minute.
+  - The default-on urgent emails can be turned off from the first one a member receives.
+- **Dependencies:** NOTIF-13; NOTIF-16.
+- **Notes / edge cases:** The token is signed with `UNSUBSCRIBE_SIGNING_KEY`. It only changes email preferences and never signs anyone in.
+
+#### NOTIF-16 · Reliable email delivery
+
+- **Role:** Admin · **Priority:** Must · **Phase:** 5a
+- **Story:** As the FABA board, I want email delivery to be reliable and never send duplicates, so that members trust what FABA sends.
+- **Acceptance criteria:**
+  - Each email is a `notification_deliveries` row, sent through a Cloudflare Queue to a transactional email provider, with retries.
+  - Retrying never sends a duplicate (tested with an injected provider failure).
+  - Bounce and complaint webhooks are handled.
+  - SPF, DKIM, and DMARC pass for the sending domain. Open tracking is disabled.
+  - Email goes to an opt-in beta group first, then to everyone after 2 weeks with a complaint rate below 0.1%.
+- **Dependencies:** a sending domain and DNS access; an email provider account; a privacy notice update.
+- **Notes / edge cases:** School mail servers may filter FABA email (R-NOTIF-2). Ask IT to allow-list the sender.
+
+#### NOTIF-17 · Verify my phone number
+
+- **Role:** Member · **Priority:** Could · **Phase:** 5b
+- **Story:** As a member who wants texts, I want to verify my phone number, so that FABA texts reach only my phone.
+- **Acceptance criteria:**
+  - Entering a phone number sends a one-time code. The number counts as verified only after the code is entered.
+  - Only verified, opted-in numbers receive messages.
+  - A STOP reply opts the number out immediately, and a HELP reply returns help text.
+- **Dependencies:** an SMS provider; carrier registration (A2P 10DLC).
+- **Notes / edge cases:** Phone numbers are sensitive. They are stored in `profile_private` and visible only to their owner.
+
+#### NOTIF-18 · SMS spending cap
+
+- **Role:** Admin · **Priority:** Could · **Phase:** 5b
+- **Story:** As the FABA board, I want SMS spending capped each month, so that texting never exceeds the budget.
+- **Acceptance criteria:**
+  - A monthly SMS budget cap is configured.
+  - When the cap is reached, FABA sends only email and in-app notifications, and alerts admins.
+  - SMS sits behind a feature flag that can turn it off in minutes.
+- **Dependencies:** NOTIF-14; a funding decision.
+- **Notes / edge cases:** Phase 5b ships only if Phase 5a data justifies it.
+
+### 6.9 Phase 6 stories (candidates, prioritized with data)
+
+#### NOTIF-19 · Real-time unread badge
+
+- **Role:** Member · **Priority:** Could · **Phase:** 6
+- **Story:** As a member, I want the notification badge to update the moment something happens, so that I don't wait for the next refresh.
+- **Acceptance criteria:**
+  - The unread badge updates through Supabase Realtime instead of 60-second polling.
+  - Members still receive only their own notifications.
+  - If the real-time connection drops, the badge falls back to polling.
+- **Dependencies:** NOTIF-01.
+- **Notes / edge cases:** This would be FABA's first browser connection to Supabase, so revisit ADR-003 before starting.
+
+#### NOTIF-20 · Web Push notifications
+
+- **Role:** Member · **Priority:** Could · **Phase:** 6
+- **Story:** As a member who installed FABA, I want push notifications on my phone, so that urgent changes reach me without email or SMS.
+- **Acceptance criteria:**
+  - Web Push is a new channel in the existing delivery pipeline.
+  - It works on installed PWAs on iOS 16.4 and later, and on Android.
+  - It is opt-in, and each notification type can be turned on or off for push (NOTIF-13).
+- **Dependencies:** PWA-01; NOTIF-13; NOTIF-16.
+- **Notes / edge cases:** None.
+
+#### ACT-12 · Comments on activities
+
+- **Role:** Member · **Priority:** Could · **Phase:** 6
+- **Story:** As a member, I want to ask a quick question on an activity page, so that I don't have to email the organizer.
+- **Acceptance criteria:**
+  - Comments are flat (no threads) and plain text.
+  - Comments are reportable, and moderators can hide them.
+- **Dependencies:** MOD-08.
+- **Notes / edge cases:** Build only if Phase 3 feedback supports it. Threaded discussion and chat stay out of scope (WH-01).
+
+#### MEDIA-01 · Images for activities and groups
+
+- **Role:** Activity organizer · **Priority:** Could · **Phase:** 6
+- **Story:** As an organizer, I want to add a cover image to my activity or a banner to my group, so that it stands out.
+- **Acceptance criteria:**
+  - Images are stored with Cloudflare Images or R2.
+  - Images are reportable, and moderators can hide them.
+  - Pages with images stay within the performance budget (PERF-01).
+- **Dependencies:** MOD-08.
+- **Notes / edge cases:** Revisits WH-07. Update the privacy notice and the Content Security Policy's `img-src` before launch.
+
+#### LEAG-09 · Playoff brackets
+
+- **Role:** League organizer · **Priority:** Could · **Phase:** 6
+- **Story:** As a league organizer, I want to run a playoff bracket at the end of a season.
+- **Acceptance criteria:**
+  - Seeds come from the final standings.
+  - Each bracket game is an activity, like regular-season games.
+- **Dependencies:** LEAG-05.
+- **Notes / edge cases:** Brackets were left out of Phase 4 to keep leagues simple (R-LEAG-1).
+
+#### PRIV-01 · Download my data
+
+- **Role:** Member · **Priority:** Could · **Phase:** 6
+- **Story:** As a member, I want to download the data FABA holds about me, so that I can see exactly what is stored.
+- **Acceptance criteria:**
+  - **Me → Download my data** returns my profile, private settings, RSVPs, organized activities, and notifications in a machine-readable file.
+  - The export contains only my own data.
+- **Dependencies:** PROF-05.
+- **Notes / edge cases:** Rate-limit the endpoint.
+
+#### PRIV-02 · Automatic data retention
+
+- **Role:** Admin · **Priority:** Could · **Phase:** 6
+- **Story:** As the FABA board, I want data deleted automatically when its retention period ends, so that FABA keeps only what it promised to keep.
+- **Acceptance criteria:**
+  - Scheduled jobs enforce the retention table in Section 9.14. For example, reports are deleted 2 years after resolution, and audit log rows after 3 years.
+  - Each run records how many rows it removed.
+- **Dependencies:** FND-05.
+- **Notes / edge cases:** Some cleanup already exists from earlier phases, such as the 90-day notification job (NOTIF-01).
+
+#### PERF-01 · Keep FABA fast as it grows
+
+- **Role:** Member · **Priority:** Could · **Phase:** 6
+- **Story:** As a member, I want FABA to stay fast on my phone as more people use it.
+- **Acceptance criteria:**
+  - The 75th-percentile Largest Contentful Paint stays under 2.0 seconds, and the error rate stays below 0.5%.
+  - Slow queries are reviewed with `pg_stat_statements`, non-personalized fragments are cached at the edge, and Smart Placement is tuned.
+  - Hosting cost per active member stays flat or falls.
+- **Dependencies:** none.
+- **Notes / edge cases:** These are the Phase 6 success metrics.
+
+#### A11Y-01 · Independent accessibility audit
+
+- **Role:** Member · **Priority:** Could · **Phase:** 6
+- **Story:** As a member who uses assistive technology, I want FABA checked by an independent auditor, so that I can rely on it.
+- **Acceptance criteria:**
+  - A third party audits FABA against WCAG 2.2 AA.
+  - Findings are logged as issues and fixed in priority order.
+- **Dependencies:** none.
+- **Notes / edge cases:** Automated axe checks and manual screen-reader passes run from Phase 1 (Section 7.14).
+
+#### OPS-02 · Handover kit
+
+- **Role:** Technical owner · **Priority:** Should · **Phase:** 6
+- **Story:** As a technical owner, I want new volunteer maintainers to be able to take over, so that FABA survives when people move on.
+- **Acceptance criteria:**
+  - A recorded architecture walkthrough, up-to-date runbooks, and an on-call rota for volunteer maintainers exist.
+  - Mean time to restore stays under 1 hour.
+- **Dependencies:** OPS-01.
+- **Notes / edge cases:** Marked Should, not Could, because losing a sole maintainer is a high-likelihood, high-impact risk (R-OPS-1).
+
+### 6.10 Won't Have Yet
 
 | ID    | Item                                               | Why not now                                                                             |
 | ----- | -------------------------------------------------- | --------------------------------------------------------------------------------------- |
@@ -1835,7 +2206,7 @@ Requirements use "must" for required behavior. **P** is the phase in which a req
 | FR-PROF-4 | Email must be hidden from other members by default and shown only on opt-in. Moderators and admins can always see it                                                                   | 1   | PROF-04 |
 | FR-PROF-5 | Faculty type, "based in", and RSVP history must never be shown to other members                                                                                                        | 1   | PROF-03 |
 | FR-PROF-6 | Members must be able to delete their account. The system must anonymize past content and delete personal data                                                                          | 1   | PROF-05 |
-| FR-PROF-7 | No profile or activity data may be visible to signed-out visitors, and the app must send `noindex`                                                                                     | 1   | —       |
+| FR-PROF-7 | No profile or activity data may be visible to signed-out visitors, and the app must send `noindex`                                                                                     | 1   | INFO-01 |
 
 ### 8.3 Activities
 
@@ -1852,7 +2223,7 @@ Requirements use "must" for required behavior. **P** is the phase in which a req
 | FR-ACT-9  | Organizers must be able to duplicate a past activity                                                                                                                 | 2   | ACT-07                   |
 | FR-ACT-10 | Organizers must be able to add up to 3 co-organizers with equal edit rights                                                                                          | 3   | ACT-10                   |
 | FR-ACT-11 | Activities must support "everyone" or "group members only" visibility                                                                                                | 3   | GRP-03                   |
-| FR-ACT-12 | Organizers must be able to remove an attendee, and export attendee names as CSV                                                                                      | 3   | —                        |
+| FR-ACT-12 | Organizers must be able to remove an attendee, and export attendee names as CSV                                                                                      | 3   | RSVP-09                  |
 
 ### 8.4 Categories and tags
 
@@ -1947,7 +2318,7 @@ Requirements use "must" for required behavior. **P** is the phase in which a req
 | FR-REP-2 | The system must allow one report per member per target, and at most 10 reports per member per day                                                                 | 1   | MOD-01   |
 | FR-REP-3 | Organizer updates must be reportable                                                                                                                              | 2   | NOTIF-04 |
 | FR-REP-4 | Groups must be reportable                                                                                                                                         | 3   | MOD-08   |
-| FR-REP-5 | The guidelines page must include an out-of-app contact for urgent safety concerns (the board's email), and must say that emergencies go to 911 or campus security | 1   | —        |
+| FR-REP-5 | The guidelines page must include an out-of-app contact for urgent safety concerns (the board's email), and must say that emergencies go to 911 or campus security | 1   | INFO-01  |
 
 ### 8.11 Search and filtering
 
@@ -1963,7 +2334,7 @@ Requirements use "must" for required behavior. **P** is the phase in which a req
 
 | ID        | Requirement                                                                                                             | P   | Source  |
 | --------- | ----------------------------------------------------------------------------------------------------------------------- | --- | ------- |
-| FR-HIST-1 | The system must show "My activities" (going and organizing, upcoming)                                                   | 1   | —       |
+| FR-HIST-1 | The system must show "My activities" (going and organizing, upcoming)                                                   | 1   | HIST-02 |
 | FR-HIST-2 | Plans → Past must list activities from the past 24 months                                                               | 2   | RSVP-08 |
 | FR-HIST-3 | The system must provide a full past archive including group histories. A member's attendance history is private to them | 3   | HIST-01 |
 
