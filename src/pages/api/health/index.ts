@@ -1,10 +1,10 @@
-import { APIRoute } from "astro";
+import type { APIRoute } from 'astro';
 
 export const prerender = false;
 
 export const GET = (async () => {
   return Response.json({
-    status: "ok",
+    status: 'ok',
     environment: import.meta.env.MODE,
     timestamp: new Date().toISOString(),
   });
