@@ -725,18 +725,18 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Dependencies:** FND-01 (for open questions 5 and 9).
 - **Notes / edge cases:** Iteration 1 tasks PRD-1 and PRD-2. Each question has a recommended default, so work can start before every answer is in.
 
-#### FND-03 · Confirm the university allows Google sign-in
+#### FND-03 · Prove byui.edu accounts can sign in
 
 - **Role:** Technical owner · **Priority:** Must · **Phase:** 0
-- **Story:** As a technical owner, I want BYU-Idaho IT to confirm that `@byui.edu` Google accounts can authorize FABA, so that we don't build on a sign-in path the university blocks.
+- **Story:** As a technical owner, I want to prove early that `@byui.edu` Google accounts can sign in through FABA's own Google app, so that we don't build on a sign-in path the university blocks.
 - **Acceptance criteria**
-  1. IT confirms whether FABA's OAuth app is allowed, and whether it can be an **Internal** app.
-  2. The Google OAuth consent screen is configured (Internal or External, per IT) and requests only the `openid email profile` scopes.
+  1. FABA's Google OAuth consent screen is set to **External** and requests only the `openid email profile` scopes. BYU-Idaho IT isn't asked to approve or host it (ADR-016).
+  2. A real `byui.edu` account completes a test sign-in through it.
   3. The outcome is recorded in ADR-005.
-- **Dependencies:** an institutional contact (open question 3).
+- **Dependencies:** none.
 - **Notes / edge cases:**
   - Risk R-AUTH-2. Phase 0 is not done until a real `byui.edu` sign-in succeeds in production (FND-10).
-  - Ask IT at the same time whether students or staff also have `@byui.edu` accounts (R-AUTH-1, open question 1).
+  - If the university's Google Workspace blocks the app, contact BYU-Idaho IT and revisit ADR-005 and ADR-016.
 
 #### FND-04 · Test wireframes with faculty
 
@@ -756,9 +756,9 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Acceptance criteria**
   1. Drafts exist for community guidelines v1, the privacy notice, and the participation disclaimer.
   2. The board approves each one, and the approved text is merged into `src/content` or the pages.
-  3. The privacy notice matches the data inventory and retention table in Section 9.14, and any institutional policy found under open question 10.
+  3. The privacy notice matches the data inventory and retention table in Section 9.14.
 - **Dependencies:** FND-02 (open questions 3, 6, and 10).
-- **Notes / edge cases:** Iteration 1 task PRD-3. Ask university risk management whether a disclaimer is enough for outdoor and sports activities (R-SAFE-1, open question 6).
+- **Notes / edge cases:** Iteration 1 task PRD-3. FABA runs independently of BYU-Idaho (ADR-016): the disclaimer says FABA isn't an official university site, outdoor and sports activities get a participation disclaimer with no waivers (R-SAFE-1), and no institutional policy or risk-management review applies.
 
 #### FND-06 · Run FABA locally in under 30 minutes
 
@@ -840,7 +840,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 #### AUTH-02 · Reject ineligible accounts
 
 - **Role:** Unauthenticated visitor · **Priority:** Must · **Phase:** 1
-- **Story:** As the FABA board, I want only `@byui.edu` Google accounts to get in, so that FABA stays a faculty space.
+- **Story:** As the FABA board, I want only `@byui.edu` Google accounts to get in, so that FABA stays within the BYU-Idaho community.
 - **Acceptance criteria**
   1. The before-user-created hook rejects any email whose domain is not exactly `byui.edu` (case-insensitive). No `auth.users` or `profiles` row is created.
   2. The callback independently verifies the domain and `email_verified = true`. On failure it signs the user out and shows **Not eligible**.
@@ -849,7 +849,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Dependencies:** AUTH-01; auth hook configured in each Supabase project.
 - **Notes / edge cases:**
   - Lookalike domains (`byui.edu.evil.com`) and subdomains (`x.byui.edu`) are rejected. Matching is on the exact string after `@`.
-  - If students or staff also have `@byui.edu` accounts, see risk R-AUTH-1: the welcome-screen faculty attestation plus moderation is the default answer.
+  - Students and staff also have `@byui.edu` accounts, and they can join. There's no faculty attestation or allow-list (ADR-015, risk R-AUTH-1).
 
 #### AUTH-03 · Stay signed in, and sign out
 
@@ -893,13 +893,13 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Role:** Member (first sign-in) · **Priority:** Must · **Phase:** 1
 - **Story:** As a new member, I want a quick, friendly setup, so that I can start browsing in seconds.
 - **Acceptance criteria**
-  1. One screen shows: a prefilled, editable display name (2 to 50 characters); the Google photo, with a **Use initials instead** option; three short guidelines with a link to the full text; and a required checkbox ("I'm a BYU-Idaho faculty member and agree to the guidelines").
+  1. One screen shows: a prefilled, editable display name (2 to 50 characters); the Google photo, with a **Use initials instead** option; three short guidelines with a link to the full text; and a required checkbox ("I agree to the community guidelines").
   2. Optional fields are **not** on this screen. A small "Add more to your profile later" link goes to the Me screen.
   3. Accepting stores `guidelines_accepted_at` and the guidelines version. Until then, every protected route redirects to Welcome.
   4. If the guidelines version changes materially, members re-accept on their next visit.
 - **Dependencies:** AUTH-01; the guidelines text approved by the board.
 - **Notes / edge cases:**
-  - The checkbox is a lightweight attestation, not verification. It is also the clear statement that FABA is for faculty.
+  - There's no faculty attestation. Any `byui.edu` account can join, including students who take part as teaching assistants and adjuncts (ADR-015).
 
 #### PROF-02 · Edit my profile
 
@@ -912,13 +912,12 @@ Every phase ends in a production release that is usable on its own. If funding o
      - Department (optional; free text up to 60 characters, with suggestions).
      - Short bio (optional; up to 280 characters).
      - Interests (optional; category chips).
-     - "Based in" (optional): **Rexburg area**, **Elsewhere / online**, or **Prefer not to say**.
      - "Faculty type" (optional, private, self-reported): **Full-time**, **Part-time**, or **Prefer not to say**. The UI labels it "Only used for anonymous totals. Never shown to others."
   2. Saving with a valid form returns to the profile with a "Saved" toast. Validation errors appear inline per field.
   3. Members cannot change their own role, status, or email through any request (column-level grants plus RLS).
 - **Dependencies:** PROF-01.
 - **Notes / edge cases:**
-  - "Based in = Elsewhere / online" sets the default Home filter to include online activities first. See the open question on remote faculty.
+  - There's no "based in" field while FABA serves in-person Rexburg activities only (ADR-017).
 
 #### PROF-03 · View a member's profile
 
@@ -927,7 +926,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Acceptance criteria**
   1. The profile shows: display name, avatar, department, bio, interests, and upcoming activities they organize.
   2. It also shows their email, only if they opted in.
-  3. It never shows faculty type, "based in", RSVP history, or last-seen time.
+  3. It never shows faculty type, RSVP history, or last-seen time.
   4. Suspended, deactivated, or ineligible profiles show "This member is no longer active."
 - **Dependencies:** PROF-02.
 - **Notes / edge cases:** A **Report** link appears in an overflow menu (MOD-01).
@@ -966,21 +965,21 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Story:** As a member, I want to see what's coming up, soonest first, so that I can quickly find something to do.
 - **Acceptance criteria**
   1. Home lists published, non-hidden activities whose start time is no more than 3 hours ago (in-progress) or later. They are sorted by start time and grouped under day headers in the viewer's time zone.
-  2. Each card shows: category icon and color, title (up to 2 lines), relative date and time, place or "Online", going count, up to 3 attendee avatars, and the viewer's RSVP state.
+  2. Each card shows: category icon and color, title (up to 2 lines), relative date and time, place, going count, up to 3 attendee avatars, and the viewer's RSVP state.
   3. Pages hold 20 activities. A **Show more** link loads the next page, using a cursor of start time and ID. There is no infinite scroll (see 7.4).
   4. A **Your next plan** card appears when the viewer is going to something in the next 7 days.
   5. Cancelled activities do not appear in the default feed.
 - **Dependencies:** ACT-03 (or seed data).
 - **Notes / edge cases:**
   - An empty feed shows an encouraging empty state with **Post the first activity**.
-  - Online activities show the time in the viewer's time zone. In-person activities show it in the activity's time zone, with a note if that differs from the viewer's.
+  - Times show in the activity's time zone, with a note if that differs from the viewer's.
 
 #### ACT-02 · View activity details
 
 - **Role:** Member · **Priority:** Must · **Phase:** 1
 - **Story:** As a member, I want all the details on one screen, so that I can decide quickly and know where to go.
 - **Acceptance criteria**
-  1. The page shows: title, category, date and time range, place with an **Open in Maps** link (generated from the place text), online link (if online), description (plain text with links made clickable), cost note, organizer (linked to their profile), going count, and attendee avatars.
+  1. The page shows: title, category, date and time range, place with an **Open in Maps** link (generated from the place text), description (plain text with links made clickable), cost note, organizer (linked to their profile), going count, and attendee avatars.
   2. A sticky bottom action bar holds the primary RSVP button within thumb reach.
   3. Organizers see **Edit**. Everyone sees **Share** and **Report** in the overflow menu.
   4. Cancelled activities show a prominent banner with the reason. Hidden activities return "not available" to non-organizers.
@@ -996,7 +995,7 @@ Every phase ends in a production release that is usable on its own. If funding o
   1. Required fields:
      - Title (3 to 80 characters).
      - Start date and time.
-     - Place (up to 120 characters) or Online (an `https` URL).
+     - Place (up to 120 characters). There are no online activities for now (ADR-017).
      - Category.
   2. Optional fields: description (up to 2,000 characters). Under **More options**: end time, cost note (up to 60 characters).
   3. Quick date picks (Today, Tomorrow, This Saturday) and native date and time inputs.
@@ -1006,7 +1005,7 @@ Every phase ends in a production release that is usable on its own. If funding o
   7. The form works without JavaScript. With JavaScript, unsent input is saved in local browser storage and restored after a failure.
 - **Dependencies:** categories seeded; PROF-01.
 - **Notes / edge cases:**
-  - Time zone defaults to `America/Denver`, and can be changed under **More options** for remote activities.
+  - Time zone is always `America/Denver` and isn't shown on the form. It's still stored with each activity (risk R-TECH-2).
   - Watch for duplicate submits from a double tap: an idempotency key goes in a hidden field.
 
 #### ACT-04 · Edit my activity
@@ -1086,7 +1085,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Story:** As a member, I want to report an activity or profile that seems inappropriate, so that moderators can look at it.
 - **Acceptance criteria**
   1. **Report** in the overflow menu opens a short form:
-     - Reason chips: Inappropriate, Spam / commercial, Unsafe, Not faculty, Other.
+     - Reason chips: Inappropriate, Spam / commercial, Unsafe, Other.
      - An optional note (up to 500 characters).
   2. Submitting shows "Thanks, a moderator will review this." The reporter's identity is visible only to moderators.
   3. A member can report the same item only once. They are limited to 10 reports per day.
@@ -1211,13 +1210,13 @@ Every phase ends in a production release that is usable on its own. If funding o
 #### SRCH-03 · More filters
 
 - **Role:** Member · **Priority:** Should · **Phase:** 2
-- **Story:** As a member, I want to filter by online or in person, has spots, free, and family-friendly, so that I see only what fits me.
+- **Story:** As a member, I want to filter by has spots, free, and family-friendly, so that I see only what fits me.
 - **Acceptance criteria**
-  1. A **More filters** bottom sheet offers: In person / Online / Any; Has spots left; Free; and curated tags (Family-friendly, Beginner-friendly, Accessible).
+  1. A **More filters** bottom sheet offers: Has spots left; Free; and curated tags (Family-friendly, Beginner-friendly, Accessible).
   2. The active filter count shows on the button. **Clear all** is always visible.
   3. All filters are reflected in the URL.
 - **Dependencies:** RSVP-04 (for "has spots"); curated tags.
-- **Notes / edge cases:** Tags are a curated list managed by admins. Free-form tags are Won't Have Yet.
+- **Notes / edge cases:** Tags are a curated list managed by admins. Free-form tags are Won't Have Yet. An In person / Online filter returns if online activities do (ADR-017).
 
 #### RSVP-04 · Capacity and "Full"
 
@@ -1282,7 +1281,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Role:** Member (attendee) · **Priority:** Must · **Phase:** 2
 - **Story:** As an attendee, I want to know when the time, date, or place changes, so that I show up at the right place and time.
 - **Acceptance criteria**
-  1. When the start, end, place, online link, or private details change, all `going` and `maybe` attendees (except the editor) get an `activity_changed` notification with before and after values.
+  1. When the start, end, place, or private details change, all `going` and `maybe` attendees (except the editor) get an `activity_changed` notification with before and after values.
   2. Edits within 10 minutes collapse into one unread notification per recipient (`dedupe_key`).
   3. Description-only edits do not notify.
   4. Notifications are created in the same database transaction as the edit.
@@ -3473,23 +3472,29 @@ Likelihood (L) and impact (I) use H, M, and L.
 | R-TECH-1    | **Platform changes** (Astro or adapter major versions, Supabase key deprecation, pricing)                     | M   | M   | Pin versions; Dependabot with grouped updates; read changelogs; new-style Supabase keys from day one; a cost review each semester                                                                                                                                                                       |
 | R-TECH-2    | **Time zone and daylight saving bugs** (reminders, "this weekend", recurrence)                                | M   | M   | Store `timestamptz` plus an IANA time zone; compute in the database or a single helper module; unit-test the daylight saving dates; show the time zone when it differs from the viewer's                                                                                                                |
 
-### 13.2 Decision log (initial ADRs)
+### 13.2 Decision log
 
-| ADR | Decision                                                                                                                    | Status                                           |
-| --- | --------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
-| 001 | `output: 'server'`, with public pages prerendered                                                                           | Accepted                                         |
-| 002 | A single Cloudflare Worker hosts the Astro app; no separate API service; Service Bindings if a second Worker is ever needed | Accepted                                         |
-| 003 | Server-only Supabase access with the user's JWT; no Supabase client in the browser; `HttpOnly` cookies                      | Accepted                                         |
-| 004 | Writes to rule-bearing tables only through `SECURITY DEFINER` RPC functions; direct updates only for self-owned columns     | Accepted                                         |
-| 005 | Four-layer eligibility gate; roles read from the database, not JWT claims                                                   | Accepted. **Internal consent screen pending IT** |
-| 006 | `pg_cron` for data jobs; Cloudflare Cron and Queues only for external delivery (Phase 5)                                    | Accepted                                         |
-| 007 | Notification model: per-recipient rows, typed payload snapshots, one creation path, deliveries per channel later            | Accepted                                         |
-| 008 | Denormalized RSVP counts maintained only by `rsvp()`, with a nightly reconciliation                                         | Accepted                                         |
-| 009 | Previews share the staging database; Supabase Branching deferred                                                            | Accepted, revisit at Phase 3                     |
-| 010 | Basic RSVP and minimal moderation move into Phase 1                                                                         | **Proposed. Board to confirm**                   |
-| 011 | No UI framework by default; vanilla progressive enhancement, with Preact only if needed                                     | Accepted                                         |
-| 012 | GitHub Actions (not Cloudflare's Git integration) for CI/CD, to control the migrate-then-deploy order                       | Accepted                                         |
-| 013 | Staging holds only synthetic data; the pilot runs in production                                                             | Accepted                                         |
+Each ADR has its own file in [`docs/adr/`](adr/README.md). ADRs 001 to 013 are the initial decisions. ADRs 014 to 017 record the Phase 0 answers to the [unresolved questions](#unresolved-questions-to-answer-before-development).
+
+| ADR | Decision                                                                                                                    | Status                                                         |
+| --- | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- |
+| 001 | `output: 'server'`, with public pages prerendered                                                                           | Accepted                                                       |
+| 002 | A single Cloudflare Worker hosts the Astro app; no separate API service; Service Bindings if a second Worker is ever needed | Accepted                                                       |
+| 003 | Server-only Supabase access with the user's JWT; no Supabase client in the browser; `HttpOnly` cookies                      | Accepted                                                       |
+| 004 | Writes to rule-bearing tables only through `SECURITY DEFINER` RPC functions; direct updates only for self-owned columns     | Accepted                                                       |
+| 005 | Four-layer eligibility gate; roles read from the database, not JWT claims                                                   | Accepted. External consent screen, no IT approval (2026-10-29) |
+| 006 | `pg_cron` for data jobs; Cloudflare Cron and Queues only for external delivery (Phase 5)                                    | Accepted                                                       |
+| 007 | Notification model: per-recipient rows, typed payload snapshots, one creation path, deliveries per channel later            | Accepted                                                       |
+| 008 | Denormalized RSVP counts maintained only by `rsvp()`, with a nightly reconciliation                                         | Accepted                                                       |
+| 009 | Previews share the staging database; Supabase Branching deferred                                                            | Accepted, revisit at Phase 3                                   |
+| 010 | Basic RSVP and minimal moderation move into Phase 1                                                                         | Accepted (2026-10-29)                                          |
+| 011 | No UI framework by default; vanilla progressive enhancement, with Preact only if needed                                     | Accepted                                                       |
+| 012 | GitHub Actions (not Cloudflare's Git integration) for CI/CD, to control the migrate-then-deploy order                       | Accepted                                                       |
+| 013 | Staging holds only synthetic data; the pilot runs in production                                                             | Accepted                                                       |
+| 014 | Replace the Node adapter and Docker Compose Postgres with Cloudflare Workers and Supabase; free tiers until launch          | Accepted. Production plan open until 2026-11-13                |
+| 015 | Any `byui.edu` account can join; no faculty attestation or allow-list                                                       | Accepted                                                       |
+| 016 | FABA runs independently of BYU-Idaho: no IT, branding, risk-management, or policy approvals                                 | Accepted                                                       |
+| 017 | Phase 1 serves in-person Rexburg activities only; no "Online" activities or "based in" field                                | Accepted                                                       |
 
 ---
 
@@ -3610,16 +3615,29 @@ RSVP, moderation, profile editing, and account deletion are the **next** iterati
 
 ## Unresolved questions to answer before development
 
-Each question has a **recommended default** so work can begin. Confirm or override it in Phase 0.
+Each question had a **recommended default** so work could begin. Phase 0 answered them on 2026-10-29 (FND-02), and the decisions are recorded as ADRs in [`docs/adr/`](adr/README.md). Questions 4 and 7 still have parts open, each with an owner and a date.
 
 1. **Who else has `@byui.edu` Google accounts?** If students or staff do, is a faculty attestation plus moderation acceptable, or does the board want a manually maintained allow-list? _Default: attestation plus moderation._
+   - **Answer:** every `byui.edu` email has a Google account, and any of them can join. There's no faculty attestation and no allow-list, because students who take part as teaching assistants and adjuncts are welcome ([ADR-015](adr/015-any-byui-account-can-join.md)).
 2. **Will BYU-Idaho IT allow this OAuth app,** and would they host it as an **Internal** Google app (the strongest domain restriction)? _Default: an External app with basic scopes. Ask IT to allow-list the client ID._
+   - **Answer:** FABA owns an External app with basic scopes, and IT isn't asked. Accounts outside `byui.edu` are refused at sign-up ([ADR-005](adr/005-eligibility-gate.md), [ADR-016](adr/016-independent-of-byu-idaho.md)).
 3. **What university approvals are needed** for the FABA name, any logo use, the domain, and the "unofficial" positioning, and who is the institutional contact? _Default: an independent domain, no university marks, and a prominent disclaimer._
+   - **Answer:** none. An independent domain, no university marks, a prominent disclaimer, and no institutional contact ([ADR-016](adr/016-independent-of-byu-idaho.md)).
 4. **Who owns FABA operationally?** That means the product owner, 2 or more technical owners, admins, and at least 3 moderators, plus the expected report response time. _Default: 2 admins, 3 moderators, 2 business days._
+   - **Answer:** FABA board members own it. The board names the admins and moderators from its own members and sets the report response time. Zack Alvey is the technical owner.
+   - **Open:** the names and the response time. Owner: Zack Alvey, with the board, by 2026-11-13. Until then, plan for 2 business days.
 5. **How many part-time faculty are remote or online-only,** and should regions beyond Rexburg be first-class? _Default: "Online" activities and "based in" ship in Phase 1. Revisit regions after Phase 2 data._
+   - **Answer:** Rexburg only for now. No "Online" activities and no "based in" field in Phase 1. Revisit when remote faculty ask, or after Phase 2 data ([ADR-017](adr/017-rexburg-only-for-now.md)).
 6. **Is a participation disclaimer enough** for outdoor and sports activities, or does university risk management require more? _Default: a disclaimer on the guidelines and on Outdoors and Sports pages. No waivers._
+   - **Answer:** the default. A disclaimer only, with no waivers and no risk-management review ([ADR-016](adr/016-independent-of-byu-idaho.md)).
 7. **Who pays for hosting** (about $30 to $40 a month, more for email and SMS later), and whose payment method and organization owns the accounts? _Default: the FABA board budget, with organization-owned accounts._
+   - **Answer:** free tiers for local, preview, and staging until launch ([ADR-014](adr/014-cloudflare-and-supabase-stack.md)).
+   - **Open:** who pays for production, and which plan it starts on. Owner: Zack Alvey, with the board, by 2026-11-13. This must be settled before the pilot, which runs in production.
 8. **Who is building FABA, how many hours per week, and what is the target launch?** _Default: 2 developers, launching Phase 1 at the start of the next semester._
+   - **Answer:** launch Phase 1 as soon as possible, during Fall 2026. The team and hours aren't recorded here.
 9. **Should spouses and families be part of activities?** This affects the priority of guest counts and the "Family" category. _Default: guest counts in Phase 2, Family category from Phase 1._
+   - **Answer:** the default. The Family category from Phase 1, and guest counts in Phase 2.
 10. **Are there institutional privacy or data-retention policies** the privacy notice and the retention table (9.14) must follow? _Default: the retention table in Section 9.14, with self-service deletion._
+    - **Answer:** the default. The retention table in Section 9.14 with self-service deletion. No institutional policy applies ([ADR-016](adr/016-independent-of-byu-idaho.md)).
 11. **Should the board approve the Phase 1 scope change** (basic RSVP and minimal moderation moved earlier, ADR-010)? _Default: yes._
+    - **Answer:** yes. Approved on 2026-10-29 ([ADR-010](adr/010-rsvp-and-moderation-in-phase-1.md)).
