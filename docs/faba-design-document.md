@@ -358,7 +358,8 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Features included**
 
-- Stakeholder interviews: the FABA board plus 6 to 10 faculty, including at least 3 part-time and 2 remote.
+- **Dropped:** stakeholder interviews with 6 to 10 faculty. Zack Alvey acts as the faculty expert for FABA's needs and requirements instead (FND-01).
+- A pilot group of about 25 faculty, recruited for the Phase 1 soft launch (FND-11).
 - Answers to the [unresolved questions](#unresolved-questions-to-answer-before-development), recorded as decisions in `docs/adr/`.
 - Confirmation with BYU-Idaho IT that `@byui.edu` Google Workspace accounts can authorize a third-party OAuth app (see risk R-AUTH-2).
 - Repository setup: Cloudflare adapter, linting, formatting, type checking, test runners, and GitHub Actions.
@@ -369,7 +370,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** any user-facing feature beyond sign-in and a placeholder home; visual polish.
 
-**User stories:** `FND-01` to `FND-10`. `FND-10` covers skeleton versions of `AUTH-01` to `AUTH-03`.
+**User stories:** `FND-02` to `FND-11`. `FND-01` was dropped. `FND-10` covers skeleton versions of `AUTH-01` to `AUTH-03`.
 
 **Acceptance criteria**
 
@@ -677,13 +678,14 @@ Every phase ends in a production release that is usable on its own. If funding o
 - Phase 0 stories are for the people building and running FABA (the FABA board, technical owners, and developers). They set up the project rather than add member features.
 - Phase 1 and 2 stories are written at implementation detail. Phase 3 and later stories are intentionally lighter, and should be refined during that phase's kickoff using what the team has learned.
 - Phase 6 stories are candidates. Prioritize them each semester using metrics and costs.
+- A dropped story keeps its ID and is marked **Priority:** Dropped, with a **Status** line giving the date and the reason. Its issue is closed as not planned.
 - "Member" means an authenticated, eligible, non-suspended faculty member who has accepted the guidelines.
 
 ### 6.2 Story index
 
 | Area                   | Phase 0          | Phase 1            | Phase 2                     | Phase 3                            | Phase 4            | Phase 5              | Phase 6                  |
 | ---------------------- | ---------------- | ------------------ | --------------------------- | ---------------------------------- | ------------------ | -------------------- | ------------------------ |
-| Foundation             | FND-01 to FND-10 |                    |                             |                                    |                    |                      |                          |
+| Foundation             | FND-02 to FND-11 |                    |                             |                                    |                    |                      |                          |
 | Auth                   |                  | AUTH-01 to AUTH-05 |                             |                                    |                    |                      |                          |
 | Profiles               |                  | PROF-01 to PROF-05 |                             |                                    |                    |                      |                          |
 | Public pages           |                  | INFO-01            |                             |                                    |                    |                      |                          |
@@ -704,14 +706,14 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### FND-01 · Hear from faculty before building
 
-- **Role:** FABA board · **Priority:** Should · **Phase:** 0
+- **Role:** FABA board · **Priority:** Dropped · **Phase:** 0
+- **Status:** Dropped on 2026-10-29. Zack Alvey is already clear on the need for FABA and acts as the faculty expert for its needs and requirements, so there are no faculty interviews. Pilot-group recruitment moved to FND-11.
 - **Story:** As the FABA board, I want to hear from a mix of faculty before the team builds anything, so that the MVP fits how faculty actually find and organize activities.
 - **Acceptance criteria**
   1. 6 to 10 faculty are interviewed, including at least 3 part-time and 2 remote, about how they find activities today, what gets in the way, and which devices they use.
   2. Synthesis notes are shared with the team, and the top insights are reflected in the Phase 1 backlog.
-  3. A pilot cohort of about 25 faculty (full-time, part-time, and remote) is recruited, with names and consent recorded.
 - **Dependencies:** board sponsorship.
-- **Notes / edge cases:** Iteration 1 tasks UX-1 and PRD-4. The interviews also inform open questions 5 and 9.
+- **Notes / edge cases:** Iteration 1 task UX-1. The interviews were also meant to inform open questions 5 and 9, which are now settled under FND-02 without them.
 
 #### FND-02 · Settle the open questions
 
@@ -722,7 +724,7 @@ Every phase ends in a production release that is usable on its own. If funding o
   2. Decisions are recorded as ADRs in `docs/adr/`, including rendering mode, data access, environments, and auth.
   3. The board confirms or rejects the Phase 1 scope change (ADR-010).
   4. The Phase 1 backlog is estimated and prioritized.
-- **Dependencies:** FND-01 (for open questions 5 and 9).
+- **Dependencies:** none.
 - **Notes / edge cases:** Iteration 1 tasks PRD-1 and PRD-2. Each question has a recommended default, so work can start before every answer is in.
 
 #### FND-03 · Prove byui.edu accounts can sign in
@@ -746,7 +748,7 @@ Every phase ends in a production release that is usable on its own. If funding o
   1. Wireframes cover Landing, Welcome, Not eligible, Discover, Activity detail, Create/Edit, and Me.
   2. 5 faculty test them on phones against the tap budget (Section 7.2).
   3. Issues found are logged, and the wireframes are revised.
-- **Dependencies:** FND-01.
+- **Dependencies:** none.
 - **Notes / edge cases:** Iteration 1 tasks UX-2 and UX-3. Design tokens, component specs, and the copy deck (UX-4 to UX-6) build on the revised wireframes.
 
 #### FND-05 · Approve the guidelines, privacy notice, and disclaimer
@@ -820,6 +822,17 @@ Every phase ends in a production release that is usable on its own. If funding o
   3. The skeleton ships through the full pipeline (FND-08).
 - **Dependencies:** FND-03; FND-08; FND-09.
 - **Notes / edge cases:** This is the skeleton version of AUTH-01 to AUTH-03. The full stories ship in Phase 1.
+
+#### FND-11 · Recruit the pilot group
+
+- **Role:** FABA board · **Priority:** Should · **Phase:** 0
+- **Story:** As the FABA board, I want a pilot group of faculty lined up before launch, so that real users try FABA for 2 weeks before it is announced.
+- **Acceptance criteria**
+  1. About 25 faculty are recruited: board members plus volunteers, including full-time, part-time, and remote faculty.
+  2. Names and consent to participate are recorded.
+  3. The group includes at least one assistive-technology user, if possible.
+- **Dependencies:** none.
+- **Notes / edge cases:** Moved from FND-01 when the interviews were dropped. Iteration 1 task PRD-4. The pilot runs in production as a quiet soft launch (ADR-013), and Phase 1 acceptance requires 2 weeks of pilot use with no Severity 1 issues open.
 
 ### 6.4 Phase 1 stories
 
@@ -3526,14 +3539,14 @@ RSVP, moderation, profile editing, and account deletion are the **next** iterati
 
 ### UX tasks
 
-| ID   | Task                                                                                                                                 | Size | Done when                                                       |
-| ---- | ------------------------------------------------------------------------------------------------------------------------------------ | ---- | --------------------------------------------------------------- |
-| UX-1 | Interview 6 to 10 faculty (at least 3 part-time and 2 remote): how they find activities today, their barriers, what devices they use | M    | Synthesis notes, with top insights fed into the backlog         |
-| UX-2 | Low-fidelity wireframes: Landing, Welcome, Not eligible, Discover, Activity detail, Create/Edit, Me                                  | M    | Reviewed by the team                                            |
-| UX-3 | Test the wireframes on phones with 5 faculty against the tap budget (7.2)                                                            | S    | Issues logged, wireframes revised                               |
-| UX-4 | Design tokens: colors (light and dark, contrast-checked), type scale, spacing, radius, category colors and icons                     | M    | `tokens.css` spec delivered                                     |
-| UX-5 | Component specs: ActivityCard, Chip, BottomNav, Sheet, Toast, EmptyState, form field and error                                       | M    | Specs include states (default, pressed, disabled, focus, error) |
-| UX-6 | Copy deck v1: buttons, empty states, errors, Not eligible, Welcome, footer disclaimer                                                | S    | Copy file reviewed by the board                                 |
+| ID   | Task                                                                                                                                                           | Size | Done when                                                       |
+| ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---- | --------------------------------------------------------------- |
+| UX-1 | **Dropped** (see FND-01). Interview 6 to 10 faculty (at least 3 part-time and 2 remote): how they find activities today, their barriers, what devices they use | —    | —                                                               |
+| UX-2 | Low-fidelity wireframes: Landing, Welcome, Not eligible, Discover, Activity detail, Create/Edit, Me                                                            | M    | Reviewed by the team                                            |
+| UX-3 | Test the wireframes on phones with 5 faculty against the tap budget (7.2)                                                                                      | S    | Issues logged, wireframes revised                               |
+| UX-4 | Design tokens: colors (light and dark, contrast-checked), type scale, spacing, radius, category colors and icons                                               | M    | `tokens.css` spec delivered                                     |
+| UX-5 | Component specs: ActivityCard, Chip, BottomNav, Sheet, Toast, EmptyState, form field and error                                                                 | M    | Specs include states (default, pressed, disabled, focus, error) |
+| UX-6 | Copy deck v1: buttons, empty states, errors, Not eligible, Welcome, footer disclaimer                                                                          | S    | Copy file reviewed by the board                                 |
 
 ### Database tasks
 
