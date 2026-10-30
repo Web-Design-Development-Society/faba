@@ -11,6 +11,11 @@
     "preview": "astro preview",
     "astro": "astro",
     "setup:dev-vars": "node scripts/setup-dev-vars.mjs",
+    "format:check": "prettier --check .",
+    "typecheck": "astro check",
+    "test": "vitest run",
+    "db:test": "supabase test db",
+    "db:types": "supabase gen types typescript --local --schema public > src/lib/db.types.ts && prettier --write --log-level warn src/lib/db.types.ts",
     "prepare": "husky"
   },
   "dependencies": {
@@ -18,6 +23,7 @@
     "astro": "^7.4.2"
   },
   "devDependencies": {
+    "@astrojs/check": "^0.9.12",
     "@types/node": "^24.19.2",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",
@@ -25,6 +31,8 @@
     "prettier-plugin-astro": "^1.1.1",
     "prettier-plugin-sql-cst": "^0.23.1",
     "supabase": "^2.122.0",
+    "typescript": "^6.0.3",
+    "vitest": "^5.0.5",
     "wrangler": "^4.156.0"
   },
   "allowScripts": {

@@ -16,8 +16,9 @@ export default defineConfig({
   session: false,
   prefetch: true,
   env: {
-    // Fail at startup, not on first use, when a variable is missing or invalid.
-    validateSecrets: true,
+    // Secrets are checked when src/middleware.ts imports astro:env/server, so a missing one fails
+    // every request. Checking them at build time too would break CI builds, which have no secrets.
+    validateSecrets: false,
     // Every variable FABA reads. Non-secret values live in wrangler.jsonc, and secrets in
     // .dev.vars locally (see .dev.vars.example).
     schema: {
