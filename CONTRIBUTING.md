@@ -105,6 +105,19 @@ Every pull request runs these checks in GitHub Actions (`.github/workflows/ci.ym
 
 Use the pull request template, and keep pull requests to about 400 changed lines. Changes to the database, auth, middleware, environment settings or CI request a review from the technical owners in `.github/CODEOWNERS`.
 
+## Deployments
+
+| Environment | Deploys                                               | Address                                                                        |
+| ----------- | ----------------------------------------------------- | ------------------------------------------------------------------------------ |
+| Preview     | On every push to a pull request                       | `https://pr-<number>-faba-staging.zack-alvey.workers.dev`, commented on the PR |
+| Staging     | On every merge to `main`                              | <https://faba-staging.zack-alvey.workers.dev>                                  |
+| Production  | Not set up yet. A release tag will deploy it (FND-08) |                                                                                |
+
+- **Staging** (`.github/workflows/deploy-staging.yml`) pushes new migrations to the staging Supabase project first, then deploys the `faba-staging` Worker, then runs `scripts/smoke-test.mjs` against it.
+- **Previews** (`.github/workflows/preview.yml`) are versions of the `faba-staging` Worker, so they use the staging database. Migrations in a pull request don't reach its preview, so test them locally. Pull requests from forks and Dependabot get no preview.
+- Staging holds only synthetic data. Its free Supabase project pauses after a week without activity. Restore it from the Supabase dashboard.
+- To set a staging secret, run `npx wrangler secret put <NAME> --name faba-staging`. GitHub's `staging` environment holds the secrets the workflows use.
+
 ## Database changes
 
 - Migrations are forward-only SQL files in `supabase/migrations/`. Never edit one that's already on `main`. Add a new one.
@@ -115,7 +128,7 @@ Use the pull request template, and keep pull requests to about 400 changed lines
 ## Environment variables
 
 - Every variable is declared in `env.schema` in `astro.config.mjs`. If one is missing or invalid, every request fails with an error naming it.
-- Non-secret values live in the `vars` of `wrangler.jsonc`. Secrets live in `.dev.vars` locally, and in `wrangler secret put` for deployed environments. Never commit `.dev.vars` or `supabase/.env`.
+- Non-secret values live in the `vars` of `wrangler.jsonc`, with a separate block for each deployed environment. Secrets live in `.dev.vars` locally, and in `wrangler secret put` for deployed environments. Never commit `.dev.vars` or `supabase/.env`.
 - To add a variable, add it to `env.schema`, to `wrangler.jsonc` or `.dev.vars.example`, and to section 11.10 of the design document.
 - **Google sign-in locally** needs a Google OAuth client for development. Put its ID and secret in `supabase/.env`, add `http://127.0.0.1:54331/auth/v1/callback` as an authorized redirect URI, then restart Supabase.
 

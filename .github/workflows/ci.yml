@@ -1,6 +1,6 @@
 # Checks every pull request and every push to main (FND-07, design document section 11.5).
-# The jobs run in parallel. End-to-end and accessibility tests (Playwright with axe) and preview
-# deploys come later.
+# The jobs run in parallel. End-to-end and accessibility tests (Playwright with axe) come later.
+# preview.yml deploys each pull request, and deploy-staging.yml deploys main.
 name: CI
 
 on:
