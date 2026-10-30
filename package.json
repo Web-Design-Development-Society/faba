@@ -16,7 +16,8 @@
     "test": "vitest run",
     "db:test": "supabase test db",
     "db:types": "supabase gen types typescript --local --schema public > src/lib/db.types.ts && prettier --write --log-level warn src/lib/db.types.ts",
-    "prepare": "husky"
+    "prepare": "husky",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.4.3",
@@ -26,6 +27,8 @@
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.12",
+    "@axe-core/playwright": "^4.14.0",
+    "@playwright/test": "^1.64.1",
     "@types/node": "^26.6.5",
     "husky": "^9.1.7",
     "lint-staged": "^17.6.0",

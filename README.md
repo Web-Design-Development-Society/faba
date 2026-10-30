@@ -24,7 +24,10 @@ Inside of your Astro project, you'll see the following folders and files:
 │   └── seed/              local test data, and sample data for staging
 ├── astro.config.mjs       Astro settings and env.schema
 ├── wrangler.jsonc         Cloudflare Worker settings
-├── tests/unit/            Vitest
+├── tests/
+│   ├── e2e/               Playwright with axe
+│   └── unit/              Vitest
+├── playwright.config.ts   end-to-end test settings
 └── package.json
 ```
 
