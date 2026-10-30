@@ -65,7 +65,7 @@ FABA uses ports 54330 to 54339 instead of Supabase's default 54320 to 54329, so 
 
 ## Test data
 
-`supabase/seed.sql` creates five personas. Each one signs in with the password `faba-local-dev`. There's no sign-in page yet (Iteration 1 task AU-4).
+`supabase/seed.sql` creates five personas, each with the password `faba-local-dev`. FABA itself offers only Google sign-in, so the passwords are for automated tests and the Supabase API. To sign in to FABA locally, set up Google sign-in (see [Environment variables](#environment-variables)) and use your own byui.edu account.
 
 | Email                     | Name             | Role      | Notes                                   |
 | ------------------------- | ---------------- | --------- | --------------------------------------- |

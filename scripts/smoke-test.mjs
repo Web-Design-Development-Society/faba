@@ -1,7 +1,6 @@
 // Checks that a deployed FABA responds (FND-08, design document section 11.7).
 // Usage: node scripts/smoke-test.mjs [url]. Without a URL, it checks SITE_URL from the last build.
-// The checks that protected routes redirect to sign-in and that the Google redirect starts come
-// with those routes (FND-10, AUTH-01).
+// None of the checks signs in.
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -26,7 +25,38 @@ const checks = [
     path: '/api/health',
     test: async (response) => response.status === 200 && (await response.json()).status === 'ok',
   },
+  {
+    name: 'a page for members redirects to sign-in',
+    path: '/discover',
+    test: (response) => response.status === 302 && location(response)?.pathname === '/auth/login',
+  },
+  {
+    name: 'signing in redirects to Google through Supabase',
+    path: '/auth/login',
+    init: {
+      method: 'POST',
+      // Astro refuses form posts from other sites, so this one says it comes from FABA.
+      headers: {
+        origin: new URL(baseUrl).origin,
+        'content-type': 'application/x-www-form-urlencoded',
+      },
+      body: 'next=%2Fdiscover',
+    },
+    test: (response) => {
+      const target = location(response);
+      return (
+        response.status === 303 &&
+        target?.pathname === '/auth/v1/authorize' &&
+        target.searchParams.get('provider') === 'google'
+      );
+    },
+  },
 ];
+
+function location(response) {
+  const value = response.headers.get('location');
+  return value ? new URL(value, response.url) : undefined;
+}
 
 let failed = false;
 for (const check of checks) {
@@ -34,7 +64,7 @@ for (const check of checks) {
   let result = 'no response';
   for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
-      const response = await fetch(url, { redirect: 'manual' });
+      const response = await fetch(url, { ...check.init, redirect: 'manual' });
       if (await check.test(response)) {
         result = 'ok';
         break;
