@@ -70,7 +70,7 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - name: Start Postgres, apply migrations from zero, and load seed.sql
+      - name: Start Postgres, apply migrations from zero, and load the local seed
         run: npx supabase db start
       - name: Run pgTAP tests
         run: npm run db:test

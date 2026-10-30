@@ -1,0 +1,42 @@
+# Loads synthetic sample data into staging: five sample accounts that can't sign in, and 50
+# activities over the next 6 weeks (FND-10, design document section 11.7). Run it from the Actions
+# tab. Running it again gives the sample activities fresh dates and leaves everything else alone.
+name: Seed staging
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Shares the deploy's group, so it never runs while a deploy is pushing migrations.
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+env:
+  # Git hooks aren't needed in CI.
+  HUSKY: 0
+
+jobs:
+  seed:
+    name: Seed staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: staging
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Load the sample accounts and activities
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          npx supabase link --project-ref "$SUPABASE_PROJECT_REF"
+          npx supabase db query --linked --file supabase/seed/staging_accounts.sql
+          npx supabase db query --linked --file supabase/seed/sample_data.sql
