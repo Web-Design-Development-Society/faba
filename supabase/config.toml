@@ -70,7 +70,7 @@ schema_paths = []
 enabled = true
 # Specifies an ordered list of seed files to load during db reset.
 # Supports glob patterns relative to supabase directory: "./seeds/*.sql"
-sql_paths = ["./seed.sql"]
+sql_paths = ["./seed/local_accounts.sql", "./seed/sample_data.sql"]
 
 [db.network_restrictions]
 # Enable management of network restrictions.
@@ -225,8 +225,8 @@ web3 = 30
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.
-# On locally so the test personas in seed.sql can sign in with a password: turning it off turns
-# email sign-in off too. Members use Google, and hosted projects keep email off (FND-09).
+# On locally so the test personas in seed/local_accounts.sql can sign in with a password: turning
+# it off turns email sign-in off too. Members use Google, and hosted projects keep email off (FND-09).
 enable_signup = true
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.

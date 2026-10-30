@@ -21,7 +21,7 @@ Inside of your Astro project, you'll see the following folders and files:
 ├── supabase/
 │   ├── config.toml        local Supabase settings
 │   ├── migrations/        database schema, applied in order
-│   └── seed.sql           local test data
+│   └── seed/              local test data, and sample data for staging
 ├── astro.config.mjs       Astro settings and env.schema
 ├── wrangler.jsonc         Cloudflare Worker settings
 ├── tests/unit/            Vitest
