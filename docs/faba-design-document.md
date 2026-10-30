@@ -675,6 +675,7 @@ Every phase ends in a production release that is usable on its own. If funding o
   - **Should:** important, but the phase can ship without it if time runs out. It then moves to the next phase.
   - **Could:** include it only if it is cheap.
   - **Won't Have Yet:** explicitly out of scope for now.
+- **Size** estimates the work for one developer, including the database, the page, and the tests. It uses the scale from Section 14: **S** is at most half a day, **M** is 1 to 2 days, and **L** is 3 to 5 days. Stories are sized at their phase's kickoff, starting with Phase 1.
 - Phase 0 stories are for the people building and running FABA (the FABA board, technical owners, and developers). They set up the project rather than add member features.
 - Phase 1 and 2 stories are written at implementation detail. Phase 3 and later stories are intentionally lighter, and should be refined during that phase's kickoff using what the team has learned.
 - Phase 6 stories are candidates. Prioritize them each semester using metrics and costs.
@@ -836,9 +837,75 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 ### 6.4 Phase 1 stories
 
+#### Phase 1 build order
+
+Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: each group can be demonstrated on its own, and each story comes after the stories it depends on. Totals count S as 0.5, M as 1.5, and L as 4 developer-days.
+
+**A. First slice: sign in, post, and browse (about 20.5 days).** This matches the Iteration 1 exit criteria in Section 14.
+
+| #   | Story                                                                                              | Priority | Size |
+| --- | -------------------------------------------------------------------------------------------------- | -------- | ---- |
+| 1   | Shared data access (not a story): Supabase server client, middleware, RLS helpers, session context | —        | L    |
+| 2   | Shared app shell (not a story): layouts, bottom navigation, base styles                            | —        | M    |
+| 3   | AUTH-01 · Sign in with Google                                                                      | Must     | M    |
+| 4   | AUTH-02 · Reject ineligible accounts                                                               | Must     | M    |
+| 5   | PROF-01 · Welcome and community guidelines                                                         | Must     | M    |
+| 6   | AUTH-03 · Stay signed in, and sign out                                                             | Must     | S    |
+| 7   | AUTH-04 · Return to where I was going                                                              | Must     | S    |
+| 8   | ACT-03 · Create an activity                                                                        | Must     | L    |
+| 9   | ACT-02 · View activity details                                                                     | Must     | M    |
+| 10  | ACT-01 · Browse upcoming activities                                                                | Must     | L    |
+
+**B. Participation (about 12.5 days)**
+
+| #   | Story                                  | Priority | Size |
+| --- | -------------------------------------- | -------- | ---- |
+| 11  | RSVP-01 · Say "I'm in"                 | Must     | L    |
+| 12  | RSVP-02 · Change or withdraw my RSVP   | Must     | S    |
+| 13  | RSVP-03 · See who's going              | Must     | M    |
+| 14  | ACT-04 · Edit my activity              | Must     | M    |
+| 15  | ACT-05 · Cancel or restore my activity | Must     | M    |
+| 16  | ACT-06 · Filter by category            | Must     | S    |
+| 17  | HIST-02 · My activities                | Must     | M    |
+| 18  | PROF-02 · Edit my profile              | Must     | M    |
+
+**C. Safety and privacy (about 12.5 days)**
+
+| #   | Story                                  | Priority | Size |
+| --- | -------------------------------------- | -------- | ---- |
+| 19  | MOD-05 · Automatic audit log           | Must     | S    |
+| 20  | PROF-03 · View a member's profile      | Must     | M    |
+| 21  | MOD-01 · Report content                | Must     | M    |
+| 22  | MOD-02 · Review the reports queue      | Must     | M    |
+| 23  | MOD-03 · Hide or unhide an activity    | Must     | M    |
+| 24  | MOD-04 · Suspend or reinstate a member | Must     | M    |
+| 25  | MOD-06 · Grant or revoke moderator     | Must     | S    |
+| 26  | PROF-05 · Delete my account            | Must     | L    |
+
+**D. Launch readiness (about 3 days)**
+
+| #   | Story                                  | Priority | Size |
+| --- | -------------------------------------- | -------- | ---- |
+| 27  | INFO-01 · Public pages and disclaimers | Must     | M    |
+| 28  | OPS-01 · Launch runbooks               | Must     | M    |
+
+**E. Should, if time allows (about 2 days)**
+
+| #   | Story                                               | Priority | Size |
+| --- | --------------------------------------------------- | -------- | ---- |
+| 29  | PROF-04 · Control my email visibility               | Should   | S    |
+| 30  | AUTH-05 · Handle email changes and lost eligibility | Should   | M    |
+
+**Totals:** about 48.5 developer-days for the Must stories and the shared work, and about 50.5 with the Should stories. For 2 full-time developers, that is about 5 weeks, in line with the roadmap's 5 to 6 weeks for Phase 1.
+
+**Notes:**
+
+- PROF-03 and PROF-05 moved from Should to Must on 2026-10-29. PROF-03 is where members report a profile (MOD-01). PROF-05 is the self-service deletion promised by the answer to open question 10.
+- PROF-01 can start with draft guidelines, and INFO-01 needs the approved text (FND-05). AUTH-01 needs the Google OAuth client from FND-03.
+
 #### AUTH-01 · Sign in with Google
 
-- **Role:** Unauthenticated visitor · **Priority:** Must · **Phase:** 1
+- **Role:** Unauthenticated visitor · **Priority:** Must · **Phase:** 1 · **Size:** M
 - **Story:** As a faculty member, I want to sign in with my BYU-Idaho Google account, so that I don't need another password.
 - **Acceptance criteria**
   1. The landing page shows one primary button, **Continue with Google**. No other sign-in methods are offered in staging or production.
@@ -852,7 +919,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### AUTH-02 · Reject ineligible accounts
 
-- **Role:** Unauthenticated visitor · **Priority:** Must · **Phase:** 1
+- **Role:** Unauthenticated visitor · **Priority:** Must · **Phase:** 1 · **Size:** M
 - **Story:** As the FABA board, I want only `@byui.edu` Google accounts to get in, so that FABA stays within the BYU-Idaho community.
 - **Acceptance criteria**
   1. The before-user-created hook rejects any email whose domain is not exactly `byui.edu` (case-insensitive). No `auth.users` or `profiles` row is created.
@@ -866,7 +933,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### AUTH-03 · Stay signed in, and sign out
 
-- **Role:** Member · **Priority:** Must · **Phase:** 1
+- **Role:** Member · **Priority:** Must · **Phase:** 1 · **Size:** S
 - **Story:** As a member, I want to stay signed in on my phone and be able to sign out, so that FABA is one tap away but still under my control.
 - **Acceptance criteria**
   1. Sessions refresh silently in middleware. A member who uses FABA at least every 30 days is not asked to sign in again.
@@ -879,7 +946,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### AUTH-04 · Return to where I was going
 
-- **Role:** Unauthenticated visitor · **Priority:** Must · **Phase:** 1
+- **Role:** Unauthenticated visitor · **Priority:** Must · **Phase:** 1 · **Size:** S
 - **Story:** As someone tapping a shared FABA link while signed out, I want to land on that page after signing in, so that I don't have to find it again.
 - **Acceptance criteria**
   1. The protected route redirects to `/auth/login?next=<path>`.
@@ -890,7 +957,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### AUTH-05 · Handle email changes and lost eligibility
 
-- **Role:** Member · **Priority:** Should · **Phase:** 1
+- **Role:** Member · **Priority:** Should · **Phase:** 1 · **Size:** M
 - **Story:** As a member whose school email changes, I want to keep my FABA account, so that my activities and RSVPs stay with me.
 - **Acceptance criteria**
   1. Accounts are keyed by the Supabase user ID (tied to the Google subject ID), never by email address.
@@ -903,7 +970,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### PROF-01 · Welcome and community guidelines
 
-- **Role:** Member (first sign-in) · **Priority:** Must · **Phase:** 1
+- **Role:** Member (first sign-in) · **Priority:** Must · **Phase:** 1 · **Size:** M
 - **Story:** As a new member, I want a quick, friendly setup, so that I can start browsing in seconds.
 - **Acceptance criteria**
   1. One screen shows: a prefilled, editable display name (2 to 50 characters); the Google photo, with a **Use initials instead** option; three short guidelines with a link to the full text; and a required checkbox ("I agree to the community guidelines").
@@ -916,7 +983,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### PROF-02 · Edit my profile
 
-- **Role:** Member · **Priority:** Must · **Phase:** 1
+- **Role:** Member · **Priority:** Must · **Phase:** 1 · **Size:** M
 - **Story:** As a member, I want to add a little about myself, so that colleagues recognize me at activities.
 - **Acceptance criteria**
   1. Editable fields:
@@ -934,7 +1001,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### PROF-03 · View a member's profile
 
-- **Role:** Member · **Priority:** Should · **Phase:** 1
+- **Role:** Member · **Priority:** Must · **Phase:** 1 · **Size:** M
 - **Story:** As a member, I want to tap an organizer's or attendee's name to see who they are, so that I feel comfortable joining.
 - **Acceptance criteria**
   1. The profile shows: display name, avatar, department, bio, interests, and upcoming activities they organize.
@@ -946,7 +1013,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### PROF-04 · Control my email visibility
 
-- **Role:** Member · **Priority:** Should · **Phase:** 1
+- **Role:** Member · **Priority:** Should · **Phase:** 1 · **Size:** S
 - **Story:** As a member, I want to choose whether other faculty can see my email, so that I control how people contact me.
 - **Acceptance criteria**
   1. The setting defaults to **off**.
@@ -957,7 +1024,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### PROF-05 · Delete my account
 
-- **Role:** Member · **Priority:** Should · **Phase:** 1
+- **Role:** Member · **Priority:** Must · **Phase:** 1 · **Size:** L
 - **Story:** As a member, I want to delete my FABA account, so that my information is removed when I no longer want to use it.
 - **Acceptance criteria**
   1. **Me → Delete account** explains the consequences and requires the member to type `DELETE`.
@@ -974,7 +1041,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### ACT-01 · Browse upcoming activities
 
-- **Role:** Member · **Priority:** Must · **Phase:** 1
+- **Role:** Member · **Priority:** Must · **Phase:** 1 · **Size:** L
 - **Story:** As a member, I want to see what's coming up, soonest first, so that I can quickly find something to do.
 - **Acceptance criteria**
   1. Home lists published, non-hidden activities whose start time is no more than 3 hours ago (in-progress) or later. They are sorted by start time and grouped under day headers in the viewer's time zone.
@@ -989,7 +1056,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### ACT-02 · View activity details
 
-- **Role:** Member · **Priority:** Must · **Phase:** 1
+- **Role:** Member · **Priority:** Must · **Phase:** 1 · **Size:** M
 - **Story:** As a member, I want all the details on one screen, so that I can decide quickly and know where to go.
 - **Acceptance criteria**
   1. The page shows: title, category, date and time range, place with an **Open in Maps** link (generated from the place text), description (plain text with links made clickable), cost note, organizer (linked to their profile), going count, and attendee avatars.
@@ -1002,7 +1069,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### ACT-03 · Create an activity
 
-- **Role:** Member (becomes Activity organizer) · **Priority:** Must · **Phase:** 1
+- **Role:** Member (becomes Activity organizer) · **Priority:** Must · **Phase:** 1 · **Size:** L
 - **Story:** As a member, I want to post an activity in under a minute from my phone, so that colleagues can join me.
 - **Acceptance criteria**
   1. Required fields:
@@ -1023,7 +1090,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### ACT-04 · Edit my activity
 
-- **Role:** Activity organizer · **Priority:** Must · **Phase:** 1
+- **Role:** Activity organizer · **Priority:** Must · **Phase:** 1 · **Size:** M
 - **Story:** As an organizer, I want to fix or update details, so that information stays accurate.
 - **Acceptance criteria**
   1. Only the organizer (and, from Phase 3, co-organizers) see **Edit**. Server and RLS reject anyone else.
@@ -1036,7 +1103,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### ACT-05 · Cancel or restore my activity
 
-- **Role:** Activity organizer · **Priority:** Must · **Phase:** 1
+- **Role:** Activity organizer · **Priority:** Must · **Phase:** 1 · **Size:** M
 - **Story:** As an organizer, I want to cancel an activity clearly, so that nobody shows up to nothing.
 - **Acceptance criteria**
   1. **Cancel activity** requires confirmation and accepts an optional reason (up to 200 characters).
@@ -1048,7 +1115,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### ACT-06 · Filter by category
 
-- **Role:** Member · **Priority:** Must · **Phase:** 1
+- **Role:** Member · **Priority:** Must · **Phase:** 1 · **Size:** S
 - **Story:** As a member, I want one-tap category filters, so that I can see only the kinds of things I enjoy.
 - **Acceptance criteria**
   1. Chips under the header filter the feed (for example `?cat=outdoors`). They work as plain links, without JavaScript.
@@ -1059,7 +1126,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### RSVP-01 · Say "I'm in"
 
-- **Role:** Member · **Priority:** Must · **Phase:** 1
+- **Role:** Member · **Priority:** Must · **Phase:** 1 · **Size:** L
 - **Story:** As a member, I want to RSVP with one tap, so that the organizer knows I'm coming.
 - **Acceptance criteria**
   1. **I'm in** on cards and the detail page creates or updates the member's RSVP to `going`. The count updates immediately (optimistic), and a 5-second **Undo** toast appears.
@@ -1071,7 +1138,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### RSVP-02 · Change or withdraw my RSVP
 
-- **Role:** Member · **Priority:** Must · **Phase:** 1
+- **Role:** Member · **Priority:** Must · **Phase:** 1 · **Size:** S
 - **Story:** As a member, I want to change my mind easily, so that counts stay accurate.
 - **Acceptance criteria**
   1. Tapping **✓ Going** opens a small sheet. **Can't make it** sets the status to `not_going`.
@@ -1083,7 +1150,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### RSVP-03 · See who's going
 
-- **Role:** Member · **Priority:** Must · **Phase:** 1
+- **Role:** Member · **Priority:** Must · **Phase:** 1 · **Size:** M
 - **Story:** As a member, I want to see who else is going, so that I can join people I know or meet new colleagues.
 - **Acceptance criteria**
   1. The going count plus up to 3 avatars appear on cards. On the detail page, tapping them opens the full attendee list (avatar, name, department), with the organizer first.
@@ -1094,7 +1161,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### MOD-01 · Report content
 
-- **Role:** Member · **Priority:** Must · **Phase:** 1
+- **Role:** Member · **Priority:** Must · **Phase:** 1 · **Size:** M
 - **Story:** As a member, I want to report an activity or profile that seems inappropriate, so that moderators can look at it.
 - **Acceptance criteria**
   1. **Report** in the overflow menu opens a short form:
@@ -1107,7 +1174,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### MOD-02 · Review the reports queue
 
-- **Role:** Moderator · **Priority:** Must · **Phase:** 1
+- **Role:** Moderator · **Priority:** Must · **Phase:** 1 · **Size:** M
 - **Story:** As a moderator, I want a simple queue of open reports, so that I can handle them quickly from my phone.
 - **Acceptance criteria**
   1. `/mod` lists open reports, oldest first, with target preview, reason, note, reporter, and age.
@@ -1120,7 +1187,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### MOD-03 · Hide or unhide an activity
 
-- **Role:** Moderator · **Priority:** Must · **Phase:** 1
+- **Role:** Moderator · **Priority:** Must · **Phase:** 1 · **Size:** M
 - **Story:** As a moderator, I want to hide inappropriate activities, so that members don't see them.
 - **Acceptance criteria**
   1. A hidden activity disappears from all lists and search for everyone except its organizer and moderators.
@@ -1131,7 +1198,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### MOD-04 · Suspend or reinstate a member
 
-- **Role:** Moderator · **Priority:** Must · **Phase:** 1
+- **Role:** Moderator · **Priority:** Must · **Phase:** 1 · **Size:** M
 - **Story:** As a moderator, I want to suspend a member who seriously or repeatedly breaks the guidelines, so that the community stays safe.
 - **Acceptance criteria**
   1. Suspension sets the profile status to `suspended`. Within one request, the member is redirected to **Access paused** and RLS denies all reads and writes.
@@ -1142,7 +1209,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### MOD-05 · Automatic audit log
 
-- **Role:** Admin · **Priority:** Must · **Phase:** 1
+- **Role:** Admin · **Priority:** Must · **Phase:** 1 · **Size:** S
 - **Story:** As an admin, I want every moderation and role change recorded, so that the board can review decisions fairly.
 - **Acceptance criteria**
   1. Hide, unhide, suspend, reinstate, dismiss report, role change, account deletion, and admin data fixes each write an `audit_log` row with actor, action, target, reason, and timestamp.
@@ -1153,7 +1220,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### MOD-06 · Grant or revoke moderator
 
-- **Role:** Admin · **Priority:** Must · **Phase:** 1
+- **Role:** Admin · **Priority:** Must · **Phase:** 1 · **Size:** S
 - **Story:** As an admin, I want to appoint moderators, so that the workload is shared.
 - **Acceptance criteria**
   1. Phase 1 uses a documented SQL runbook that calls `set_member_role(user_id, role, reason)`, which is audit-logged.
@@ -1163,7 +1230,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### HIST-02 · My activities
 
-- **Role:** Member · **Priority:** Must · **Phase:** 1
+- **Role:** Member · **Priority:** Must · **Phase:** 1 · **Size:** M
 - **Story:** As a member, I want a simple list of what I'm going to and what I organize, so that I can find my plans without scrolling the feed.
 - **Acceptance criteria**
   1. **My activities** lists upcoming activities I'm going to and upcoming activities I organize, soonest first.
@@ -1174,7 +1241,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### INFO-01 · Public pages and disclaimers
 
-- **Role:** Unauthenticated visitor · **Priority:** Must · **Phase:** 1
+- **Role:** Unauthenticated visitor · **Priority:** Must · **Phase:** 1 · **Size:** M
 - **Story:** As a visitor, I want to read what FABA is, its guidelines, and its privacy notice before I sign in, so that I know what I'm joining and that it isn't an official university channel.
 - **Acceptance criteria**
   1. Signed-out visitors can open only the landing page, **About**, the **Privacy notice**, and the **Community guidelines**. No profile or activity data is visible to them, and every app page sends `noindex`.
@@ -1187,7 +1254,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 #### OPS-01 · Launch runbooks
 
-- **Role:** Admin · **Priority:** Must · **Phase:** 1
+- **Role:** Admin · **Priority:** Must · **Phase:** 1 · **Size:** M
 - **Story:** As an admin, I want written procedures for rare but serious tasks, so that any admin can handle them without the original developers.
 - **Acceptance criteria**
   1. `docs/runbooks/` has runbooks to grant a moderator, merge or transfer an account, handle a takedown request, and restore from backup.
