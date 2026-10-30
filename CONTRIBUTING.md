@@ -77,7 +77,9 @@ FABA uses ports 54330 to 54339 instead of Supabase's default 54320 to 54329, so 
 
 It also creates 50 activities over the next 6 weeks in Rexburg time, with none on Sundays. Two are cancelled and one is hidden. Dates count from when the database was last reset, so run `npx supabase db reset` to bring them forward.
 
-Row Level Security is on for every table, but the policies arrive with Iteration 1 tasks DB-2 and DB-6. Until then, the Data API returns no rows. Use Studio or `psql` to look at the data.
+Row Level Security is on for every table. Through the Data API, signed-out visitors read nothing. Active `byui.edu` members read categories, activities that aren't hidden, and active profiles. Suspended members read only their own profile. Use Studio or `psql` to see everything.
+
+Only `byui.edu` accounts can be created, locally too: the before-user-created hook rejects every other email (ADR-005).
 
 ## Everyday commands
 
@@ -145,5 +147,6 @@ A pre-commit hook runs Prettier on staged files. To format by hand, run `npx pre
 ## Documentation
 
 - [FABA design document](docs/faba-design-document.md) and [architecture decision records](docs/adr/README.md)
+- [Supabase settings](docs/runbooks/supabase-settings.md) for staging and production, which live in the dashboard rather than in migrations
 - [Astro](https://docs.astro.build) and its [Cloudflare adapter](https://docs.astro.build/en/guides/integrations-guide/cloudflare/)
 - [Supabase local development](https://supabase.com/docs/guides/local-development)

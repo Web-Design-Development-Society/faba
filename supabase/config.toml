@@ -286,10 +286,11 @@ max_frequency = "5s"
 # inactivity_timeout = "8h"
 
 # This hook runs before a new user is created and allows developers to reject the request based on the incoming user object.
-# FABA enables it with the byui.edu domain check (AUTH-02, Iteration 1 task DB-5).
-# [auth.hook.before_user_created]
-# enabled = true
-# uri = "pg-functions://postgres/auth/before-user-created-hook"
+# FABA's hook rejects every email that isn't byui.edu (ADR-005, Iteration 1 task DB-5). Staging
+# and production switch it on in the dashboard (docs/runbooks/supabase-settings.md).
+[auth.hook.before_user_created]
+enabled = true
+uri = "pg-functions://postgres/private/before_user_created"
 
 # This hook runs before a token is issued and allows you to add additional claims based on the authentication method used.
 # [auth.hook.custom_access_token]
