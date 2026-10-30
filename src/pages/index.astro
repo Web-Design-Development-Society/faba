@@ -1,16 +1,20 @@
 ---
+// The landing page for visitors. Signed-in members go straight to Discover.
+import Layout from '../layouts/Layout.astro';
+
+if (Astro.locals.user) return Astro.redirect('/discover');
 ---
 
-<html lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} />
-    <title>Astro</title>
-  </head>
-  <body>
-    <h1>Astro</h1>
-  </body>
-</html>
+<Layout title="FABA">
+  <h1>FABA</h1>
+  <p>Find and share activities with other BYU-Idaho faculty in Rexburg.</p>
+  <form method="post" action="/auth/login">
+    <button type="submit">Continue with Google</button>
+  </form>
+  <p>For BYU-Idaho faculty with a byui.edu account.</p>
+  <p>
+    <small>
+      FABA is run by the Faculty Association Board. It isn't an official BYU-Idaho site.
+    </small>
+  </p>
+</Layout>
