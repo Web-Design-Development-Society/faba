@@ -4,7 +4,7 @@ BEGIN;
 
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
 
-SELECT plan(12);
+SELECT plan(10);
 
 -- Global assertions
 SELECT extensions.is(
@@ -36,8 +36,6 @@ SELECT extensions.is(
   'every SECURITY DEFINER function in public sets its search_path'
 );
 
-SELECT todo('Iteration 1 task DB-7 revokes the default anon privileges', 1);
-
 SELECT extensions.is(
   (
     SELECT array_agg(DISTINCT table_name::text ORDER BY table_name::text)
@@ -48,22 +46,15 @@ SELECT extensions.is(
   'anon has no privileges on tables in public'
 );
 
--- No policies exist yet (Iteration 1 tasks DB-2 and DB-6), so nobody reads anything through the
--- Data API roles.
-SET LOCAL ROLE anon;
-
-SELECT is_empty('select 1 from public.activities', 'anon reads no activities');
-
-SELECT is_empty('select 1 from public.profiles', 'anon reads no profiles');
-
-SET LOCAL ROLE authenticated;
-
-SELECT is_empty(
-  'select 1 from public.profile_private',
-  'a signed-in user reads no private data yet'
+SELECT extensions.is(
+  (
+    SELECT array_agg(DISTINCT table_name::text ORDER BY table_name::text)
+    FROM information_schema.role_table_grants
+    WHERE grantee = 'authenticated' AND table_schema = 'public' AND privilege_type != 'SELECT'
+  ),
+  NULL::text[],
+  'authenticated can only read tables in public, because writes go through functions'
 );
-
-RESET role;
 
 -- The on_auth_user_created trigger
 INSERT INTO auth.users

@@ -10,7 +10,7 @@ Inside of your Astro project, you'll see the following folders and files:
 
 ```text
 /
-├── docs/                  design document and ADRs
+├── docs/                  design document, ADRs and runbooks
 ├── public/
 ├── scripts/               developer helpers
 ├── src/
