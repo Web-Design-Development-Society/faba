@@ -828,11 +828,11 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Role:** FABA board · **Priority:** Should · **Phase:** 0
 - **Story:** As the FABA board, I want a pilot group of faculty lined up before launch, so that real users try FABA for 2 weeks before it is announced.
 - **Acceptance criteria**
-  1. About 25 faculty are recruited: board members plus volunteers, including full-time, part-time, and remote faculty.
+  1. About 25 faculty are recruited: board members plus volunteers, including full-time and part-time faculty in the Rexburg area.
   2. Names and consent to participate are recorded.
   3. The group includes at least one assistive-technology user, if possible.
 - **Dependencies:** none.
-- **Notes / edge cases:** Moved from FND-01 when the interviews were dropped. Iteration 1 task PRD-4. The pilot runs in production as a quiet soft launch (ADR-013), and Phase 1 acceptance requires 2 weeks of pilot use with no Severity 1 issues open.
+- **Notes / edge cases:** Moved from FND-01 when the interviews were dropped. Iteration 1 task PRD-4. The pilot runs in production as a quiet soft launch (ADR-013), and Phase 1 acceptance requires 2 weeks of pilot use with no Severity 1 issues open. Remote faculty aren't recruited, because Phase 1 serves in-person Rexburg activities only (ADR-017).
 
 ### 6.4 Phase 1 stories
 
