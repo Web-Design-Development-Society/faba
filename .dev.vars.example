@@ -1,0 +1,11 @@
+# Copy to .dev.vars for local development. Never commit .dev.vars.
+# `astro dev` and `astro preview` read secrets from it. Non-secret variables (SITE_URL,
+# SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, ALLOWED_EMAIL_DOMAIN, LOG_LEVEL) are already set in
+# wrangler.jsonc; add one here only to override it on your machine.
+
+# The local Supabase secret key, starting with sb_secret_. `npm run setup:dev-vars` fills it in,
+# or copy the "Secret" key printed by `npx supabase status`.
+SUPABASE_SECRET_KEY=replace-with-the-local-secret-key
+
+# Error tracking. Used in staging and production only; leave empty locally.
+SENTRY_DSN=

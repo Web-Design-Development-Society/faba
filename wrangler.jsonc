@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "faba",
+  "main": "@astrojs/cloudflare/entrypoints/server",
+  "compatibility_date": "2026-10-23",
+  // Values for local development, matching `npx supabase start`. Staging and production get
+  // their own "env" blocks when they're set up (FND-08, FND-09). Secrets never go here: use
+  // `wrangler secret put`, or .dev.vars locally.
+  "vars": {
+    "SITE_URL": "http://localhost:4321",
+    "SUPABASE_URL": "http://127.0.0.1:54331",
+    // The local Supabase default. Publishable keys are public by design.
+    "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH",
+    "ALLOWED_EMAIL_DOMAIN": "byui.edu",
+    "LOG_LEVEL": "debug",
+  },
+}

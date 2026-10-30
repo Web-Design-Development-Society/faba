@@ -10,11 +10,20 @@ Inside of your Astro project, you'll see the following folders and files:
 
 ```text
 /
+├── docs/                  design document and ADRs
 ├── public/
+├── scripts/               developer helpers
 ├── src/
+│   ├── middleware.ts
 │   └── pages/
-|       └── api/health.ts
+│       ├── api/health/index.ts
 │       └── index.astro
+├── supabase/
+│   ├── config.toml        local Supabase settings
+│   ├── migrations/        database schema, applied in order
+│   └── seed.sql           local test data
+├── astro.config.mjs       Astro settings and env.schema
+├── wrangler.jsonc         Cloudflare Worker settings
 └── package.json
 ```
 
