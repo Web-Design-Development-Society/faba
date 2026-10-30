@@ -1,0 +1,100 @@
+# Checks every pull request and every push to main (FND-07, design document section 11.5).
+# The jobs run in parallel. End-to-end and accessibility tests (Playwright with axe) and preview
+# deploys come later.
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Git hooks aren't needed in CI.
+  HUSKY: 0
+
+jobs:
+  format:
+    name: Format
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run format:check
+
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+
+  unit:
+    name: Unit tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm test
+
+  database:
+    name: Database
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Start Postgres, apply migrations from zero, and load seed.sql
+        run: npx supabase db start
+      - name: Run pgTAP tests
+        run: npm run db:test
+      - name: Check the generated types match the schema
+        run: |
+          npm run db:types
+          if ! git diff --exit-code -- src/lib/db.types.ts; then
+            echo "::error file=src/lib/db.types.ts::Generated types are out of date. Run npm run db:types and commit the result."
+            exit 1
+          fi
+      - name: Lint database functions
+        run: npx supabase db lint --local --fail-on error
+      - name: Check security and performance advisors
+        run: npx supabase db advisors --local --type all --level warn --fail-on warn
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run build

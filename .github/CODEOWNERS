@@ -1,0 +1,12 @@
+# Changes to the database, auth, middleware, environment settings, and CI need a review from a
+# technical owner (design document section 11.4). Branch protection decides whether that
+# review is required to merge.
+
+/supabase/            @alveyworld @alexanderdombroski
+/src/middleware.ts    @alveyworld @alexanderdombroski
+/src/pages/auth/      @alveyworld @alexanderdombroski
+/src/pages/api/auth/  @alveyworld @alexanderdombroski
+/src/lib/server/      @alveyworld @alexanderdombroski
+/astro.config.mjs     @alveyworld @alexanderdombroski
+/wrangler.jsonc       @alveyworld @alexanderdombroski
+/.github/             @alveyworld @alexanderdombroski

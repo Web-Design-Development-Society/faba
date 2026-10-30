@@ -90,11 +90,27 @@ Row Level Security is on for every table, but the policies arrive with Iteration
 | `npx supabase migration new <name>`     | Create a migration file in `supabase/migrations/`           |
 | `npx supabase status`                   | Show local URLs and keys                                    |
 
+## Checks
+
+Every pull request runs these checks in GitHub Actions (`.github/workflows/ci.yml`). Run the same commands locally before you push:
+
+| Check      | Command                                         | Notes                                                            |
+| ---------- | ----------------------------------------------- | ---------------------------------------------------------------- |
+| Format     | `npm run format:check`                          | Fix with `npx prettier --write <files>`                          |
+| Typecheck  | `npm run typecheck`                             | Runs `astro check`                                               |
+| Unit tests | `npm test`                                      | Vitest, in `tests/unit/`                                         |
+| Database   | `npx supabase db reset`, then `npm run db:test` | pgTAP tests in `supabase/tests/`. CI also runs lint and advisors |
+| Types      | `npm run db:types`                              | Regenerates `src/lib/db.types.ts`. CI fails if it's out of date  |
+| Build      | `npm run build`                                 |                                                                  |
+
+Use the pull request template, and keep pull requests to about 400 changed lines. Changes to the database, auth, middleware, environment settings or CI request a review from the technical owners in `.github/CODEOWNERS`.
+
 ## Database changes
 
 - Migrations are forward-only SQL files in `supabase/migrations/`. Never edit one that's already on `main`. Add a new one.
-- After adding or changing a migration, run `npx supabase db reset` to check that everything applies from zero.
-- Design document section 10 describes the schema, and section 9.8 describes Row Level Security.
+- After adding or changing a migration, run `npx supabase db reset` to check that everything applies from zero, then `npm run db:types` and commit the regenerated types.
+- Add pgTAP tests in `supabase/tests/database/` for new tables, policies and functions.
+- Design document section 10 describes the schema, section 9.8 describes Row Level Security, and section 12.9 describes the database tests.
 
 ## Environment variables
 
