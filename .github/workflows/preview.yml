@@ -1,0 +1,95 @@
+# Uploads each pull request as a preview version of the faba-staging Worker and comments its URL
+# on the PR (FND-08, design document section 11.6). Staging keeps serving what's on main.
+# Previews use the staging database.
+name: Preview
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+env:
+  # Git hooks aren't needed in CI.
+  HUSKY: 0
+
+jobs:
+  preview:
+    name: Preview deploy
+    # Pull requests from forks and Dependabot get no secrets, so they get no preview.
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # The Cloudflare secrets live in the staging environment, so it must allow deploys from
+    # pull request branches, not only from main.
+    environment:
+      name: staging
+      url: ${{ steps.upload.outputs.url }}
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Build for staging
+        run: npm run build
+        env:
+          CLOUDFLARE_ENV: staging
+      - name: Upload a preview version of faba-staging
+        id: upload
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          WRANGLER_OUTPUT_FILE_PATH: ${{ runner.temp }}/wrangler-output.json
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          npx wrangler versions upload --preview-alias "pr-$PR_NUMBER" --message "PR #$PR_NUMBER at ${HEAD_SHA::7}"
+          url=$(jq -r 'select(.type == "version-upload") | .preview_alias_url // .preview_url // empty' "$WRANGLER_OUTPUT_FILE_PATH")
+          if [ -z "$url" ]; then
+            echo "::error::Wrangler printed no preview URL. Check that preview URLs are on for faba-staging."
+            exit 1
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+      - name: Comment the preview URL on the pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PREVIEW_URL: ${{ steps.upload.outputs.url }}
+        run: |
+          marker='<!-- faba-preview -->'
+          body="$marker
+          **Preview:** $PREVIEW_URL
+
+          Built from ${HEAD_SHA::7}. Previews use the staging database, which holds only synthetic data."
+
+          files=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER/files" --paginate --jq '.[].filename')
+          if grep -q '^supabase/migrations/' <<< "$files"; then
+            body="$body
+
+          > [!NOTE]
+          > This pull request changes \`supabase/migrations/\`. Previews don't apply migrations, so this one runs against the current staging schema. Test the migration locally."
+          fi
+
+          # Update the earlier preview comment instead of adding a new one on every push.
+          ids=$(gh api "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" --paginate \
+            --jq ".[] | select(.user.login == \"github-actions[bot]\" and (.body | startswith(\"$marker\"))) | .id")
+          id=${ids%%$'\n'*}
+          if [ -n "$id" ]; then
+            gh api --method PATCH "repos/$GITHUB_REPOSITORY/issues/comments/$id" -f body="$body" > /dev/null
+          else
+            gh api --method POST "repos/$GITHUB_REPOSITORY/issues/$PR_NUMBER/comments" -f body="$body" > /dev/null
+          fi
+      - name: Smoke tests
+        run: node scripts/smoke-test.mjs "$PREVIEW_URL"
+        env:
+          PREVIEW_URL: ${{ steps.upload.outputs.url }}
