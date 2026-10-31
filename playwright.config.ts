@@ -16,10 +16,11 @@ export default defineConfig({
     baseURL: `http://localhost:${port}`,
     trace: 'retain-on-failure',
   },
-  // Chromium only for now. WebKit for iPhone SE (section 12.4) needs another browser install.
+  // The sizes in section 11.5. iPhone SE runs in WebKit, which stands in for Safari.
   projects: [
     { name: 'desktop', use: { ...devices['Desktop Chrome'] } },
     { name: 'mobile', use: { ...devices['Pixel 7'] } },
+    { name: 'iphone-se', use: { ...devices['iPhone SE'] } },
   ],
   // The built Worker on workerd, as it's deployed. --ignore-lock keeps it in the foreground,
   // apart from any other preview server.

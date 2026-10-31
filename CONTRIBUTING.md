@@ -110,12 +110,12 @@ Use the pull request template, and keep pull requests to about 400 changed lines
 
 ## End-to-end tests
 
-The end-to-end tests in `tests/e2e/` drive Chromium through FABA with [Playwright](https://playwright.dev), at desktop and Pixel 7 sizes. Each page they visit is also checked with [axe](https://github.com/dequelabs/axe-core-npm/tree/develop/packages/playwright), and a serious or critical accessibility problem fails the test.
+The end-to-end tests in `tests/e2e/` drive FABA with [Playwright](https://playwright.dev) at three sizes: desktop and Pixel 7 in Chromium, and iPhone SE in WebKit, which stands in for Safari. Each page they visit is also checked with [axe](https://github.com/dequelabs/axe-core-npm/tree/develop/packages/playwright), and a serious or critical accessibility problem fails the test.
 
-1. Install Chromium for Playwright, once:
+1. Install Chromium and WebKit for Playwright, once:
 
    ```zsh
-   npx playwright install chromium
+   npx playwright install chromium webkit
    ```
 
 2. Start local Supabase and write `.dev.vars`, as in [Set up](#set-up). The tests expect the seed data, so if the activities' dates have passed, run `npx supabase db reset`.
@@ -126,7 +126,7 @@ The end-to-end tests in `tests/e2e/` drive Chromium through FABA with [Playwrigh
    npm run test:e2e
    ```
 
-They build FABA and run the built Worker with `astro preview` on port 4329, so a dev server on 4321 can keep running. Add `--ui` (`npm run test:e2e -- --ui`) to watch them step by step. After a failure, `npx playwright show-report` opens the report with a trace of each failed test. In CI, the report is attached to the run as `playwright-report`.
+They build FABA and run the built Worker with `astro preview` on port 4329, so a dev server on 4321 can keep running. Add `--ui` (`npm run test:e2e -- --ui`) to watch them step by step, or `--project iphone-se` to run one size (`desktop`, `mobile` or `iphone-se`). After a failure, `npx playwright show-report` opens the report with a trace of each failed test. In CI, the report is attached to the run as `playwright-report`.
 
 Tests sign in as a persona with the `signInAs` fixture in `tests/e2e/fixtures.ts`, which uses the persona's password instead of Google. Sign-in tests stop at the redirect to Google. Call `expectAccessible(page)` on each new page or state a test visits.
 
