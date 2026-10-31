@@ -12,18 +12,22 @@ Inside of your Astro project, you'll see the following folders and files:
 /
 ├── docs/                  design document, ADRs and runbooks
 ├── public/
-├── scripts/               developer helpers
+├── scripts/               developer helpers and smoke tests
 ├── src/
-│   ├── middleware.ts
-│   └── pages/
-│       ├── api/health/index.ts
-│       └── index.astro
+│   ├── layouts/
+│   ├── lib/server/        Supabase client and sign-in helpers
+│   ├── middleware.ts      session check on every request
+│   └── pages/             including auth/ for sign-in and sign-out
 ├── supabase/
 │   ├── config.toml        local Supabase settings
 │   ├── migrations/        database schema, applied in order
-│   └── seed.sql           local test data
+│   └── seed/              local test data, and sample data for staging
 ├── astro.config.mjs       Astro settings and env.schema
 ├── wrangler.jsonc         Cloudflare Worker settings
+├── tests/
+│   ├── e2e/               Playwright with axe
+│   └── unit/              Vitest
+├── playwright.config.ts   end-to-end test settings
 └── package.json
 ```
 

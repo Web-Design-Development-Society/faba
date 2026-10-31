@@ -1,0 +1,15 @@
+---
+// Shown when an account isn't byui.edu (AUTH-02). The final copy comes with Iteration 1 task UX-6.
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout title="Not eligible">
+  <h1>FABA is for BYU-Idaho faculty</h1>
+  <p>
+    Only byui.edu Google accounts can join. FABA is run by the Faculty Association Board, not by
+    BYU-Idaho, so it can't make exceptions.
+  </p>
+  <form method="post" action="/auth/login">
+    <button type="submit">Try a different account</button>
+  </form>
+</Layout>
