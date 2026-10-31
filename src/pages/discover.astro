@@ -1,15 +1,32 @@
 ---
-// A placeholder home page for the walking skeleton (FND-10). The real feed is ACT-01.
+// A placeholder home page for the walking skeleton (FND-10): who's signed in, and the next
+// activities. The real feed is ACT-01.
 import Layout from '../layouts/Layout.astro';
 
 const { supabase, user } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
 
-const { data: profile } = await supabase
-  .from('profiles')
-  .select('display_name')
-  .eq('id', user.id)
-  .single();
+const [{ data: profile }, { data: activities, error }] = await Promise.all([
+  supabase.from('profiles').select('display_name').eq('id', user.id).single(),
+  supabase
+    .from('activities')
+    .select(
+      'id, title, starts_at, location_name, status, category:categories(name), organizer:profiles!activities_organizer_id_fkey(display_name)'
+    )
+    .gte('starts_at', new Date().toISOString())
+    .order('starts_at')
+    .limit(20),
+]);
+
+// Every activity is in Rexburg (ADR-017).
+const when = new Intl.DateTimeFormat('en-US', {
+  weekday: 'short',
+  month: 'short',
+  day: 'numeric',
+  hour: 'numeric',
+  minute: '2-digit',
+  timeZone: 'America/Denver',
+});
 ---
 
 <Layout title="Discover">
@@ -18,4 +35,25 @@ const { data: profile } = await supabase
   <form method="post" action="/auth/logout">
     <button type="submit">Sign out</button>
   </form>
+
+  <h2>Coming up</h2>
+  {error ? (
+    <p role="alert">Activities couldn't load. Please try again.</p>
+  ) : activities.length === 0 ? (
+    <p>No activities yet.</p>
+  ) : (
+    <ul>
+      {activities.map((activity) => (
+        <li>
+          <strong>{activity.title}</strong>
+          {activity.status === 'cancelled' && ' (cancelled)'}
+          <br />
+          <time datetime={activity.starts_at}>{when.format(new Date(activity.starts_at))}</time>
+          {` · ${activity.location_name}`}
+          {activity.category && ` · ${activity.category.name}`}
+          {activity.organizer && ` · ${activity.organizer.display_name}`}
+        </li>
+      ))}
+    </ul>
+  )}
 </Layout>

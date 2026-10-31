@@ -1,5 +1,6 @@
 # Checks every pull request and every push to main (FND-07, design document section 11.5).
-# The jobs run in parallel. End-to-end and accessibility tests (Playwright with axe) come later.
+# The jobs run in parallel. E2E runs the end-to-end and accessibility tests (Playwright with axe)
+# against local Supabase.
 # preview.yml deploys each pull request, and deploy-staging.yml deploys main.
 name: CI
 
@@ -70,7 +71,7 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
-      - name: Start Postgres, apply migrations from zero, and load seed.sql
+      - name: Start Postgres, apply migrations from zero, and load the local seed
         run: npx supabase db start
       - name: Run pgTAP tests
         run: npm run db:test
@@ -98,3 +99,35 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+
+  e2e:
+    name: E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Start Supabase, apply migrations from zero, and load the local seed
+        # Only the services the app uses.
+        run: npx supabase start --exclude studio,postgres-meta,mailpit,imgproxy
+        env:
+          # Placeholders for config.toml. The tests stop before Google.
+          SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID: e2e-placeholder.apps.googleusercontent.com
+          SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: e2e-placeholder
+      - name: Write .dev.vars with the local Supabase secret key
+        run: npm run setup:dev-vars
+      - name: Install Chromium
+        run: npx playwright install --with-deps --only-shell chromium
+      - name: Run end-to-end and accessibility tests
+        run: npm run test:e2e
+      - name: Upload the Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7

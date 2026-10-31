@@ -29,7 +29,7 @@ The first run takes about 10 to 15 minutes, mostly while Docker downloads the Su
    cp supabase/.env.example supabase/.env
    ```
 
-3. Start Supabase. Docker must be running. This applies the migrations in `supabase/migrations/` and loads `supabase/seed.sql`:
+3. Start Supabase. Docker must be running. This applies the migrations in `supabase/migrations/` and loads the test data in `supabase/seed/`:
 
    ```zsh
    npx supabase start
@@ -65,7 +65,7 @@ FABA uses ports 54330 to 54339 instead of Supabase's default 54320 to 54329, so 
 
 ## Test data
 
-`supabase/seed.sql` creates five personas, each with the password `faba-local-dev`. FABA itself offers only Google sign-in, so the passwords are for automated tests and the Supabase API. To sign in to FABA locally, set up Google sign-in (see [Environment variables](#environment-variables)) and use your own byui.edu account.
+`supabase/seed/local_accounts.sql` creates five personas, each with the password `faba-local-dev`. FABA itself offers only Google sign-in, so the passwords are for automated tests and the Supabase API. To sign in to FABA locally, set up Google sign-in (see [Environment variables](#environment-variables)) and use your own byui.edu account.
 
 | Email                     | Name             | Role      | Notes                                   |
 | ------------------------- | ---------------- | --------- | --------------------------------------- |
@@ -75,7 +75,7 @@ FABA uses ports 54330 to 54339 instead of Supabase's default 54320 to 54329, so 
 | `admin.test@byui.edu`     | Ada Admin        | admin     |                                         |
 | `suspended.test@byui.edu` | Sam Suspended    | member    | Suspended; posted the hidden activity   |
 
-It also creates 50 activities over the next 6 weeks in Rexburg time, with none on Sundays. Two are cancelled and one is hidden. Dates count from when the database was last reset, so run `npx supabase db reset` to bring them forward.
+`supabase/seed/sample_data.sql` fills in their profiles and creates 50 activities over the next 6 weeks in Rexburg time, with none on Sundays. Two are cancelled and one is hidden. Dates count from when the database was last reset, so run `npx supabase db reset` to bring them forward.
 
 Row Level Security is on for every table. Through the Data API, signed-out visitors read nothing. Active `byui.edu` members read categories, activities that aren't hidden, and active profiles. Suspended members read only their own profile. Use Studio or `psql` to see everything.
 
@@ -104,8 +104,31 @@ Every pull request runs these checks in GitHub Actions (`.github/workflows/ci.ym
 | Database   | `npx supabase db reset`, then `npm run db:test` | pgTAP tests in `supabase/tests/`. CI also runs lint and advisors |
 | Types      | `npm run db:types`                              | Regenerates `src/lib/db.types.ts`. CI fails if it's out of date  |
 | Build      | `npm run build`                                 |                                                                  |
+| E2E        | `npm run test:e2e`                              | Playwright with axe. See [End-to-end tests](#end-to-end-tests)   |
 
 Use the pull request template, and keep pull requests to about 400 changed lines. Changes to the database, auth, middleware, environment settings or CI request a review from the technical owners in `.github/CODEOWNERS`.
+
+## End-to-end tests
+
+The end-to-end tests in `tests/e2e/` drive Chromium through FABA with [Playwright](https://playwright.dev), at desktop and Pixel 7 sizes. Each page they visit is also checked with [axe](https://github.com/dequelabs/axe-core-npm/tree/develop/packages/playwright), and a serious or critical accessibility problem fails the test.
+
+1. Install Chromium for Playwright, once:
+
+   ```zsh
+   npx playwright install chromium
+   ```
+
+2. Start local Supabase and write `.dev.vars`, as in [Set up](#set-up). The tests expect the seed data, so if the activities' dates have passed, run `npx supabase db reset`.
+
+3. Run the tests:
+
+   ```zsh
+   npm run test:e2e
+   ```
+
+They build FABA and run the built Worker with `astro preview` on port 4329, so a dev server on 4321 can keep running. Add `--ui` (`npm run test:e2e -- --ui`) to watch them step by step. After a failure, `npx playwright show-report` opens the report with a trace of each failed test. In CI, the report is attached to the run as `playwright-report`.
+
+Tests sign in as a persona with the `signInAs` fixture in `tests/e2e/fixtures.ts`, which uses the persona's password instead of Google. Sign-in tests stop at the redirect to Google. Call `expectAccessible(page)` on each new page or state a test visits.
 
 ## Deployments
 
@@ -118,6 +141,7 @@ Use the pull request template, and keep pull requests to about 400 changed lines
 - **Staging** (`.github/workflows/deploy-staging.yml`) pushes new migrations to the staging Supabase project first, then deploys the `faba-staging` Worker, then runs `scripts/smoke-test.mjs` against it.
 - **Previews** (`.github/workflows/preview.yml`) are versions of the `faba-staging` Worker, so they use the staging database. Migrations in a pull request don't reach its preview, so test them locally. Pull requests from forks and Dependabot get no preview.
 - Staging holds only synthetic data. Its free Supabase project pauses after a week without activity. Restore it from the Supabase dashboard.
+- **Sample data on staging:** run **Seed staging** from the Actions tab. It adds the five personas as accounts nobody can sign in to, and their 50 activities. Run it again to move the activities' dates forward.
 - To set a staging secret, run `npx wrangler secret put <NAME> --name faba-staging`. GitHub's `staging` environment holds the secrets the workflows use.
 
 ## Database changes
