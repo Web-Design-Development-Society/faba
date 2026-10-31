@@ -104,8 +104,31 @@ Every pull request runs these checks in GitHub Actions (`.github/workflows/ci.ym
 | Database   | `npx supabase db reset`, then `npm run db:test` | pgTAP tests in `supabase/tests/`. CI also runs lint and advisors |
 | Types      | `npm run db:types`                              | Regenerates `src/lib/db.types.ts`. CI fails if it's out of date  |
 | Build      | `npm run build`                                 |                                                                  |
+| E2E        | `npm run test:e2e`                              | Playwright with axe. See [End-to-end tests](#end-to-end-tests)   |
 
 Use the pull request template, and keep pull requests to about 400 changed lines. Changes to the database, auth, middleware, environment settings or CI request a review from the technical owners in `.github/CODEOWNERS`.
+
+## End-to-end tests
+
+The end-to-end tests in `tests/e2e/` drive Chromium through FABA with [Playwright](https://playwright.dev), at desktop and Pixel 7 sizes. Each page they visit is also checked with [axe](https://github.com/dequelabs/axe-core-npm/tree/develop/packages/playwright), and a serious or critical accessibility problem fails the test.
+
+1. Install Chromium for Playwright, once:
+
+   ```zsh
+   npx playwright install chromium
+   ```
+
+2. Start local Supabase and write `.dev.vars`, as in [Set up](#set-up). The tests expect the seed data, so if the activities' dates have passed, run `npx supabase db reset`.
+
+3. Run the tests:
+
+   ```zsh
+   npm run test:e2e
+   ```
+
+They build FABA and run the built Worker with `astro preview` on port 4329, so a dev server on 4321 can keep running. Add `--ui` (`npm run test:e2e -- --ui`) to watch them step by step. After a failure, `npx playwright show-report` opens the report with a trace of each failed test. In CI, the report is attached to the run as `playwright-report`.
+
+Tests sign in as a persona with the `signInAs` fixture in `tests/e2e/fixtures.ts`, which uses the persona's password instead of Google. Sign-in tests stop at the redirect to Google. Call `expectAccessible(page)` on each new page or state a test visits.
 
 ## Deployments
 
