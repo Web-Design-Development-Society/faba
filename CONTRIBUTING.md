@@ -98,6 +98,7 @@ Every pull request runs these checks in GitHub Actions (`.github/workflows/ci.ym
 
 | Check      | Command                                         | Notes                                                            |
 | ---------- | ----------------------------------------------- | ---------------------------------------------------------------- |
+| Lint       | `npm run lint`                                  | ESLint. `npx eslint --fix <files>` fixes some problems           |
 | Format     | `npm run format:check`                          | Fix with `npx prettier --write <files>`                          |
 | Typecheck  | `npm run typecheck`                             | Runs `astro check`                                               |
 | Unit tests | `npm test`                                      | Vitest, in `tests/unit/`                                         |
@@ -164,9 +165,9 @@ Tests sign in as a persona with the `signInAs` fixture in `tests/e2e/fixtures.ts
 - **"The following environment variables defined in `env.schema` are invalid":** check `.dev.vars` (`npm run setup:dev-vars -- --force` rewrites it) and the `vars` in `wrangler.jsonc`.
 - **"Cannot connect to the Docker daemon":** start Docker Desktop or colima first.
 
-## Formatting
+## Formatting and linting
 
-A pre-commit hook runs Prettier on staged files. To format by hand, run `npx prettier --write <files>`.
+A pre-commit hook runs Prettier on staged files, and ESLint on staged `.ts`, `.js` and `.mjs` files. To format by hand, run `npx prettier --write <files>`. The ESLint rules are in `eslint.config.js`.
 
 ## Documentation
 

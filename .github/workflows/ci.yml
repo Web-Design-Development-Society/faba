@@ -21,8 +21,8 @@ env:
   HUSKY: 0
 
 jobs:
-  format:
-    name: Format
+  lint:
+    name: Lint and format
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -32,6 +32,7 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - run: npm run lint
       - run: npm run format:check
 
   typecheck:
