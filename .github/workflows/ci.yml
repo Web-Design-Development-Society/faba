@@ -121,8 +121,8 @@ jobs:
           SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: e2e-placeholder
       - name: Write .dev.vars with the local Supabase secret key
         run: npm run setup:dev-vars
-      - name: Install Chromium
-        run: npx playwright install --with-deps --only-shell chromium
+      - name: Install Chromium and WebKit
+        run: npx playwright install --with-deps --only-shell chromium webkit
       - name: Run end-to-end and accessibility tests
         run: npm run test:e2e
       - name: Upload the Playwright report
