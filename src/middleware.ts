@@ -37,9 +37,20 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
   }
 
+  const back = encodeURIComponent(context.url.pathname + context.url.search);
   if (!context.locals.user && !PUBLIC_PATHS.has(context.url.pathname)) {
-    const back = context.url.pathname + context.url.search;
-    return noStore(context.redirect(`/auth/login?next=${encodeURIComponent(back)}`));
+    return noStore(context.redirect(`/auth/login?next=${back}`));
+  }
+
+  // The signed-in member's status and display details, for the pages that need sign-in.
+  context.locals.member = null;
+  if (context.locals.user && !PUBLIC_PATHS.has(context.url.pathname)) {
+    const { data: member } = await supabase.rpc('get_session_context').maybeSingle();
+    context.locals.member = member;
+    // Until they accept the current guidelines, members see only Welcome (PROF-01).
+    if (member && !member.guidelines_ok && context.url.pathname !== '/welcome') {
+      return noStore(context.redirect(`/welcome?next=${back}`));
+    }
   }
 
   return noStore(await next());

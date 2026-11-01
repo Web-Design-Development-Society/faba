@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  afterSignInPath,
   authCookieOptions,
   callbackFailure,
   DEFAULT_NEXT_PATH,
@@ -139,16 +138,6 @@ describe('sign-in errors', () => {
     expect(signInErrorPath('failed', '/activities/42')).toBe(
       '/?error=failed&next=%2Factivities%2F42'
     );
-  });
-});
-
-describe('afterSignInPath', () => {
-  it.each([
-    [false, '/activities/42', '/activities/42'],
-    [true, DEFAULT_NEXT_PATH, '/welcome'],
-    [true, '/activities/42', '/welcome?next=%2Factivities%2F42'],
-  ])('new member %s, next %s → %s', (isNewMember, next, expected) => {
-    expect(afterSignInPath(isNewMember, next)).toBe(expected);
   });
 });
 

@@ -3,7 +3,6 @@
 import type { APIRoute } from 'astro';
 import { ALLOWED_EMAIL_DOMAIN } from 'astro:env/server';
 import {
-  afterSignInPath,
   callbackFailure,
   isEligibleGoogleUser,
   NEXT_COOKIE,
@@ -30,12 +29,6 @@ export const GET = (async ({ url, cookies, locals, redirect }) => {
     return redirect('/not-eligible');
   }
 
-  // Members who haven't accepted the community guidelines are new (PROF-01).
-  const { data: profile } = await locals.supabase
-    .from('profiles')
-    .select('guidelines_accepted_at')
-    .eq('id', data.user.id)
-    .maybeSingle();
-  const isNewMember = profile !== null && profile.guidelines_accepted_at === null;
-  return redirect(afterSignInPath(isNewMember, next));
+  // The middleware sends new members through Welcome first (PROF-01).
+  return redirect(next);
 }) satisfies APIRoute;
