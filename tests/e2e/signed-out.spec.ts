@@ -1,6 +1,6 @@
 // What visitors see before signing in (design document section 9.7, AUTH-01).
 import type { Page } from '@playwright/test';
-import { expect, expectAccessible, SUPABASE_URL, test } from './fixtures';
+import { expect, expectAccessible, SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL, test } from './fixtures';
 
 /**
  * Catches FABA's redirect to Supabase instead of following it to Google. Playwright can't route
@@ -123,6 +123,34 @@ test('the not-eligible page explains who can join', async ({ page }) => {
   await expect(
     page.getByRole('heading', { level: 1, name: 'FABA is for BYU-Idaho faculty' })
   ).toBeVisible();
-  await expect(page.getByRole('button', { name: 'Try a different account' })).toBeVisible();
+  await expect(page.getByText('Only byui.edu Google accounts can join.')).toBeVisible();
+  await expect(page.getByText("isn't an official BYU-Idaho site, so it can't make")).toBeVisible();
   await expectAccessible(page);
+
+  // Google shows its account chooser again (prompt=select_account).
+  const caught = await catchSignInRedirect(page);
+  await page.getByRole('button', { name: 'Try a different account' }).click();
+  await expect(page.getByText('Supabase would send you to Google now.')).toBeVisible();
+  expect(caught.url?.searchParams.get('prompt')).toBe('select_account');
+});
+
+test("Supabase Auth refuses to create an account that isn't byui.edu", async ({
+  request,
+}, testInfo) => {
+  test.skip(testInfo.project.name !== 'desktop', 'No browser involved, so once is enough.');
+  // Signing up with a password runs the same before-user-created hook as Google sign-in (ADR-005).
+  const account = { email: 'not-eligible.test@example.com', password: 'faba-local-dev' };
+  const headers = { apikey: SUPABASE_PUBLISHABLE_KEY };
+  const signUp = await request.post(`${SUPABASE_URL}/auth/v1/signup`, { headers, data: account });
+  expect(signUp.status()).toBe(403);
+  expect((await signUp.json()).msg).toBe(
+    'FABA is for BYU-Idaho. Sign in with your byui.edu account.'
+  );
+
+  // No account was created, so it can't sign in.
+  const signIn = await request.post(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    headers,
+    data: account,
+  });
+  expect((await signIn.json()).error_code).toBe('invalid_credentials');
 });

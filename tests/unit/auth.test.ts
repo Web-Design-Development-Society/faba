@@ -6,6 +6,7 @@ import {
   DEFAULT_NEXT_PATH,
   googleSignInOptions,
   isAllowedEmail,
+  isEligibleGoogleUser,
   isInAppBrowser,
   safeNextPath,
   signInErrorMessage,
@@ -27,6 +28,39 @@ describe('isAllowedEmail', () => {
     [undefined, false],
   ])('%s → %s', (email, allowed) => {
     expect(isAllowedEmail(email, 'byui.edu')).toBe(allowed);
+  });
+});
+
+describe('isEligibleGoogleUser', () => {
+  const google = (identity_data: Record<string, unknown>) => ({
+    email: 'a@byui.edu',
+    identities: [{ provider: 'google', identity_data }],
+  });
+
+  it('accepts a byui.edu account that Google verified', () => {
+    expect(
+      isEligibleGoogleUser(google({ email: 'a@byui.edu', email_verified: true }), 'byui.edu')
+    ).toBe(true);
+  });
+
+  it.each([
+    ['Google says the email is unverified', google({ email: 'a@byui.edu', email_verified: false })],
+    ['Google says nothing about verification', google({ email: 'a@byui.edu' })],
+    ['Google reports another domain', google({ email: 'a@gmail.com', email_verified: true })],
+    [
+      "the account's email is another domain",
+      { ...google({ email: 'a@byui.edu', email_verified: true }), email: 'a@gmail.com' },
+    ],
+    [
+      'there is no Google identity',
+      {
+        email: 'a@byui.edu',
+        identities: [{ provider: 'email', identity_data: { email_verified: true } }],
+      },
+    ],
+    ['there are no identities', { email: 'a@byui.edu' }],
+  ])('rejects it when %s', (_, user) => {
+    expect(isEligibleGoogleUser(user, 'byui.edu')).toBe(false);
   });
 });
 

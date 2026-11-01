@@ -5,7 +5,7 @@ BEGIN;
 
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
 
-SELECT plan(15);
+SELECT plan(17);
 
 -- Expected counts, worked out before switching roles. Every role can read these settings.
 SELECT set_config('test.categories', (SELECT count(*)::text FROM public.categories), TRUE);
@@ -68,6 +68,8 @@ SELECT set_config(
   '{"sub": "00000000-0000-4000-8000-000000000001", "email": "member.test@byui.edu"}',
   TRUE
 );
+
+SELECT ok(private.is_active_member(), 'an active byui.edu member is an active member');
 
 SELECT extensions.is(
   (SELECT count(*)::text FROM public.categories),
@@ -142,6 +144,11 @@ SELECT set_config(
   'request.jwt.claims',
   '{"sub": "00000000-0000-4000-8000-000000000001", "email": "member.test@gmail.com"}',
   TRUE
+);
+
+SELECT ok(
+  NOT private.is_active_member(),
+  'a session with an email that isn''t byui.edu isn''t an active member'
 );
 
 SELECT is_empty(
