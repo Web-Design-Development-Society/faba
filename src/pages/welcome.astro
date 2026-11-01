@@ -1,0 +1,24 @@
+---
+// A placeholder for Welcome, where new members land after signing in (AUTH-01). PROF-01 adds the
+// display name, photo and community guidelines, and stores that they were accepted.
+import Layout from '../layouts/Layout.astro';
+import { safeNextPath } from '../lib/server/auth';
+
+const { supabase, user } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+
+const { data: profile } = await supabase
+  .from('profiles')
+  .select('display_name')
+  .eq('id', user.id)
+  .single();
+const next = safeNextPath(Astro.url.searchParams.get('next'));
+---
+
+<Layout title="Welcome">
+  <h1>Welcome to FABA</h1>
+  <p>You're signed in as {profile?.display_name ?? user.email}.</p>
+  <p>
+    <a href={next}>Continue</a>
+  </p>
+</Layout>

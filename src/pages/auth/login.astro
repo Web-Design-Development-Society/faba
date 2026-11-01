@@ -2,45 +2,40 @@
 // Signing in (design document section 9.7). GET shows the sign-in screen. POST sends the browser
 // to Google through Supabase, which sends it back to /auth/callback.
 import { ALLOWED_EMAIL_DOMAIN } from 'astro:env/server';
+import SignIn from '../../components/SignIn.astro';
 import Layout from '../../layouts/Layout.astro';
-import { authCookieOptions, NEXT_COOKIE, safeNextPath } from '../../lib/server/auth';
+import {
+  authCookieOptions,
+  googleSignInOptions,
+  NEXT_COOKIE,
+  safeNextPath,
+  signInErrorPath,
+} from '../../lib/server/auth';
 
-let failed = Astro.url.searchParams.has('error');
+const isPost = Astro.request.method === 'POST';
+const next = safeNextPath(
+  isPost ? (await Astro.request.formData()).get('next') : Astro.url.searchParams.get('next')
+);
 
-if (Astro.request.method === 'POST') {
-  const form = await Astro.request.formData();
+if (isPost) {
   const { data, error } = await Astro.locals.supabase.auth.signInWithOAuth({
     provider: 'google',
-    options: {
-      // Back to this request's own site, so pull request previews return to their preview.
-      redirectTo: new URL('/auth/callback', Astro.url).href,
-      // hd steers Google's account chooser to school accounts. Nothing trusts it (ADR-005).
-      queryParams: { hd: ALLOWED_EMAIL_DOMAIN, prompt: 'select_account' },
-    },
+    options: googleSignInOptions(Astro.url, ALLOWED_EMAIL_DOMAIN),
   });
+  if (error) return Astro.redirect(signInErrorPath('failed', next), 303);
 
-  if (error) {
-    failed = true;
-  } else {
-    // Ten minutes is plenty to choose an account.
-    Astro.cookies.set(NEXT_COOKIE, safeNextPath(form.get('next')), {
-      ...authCookieOptions(Astro.url),
-      path: '/auth',
-      maxAge: 600,
-    });
-    return Astro.redirect(data.url, 303);
-  }
+  // Ten minutes is plenty to choose an account.
+  Astro.cookies.set(NEXT_COOKIE, next, {
+    ...authCookieOptions(Astro.url),
+    path: '/auth',
+    maxAge: 600,
+  });
+  return Astro.redirect(data.url, 303);
 }
-
-const next = safeNextPath(Astro.url.searchParams.get('next'));
 ---
 
 <Layout title="Sign in">
   <h1>Sign in to FABA</h1>
-  {failed && <p role="alert">Sign-in didn't finish. Please try again.</p>}
-  <form method="post" action="/auth/login">
-    <input type="hidden" name="next" value={next} />
-    <button type="submit">Continue with Google</button>
-  </form>
+  <SignIn next={next} error={null} />
   <p>Use your byui.edu Google account.</p>
 </Layout>
