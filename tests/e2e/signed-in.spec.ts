@@ -1,4 +1,4 @@
-// Discover for signed-in personas, and signing out (FND-10).
+// Discover and Welcome for signed-in personas, and signing out (FND-10, AUTH-01).
 import { expect, expectAccessible, test } from './fixtures';
 
 test('a member sees upcoming activities and can sign out', async ({ page, signInAs }) => {
@@ -24,4 +24,15 @@ test('a suspended member sees no activities', async ({ page, signInAs }) => {
   await expect(page.getByText('Signed in as Sam Suspended.')).toBeVisible();
   await expect(page.getByText('No activities yet.')).toBeVisible();
   await expectAccessible(page);
+});
+
+test('Welcome continues to the page asked for', async ({ page, signInAs }) => {
+  await signInAs('member');
+  await page.goto('/welcome?next=%2Fdiscover%3Fcat%3Dhiking');
+  await expect(page.getByRole('heading', { level: 1, name: 'Welcome to FABA' })).toBeVisible();
+  await expect(page.getByText("You're signed in as Maya Member.")).toBeVisible();
+  await expectAccessible(page);
+
+  await page.getByRole('link', { name: 'Continue' }).click();
+  await expect(page).toHaveURL('/discover?cat=hiking');
 });

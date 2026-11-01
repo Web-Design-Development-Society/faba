@@ -1,0 +1,30 @@
+---
+// The Google sign-in button (AUTH-01), with a message when the last try didn't finish. The
+// landing page and the sign-in screen both use it.
+import { isInAppBrowser } from '../lib/server/auth';
+
+interface Props {
+  /** The path to return to after signing in. */
+  next: string;
+  /** Why the last try didn't finish, or null. */
+  error: string | null;
+}
+
+const { next, error } = Astro.props;
+const inAppBrowser = isInAppBrowser(Astro.request.headers.get('user-agent'));
+---
+
+{inAppBrowser && (
+  <section aria-labelledby="open-in-browser">
+    <h2 id="open-in-browser">Open in your browser</h2>
+    <p>
+      Google may not let you sign in inside this app. Use the app's menu to open this page in your
+      browser, such as Safari or Chrome, and sign in there.
+    </p>
+  </section>
+)}
+{error && <p role="alert">{error}</p>}
+<form method="post" action="/auth/login">
+  <input type="hidden" name="next" value={next} />
+  <button type="submit">{error ? 'Try again' : 'Continue with Google'}</button>
+</form>

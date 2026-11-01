@@ -1,16 +1,20 @@
 ---
 // The landing page for visitors. Signed-in members go straight to Discover.
+import SignIn from '../components/SignIn.astro';
 import Layout from '../layouts/Layout.astro';
+import { safeNextPath, signInErrorMessage } from '../lib/server/auth';
 
 if (Astro.locals.user) return Astro.redirect('/discover');
+
+// /auth/callback sends people back here with ?error= when sign-in didn't finish.
+const error = signInErrorMessage(Astro.url.searchParams.get('error'));
+const next = safeNextPath(Astro.url.searchParams.get('next'));
 ---
 
 <Layout title="FABA">
   <h1>FABA</h1>
   <p>Find and share activities with other BYU-Idaho faculty in Rexburg.</p>
-  <form method="post" action="/auth/login">
-    <button type="submit">Continue with Google</button>
-  </form>
+  <SignIn next={next} error={error} />
   <p>For BYU-Idaho faculty with a byui.edu account.</p>
   <p>
     <small>

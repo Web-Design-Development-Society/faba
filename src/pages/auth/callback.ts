@@ -2,7 +2,14 @@
 // section 9.7).
 import type { APIRoute } from 'astro';
 import { ALLOWED_EMAIL_DOMAIN } from 'astro:env/server';
-import { isAllowedEmail, NEXT_COOKIE, safeNextPath } from '../../lib/server/auth';
+import {
+  afterSignInPath,
+  callbackFailure,
+  isAllowedEmail,
+  NEXT_COOKIE,
+  safeNextPath,
+  signInErrorPath,
+} from '../../lib/server/auth';
 
 export const GET = (async ({ url, cookies, locals, redirect }) => {
   const next = safeNextPath(cookies.get(NEXT_COOKIE)?.value);
@@ -10,14 +17,12 @@ export const GET = (async ({ url, cookies, locals, redirect }) => {
 
   const code = url.searchParams.get('code');
   if (!code) {
-    // When the byui.edu hook rejects a new account, Supabase passes on the hook's message, which
-    // names the domain. Anything else, such as cancelling at Google, goes back to sign-in.
-    const reason = url.searchParams.get('error_description') ?? '';
-    return redirect(reason.includes(ALLOWED_EMAIL_DOMAIN) ? '/not-eligible' : '/auth/login?error');
+    const failure = callbackFailure(url.searchParams, ALLOWED_EMAIL_DOMAIN);
+    return redirect(failure === 'not-eligible' ? '/not-eligible' : signInErrorPath(failure, next));
   }
 
   const { data, error } = await locals.supabase.auth.exchangeCodeForSession(code);
-  if (error) return redirect('/auth/login?error');
+  if (error) return redirect(signInErrorPath('failed', next));
 
   // The callback check (ADR-005): the domain again, and that Google verified the email.
   if (!isAllowedEmail(data.user.email, ALLOWED_EMAIL_DOMAIN) || !data.user.email_confirmed_at) {
@@ -25,5 +30,12 @@ export const GET = (async ({ url, cookies, locals, redirect }) => {
     return redirect('/not-eligible');
   }
 
-  return redirect(next);
+  // Members who haven't accepted the community guidelines are new (PROF-01).
+  const { data: profile } = await locals.supabase
+    .from('profiles')
+    .select('guidelines_accepted_at')
+    .eq('id', data.user.id)
+    .maybeSingle();
+  const isNewMember = profile !== null && profile.guidelines_accepted_at === null;
+  return redirect(afterSignInPath(isNewMember, next));
 }) satisfies APIRoute;
