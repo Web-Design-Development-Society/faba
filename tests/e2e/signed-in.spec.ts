@@ -26,13 +26,12 @@ test('a suspended member sees no activities', async ({ page, signInAs }) => {
   await expectAccessible(page);
 });
 
-test('Welcome continues to the page asked for', async ({ page, signInAs }) => {
+test('members who have accepted the guidelines skip Welcome', async ({ page, signInAs }) => {
   await signInAs('member');
   await page.goto('/welcome?next=%2Fdiscover%3Fcat%3Dhiking');
-  await expect(page.getByRole('heading', { level: 1, name: 'Welcome to FABA' })).toBeVisible();
-  await expect(page.getByText("You're signed in as Maya Member.")).toBeVisible();
-  await expectAccessible(page);
-
-  await page.getByRole('link', { name: 'Continue' }).click();
   await expect(page).toHaveURL('/discover?cat=hiking');
+
+  await page.goto('/me');
+  await expect(page.getByRole('heading', { level: 1, name: 'Me' })).toBeVisible();
+  await expectAccessible(page);
 });

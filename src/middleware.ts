@@ -5,13 +5,15 @@ import { ALLOWED_EMAIL_DOMAIN } from 'astro:env/server';
 import { isAllowedEmail } from './lib/server/auth';
 import { createSupabase } from './lib/server/supabase';
 
-// Pages anyone can open without signing in (design document section 9.7).
+// Pages anyone can open without signing in (design document section 9.7). New members read the
+// guidelines here before they accept them on Welcome.
 const PUBLIC_PATHS = new Set([
   '/',
   '/auth/login',
   '/auth/callback',
   '/auth/logout',
   '/not-eligible',
+  '/guidelines',
   '/api/health',
 ]);
 
@@ -37,9 +39,20 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
   }
 
+  const back = encodeURIComponent(context.url.pathname + context.url.search);
   if (!context.locals.user && !PUBLIC_PATHS.has(context.url.pathname)) {
-    const back = context.url.pathname + context.url.search;
-    return noStore(context.redirect(`/auth/login?next=${encodeURIComponent(back)}`));
+    return noStore(context.redirect(`/auth/login?next=${back}`));
+  }
+
+  // The signed-in member's status and display details, for the pages that need sign-in.
+  context.locals.member = null;
+  if (context.locals.user && !PUBLIC_PATHS.has(context.url.pathname)) {
+    const { data: member } = await supabase.rpc('get_session_context').maybeSingle();
+    context.locals.member = member;
+    // Until they accept the current guidelines, members see only Welcome (PROF-01).
+    if (member && !member.guidelines_ok && context.url.pathname !== '/welcome') {
+      return noStore(context.redirect(`/welcome?next=${back}`));
+    }
   }
 
   return noStore(await next());

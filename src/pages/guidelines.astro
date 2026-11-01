@@ -1,0 +1,17 @@
+---
+// The community guidelines, for visitors and members (PROF-01). INFO-01 replaces this draft with
+// the text the board approves (FND-05).
+import Layout from '../layouts/Layout.astro';
+import { GUIDELINES } from '../lib/guidelines';
+---
+
+<Layout title="Community guidelines">
+  <h1>Community guidelines</h1>
+  <p>This is a draft. The Faculty Association Board hasn't approved it yet.</p>
+  <ul>
+    {GUIDELINES.map((guideline) => (
+      <li>{guideline}</li>
+    ))}
+  </ul>
+  <p>FABA is run by the Faculty Association Board. It isn't an official BYU-Idaho site.</p>
+</Layout>
