@@ -11,15 +11,17 @@ test('a new member goes through Welcome to the page they asked for', async ({
   await expect(page.getByLabel('Display name')).toHaveValue(newMember.displayName);
   await expect(page.getByRole('img', { name: 'Your Google photo' })).toBeVisible();
   await expect(page.getByRole('listitem')).toHaveCount(3);
-  await expect(page.getByRole('link', { name: 'Read the full guidelines' })).toHaveAttribute(
-    'href',
-    '/guidelines'
-  );
   await expect(page.getByRole('link', { name: 'Add more to your profile later' })).toHaveAttribute(
     'href',
     '/me'
   );
   await expectAccessible(page);
+
+  // New members can read the full guidelines before they accept them.
+  await page.getByRole('link', { name: 'Read the full guidelines' }).click();
+  await expect(page).toHaveURL('/guidelines');
+  await page.goBack();
+  await expect(page).toHaveURL('/welcome?next=%2Fdiscover%3Fcat%3Dgames');
 
   await page.getByLabel('Display name').fill('Nia N.');
   await page.getByLabel('Use initials instead').check();

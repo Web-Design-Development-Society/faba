@@ -5,13 +5,15 @@ import { ALLOWED_EMAIL_DOMAIN } from 'astro:env/server';
 import { isAllowedEmail } from './lib/server/auth';
 import { createSupabase } from './lib/server/supabase';
 
-// Pages anyone can open without signing in (design document section 9.7).
+// Pages anyone can open without signing in (design document section 9.7). New members read the
+// guidelines here before they accept them on Welcome.
 const PUBLIC_PATHS = new Set([
   '/',
   '/auth/login',
   '/auth/callback',
   '/auth/logout',
   '/not-eligible',
+  '/guidelines',
   '/api/health',
 ]);
 
