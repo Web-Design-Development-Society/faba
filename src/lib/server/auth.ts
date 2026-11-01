@@ -11,13 +11,33 @@ export const NEXT_COOKIE = 'faba-next';
  * True when the part after the @ is exactly `domain`, ignoring case. It matches the database's
  * private.is_allowed_email(), so subdomains and lookalike domains don't count.
  */
-export function isAllowedEmail(email: string | null | undefined, domain: string): boolean {
-  if (!email) return false;
+export function isAllowedEmail(email: unknown, domain: string): boolean {
+  if (typeof email !== 'string') return false;
   const at = email.indexOf('@');
   return (
     at > 0 &&
     at === email.lastIndexOf('@') &&
     email.slice(at + 1).toLowerCase() === domain.toLowerCase()
+  );
+}
+
+/** The parts of a Supabase user that the callback check reads. */
+interface SignedInUser {
+  email?: string;
+  identities?: { provider: string; identity_data?: Record<string, unknown> }[];
+}
+
+/**
+ * The callback check (ADR-005): the account's email and the email Google reported are both
+ * allowed, and Google says it verified that email. Supabase's own email_confirmed_at doesn't
+ * count, because Supabase sets it for every account when email confirmations are off.
+ */
+export function isEligibleGoogleUser(user: SignedInUser, domain: string): boolean {
+  const google = user.identities?.find(({ provider }) => provider === 'google')?.identity_data;
+  return (
+    isAllowedEmail(user.email, domain) &&
+    isAllowedEmail(google?.email, domain) &&
+    google?.email_verified === true
   );
 }
 

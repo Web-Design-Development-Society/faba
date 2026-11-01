@@ -7,7 +7,7 @@ export { expect };
 
 // Local Supabase, as in wrangler.jsonc.
 export const SUPABASE_URL = 'http://127.0.0.1:54331';
-const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH';
+export const SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH';
 
 // The personas in supabase/seed/local_accounts.sql, which all share this password.
 const PERSONAS = {

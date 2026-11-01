@@ -5,7 +5,7 @@ import { ALLOWED_EMAIL_DOMAIN } from 'astro:env/server';
 import {
   afterSignInPath,
   callbackFailure,
-  isAllowedEmail,
+  isEligibleGoogleUser,
   NEXT_COOKIE,
   safeNextPath,
   signInErrorPath,
@@ -24,8 +24,8 @@ export const GET = (async ({ url, cookies, locals, redirect }) => {
   const { data, error } = await locals.supabase.auth.exchangeCodeForSession(code);
   if (error) return redirect(signInErrorPath('failed', next));
 
-  // The callback check (ADR-005): the domain again, and that Google verified the email.
-  if (!isAllowedEmail(data.user.email, ALLOWED_EMAIL_DOMAIN) || !data.user.email_confirmed_at) {
+  // The callback check (ADR-005). Signing out leaves no session behind.
+  if (!isEligibleGoogleUser(data.user, ALLOWED_EMAIL_DOMAIN)) {
     await locals.supabase.auth.signOut({ scope: 'local' });
     return redirect('/not-eligible');
   }
