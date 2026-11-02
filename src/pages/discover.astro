@@ -1,6 +1,6 @@
 ---
 // A placeholder home page for the walking skeleton (FND-10): who's signed in, and the next
-// activities. The real feed is ACT-01.
+// activities. The real feed is ACT-01, and the app shell's bottom navigation replaces the Me link.
 import Layout from '../layouts/Layout.astro';
 
 const { supabase, user } = Astro.locals;
@@ -32,9 +32,9 @@ const when = new Intl.DateTimeFormat('en-US', {
 <Layout title="Discover">
   <h1>Discover</h1>
   <p>Signed in as {profile?.display_name ?? user.email}.</p>
-  <form method="post" action="/auth/logout">
-    <button type="submit">Sign out</button>
-  </form>
+  <nav aria-label="Main">
+    <a href="/me">Me</a>
+  </nav>
 
   <h2>Coming up</h2>
   {error ? (
