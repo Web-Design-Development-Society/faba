@@ -117,11 +117,6 @@ export function callbackFailure(
   return params.get('error') === 'access_denied' ? 'cancelled' : 'failed';
 }
 
-/** Where to go after signing in. New members see Welcome first, which sends them on to `next`. */
-export function afterSignInPath(isNewMember: boolean, next: string): string {
-  return isNewMember ? withNext('/welcome', next) : next;
-}
-
 // Apps whose built-in browsers Google refuses to sign in from: Facebook and Messenger,
 // Instagram, LinkedIn, Snapchat, TikTok, WeChat and LINE, and any Android app's WebView.
 const IN_APP_BROWSER =

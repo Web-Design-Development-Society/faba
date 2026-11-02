@@ -118,6 +118,13 @@ test.describe("in an app's built-in browser", () => {
   });
 });
 
+test('the community guidelines are public', async ({ page }) => {
+  await page.goto('/guidelines');
+  await expect(page.getByRole('heading', { level: 1, name: 'Community guidelines' })).toBeVisible();
+  await expect(page.getByRole('listitem')).toHaveCount(3);
+  await expectAccessible(page);
+});
+
 test('the not-eligible page explains who can join', async ({ page }) => {
   await page.goto('/not-eligible');
   await expect(

@@ -1,0 +1,16 @@
+---
+// A placeholder for the Me screen, which Welcome links to (PROF-01). PROF-02 adds editing the
+// profile, and AUTH-03 moves Sign out here.
+import Layout from '../layouts/Layout.astro';
+
+const { member, user } = Astro.locals;
+---
+
+<Layout title="Me">
+  <h1>Me</h1>
+  <p>You're signed in as {member?.display_name ?? user?.email}.</p>
+  <p>Adding your department, a short bio and your interests comes soon.</p>
+  <form method="post" action="/auth/logout">
+    <button type="submit">Sign out</button>
+  </form>
+</Layout>

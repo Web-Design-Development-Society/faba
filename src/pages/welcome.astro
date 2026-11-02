@@ -1,24 +1,86 @@
 ---
-// A placeholder for Welcome, where new members land after signing in (AUTH-01). PROF-01 adds the
-// display name, photo and community guidelines, and stores that they were accepted.
+// Welcome, where new members land after signing in (PROF-01). Members see it again when the
+// guidelines change (src/lib/guidelines.ts). The middleware sends them here until they accept.
+import { actions, isInputError } from 'astro:actions';
 import Layout from '../layouts/Layout.astro';
+import { GUIDELINES, GUIDELINES_VERSION } from '../lib/guidelines';
 import { safeNextPath } from '../lib/server/auth';
+import { DISPLAY_NAME } from '../lib/validation/profile';
 
-const { supabase, user } = Astro.locals;
-if (!user) return Astro.redirect('/auth/login');
+const { member } = Astro.locals;
+if (!member) return Astro.redirect('/auth/login');
 
-const { data: profile } = await supabase
-  .from('profiles')
-  .select('display_name')
-  .eq('id', user.id)
-  .single();
 const next = safeNextPath(Astro.url.searchParams.get('next'));
+const result = Astro.getActionResult(actions.profile.acceptGuidelines);
+if (result && !result.error) return Astro.redirect(next, 303);
+if (!result && member.guidelines_ok) return Astro.redirect(next);
+
+const fields = isInputError(result?.error) ? result.error.fields : {};
+const failure = result?.error && !isInputError(result.error) ? result.error.message : null;
+
+// The form posts to this page, keeping ?next= in case it comes back with an error.
+const formAction = new URL(actions.profile.acceptGuidelines.queryString, Astro.url);
+formAction.searchParams.set('next', next);
 ---
 
 <Layout title="Welcome">
   <h1>Welcome to FABA</h1>
-  <p>You're signed in as {profile?.display_name ?? user.email}.</p>
+  <p>Check your name and photo, read the guidelines, and you're in.</p>
+  {failure && <p role="alert">{failure}</p>}
+  <form method="post" action={formAction.pathname + formAction.search}>
+    <input type="hidden" name="version" value={GUIDELINES_VERSION} />
+    <p>
+      <label for="display_name">Display name</label>
+      <br />
+      <input
+        id="display_name"
+        name="display_name"
+        value={member.display_name}
+        required
+        minlength={DISPLAY_NAME.min}
+        maxlength={DISPLAY_NAME.max}
+        autocomplete="name"
+        aria-invalid={fields.display_name ? 'true' : undefined}
+        aria-describedby={fields.display_name ? 'display_name-error' : undefined}
+      />
+      {fields.display_name && <span id="display_name-error">{fields.display_name[0]}</span>}
+    </p>
+    {member.avatar_url && (
+      <p>
+        <img
+          src={member.avatar_url}
+          alt="Your Google photo"
+          width="64"
+          height="64"
+          referrerpolicy="no-referrer"
+        />
+        <br />
+        <label>
+          <input type="checkbox" name="use_initials" checked={member.use_initials} /> Use initials
+          instead
+        </label>
+      </p>
+    )}
+    <h2>Community guidelines</h2>
+    <ul>
+      {GUIDELINES.map((guideline) => (
+        <li>{guideline}</li>
+      ))}
+    </ul>
+    <p>
+      <a href="/guidelines">Read the full guidelines</a>
+    </p>
+    <p>
+      <label>
+        <input type="checkbox" name="agree" required /> I agree to the community guidelines
+      </label>
+      {fields.agree && <span>{fields.agree[0]}</span>}
+    </p>
+    <button type="submit">Let's go</button>
+  </form>
   <p>
-    <a href={next}>Continue</a>
+    <small>
+      <a href="/me">Add more to your profile later</a>
+    </small>
   </p>
 </Layout>
