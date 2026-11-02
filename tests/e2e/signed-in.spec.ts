@@ -35,3 +35,10 @@ test('members who have accepted the guidelines skip Welcome', async ({ page, sig
   await expect(page.getByRole('heading', { level: 1, name: 'Me' })).toBeVisible();
   await expectAccessible(page);
 });
+
+test("Welcome doesn't send members to another site", async ({ page, signInAs }) => {
+  await signInAs('member');
+  // Parsing turns /.//evil.example into //evil.example (AUTH-04).
+  await page.goto('/welcome?next=%2F.%2F%2Fevil.example');
+  await expect(page).toHaveURL('/discover');
+});
