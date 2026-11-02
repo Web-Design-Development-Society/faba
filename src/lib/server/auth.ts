@@ -42,14 +42,16 @@ export function isEligibleGoogleUser(user: SignedInUser, domain: string): boolea
 }
 
 /**
- * A path on this site to return to after signing in. Anything that would leave the site, such as
- * `//example.com` or `/\example.com`, falls back to the default.
+ * A path on this site to return to after signing in (AUTH-04). Anything that would leave the site,
+ * such as `//example.com` or `/\example.com`, falls back to the default.
  */
 export function safeNextPath(next: unknown): string {
   if (typeof next !== 'string' || !next.startsWith('/')) return DEFAULT_NEXT_PATH;
   const base = 'https://faba.invalid';
   const url = new URL(next, base);
-  return url.origin === base ? url.pathname + url.search + url.hash : DEFAULT_NEXT_PATH;
+  const path = url.pathname + url.search + url.hash;
+  // Parsing turns /.//example.com into //example.com, which browsers read as another site.
+  return url.origin === base && !path.startsWith('//') ? path : DEFAULT_NEXT_PATH;
 }
 
 /** `path`, with `next` added when it isn't the default. */

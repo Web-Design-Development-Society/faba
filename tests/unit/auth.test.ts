@@ -67,8 +67,16 @@ describe('safeNextPath', () => {
   it.each([
     ['/discover', '/discover'],
     ['/activities/42?from=email#rsvp', '/activities/42?from=email#rsvp'],
+    ['/%2F%2Fevil.example', '/%2F%2Fevil.example'],
     ['//evil.example/path', DEFAULT_NEXT_PATH],
     ['/\\evil.example', DEFAULT_NEXT_PATH],
+    ['/\t/evil.example', DEFAULT_NEXT_PATH],
+    // Each of these parses to //evil.example.
+    ['/.//evil.example', DEFAULT_NEXT_PATH],
+    ['/..//evil.example', DEFAULT_NEXT_PATH],
+    ['/a/..//evil.example', DEFAULT_NEXT_PATH],
+    ['/%2e//evil.example', DEFAULT_NEXT_PATH],
+    ['/./\\evil.example', DEFAULT_NEXT_PATH],
     ['https://evil.example', DEFAULT_NEXT_PATH],
     ['discover', DEFAULT_NEXT_PATH],
     ['', DEFAULT_NEXT_PATH],

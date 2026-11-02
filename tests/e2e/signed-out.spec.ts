@@ -31,10 +31,17 @@ test('the landing page offers Google sign-in', async ({ page }) => {
 });
 
 test('Discover sends visitors to sign in and back', async ({ page }) => {
-  await page.goto('/discover');
-  await expect(page).toHaveURL('/auth/login?next=%2Fdiscover');
+  await page.goto('/discover?cat=games');
+  await expect(page).toHaveURL('/auth/login?next=%2Fdiscover%3Fcat%3Dgames');
   await expect(page.getByRole('heading', { level: 1, name: 'Sign in to FABA' })).toBeVisible();
+  await expect(page.locator('input[name="next"]')).toHaveValue('/discover?cat=games');
   await expectAccessible(page);
+});
+
+test("a next path can't lead to another site", async ({ page }) => {
+  // Parsing turns /.//evil.example into //evil.example (AUTH-04).
+  await page.goto('/auth/login?next=%2F.%2F%2Fevil.example');
+  await expect(page.locator('input[name="next"]')).toHaveValue('/discover');
 });
 
 test('signing in starts Google sign-in through Supabase', async ({ page, context, baseURL }) => {
