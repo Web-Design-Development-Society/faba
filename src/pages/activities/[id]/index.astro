@@ -24,7 +24,11 @@ const going = activity?.rsvps[0]?.status === 'going';
 ---
 
 <Layout title={activity?.title ?? 'Not found'}>
-  {flash === 'posted' && <p role="status">Posted!</p>}
+  {flash === 'posted' && (
+    <p role="status" data-posted>
+      Posted!
+    </p>
+  )}
   {activity ? (
     <>
       <h1>{activity.title}</h1>
@@ -56,6 +60,12 @@ const going = activity?.rsvps[0]?.status === 'going';
     <a href="/discover">Back to Discover</a>
   </p>
 </Layout>
+
+<script>
+  // The draft from the create form is posted now (ACT-03).
+  import { clearDraft } from '../../../scripts/activity-draft';
+  if (document.querySelector('[data-posted]')) clearDraft();
+</script>
 
 <style>
   .description {

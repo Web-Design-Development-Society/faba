@@ -27,6 +27,19 @@ export function rexburgDate(instant: Date): string {
   return new Date(wallClock(instant)).toISOString().slice(0, 10);
 }
 
+/** `date` moved by `days`, such as `2026-11-08` for `2026-11-07` and 1. */
+export function addDays(date: string, days: number): string {
+  const [year, month, day] = date.split('-').map(Number);
+  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
+}
+
+/** The create form's quick date picks for `now` in Rexburg. On a Saturday, this Saturday is today. */
+export function quickDates(now: Date) {
+  const today = rexburgDate(now);
+  const weekday = new Date(`${today}T00:00:00Z`).getUTCDay();
+  return { today, tomorrow: addDays(today, 1), saturday: addDays(today, (6 - weekday) % 7) };
+}
+
 /** The time in Rexburg at `instant`, such as `07:00`. */
 export function rexburgTime(instant: Date): string {
   return new Date(wallClock(instant)).toISOString().slice(11, 16);
