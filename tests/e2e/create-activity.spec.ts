@@ -66,6 +66,7 @@ test('the daily limit has a friendly message', async ({ page, poster }) => {
   await expect(page.getByRole('alert')).toHaveText(
     'You can post up to 10 activities a day. Try again tomorrow.'
   );
+  await expectAccessible(page);
 });
 
 test('quick picks set the date, and the time rules are checked before posting', async ({
@@ -153,7 +154,7 @@ test.describe('without JavaScript', () => {
     await expect(page.getByLabel('Start time')).toHaveAttribute('aria-invalid', 'true');
     await expect(page.getByLabel('What are you doing?')).toHaveValue('Sunrise hike up the R');
     await expect(page.getByRole('radio', { name: 'Outdoors' })).toBeChecked();
-    await expectAccessible(page);
+    // No axe check here: it runs in the page, which needs JavaScript.
 
     const tomorrow = rexburgDate(new Date(Date.now() + 24 * 60 * 60 * 1000));
     await page.getByLabel('Date').fill(tomorrow);
