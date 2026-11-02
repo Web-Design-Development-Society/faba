@@ -234,7 +234,21 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      accept_guidelines: {
+        Args: { display_name: string; use_initials: boolean; version: number };
+        Returns: undefined;
+      };
+      get_session_context: {
+        Args: Record<PropertyKey, never>;
+        Returns: {
+          avatar_url: string;
+          display_name: string;
+          guidelines_ok: boolean;
+          role: string;
+          status: string;
+          use_initials: boolean;
+        }[];
+      };
     };
     Enums: {
       [_ in never]: never;
