@@ -1,0 +1,43 @@
+// Dates and times in Rexburg (ADR-017). Every activity is in America/Denver, whatever time zone
+// the server or the browser is in, so these work the same in both.
+
+export const TIME_ZONE = 'America/Denver';
+
+const parts = new Intl.DateTimeFormat('en-US', {
+  timeZone: TIME_ZONE,
+  hourCycle: 'h23',
+  year: 'numeric',
+  month: '2-digit',
+  day: '2-digit',
+  hour: '2-digit',
+  minute: '2-digit',
+  second: '2-digit',
+});
+
+/** Rexburg's wall clock at `instant`, as if it were UTC. */
+function wallClock(instant: Date): number {
+  const p = Object.fromEntries(
+    parts.formatToParts(instant).map(({ type, value }) => [type, value])
+  );
+  return Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+}
+
+/** The date in Rexburg at `instant`, such as `2026-11-07`. */
+export function rexburgDate(instant: Date): string {
+  return new Date(wallClock(instant)).toISOString().slice(0, 10);
+}
+
+/**
+ * The instant when Rexburg's clocks show `date` and `time`, such as `2026-11-07` and `07:00`.
+ * Daylight saving time is handled. A time the spring change skips comes out an hour earlier, and
+ * a time the fall change repeats is the first of the two.
+ */
+export function rexburgInstant(date: string, time: string): Date {
+  const [year, month, day] = date.split('-').map(Number);
+  const [hour, minute] = time.split(':').map(Number);
+  const wanted = Date.UTC(year, month - 1, day, hour, minute);
+  // The offset at a first guess, then again at the corrected guess, in case a change lies between.
+  let guess = wanted;
+  for (let i = 0; i < 2; i++) guess = wanted - (wallClock(new Date(guess)) - guess);
+  return new Date(guess);
+}
