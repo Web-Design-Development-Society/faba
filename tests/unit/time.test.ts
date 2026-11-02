@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { rexburgDate, rexburgInstant } from '../../src/lib/time';
+import { rexburgDate, rexburgInstant, rexburgTime } from '../../src/lib/time';
 
 describe('rexburgDate', () => {
   it.each([
@@ -9,6 +9,15 @@ describe('rexburgDate', () => {
     ['2026-07-04T06:00:00Z', '2026-07-04'],
   ])('%s is %s in Rexburg', (instant, date) => {
     expect(rexburgDate(new Date(instant))).toBe(date);
+  });
+});
+
+describe('rexburgTime', () => {
+  it.each([
+    ['2026-11-02T17:00:00Z', '10:00'],
+    ['2026-07-04T05:59:00Z', '23:59'],
+  ])('%s is %s in Rexburg', (instant, time) => {
+    expect(rexburgTime(new Date(instant))).toBe(time);
   });
 });
 

@@ -1,0 +1,64 @@
+---
+// A placeholder for an activity's page, where posting one lands (ACT-03). ACT-02 builds the real
+// page.
+import Layout from '../../../layouts/Layout.astro';
+import { takeFlash } from '../../../lib/server/flash';
+import { formatClock, formatWhen } from '../../../lib/time';
+
+const { supabase, user } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+
+// An id that isn't a UUID is an error, which shows as not found too.
+const { data: activity } = await supabase
+  .from('activities')
+  .select(
+    'title, description, starts_at, ends_at, location_name, cost_note, going_count, category:categories(name), organizer:profiles!activities_organizer_id_fkey(display_name), rsvps(status)'
+  )
+  .eq('id', Astro.params.id!)
+  .eq('rsvps.user_id', user.id)
+  .maybeSingle();
+if (!activity) Astro.response.status = 404;
+
+const flash = takeFlash(Astro.cookies);
+const going = activity?.rsvps[0]?.status === 'going';
+---
+
+<Layout title={activity?.title ?? 'Not found'}>
+  {flash === 'posted' && <p role="status">Posted!</p>}
+  {activity ? (
+    <>
+      <h1>{activity.title}</h1>
+      <p>
+        <time datetime={activity.starts_at}>{formatWhen(new Date(activity.starts_at))}</time>
+        {activity.ends_at && (
+          <>
+            {' to '}
+            <time datetime={activity.ends_at}>{formatClock(new Date(activity.ends_at))}</time>
+          </>
+        )}
+      </p>
+      <p>{activity.location_name}</p>
+      {activity.category && <p>{activity.category.name}</p>}
+      {activity.organizer && <p>Posted by {activity.organizer.display_name}</p>}
+      {activity.cost_note && <p>Cost: {activity.cost_note}</p>}
+      {activity.description && <p class="description">{activity.description}</p>}
+      <p>
+        {activity.going_count} going{going && ", and you're one of them"}.
+      </p>
+    </>
+  ) : (
+    <>
+      <h1>Not found</h1>
+      <p>This activity doesn't exist, or you can't see it.</p>
+    </>
+  )}
+  <p>
+    <a href="/discover">Back to Discover</a>
+  </p>
+</Layout>
+
+<style>
+  .description {
+    white-space: pre-line;
+  }
+</style>
