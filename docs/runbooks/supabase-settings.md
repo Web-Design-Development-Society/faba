@@ -17,6 +17,7 @@ Open the project at <https://supabase.com/dashboard>, then:
 | Redirect URLs                 | **Authentication → URL Configuration**            | `https://faba-staging.zack-alvey.workers.dev/**` and, for pull request previews, `https://*-faba-staging.zack-alvey.workers.dev/**`    |
 | byui.edu hook                 | **Authentication → Hooks → Before User Created**  | Enabled, type **Postgres**, schema `private`, function `before_user_created`. It rejects every account that isn't `byui.edu` (ADR-005) |
 | Refresh tokens                | **Authentication → Sessions**                     | Rotation on, with a 10-second reuse interval (the defaults)                                                                            |
+| Inactivity timeout            | **Authentication → Sessions**                     | 30 days (AUTH-03). Supabase offers it only on paid plans. Without it, sessions last until sign-out                                     |
 | Exposed schemas               | **Project Settings → Data API**                   | `public` and `graphql_public` only. Never expose `private`                                                                             |
 
 To check the hook, try to sign in to staging with a personal Gmail account. FABA should refuse it, and **Authentication → Users** shouldn't list the account.

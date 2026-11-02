@@ -3,8 +3,14 @@
 import { readFileSync } from 'node:fs';
 import AxeBuilder from '@axe-core/playwright';
 import { test as base, expect, type BrowserContext, type Page } from '@playwright/test';
-import { createServerClient } from '@supabase/ssr';
-import { createClient } from '@supabase/supabase-js';
+import {
+  combineChunks,
+  createChunks,
+  createServerClient,
+  stringFromBase64URL,
+  stringToBase64URL,
+} from '@supabase/ssr';
+import { createClient, type Session } from '@supabase/supabase-js';
 
 export { expect };
 
@@ -76,6 +82,44 @@ async function signIn(context: BrowserContext, baseURL: string, email: string) {
   }
   await context.addCookies(
     cookies.map(({ name, value }) => ({
+      name,
+      value,
+      url: baseURL,
+      httpOnly: true,
+      sameSite: 'Lax' as const,
+    }))
+  );
+}
+
+// @supabase/ssr stores the session as base64url JSON in a cookie named after the Supabase host, or
+// in chunks named .0, .1 and so on when it's long.
+const SESSION_KEY = `sb-${new URL(SUPABASE_URL).hostname.split('.')[0]}-auth-token`;
+const BASE64_PREFIX = 'base64-';
+
+/** The browser's Supabase session cookies. */
+export async function sessionCookies(context: BrowserContext, baseURL: string) {
+  return (await context.cookies(baseURL)).filter(
+    ({ name }) => name === SESSION_KEY || name.startsWith(`${SESSION_KEY}.`)
+  );
+}
+
+/** The Supabase session stored in the browser's cookies. */
+export async function readSession(context: BrowserContext, baseURL: string): Promise<Session> {
+  const cookies = await sessionCookies(context, baseURL);
+  const stored = await combineChunks(SESSION_KEY, (n) => cookies.find((c) => c.name === n)?.value);
+  if (!stored) throw new Error('The browser has no Supabase session.');
+  return JSON.parse(stringFromBase64URL(stored.slice(BASE64_PREFIX.length)));
+}
+
+/** Replaces the browser's session cookies with `session`. */
+export async function writeSession(context: BrowserContext, baseURL: string, session: Session) {
+  for (const { name } of await sessionCookies(context, baseURL)) {
+    await context.clearCookies({ name });
+  }
+  const value = BASE64_PREFIX + stringToBase64URL(JSON.stringify(session));
+  const chunks = createChunks(SESSION_KEY, value);
+  await context.addCookies(
+    chunks.map(({ name, value }) => ({
       name,
       value,
       url: baseURL,

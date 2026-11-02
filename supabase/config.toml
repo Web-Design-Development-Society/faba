@@ -279,11 +279,12 @@ max_frequency = "5s"
 # 14152127777 = "123456"
 
 # Configure logged in session timeouts.
-# [auth.sessions]
+[auth.sessions]
 # Force log out after the specified duration.
 # timebox = "24h"
 # Force log out if the user has been inactive longer than the specified duration.
-# inactivity_timeout = "8h"
+# Members who use FABA at least every 30 days stay signed in (AUTH-03).
+inactivity_timeout = "720h"
 
 # This hook runs before a new user is created and allows developers to reject the request based on the incoming user object.
 # FABA's hook rejects every email that isn't byui.edu (ADR-005, Iteration 1 task DB-5). Staging
