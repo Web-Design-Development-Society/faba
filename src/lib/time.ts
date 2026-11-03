@@ -65,6 +65,14 @@ export function formatWhen(instant: Date): string {
   return when.format(instant);
 }
 
+/**
+ * From `start` to `end` for people, such as `Sat, Nov 7, 7:00 – 9:30 AM`. The end's date shows
+ * only when it's another day. Without an end, it's the start.
+ */
+export function formatRange(start: Date, end?: Date | null): string {
+  return end ? when.formatRange(start, end) : when.format(start);
+}
+
 /** A time for people, such as `9:30 AM`. */
 export function formatClock(instant: Date): string {
   return clock.format(instant);

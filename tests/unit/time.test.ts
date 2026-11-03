@@ -1,5 +1,12 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, quickDates, rexburgDate, rexburgInstant, rexburgTime } from '../../src/lib/time';
+import {
+  addDays,
+  formatRange,
+  quickDates,
+  rexburgDate,
+  rexburgInstant,
+  rexburgTime,
+} from '../../src/lib/time';
 
 describe('addDays', () => {
   it.each([
@@ -40,6 +47,23 @@ describe('rexburgTime', () => {
     ['2026-07-04T05:59:00Z', '23:59'],
   ])('%s is %s in Rexburg', (instant, time) => {
     expect(rexburgTime(new Date(instant))).toBe(time);
+  });
+});
+
+describe('formatRange', () => {
+  // Intl puts thin spaces around the dash and a narrow no-break space before AM.
+  const plain = (text: string) => text.replace(/\s/g, ' ');
+
+  it.each([
+    ['2026-11-07T14:00:00Z', '2026-11-07T16:30:00Z', 'Sat, Nov 7, 7:00 – 9:30 AM'],
+    ['2026-11-07T18:00:00Z', '2026-11-07T20:00:00Z', 'Sat, Nov 7, 11:00 AM – 1:00 PM'],
+    ['2026-11-07T05:00:00Z', '2026-11-07T08:00:00Z', 'Fri, Nov 6, 10:00 PM – Sat, Nov 7, 1:00 AM'],
+  ])('%s to %s is %s', (start, end, text) => {
+    expect(plain(formatRange(new Date(start), new Date(end)))).toBe(text);
+  });
+
+  it('is the start without an end', () => {
+    expect(plain(formatRange(new Date('2026-11-07T14:00:00Z'), null))).toBe('Sat, Nov 7, 7:00 AM');
   });
 });
 
