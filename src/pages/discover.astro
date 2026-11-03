@@ -4,6 +4,8 @@
 // navigation replaces the links.
 import { actions } from 'astro:actions';
 import ActivityCard from '../components/ActivityCard.astro';
+import Avatar from '../components/Avatar.astro';
+import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
 import { nextPage, readCursor } from '../lib/feed';
 import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../lib/server/flash';
@@ -14,7 +16,7 @@ const PAGE = 20;
 const FACES = 3;
 const HOUR = 60 * 60 * 1000;
 
-const { supabase, user } = Astro.locals;
+const { supabase, user, member } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
 
 // I'm in without JavaScript comes back to the card (RSVP-01).
@@ -79,15 +81,13 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
   <p data-zone-note hidden>
     Times are in Rexburg time.
   </p>
-  <p role="status" data-status>
-    {flash && FLASH_MESSAGES[flash]}
-  </p>
+  <Status message={flash && FLASH_MESSAGES[flash]} />
   {rsvp?.error && <p role="alert">{rsvp.error.message}</p>}
 
   {plan.data && (
     <section aria-labelledby="plan">
       <h2 id="plan">Your next plan</h2>
-      <ActivityCard activity={plan.data} viewer={user.id} now={now} />
+      <ActivityCard activity={plan.data} viewer={user.id} now={now} faces={FACES} />
     </section>
   )}
 
@@ -112,7 +112,7 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
           <ul>
             {group.map((activity) => (
               <li id={`activity-${activity.id}`}>
-                <ActivityCard activity={activity} viewer={user.id} now={now} />
+                <ActivityCard activity={activity} viewer={user.id} now={now} faces={FACES} />
               </li>
             ))}
           </ul>
@@ -125,10 +125,16 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
       Show more
     </a>
   )}
+  {member && (
+    <template data-my-face>
+      <Avatar member={member} named />
+    </template>
+  )}
 </Layout>
 
 <script>
   import '../scripts/feed';
+  import '../scripts/rsvp';
 </script>
 
 <style>

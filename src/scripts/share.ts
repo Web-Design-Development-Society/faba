@@ -1,8 +1,8 @@
 // Share in an activity's menu (ACT-02). Without JavaScript it's an email. With it, it's the
 // phone's share sheet, or a copied link where there's no share sheet.
+import { toast } from './toast';
 
 const link = document.querySelector<HTMLAnchorElement>('[data-share]');
-const message = document.querySelector('[data-status]');
 
 link?.addEventListener('click', async (event) => {
   const { title = '', url = location.href } = link.dataset;
@@ -14,7 +14,7 @@ link?.addEventListener('click', async (event) => {
     event.preventDefault();
     try {
       await navigator.clipboard.writeText(url);
-      if (message) message.textContent = 'Link copied.';
+      toast('Link copied.');
     } catch {
       location.href = link.href;
     }
