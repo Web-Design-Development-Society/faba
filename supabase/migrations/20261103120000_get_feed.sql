@@ -32,3 +32,19 @@ AS $$
 $$;
 
 GRANT EXECUTE ON FUNCTION public.get_feed(timestamptz, uuid, INTEGER) TO authenticated;
+
+-- The signed-in member's RSVP to an activity: going, not_going, or NULL. PostgREST reads it as a
+-- computed field, `my_rsvp`, on activities and on get_feed()'s rows, because it can't filter
+-- RSVPs embedded in a function's rows by user_id.
+CREATE FUNCTION public.my_rsvp(activity public.activities)
+RETURNS text
+LANGUAGE sql
+STABLE
+SET search_path = ''
+AS $$
+  SELECT status
+  FROM public.rsvps
+  WHERE activity_id = activity.id AND user_id = auth.uid();
+$$;
+
+GRANT EXECUTE ON FUNCTION public.my_rsvp(public.activities) TO authenticated;
