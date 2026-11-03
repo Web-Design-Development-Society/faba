@@ -12,6 +12,16 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
   END_BEFORE_START: { code: 'BAD_REQUEST', message: 'End after the start time.' },
   INVALID_CATEGORY: { code: 'BAD_REQUEST', message: 'Choose one of the categories.' },
   NOT_ACTIVE: { code: 'FORBIDDEN', message: "Your account can't do that right now." },
+  ACTIVITY_NOT_FOUND: {
+    code: 'NOT_FOUND',
+    message: "This activity isn't available. It may have been removed.",
+  },
+  ACTIVITY_CANCELLED: {
+    code: 'CONFLICT',
+    message: "This activity is cancelled, so it isn't taking RSVPs.",
+  },
+  ACTIVITY_OVER: { code: 'CONFLICT', message: "This activity is over, so it isn't taking RSVPs." },
+  ORGANIZER_GOING: { code: 'BAD_REQUEST', message: "You're hosting, so you're already going." },
 };
 
 /**

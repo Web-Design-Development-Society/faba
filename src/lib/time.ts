@@ -111,6 +111,14 @@ export function formatSoon(instant: Date, now: Date): string {
 }
 
 /**
+ * True once an activity is over: when it ends, or 3 hours after it starts without an end time.
+ * rsvp() uses the same rule, and the feed shows activities for the same 3 hours.
+ */
+export function isOver(startsAt: Date, endsAt: Date | null, now: Date): boolean {
+  return (endsAt?.getTime() ?? startsAt.getTime() + 3 * 60 * 60 * 1000) <= now.getTime();
+}
+
+/**
  * The instant when Rexburg's clocks show `date` and `time`, such as `2026-11-07` and `07:00`.
  * Daylight saving time is handled. A time the spring change skips comes out an hour earlier, and
  * a time the fall change repeats is the first of the two.

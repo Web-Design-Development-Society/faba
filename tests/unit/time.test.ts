@@ -4,6 +4,7 @@ import {
   formatDay,
   formatRange,
   formatSoon,
+  isOver,
   quickDates,
   rexburgDate,
   rexburgInstant,
@@ -96,6 +97,19 @@ describe('formatSoon', () => {
     ['2026-11-10T01:30:00Z', 'Nov 9, 6:30 PM'],
   ])('%s is %s', (instant, text) => {
     expect(plain(formatSoon(new Date(instant), monday))).toBe(text);
+  });
+});
+
+describe('isOver', () => {
+  const start = new Date('2026-11-07T14:00:00Z');
+
+  it.each([
+    ["isn't over before its end", '2026-11-07T15:00:00Z', '2026-11-07T14:59:00Z', false],
+    ['is over at its end', '2026-11-07T15:00:00Z', '2026-11-07T15:00:00Z', true],
+    ["isn't over 2:59 after it starts without an end", null, '2026-11-07T16:59:00Z', false],
+    ['is over 3 hours after it starts without an end', null, '2026-11-07T17:00:00Z', true],
+  ])('an activity %s', (_, end, now, over) => {
+    expect(isOver(start, end ? new Date(end) : null, new Date(now))).toBe(over);
   });
 });
 
