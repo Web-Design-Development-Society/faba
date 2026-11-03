@@ -20,7 +20,7 @@ const cursor = readCursor(Astro.url.searchParams);
 const firstPage = !cursor.after_id;
 
 // Members who aren't active have no profile to read, so they're left out of the faces.
-const CARD = `id, title, starts_at, location_name, going_count, organizer_id,
+const CARD = `id, title, starts_at, location_name, going_count, organizer_id, my_rsvp,
   category:categories(name, icon, color_token),
   going:rsvps(member:profiles!inner(display_name, avatar_url, use_initials))`;
 
@@ -28,8 +28,7 @@ const [feed, plan] = await Promise.all([
   // One more than a page says whether there's another.
   supabase
     .rpc('get_feed', { ...cursor, page_size: PAGE + 1 })
-    .select(`${CARD}, mine:rsvps(status)`)
-    .eq('mine.user_id', user.id)
+    .select(CARD)
     .eq('going.status', 'going')
     .order('starts_at')
     .order('id')
@@ -40,9 +39,8 @@ const [feed, plan] = await Promise.all([
   firstPage
     ? supabase
         .from('activities')
-        .select(`${CARD}, mine:rsvps!inner(status)`)
-        .eq('mine.user_id', user.id)
-        .eq('mine.status', 'going')
+        .select(CARD)
+        .eq('my_rsvp', 'going')
         .eq('status', 'published')
         .is('hidden_at', null)
         .gte('starts_at', new Date(now.getTime() - 3 * HOUR).toISOString())
