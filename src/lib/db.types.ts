@@ -229,6 +229,46 @@ export type Database = {
         };
         Relationships: [];
       };
+      rsvps: {
+        Row: {
+          activity_id: string;
+          created_at: string;
+          status: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          activity_id: string;
+          created_at?: string;
+          status: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          activity_id?: string;
+          created_at?: string;
+          status?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'rsvps_activity_id_fkey';
+            columns: ['activity_id'];
+            isOneToOne: false;
+            referencedRelation: 'activities';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'rsvps_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -237,6 +277,19 @@ export type Database = {
       accept_guidelines: {
         Args: { display_name: string; use_initials: boolean; version: number };
         Returns: undefined;
+      };
+      create_activity: {
+        Args: {
+          category_id: string;
+          cost_note?: string;
+          description?: string;
+          ends_at?: string;
+          idempotency_key?: string;
+          location_name: string;
+          starts_at: string;
+          title: string;
+        };
+        Returns: string;
       };
       get_session_context: {
         Args: Record<PropertyKey, never>;

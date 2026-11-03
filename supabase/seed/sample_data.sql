@@ -318,7 +318,8 @@ BEGIN
       cost_note,
       status,
       cancel_reason,
-      cancelled_at
+      cancelled_at,
+      created_at
     )
   SELECT
     CASE i % 5
@@ -344,7 +345,9 @@ BEGIN
     END,
     CASE
       WHEN i IN (7, 23) THEN now()
-    END
+    END,
+    -- Posted a while ago, so they don't count toward the personas' daily limit (ACT-03).
+    now() - INTERVAL '14 days'
   FROM dated AS d
   JOIN templates AS t ON t.n = d.i % 20;
 
