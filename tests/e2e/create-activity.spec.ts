@@ -1,6 +1,6 @@
 // Posting an activity (ACT-03).
 import type { Page } from '@playwright/test';
-import { rexburgDate } from '../../src/lib/time';
+import { quickDates, rexburgDate } from '../../src/lib/time';
 import { expect, expectAccessible, test } from './fixtures';
 
 /** Fills in the required fields, starting at `startTime` on the suggested day. */
@@ -67,6 +67,77 @@ test('the daily limit has a friendly message', async ({ page, poster }) => {
     'You can post up to 10 activities a day. Try again tomorrow.'
   );
   await expectAccessible(page);
+});
+
+test('quick picks set the date, and the time rules are checked before posting', async ({
+  page,
+  signInAs,
+}) => {
+  await signInAs('member');
+  await page.goto('/activities/new');
+  const { today, tomorrow, saturday } = quickDates(new Date());
+  await page.getByRole('button', { name: 'Tomorrow' }).click();
+  await expect(page.getByLabel('Date')).toHaveValue(tomorrow);
+  await page.getByRole('button', { name: 'This Saturday' }).click();
+  await expect(page.getByLabel('Date')).toHaveValue(saturday);
+  await page.getByRole('button', { name: 'Today' }).click();
+  await expect(page.getByLabel('Date')).toHaveValue(today);
+
+  // Midnight today has always passed, so the browser stops the post.
+  await fillRequired(page, '00:00');
+  await page.getByRole('button', { name: 'Post activity' }).click();
+  await expect(page).toHaveURL('/activities/new');
+  await expect(page.getByLabel('Start time')).toHaveJSProperty(
+    'validationMessage',
+    'Pick a time in the future.'
+  );
+
+  await page.getByRole('button', { name: 'Tomorrow' }).click();
+  await page.getByLabel('Start time').fill('07:00');
+  await page.getByText('More options').click();
+  await page.getByLabel('End time').fill('06:00');
+  await page.getByRole('button', { name: 'Post activity' }).click();
+  await expect(page).toHaveURL('/activities/new');
+  await expect(page.getByLabel('End time')).toHaveJSProperty(
+    'validationMessage',
+    'End after the start time.'
+  );
+});
+
+test('the draft survives a failed post, and goes once posted', async ({ page, poster }) => {
+  await page.goto('/activities/new');
+  await fillRequired(page);
+  await page.reload();
+  await expect(page.getByText('We kept what you typed last time.')).toBeVisible();
+  await expect(page.getByLabel('What are you doing?')).toHaveValue('Sunrise hike up the R');
+  await expect(page.getByRole('radio', { name: 'Outdoors' })).toBeChecked();
+
+  await page.getByRole('button', { name: 'Start over' }).click();
+  await expect(page.getByLabel('What are you doing?')).toHaveValue('');
+  await expect(page.getByText('We kept what you typed last time.')).toBeHidden();
+
+  // The connection drops while posting.
+  await fillRequired(page);
+  await page.route(/_action=/, (route) => route.abort());
+  const failed = page.waitForEvent('requestfailed');
+  await page.getByRole('button', { name: 'Post activity' }).click();
+  await failed;
+  await page.unroute(/_action=/);
+
+  await page.goto('/activities/new');
+  await expect(page.getByLabel('What are you doing?')).toHaveValue('Sunrise hike up the R');
+  await page.getByRole('button', { name: 'Post activity' }).click();
+  await expect(page.getByRole('status')).toHaveText('Posted!');
+  const { count } = await poster.admin
+    .from('activities')
+    .select('*', { count: 'exact', head: true })
+    .eq('organizer_id', poster.id);
+  expect(count).toBe(1);
+
+  // Posted, so the next form starts empty.
+  await page.goto('/activities/new');
+  await expect(page.getByLabel('What are you doing?')).toHaveValue('');
+  await expect(page.getByText('We kept what you typed last time.')).toBeHidden();
 });
 
 test.describe('without JavaScript', () => {

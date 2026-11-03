@@ -1,12 +1,12 @@
 ---
 // Posting an activity (ACT-03, design document section 7.7). It works without JavaScript: when a
 // post fails, the form comes back with what was typed and the same idempotency key, so posting
-// again can't make a second activity.
+// again can't make a second activity. src/scripts/activity-form.ts adds the extras.
 import { actions, isInputError } from 'astro:actions';
 import FieldError from '../../components/FieldError.astro';
 import Layout from '../../layouts/Layout.astro';
 import { setFlash } from '../../lib/server/flash';
-import { rexburgDate, rexburgTime } from '../../lib/time';
+import { quickDates, rexburgDate, rexburgTime } from '../../lib/time';
 import { ACTIVITY, latestStart, suggestedStart } from '../../lib/validation/activity';
 
 const result = Astro.getActionResult(actions.activities.create);
@@ -36,6 +36,7 @@ const category = value('category_id') ?? Astro.url.searchParams.get('cat');
 
 const now = new Date();
 const start = suggestedStart(now);
+const { today, tomorrow, saturday } = quickDates(now);
 const moreOptions = ['end_time', 'cost_note'].some((name) => value(name) || fields[name]);
 ---
 
@@ -43,7 +44,15 @@ const moreOptions = ['end_time', 'cost_note'].some((name) => value(name) || fiel
   <h1>New activity</h1>
   {failure && <p role="alert">{failure}</p>}
   {categoriesError && <p role="alert">The categories couldn't load. Please try again.</p>}
-  <form method="post" action={actions.activities.create.queryString}>
+  <p data-draft-notice hidden>
+    We kept what you typed last time. <button type="button">Start over</button>
+  </p>
+  <form
+    method="post"
+    action={actions.activities.create.queryString}
+    data-activity-form
+    data-typed={typed ? '' : undefined}
+  >
     <input
       type="hidden"
       name="idempotency_key"
@@ -65,6 +74,17 @@ const moreOptions = ['end_time', 'cost_note'].some((name) => value(name) || fiel
     </p>
     <fieldset>
       <legend>When?</legend>
+      <p data-quick-dates hidden>
+        <button type="button" data-date={today}>
+          Today
+        </button>
+        <button type="button" data-date={tomorrow}>
+          Tomorrow
+        </button>
+        <button type="button" data-date={saturday}>
+          This Saturday
+        </button>
+      </p>
       <label for="date">Date</label>
       <input
         type="date"
@@ -154,3 +174,7 @@ const moreOptions = ['end_time', 'cost_note'].some((name) => value(name) || fiel
     <button type="submit">Post activity</button>
   </form>
 </Layout>
+
+<script>
+  import '../../scripts/activity-form';
+</script>
