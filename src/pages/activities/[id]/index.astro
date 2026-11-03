@@ -1,74 +1,161 @@
 ---
-// A placeholder for an activity's page, where posting one lands (ACT-03). ACT-02 builds the real
-// page.
+// An activity's page (ACT-02, design document section 7.6), in the order people ask: what, when,
+// where, who, then the details. The organizer's profile links to the page PROF-03 builds, and
+// RSVP-01 makes the RSVP button work.
+import Avatar from '../../../components/Avatar.astro';
 import Layout from '../../../layouts/Layout.astro';
+import { linkify, mapsUrl } from '../../../lib/links';
 import { takeFlash } from '../../../lib/server/flash';
-import { formatClock, formatWhen } from '../../../lib/time';
+import { formatRange } from '../../../lib/time';
+
+// Faces in the going row. RSVP-03 lists everyone.
+const FACES = 4;
 
 const { supabase, user } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
 
-// An id that isn't a UUID is an error, which shows as not found too.
+// Only its organizer can read a hidden activity (RLS), so it's not available to anyone else. Nor
+// is an id that isn't a UUID, which is an error. Members who aren't active have no profile to
+// read, so they're left out of the going row.
 const { data: activity } = await supabase
   .from('activities')
   .select(
-    'title, description, starts_at, ends_at, location_name, cost_note, going_count, category:categories(name), organizer:profiles!activities_organizer_id_fkey(display_name), rsvps(status)'
+    `id, title, description, starts_at, ends_at, location_name, cost_note, going_count, organizer_id,
+    category:categories(name),
+    organizer:profiles!activities_organizer_id_fkey(id, display_name, avatar_url, use_initials, department),
+    mine:rsvps(status),
+    going:rsvps(member:profiles!inner(display_name, avatar_url, use_initials))`
   )
   .eq('id', Astro.params.id!)
-  .eq('rsvps.user_id', user.id)
+  .eq('mine.user_id', user.id)
+  .eq('going.status', 'going')
+  .order('created_at', { referencedTable: 'going' })
+  .limit(FACES, { referencedTable: 'going' })
   .maybeSingle();
 if (!activity) Astro.response.status = 404;
 
 const flash = takeFlash(Astro.cookies);
-const going = activity?.rsvps[0]?.status === 'going';
+const hosting = activity?.organizer_id === user.id;
+const going = activity?.mine[0]?.status === 'going';
+const host = activity?.organizer;
+const department = host?.department ? `· ${host.department}` : '';
 ---
 
-<Layout title={activity?.title ?? 'Not found'}>
-  {flash === 'posted' && (
-    <p role="status" data-posted>
-      Posted!
-    </p>
-  )}
+<Layout title={activity?.title ?? 'Not available'}>
+  <header class="top">
+    <a href="/discover">Back to Discover</a>
+  </header>
+  <p role="status" data-status data-posted={flash === 'posted' ? '' : undefined}>
+    {flash === 'posted' && 'Posted!'}
+  </p>
   {activity ? (
     <>
+      {activity.category && <p class="category">{activity.category.name}</p>}
       <h1>{activity.title}</h1>
       <p>
-        <time datetime={activity.starts_at}>{formatWhen(new Date(activity.starts_at))}</time>
-        {activity.ends_at && (
+        <time datetime={activity.starts_at}>
+          {formatRange(
+            new Date(activity.starts_at),
+            activity.ends_at ? new Date(activity.ends_at) : null
+          )}
+        </time>
+      </p>
+      <p>
+        {activity.location_name} ·{' '}
+        <a href={mapsUrl(activity.location_name, Astro.request.headers.get('user-agent') ?? '')}>
+          Open in Maps
+        </a>
+      </p>
+      {activity.cost_note && <p>Cost: {activity.cost_note}</p>}
+      <p class="going">
+        {activity.going.map(({ member }) => (
+          <Avatar member={member} named />
+        ))}
+        {activity.going_count} going
+      </p>
+      {host && (
+        <p>
+          <Avatar member={host} />
+          Hosted by <a href={`/people/${host.id}`}>{host.display_name}</a>
+          {department}
+        </p>
+      )}
+      {activity.description && (
+        <p class="description">
+          {linkify(activity.description).map(({ text, href }) =>
+            href ? (
+              <a href={href} rel="nofollow ugc noopener">
+                {text}
+              </a>
+            ) : (
+              text
+            )
+          )}
+        </p>
+      )}
+      <div class="actions">
+        {hosting ? (
+          <p>You're hosting</p>
+        ) : (
           <>
-            {' to '}
-            <time datetime={activity.ends_at}>{formatClock(new Date(activity.ends_at))}</time>
+            <p id="rsvp-note">RSVPs open soon.</p>
+            <button type="button" disabled aria-describedby="rsvp-note">
+              {going ? '✓ Going' : "I'm in"}
+            </button>
           </>
         )}
-      </p>
-      <p>{activity.location_name}</p>
-      {activity.category && <p>{activity.category.name}</p>}
-      {activity.organizer && <p>Posted by {activity.organizer.display_name}</p>}
-      {activity.cost_note && <p>Cost: {activity.cost_note}</p>}
-      {activity.description && <p class="description">{activity.description}</p>}
-      <p>
-        {activity.going_count} going{going && ", and you're one of them"}.
-      </p>
+      </div>
     </>
   ) : (
     <>
-      <h1>Not found</h1>
-      <p>This activity doesn't exist, or you can't see it.</p>
+      <h1>Not available</h1>
+      <p>This activity isn't available. It may have been removed, or the link may be wrong.</p>
     </>
   )}
-  <p>
-    <a href="/discover">Back to Discover</a>
-  </p>
 </Layout>
 
 <script>
-  // The draft from the create form is posted now (ACT-03).
   import { clearDraft } from '../../../scripts/activity-draft';
+
+  // The draft from the create form is posted now (ACT-03).
   if (document.querySelector('[data-posted]')) clearDraft();
 </script>
 
 <style>
+  .top,
+  .actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+  }
+  .category {
+    margin-bottom: 0;
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+  }
+  .going {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
   .description {
     white-space: pre-line;
+  }
+  /* Within thumb reach at the bottom of the screen. */
+  .actions {
+    position: sticky;
+    bottom: 0;
+    padding: 0.75rem 0 calc(0.75rem + env(safe-area-inset-bottom));
+    background: white;
+    border-top: 1px solid #767676;
+  }
+  .actions p {
+    margin: 0;
+  }
+  .actions button {
+    min-width: 8rem;
+    min-height: 44px;
   }
 </style>

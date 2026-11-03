@@ -11,6 +11,7 @@ import {
   stringToBase64URL,
 } from '@supabase/ssr';
 import { createClient, type Session, type SupabaseClient } from '@supabase/supabase-js';
+import type { Database } from '../../src/lib/db.types';
 
 export { expect };
 
@@ -30,6 +31,8 @@ const PASSWORD = 'faba-local-dev';
 
 export type Persona = keyof typeof PERSONAS;
 
+type NewActivity = Database['public']['Functions']['create_activity']['Args'];
+
 export const test = base.extend<{
   /** Signs this test's browser in as a persona, skipping Google. */
   signInAs: (persona: Persona) => Promise<void>;
@@ -41,6 +44,16 @@ export const test = base.extend<{
    * are deleted afterwards.
    */
   poster: { id: string; admin: SupabaseClient };
+  /**
+   * A new member, Hana Host, who posts activities through create_activity() while the browser is
+   * signed in as someone else. `post` makes a hike tomorrow unless told otherwise, and `admin`
+   * changes it. Their account and activities are deleted afterwards.
+   */
+  host: {
+    id: string;
+    admin: SupabaseClient;
+    post: (activity?: Partial<NewActivity>) => Promise<string>;
+  };
 }>({
   signInAs: async ({ context, baseURL }, use) => {
     await use((persona) => signIn(context, baseURL!, PERSONAS[persona]));
@@ -60,16 +73,38 @@ export const test = base.extend<{
     const admin = adminClient();
     const { id, email } = await createAccount(admin, 'Pat Poster');
     try {
-      await admin
-        .from('profiles')
-        .update({ guidelines_version: 1, guidelines_accepted_at: new Date().toISOString() })
-        .eq('id', id);
+      await acceptGuidelines(admin, id);
       await signIn(context, baseURL!, email);
       await use({ id, admin });
     } finally {
-      // Deleting the account keeps its activities, with no organizer.
-      await admin.from('activities').delete().eq('organizer_id', id);
-      await admin.auth.admin.deleteUser(id);
+      await deleteAccount(admin, id);
+    }
+  },
+  // eslint-disable-next-line no-empty-pattern -- Playwright needs the object, and this uses nothing.
+  host: async ({}, use) => {
+    const admin = adminClient();
+    const { id, email } = await createAccount(admin, 'Hana Host');
+    try {
+      await acceptGuidelines(admin, id);
+      const host = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+        auth: { persistSession: false },
+      });
+      const { error } = await host.auth.signInWithPassword({ email, password: PASSWORD });
+      if (error) throw new Error(`Signing in as ${email} failed: ${error.message}`);
+      const post = async (activity: Partial<NewActivity> = {}) => {
+        const { data, error } = await host.rpc('create_activity', {
+          title: 'Sunrise hike up the R',
+          category_id: 'outdoors',
+          starts_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          location_name: 'R Mountain trailhead',
+          ...activity,
+        });
+        if (error) throw new Error(`Posting failed: ${error.message}`);
+        return data;
+      };
+      await use({ id, admin, post });
+    } finally {
+      await deleteAccount(admin, id);
     }
   },
 });
@@ -93,6 +128,20 @@ async function createAccount(admin: SupabaseClient, displayName: string) {
   });
   if (error) throw new Error(`Creating ${email} failed: ${error.message}`);
   return { id: data.user.id, email };
+}
+
+/** Skips Welcome for a new account. */
+async function acceptGuidelines(admin: SupabaseClient, id: string) {
+  await admin
+    .from('profiles')
+    .update({ guidelines_version: 1, guidelines_accepted_at: new Date().toISOString() })
+    .eq('id', id);
+}
+
+/** Deletes an account and its activities. Deleting only the account keeps them, with no organizer. */
+async function deleteAccount(admin: SupabaseClient, id: string) {
+  await admin.from('activities').delete().eq('organizer_id', id);
+  await admin.auth.admin.deleteUser(id);
 }
 
 const GREY_SQUARE =

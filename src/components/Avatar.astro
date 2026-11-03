@@ -1,0 +1,46 @@
+---
+// A member's photo, or their initials when they chose those at Welcome or have no photo. With
+// `named`, it says who it is. Without, it's decorative, because their name is beside it.
+interface Props {
+  member: { display_name: string; avatar_url: string | null; use_initials: boolean };
+  named?: boolean;
+}
+
+const { member, named = false } = Astro.props;
+const words = member.display_name.trim().split(/\s+/);
+const initials = (words[0][0] + (words.length > 1 ? words.at(-1)![0] : '')).toUpperCase();
+---
+
+{member.avatar_url && !member.use_initials ? (
+  <img
+    class="avatar"
+    src={member.avatar_url}
+    alt={named ? member.display_name : ''}
+    width="32"
+    height="32"
+    referrerpolicy="no-referrer"
+  />
+) : named ? (
+  <span class="avatar" role="img" aria-label={member.display_name}>
+    {initials}
+  </span>
+) : (
+  <span class="avatar" aria-hidden="true">
+    {initials}
+  </span>
+)}
+
+<style>
+  .avatar {
+    display: inline-grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 50%;
+    object-fit: cover;
+    vertical-align: middle;
+    background: #ddd;
+    font-size: 0.75rem;
+    font-weight: 600;
+  }
+</style>
