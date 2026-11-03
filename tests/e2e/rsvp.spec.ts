@@ -18,6 +18,72 @@ async function statusOf(admin: SupabaseClient, activityId: string, userId: strin
   return data?.status ?? null;
 }
 
+test("I'm in shows at once, and Undo takes it back", async ({ page, poster, host }) => {
+  const id = await host.post();
+  await page.goto(`/activities/${id}`);
+  await page.getByRole('button', { name: "I'm in" }).click();
+
+  await expect(page.getByRole('button', { name: '✓ Going' })).toBeFocused();
+  await expect(page.getByText('2 going')).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Pat Poster' })).toBeVisible();
+  const status = page.getByRole('status');
+  await expect(status).toContainText("You're going.");
+  await expect(page).toHaveURL(`/activities/${id}`);
+  await expect.poll(() => statusOf(host.admin, id, poster.id)).toBe('going');
+  await expectAccessible(page);
+
+  await status.getByRole('button', { name: 'Undo' }).click();
+  await expect(page.getByRole('button', { name: "I'm in" })).toBeFocused();
+  await expect(page.getByText('1 going')).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Pat Poster' })).toHaveCount(0);
+  await expect(status).toHaveText('Undone.');
+  await expect.poll(() => statusOf(host.admin, id, poster.id)).toBe('not_going');
+});
+
+test("I'm in on a card stays on Discover, and the toast goes after 5 seconds", async ({
+  page,
+  poster,
+  host,
+}) => {
+  await page.clock.install();
+  const title = named('Board game night');
+  const id = await host.post({ title, starts_at: new Date(Date.now() + HOUR).toISOString() });
+  await page.goto('/discover');
+  const card = page.getByRole('listitem').filter({ hasText: title });
+  await card.getByRole('button', { name: "I'm in" }).click();
+
+  await expect(card.getByRole('button', { name: '✓ Going' })).toBeVisible();
+  await expect(card.getByText('2 going')).toBeVisible();
+  await expect(card.getByRole('img', { name: 'Pat Poster' })).toBeVisible();
+  await expect(page).toHaveURL('/discover');
+  await expect.poll(() => statusOf(host.admin, id, poster.id)).toBe('going');
+
+  const status = page.getByRole('status');
+  await expect(status).toContainText("You're going.");
+  // A toast under the pointer would stay.
+  await page.mouse.move(0, 0);
+  await page.clock.runFor(5000);
+  await expect(status).toBeEmpty();
+});
+
+test("if I'm in can't be saved, it goes back and says why", async ({ page, poster, host }) => {
+  const id = await host.post();
+  await page.goto(`/activities/${id}`);
+  await host.admin
+    .from('activities')
+    .update({ status: 'cancelled', cancelled_at: new Date().toISOString() })
+    .eq('id', id);
+  await page.getByRole('button', { name: "I'm in" }).click();
+
+  await expect(page.getByRole('status')).toHaveText(
+    "This activity is cancelled, so it isn't taking RSVPs."
+  );
+  await expect(page.getByRole('button', { name: "I'm in" })).toBeVisible();
+  await expect(page.getByText('1 going')).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Pat Poster' })).toHaveCount(0);
+  expect(await statusOf(host.admin, id, poster.id)).toBeNull();
+});
+
 test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false });
 

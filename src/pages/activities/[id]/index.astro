@@ -5,6 +5,7 @@
 import { actions } from 'astro:actions';
 import Avatar from '../../../components/Avatar.astro';
 import RsvpForm from '../../../components/RsvpForm.astro';
+import Status from '../../../components/Status.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { linkify, mapsUrl } from '../../../lib/links';
 import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../../../lib/server/flash';
@@ -13,7 +14,7 @@ import { formatRange, isOver } from '../../../lib/time';
 // Faces in the going row. RSVP-03 lists everyone.
 const FACES = 4;
 
-const { supabase, user } = Astro.locals;
+const { supabase, user, member } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
 
 // I'm in without JavaScript (RSVP-01). When it fails, the page says why.
@@ -84,9 +85,10 @@ const email = activity
       </details>
     )}
   </header>
-  <p role="status" data-status data-posted={flash === 'posted' ? '' : undefined}>
-    {flash && FLASH_MESSAGES[flash]}
-  </p>
+  <Status
+    message={flash && FLASH_MESSAGES[flash]}
+    data-posted={flash === 'posted' ? '' : undefined}
+  />
   {rsvp?.error && <p role="alert">{rsvp.error.message}</p>}
   {activity ? (
     <>
@@ -116,11 +118,11 @@ const email = activity
         </a>
       </p>
       {activity.cost_note && <p>Cost: {activity.cost_note}</p>}
-      <p class="going">
+      <p class="going" data-going={activity.id} data-faces={FACES}>
         {activity.going.map(({ member }) => (
           <Avatar member={member} named />
         ))}
-        {activity.going_count} going
+        <span data-count>{activity.going_count}</span> going
       </p>
       {host && (
         <p>
@@ -172,10 +174,16 @@ const email = activity
       <p>This activity isn't available. It may have been removed, or the link may be wrong.</p>
     </>
   )}
+  {member && (
+    <template data-my-face>
+      <Avatar member={member} named />
+    </template>
+  )}
 </Layout>
 
 <script>
   import { clearDraft } from '../../../scripts/activity-draft';
+  import '../../../scripts/rsvp';
   import '../../../scripts/share';
 
   // The draft from the create form is posted now (ACT-03).
