@@ -1,18 +1,27 @@
 ---
 // An activity's page (ACT-02, design document section 7.6), in the order people ask: what, when,
 // where, who, then the details. Edit, Report and the organizer's profile link to pages that
-// ACT-04, MOD-01 and PROF-03 build, and RSVP-01 makes the RSVP button work.
+// ACT-04, MOD-01 and PROF-03 build.
+import { actions } from 'astro:actions';
 import Avatar from '../../../components/Avatar.astro';
+import RsvpForm from '../../../components/RsvpForm.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { linkify, mapsUrl } from '../../../lib/links';
-import { takeFlash } from '../../../lib/server/flash';
-import { formatRange } from '../../../lib/time';
+import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../../../lib/server/flash';
+import { formatRange, isOver } from '../../../lib/time';
 
 // Faces in the going row. RSVP-03 lists everyone.
 const FACES = 4;
 
 const { supabase, user } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
+
+// I'm in without JavaScript (RSVP-01). When it fails, the page says why.
+const rsvp = Astro.getActionResult(actions.rsvps.set);
+if (rsvp && !rsvp.error) {
+  setFlash(Astro.cookies, Astro.url, 'going');
+  return Astro.redirect(postedFrom(Astro.url), 303);
+}
 
 // Only its organizer can read a hidden activity (RLS), so it's not available to anyone else. Nor
 // is an id that isn't a UUID, which is an error. Members who aren't active have no profile to
@@ -38,6 +47,14 @@ if (!activity) Astro.response.status = 404;
 const flash = takeFlash(Astro.cookies);
 const hosting = activity?.organizer_id === user.id;
 const going = activity?.mine[0]?.status === 'going';
+// Others can't read a hidden activity, so only its status and time close RSVPs here.
+const open =
+  activity?.status === 'published' &&
+  !isOver(
+    new Date(activity.starts_at),
+    activity.ends_at ? new Date(activity.ends_at) : null,
+    new Date()
+  );
 const host = activity?.organizer;
 const department = host?.department ? `· ${host.department}` : '';
 const url = new URL(Astro.url.pathname, Astro.url.origin).href;
@@ -68,8 +85,9 @@ const email = activity
     )}
   </header>
   <p role="status" data-status data-posted={flash === 'posted' ? '' : undefined}>
-    {flash === 'posted' && 'Posted!'}
+    {flash && FLASH_MESSAGES[flash]}
   </p>
+  {rsvp?.error && <p role="alert">{rsvp.error.message}</p>}
   {activity ? (
     <>
       {activity.hidden_at && (
@@ -130,15 +148,21 @@ const email = activity
             <p>You're hosting</p>
             <a href={`/activities/${activity.id}/edit`}>Edit</a>
           </>
-        ) : (
+        ) : !open ? (
           <>
             <p id="rsvp-note">
-              {activity.status === 'cancelled' ? 'This activity is cancelled.' : 'RSVPs open soon.'}
+              {activity.status === 'cancelled'
+                ? 'This activity is cancelled.'
+                : 'This activity is over.'}
             </p>
             <button type="button" disabled aria-describedby="rsvp-note">
               {going ? '✓ Going' : "I'm in"}
             </button>
           </>
+        ) : going ? (
+          <p>✓ Going</p>
+        ) : (
+          <RsvpForm activityId={activity.id} />
         )}
       </div>
     </>
