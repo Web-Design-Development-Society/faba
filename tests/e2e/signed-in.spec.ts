@@ -5,8 +5,7 @@ import { expect, expectAccessible, test } from './fixtures';
 test('a member sees upcoming activities', async ({ page, signInAs }) => {
   await signInAs('member');
   await page.goto('/discover');
-  await expect(page.getByText('Signed in as Maya Member.')).toBeVisible();
-  await expect(page.getByRole('heading', { name: 'Coming up' })).toBeVisible();
+  await expect(page.getByRole('heading', { level: 1, name: 'Discover' })).toBeVisible();
   await expect(page.getByRole('listitem')).not.toHaveCount(0);
   await expectAccessible(page);
 });
@@ -14,8 +13,8 @@ test('a member sees upcoming activities', async ({ page, signInAs }) => {
 test('a suspended member sees no activities', async ({ page, signInAs }) => {
   await signInAs('suspended');
   await page.goto('/discover');
-  await expect(page.getByText('Signed in as Sam Suspended.')).toBeVisible();
-  await expect(page.getByText('No activities yet.')).toBeVisible();
+  await expect(page.getByText("It's quiet right now.")).toBeVisible();
+  await expect(page.getByRole('listitem')).toHaveCount(0);
   await expectAccessible(page);
 });
 

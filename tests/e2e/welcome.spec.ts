@@ -28,7 +28,8 @@ test('a new member goes through Welcome to the page they asked for', async ({
   await page.getByLabel('I agree to the community guidelines').check();
   await page.getByRole('button', { name: "Let's go" }).click();
   await expect(page).toHaveURL('/discover?cat=games');
-  await expect(page.getByText('Signed in as Nia N.')).toBeVisible();
+  await page.goto('/me');
+  await expect(page.getByText("You're signed in as Nia N.")).toBeVisible();
 
   // Welcome doesn't come back.
   await page.goto('/welcome');

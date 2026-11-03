@@ -1,0 +1,122 @@
+---
+// An activity in the feed (ACT-01, design document section 7.5). The whole card opens the
+// activity. RSVP-01 adds the I'm in button.
+import { categoryLook } from '../lib/categories';
+import { formatSoon } from '../lib/time';
+import Avatar from './Avatar.astro';
+
+interface Props {
+  activity: {
+    id: string;
+    title: string;
+    starts_at: string;
+    location_name: string;
+    going_count: number;
+    organizer_id: string | null;
+    category: { name: string; icon: string; color_token: string } | null;
+    going: {
+      member: { display_name: string; avatar_url: string | null; use_initials: boolean };
+    }[];
+    /** The signed-in member's RSVP. */
+    my_rsvp: string | null;
+  };
+  /** The signed-in member's id. */
+  viewer: string;
+  now: Date;
+}
+
+const { activity, viewer, now } = Astro.props;
+const { category } = activity;
+const look = category && categoryLook(category);
+const hosting = activity.organizer_id === viewer;
+const going = activity.my_rsvp === 'going';
+---
+
+<article class="card" style={look ? `--stripe: ${look.color}` : undefined}>
+  {category && look && (
+    <span class="icon" role="img" aria-label={category.name}>
+      {look.icon}
+    </span>
+  )}
+  <div class="body">
+    <h3>
+      <a href={`/activities/${activity.id}`}>{activity.title}</a>
+    </h3>
+    <p>
+      <time datetime={activity.starts_at}>{formatSoon(new Date(activity.starts_at), now)}</time>
+    </p>
+    <p class="place">{activity.location_name}</p>
+    <p class="going">
+      {activity.going.map(({ member }) => (
+        <Avatar member={member} named />
+      ))}
+      {activity.going_count} going
+    </p>
+  </div>
+  {(hosting || going) && <p class="mine">{hosting ? "You're hosting" : '✓ Going'}</p>}
+</article>
+
+<style>
+  .card {
+    position: relative;
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid #767676;
+    border-left: 0.375rem solid var(--stripe, #616161);
+    border-radius: 0.5rem;
+  }
+  /* The title's link covers the card, so the card shows the focus. */
+  .card:has(a:focus-visible) {
+    outline: 2px solid;
+    outline-offset: 2px;
+  }
+  .card a:focus-visible {
+    outline: none;
+  }
+  .icon {
+    font-size: 1.5rem;
+    line-height: 1.2;
+  }
+  .body {
+    flex: 1;
+    min-width: 0;
+  }
+  h3 {
+    display: -webkit-box;
+    margin: 0;
+    overflow: hidden;
+    font-size: 1rem;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+  }
+  h3 a {
+    color: inherit;
+    text-decoration: none;
+  }
+  h3 a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+  p {
+    margin: 0;
+  }
+  .place {
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .going {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+  }
+  .mine {
+    align-self: center;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+</style>
