@@ -2,6 +2,13 @@
 import { addDays, rexburgDate, rexburgInstant } from '../../src/lib/time';
 import { expect, expectAccessible, test } from './fixtures';
 
+declare global {
+  interface Window {
+    shared?: ShareData;
+    copied?: string;
+  }
+}
+
 // Ada Admin, a persona with no photo.
 const ADA = '00000000-0000-4000-8000-000000000004';
 
@@ -42,5 +49,113 @@ test('a member sees what, when, where and who on one screen', async ({ page, sig
   );
 
   await expect(page.getByRole('button', { name: "I'm in" })).toBeDisabled();
+  await expect(page.getByRole('link', { name: 'Edit' })).toHaveCount(0);
+  await page.getByLabel('More actions').click();
+  await expect(page.getByRole('link', { name: 'Share' })).toHaveAttribute(
+    'href',
+    /^mailto:\?subject=Sunrise%20hike%20up%20the%20R&body=http/
+  );
+  await expect(page.getByRole('link', { name: 'Report' })).toHaveAttribute(
+    'href',
+    `/activities/${id}/report`
+  );
   await expectAccessible(page);
+});
+
+test('Share opens the share sheet, or copies the link', async ({ page, signInAs, host }) => {
+  await signInAs('member');
+  const id = await host.post();
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'share', {
+      configurable: true,
+      value: async (data: ShareData) => void (window.shared = data),
+    });
+  });
+  await page.goto(`/activities/${id}`);
+  await page.getByLabel('More actions').click();
+  await page.getByRole('link', { name: 'Share' }).click();
+  await expect
+    .poll(() => page.evaluate(() => window.shared))
+    .toEqual({
+      title: 'Sunrise hike up the R',
+      url: page.url(),
+    });
+
+  // Without a share sheet. Later scripts run after earlier ones.
+  await page.addInitScript(() => {
+    Object.defineProperty(navigator, 'share', { configurable: true, value: undefined });
+    Object.defineProperty(navigator, 'clipboard', {
+      configurable: true,
+      value: { writeText: async (text: string) => void (window.copied = text) },
+    });
+  });
+  await page.reload();
+  await page.getByLabel('More actions').click();
+  await page.getByRole('link', { name: 'Share' }).click();
+  await expect(page.getByRole('status')).toHaveText('Link copied.');
+  await expect.poll(() => page.evaluate(() => window.copied)).toBe(page.url());
+});
+
+test('the organizer can edit, and sees why a moderator hid it', async ({ page, poster }) => {
+  const { data: activity } = await poster.admin
+    .from('activities')
+    .insert({
+      organizer_id: poster.id,
+      category_id: 'games',
+      title: 'Game night',
+      starts_at: rexburgInstant(tomorrow, '19:00').toISOString(),
+      location_name: 'Madison Library',
+    })
+    .select('id')
+    .single();
+  const id = activity!.id;
+
+  await page.goto(`/activities/${id}`);
+  await expect(page.getByText("You're hosting")).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Edit' })).toHaveAttribute(
+    'href',
+    `/activities/${id}/edit`
+  );
+  await expect(page.getByRole('button', { name: "I'm in" })).toHaveCount(0);
+
+  await poster.admin
+    .from('activities')
+    .update({ hidden_at: new Date().toISOString(), hidden_reason: 'Looks like spam.' })
+    .eq('id', id);
+  await page.reload();
+  await expect(page.getByText('Hidden by a moderator: Looks like spam.')).toBeVisible();
+  await expectAccessible(page);
+});
+
+test('a cancelled activity says why, and a hidden one is not available', async ({
+  page,
+  signInAs,
+  host,
+}) => {
+  await signInAs('member');
+  const cancelled = await host.post();
+  const hidden = await host.post({ title: 'Business opportunity' });
+  await host.admin
+    .from('activities')
+    .update({
+      status: 'cancelled',
+      cancelled_at: new Date().toISOString(),
+      cancel_reason: 'Bad weather. We will reschedule.',
+    })
+    .eq('id', cancelled);
+  await host.admin
+    .from('activities')
+    .update({ hidden_at: new Date().toISOString(), hidden_reason: 'Looks like spam.' })
+    .eq('id', hidden);
+
+  await page.goto(`/activities/${cancelled}`);
+  await expect(page.getByText('Cancelled: Bad weather. We will reschedule.')).toBeVisible();
+  await expect(page.getByRole('button', { name: "I'm in" })).toBeDisabled();
+  await expect(page.getByText('This activity is cancelled.')).toBeVisible();
+  await expectAccessible(page);
+
+  const response = await page.goto(`/activities/${hidden}`);
+  expect(response?.status()).toBe(404);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Not available');
+  await expect(page.getByText('Business opportunity')).toHaveCount(0);
 });

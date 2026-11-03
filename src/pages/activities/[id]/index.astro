@@ -1,7 +1,7 @@
 ---
 // An activity's page (ACT-02, design document section 7.6), in the order people ask: what, when,
-// where, who, then the details. The organizer's profile links to the page PROF-03 builds, and
-// RSVP-01 makes the RSVP button work.
+// where, who, then the details. Edit, Report and the organizer's profile link to pages that
+// ACT-04, MOD-01 and PROF-03 build, and RSVP-01 makes the RSVP button work.
 import Avatar from '../../../components/Avatar.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { linkify, mapsUrl } from '../../../lib/links';
@@ -20,7 +20,8 @@ if (!user) return Astro.redirect('/auth/login');
 const { data: activity } = await supabase
   .from('activities')
   .select(
-    `id, title, description, starts_at, ends_at, location_name, cost_note, going_count, organizer_id,
+    `id, title, description, starts_at, ends_at, location_name, cost_note, status, cancel_reason,
+    hidden_at, hidden_reason, going_count, organizer_id,
     category:categories(name),
     organizer:profiles!activities_organizer_id_fkey(id, display_name, avatar_url, use_initials, department),
     mine:rsvps(status),
@@ -39,17 +40,47 @@ const hosting = activity?.organizer_id === user.id;
 const going = activity?.mine[0]?.status === 'going';
 const host = activity?.organizer;
 const department = host?.department ? `· ${host.department}` : '';
+const url = new URL(Astro.url.pathname, Astro.url.origin).href;
+const withReason = (label: string, reason: string | null) =>
+  reason ? `${label}: ${reason}` : label;
+const email = activity
+  ? `mailto:?subject=${encodeURIComponent(activity.title)}&body=${encodeURIComponent(url)}`
+  : undefined;
 ---
 
 <Layout title={activity?.title ?? 'Not available'}>
   <header class="top">
     <a href="/discover">Back to Discover</a>
+    {activity && (
+      <details class="menu">
+        <summary aria-label="More actions">⋯</summary>
+        <ul>
+          <li>
+            <a href={email} data-share data-title={activity.title} data-url={url}>
+              Share
+            </a>
+          </li>
+          <li>
+            <a href={`/activities/${activity.id}/report`}>Report</a>
+          </li>
+        </ul>
+      </details>
+    )}
   </header>
   <p role="status" data-status data-posted={flash === 'posted' ? '' : undefined}>
     {flash === 'posted' && 'Posted!'}
   </p>
   {activity ? (
     <>
+      {activity.hidden_at && (
+        <div class="banner">
+          <p>{withReason('Hidden by a moderator', activity.hidden_reason)}</p>
+          <p>Contact the FABA board if you think this was a mistake.</p>
+        </div>
+      )}
+      {activity.status === 'cancelled' && (
+        <p class="banner">{withReason('Cancelled', activity.cancel_reason)}</p>
+      )}
       {activity.category && <p class="category">{activity.category.name}</p>}
       <h1>{activity.title}</h1>
       <p>
@@ -95,10 +126,15 @@ const department = host?.department ? `· ${host.department}` : '';
       )}
       <div class="actions">
         {hosting ? (
-          <p>You're hosting</p>
+          <>
+            <p>You're hosting</p>
+            <a href={`/activities/${activity.id}/edit`}>Edit</a>
+          </>
         ) : (
           <>
-            <p id="rsvp-note">RSVPs open soon.</p>
+            <p id="rsvp-note">
+              {activity.status === 'cancelled' ? 'This activity is cancelled.' : 'RSVPs open soon.'}
+            </p>
             <button type="button" disabled aria-describedby="rsvp-note">
               {going ? '✓ Going' : "I'm in"}
             </button>
@@ -116,6 +152,7 @@ const department = host?.department ? `· ${host.department}` : '';
 
 <script>
   import { clearDraft } from '../../../scripts/activity-draft';
+  import '../../../scripts/share';
 
   // The draft from the create form is posted now (ACT-03).
   if (document.querySelector('[data-posted]')) clearDraft();
@@ -128,6 +165,45 @@ const department = host?.department ? `· ${host.department}` : '';
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
+  }
+  .menu {
+    position: relative;
+  }
+  .menu summary {
+    display: grid;
+    place-items: center;
+    min-width: 44px;
+    min-height: 44px;
+    list-style: none;
+    cursor: pointer;
+  }
+  .menu summary::-webkit-details-marker {
+    display: none;
+  }
+  .menu ul {
+    position: absolute;
+    right: 0;
+    z-index: 1;
+    margin: 0;
+    padding: 0.5rem 1rem;
+    list-style: none;
+    background: white;
+    border: 1px solid #767676;
+  }
+  .menu li a {
+    display: block;
+    padding: 0.5rem 0;
+  }
+  .banner {
+    padding: 0.75rem 1rem;
+    border-left: 0.25rem solid #b42318;
+    background: #fef3f2;
+  }
+  .banner p {
+    margin: 0;
+  }
+  .banner > :first-child {
+    font-weight: 600;
   }
   .category {
     margin-bottom: 0;
@@ -154,7 +230,10 @@ const department = host?.department ? `· ${host.department}` : '';
   .actions p {
     margin: 0;
   }
-  .actions button {
+  .actions button,
+  .actions a {
+    display: inline-grid;
+    place-items: center;
     min-width: 8rem;
     min-height: 44px;
   }
