@@ -48,7 +48,7 @@ test('a member sees what, when, where and who on one screen', async ({ page, sig
     'https://example.com/r-trail'
   );
 
-  await expect(page.getByRole('button', { name: "I'm in" })).toBeDisabled();
+  await expect(page.getByRole('button', { name: "I'm in" })).toBeEnabled();
   await expect(page.getByRole('link', { name: 'Edit' })).toHaveCount(0);
   await page.getByLabel('More actions').click();
   await expect(page.getByRole('link', { name: 'Share' })).toHaveAttribute(

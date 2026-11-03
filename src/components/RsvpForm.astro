@@ -1,0 +1,37 @@
+---
+// I'm in (RSVP-01). It's a form that posts to the page it's on, which saves the RSVP and redirects
+// back (POST, then redirect, then GET), so it works without JavaScript.
+import { actions } from 'astro:actions';
+
+interface Props {
+  activityId: string;
+}
+
+const { activityId } = Astro.props;
+// The page's own address, so it comes back as it was, such as Discover's second page.
+const target = new URL(Astro.url);
+for (const [name, value] of new URLSearchParams(actions.rsvps.set.queryString)) {
+  target.searchParams.set(name, value);
+}
+---
+
+<form method="post" action={target.pathname + target.search} data-rsvp>
+  <input type="hidden" name="activity_id" value={activityId} />
+  <input type="hidden" name="status" value="going" />
+  <button>I'm in</button>
+</form>
+
+<style>
+  /* Above a card's link, which covers the card. */
+  form {
+    position: relative;
+    z-index: 1;
+    flex: none;
+    align-self: center;
+    margin-left: auto;
+  }
+  button {
+    min-height: 44px;
+    padding: 0 1rem;
+  }
+</style>
