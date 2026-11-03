@@ -1,5 +1,5 @@
 -- Sample data for the five test personas: profile details, 49 activities over the next 6 weeks
--- in Rexburg time, and 1 hidden activity. It needs the personas' accounts: local_accounts.sql
+-- in Rexburg time, 1 hidden activity, and who's going. It needs the personas' accounts: local_accounts.sql
 -- locally, or staging_accounts.sql on staging.
 -- Running it again replaces the personas' activities with fresh dates. It's one statement because
 -- `supabase db query`, which the Seed staging workflow uses, runs only one at a time.
@@ -77,7 +77,7 @@ BEGIN
       );
 
   -- 49 activities from 20 templates, spread over the next 6 weeks in Rexburg time, skipping
-  -- Sundays. Two are cancelled. Counts stay at 0 until RSVPs exist (ADR-008).
+  -- Sundays. Two are cancelled.
   WITH
     templates(
       n,
@@ -384,5 +384,50 @@ BEGIN
     'Commercial post. Against the community guidelines.',
     '00000000-0000-4000-8000-000000000003'
   FROM saturday;
+
+  -- Organizers are going to their own activities, as create_activity() makes them. The other
+  -- personas, apart from the suspended one, go to about a third of the rest, the same ones each
+  -- time. Then the counts match the RSVPs (ADR-008).
+  INSERT INTO public.rsvps (activity_id, user_id, status)
+  SELECT a.id, p.id, 'going'
+  FROM public.activities AS a
+  JOIN public.profiles AS p
+    ON p.id = a.organizer_id
+    OR (
+      a.hidden_at IS NULL
+      AND p.id IN
+        (
+          '00000000-0000-4000-8000-000000000001',
+          '00000000-0000-4000-8000-000000000002',
+          '00000000-0000-4000-8000-000000000003',
+          '00000000-0000-4000-8000-000000000004'
+        )
+      AND abs(hashtext(a.title || p.id::text)) % 3 = 0
+    )
+  WHERE
+    a.organizer_id IN
+      (
+        '00000000-0000-4000-8000-000000000001',
+        '00000000-0000-4000-8000-000000000002',
+        '00000000-0000-4000-8000-000000000003',
+        '00000000-0000-4000-8000-000000000004',
+        '00000000-0000-4000-8000-000000000005'
+      );
+
+  UPDATE public.activities AS a
+  SET going_count = (
+    SELECT count(*)
+    FROM public.rsvps AS r
+    WHERE r.activity_id = a.id AND r.status = 'going'
+  )
+  WHERE
+    a.organizer_id IN
+      (
+        '00000000-0000-4000-8000-000000000001',
+        '00000000-0000-4000-8000-000000000002',
+        '00000000-0000-4000-8000-000000000003',
+        '00000000-0000-4000-8000-000000000004',
+        '00000000-0000-4000-8000-000000000005'
+      );
 END;
 $$;
