@@ -36,7 +36,6 @@ test.describe('without JavaScript', () => {
     await expect(page.getByText('2 going')).toBeVisible();
     await expect(page.getByRole('img', { name: 'Pat Poster' })).toBeVisible();
     expect(await statusOf(host.admin, id, poster.id)).toBe('going');
-    await expectAccessible(page);
 
     // Reloading doesn't post again, and the message has gone.
     await page.reload();
@@ -103,4 +102,6 @@ test("an activity that's over has no I'm in", async ({ page, signInAs, host }) =
   const card = page.getByRole('listitem').filter({ hasText: title });
   await expect(card).toBeVisible();
   await expect(card.getByRole('button', { name: "I'm in" })).toHaveCount(0);
+  // With JavaScript, because axe runs in the page. The other cards have I'm in.
+  await expectAccessible(page);
 });
