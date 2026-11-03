@@ -17,8 +17,8 @@ test('an expired session refreshes without asking to sign in again', async ({
   const session = await readSession(context, baseURL!);
   await writeSession(context, baseURL!, expired(session));
 
-  await page.goto('/discover');
-  await expect(page.getByText('Signed in as Maya Member.')).toBeVisible();
+  await page.goto('/me');
+  await expect(page.getByText("You're signed in as Maya Member.")).toBeVisible();
 
   // The middleware swapped the refresh token for a new one and saved the new session.
   const refreshed = await readSession(context, baseURL!);

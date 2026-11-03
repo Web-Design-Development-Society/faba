@@ -13,7 +13,7 @@ async function fillRequired(page: Page, startTime = '07:00') {
 
 test('a member posts an activity and lands on it, going', async ({ page, poster }) => {
   await page.goto('/discover');
-  await page.getByRole('link', { name: 'New activity' }).click();
+  await page.getByRole('link', { name: 'Post', exact: true }).click();
   await expect(page).toHaveURL('/activities/new');
   await expect(page.getByLabel('Date')).not.toHaveValue('');
   await expectAccessible(page);

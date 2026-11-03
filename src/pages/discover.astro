@@ -1,51 +1,96 @@
 ---
-// A placeholder home page for the walking skeleton (FND-10): who's signed in, and the next
-// activities. The real feed is ACT-01, and the app shell's bottom navigation replaces the links.
+// Home (ACT-01, design document section 7.4): what's coming up, soonest first, under a heading
+// for each day in Rexburg time. ACT-06 adds the category chips, and the app shell's bottom
+// navigation replaces the links.
+import ActivityCard from '../components/ActivityCard.astro';
 import Layout from '../layouts/Layout.astro';
-import { formatWhen } from '../lib/time';
+import { formatDay, rexburgDate } from '../lib/time';
+
+// Activities on a page, and faces on a card.
+const PAGE = 20;
+const FACES = 3;
 
 const { supabase, user } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
 
-const [{ data: profile }, { data: activities, error }] = await Promise.all([
-  supabase.from('profiles').select('display_name').eq('id', user.id).single(),
-  supabase
-    .from('activities')
-    .select(
-      'id, title, starts_at, location_name, status, category:categories(name), organizer:profiles!activities_organizer_id_fkey(display_name)'
-    )
-    .gte('starts_at', new Date().toISOString())
-    .order('starts_at')
-    .limit(20),
-]);
+const now = new Date();
+
+// Members who aren't active have no profile to read, so they're left out of the faces.
+const CARD = `id, title, starts_at, location_name, going_count, organizer_id,
+  category:categories(name, icon, color_token),
+  going:rsvps(member:profiles!inner(display_name, avatar_url, use_initials))`;
+
+const feed = await supabase
+  .rpc('get_feed', { page_size: PAGE })
+  .select(`${CARD}, mine:rsvps(status)`)
+  .eq('mine.user_id', user.id)
+  .eq('going.status', 'going')
+  .order('starts_at')
+  .order('id')
+  .order('created_at', { referencedTable: 'going' })
+  .limit(FACES, { referencedTable: 'going' });
+
+const activities = feed.data ?? [];
+const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(starts_at)));
 ---
 
 <Layout title="Discover">
   <h1>Discover</h1>
-  <p>Signed in as {profile?.display_name ?? user.email}.</p>
   <nav aria-label="Main">
-    <a href="/activities/new">New activity</a>
+    <a href="/activities/new">Post</a>
     <a href="/me">Me</a>
   </nav>
 
-  <h2>Coming up</h2>
-  {error ? (
+  {feed.error ? (
     <p role="alert">Activities couldn't load. Please try again.</p>
   ) : activities.length === 0 ? (
-    <p>No activities yet.</p>
+    <div class="empty">
+      <p>It's quiet right now. Be the one who gets people together.</p>
+      <a href="/activities/new">Post the first activity</a>
+    </div>
   ) : (
-    <ul>
-      {activities.map((activity) => (
-        <li>
-          <strong>{activity.title}</strong>
-          {activity.status === 'cancelled' && ' (cancelled)'}
-          <br />
-          <time datetime={activity.starts_at}>{formatWhen(new Date(activity.starts_at))}</time>
-          {` · ${activity.location_name}`}
-          {activity.category && ` · ${activity.category.name}`}
-          {activity.organizer && ` · ${activity.organizer.display_name}`}
-        </li>
+    <div data-feed>
+      {[...days].map(([date, group]) => (
+        <section data-day={date} aria-labelledby={`day-${date}`}>
+          <h2 id={`day-${date}`}>{formatDay(date, now)}</h2>
+          <ul>
+            {group.map((activity) => (
+              <li>
+                <ActivityCard activity={activity} viewer={user.id} now={now} />
+              </li>
+            ))}
+          </ul>
+        </section>
       ))}
-    </ul>
+    </div>
   )}
 </Layout>
+
+<style>
+  nav {
+    display: flex;
+    gap: 1rem;
+  }
+  h2 {
+    margin: 1.5rem 0 0.5rem;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+  }
+  ul {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .empty {
+    margin-top: 2rem;
+    text-align: center;
+  }
+  .empty a {
+    display: inline-grid;
+    place-items: center;
+    min-height: 44px;
+    padding: 0 1rem;
+  }
+</style>
