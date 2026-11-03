@@ -75,8 +75,10 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
     font-size: 0.875rem;
     text-transform: uppercase;
   }
+  /* minmax(0, 1fr) keeps a card with a long place on one line from widening the column. */
   ul {
     display: grid;
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.75rem;
     margin: 0;
     padding: 0;

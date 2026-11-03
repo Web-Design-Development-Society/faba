@@ -35,6 +35,12 @@ test('a member sees each activity under its day, with who is going', async ({
   await expect(card.getByRole('img', { name: 'Hana Host' })).toBeVisible();
   await expect(card.getByRole('img', { name: 'Pat Poster' })).toBeVisible();
   await expect(card.getByText('✓ Going')).toBeVisible();
+  // Nothing is wider than the screen.
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth - document.documentElement.clientWidth
+    )
+  ).toBe(0);
   await expectAccessible(page);
 
   // The whole card opens the activity, not only its title.
