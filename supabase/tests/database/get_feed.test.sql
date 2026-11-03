@@ -3,7 +3,7 @@ BEGIN;
 
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
 
-SELECT plan(8);
+SELECT plan(11);
 
 -- Only this test's activities, until the rollback.
 DELETE FROM public.activities;
@@ -103,6 +103,13 @@ VALUES
     NULL
   );
 
+-- Fran is going to Tomorrow A, and Nell to Tomorrow B.
+INSERT INTO public.rsvps
+  (activity_id, user_id, status)
+VALUES
+  ('e0000000-0000-4000-8000-000000000003', 'c0000000-0000-4000-8000-000000000011', 'going'),
+  ('e0000000-0000-4000-8000-000000000004', 'c0000000-0000-4000-8000-000000000012', 'going');
+
 SET LOCAL ROLE authenticated;
 
 SELECT set_config(
@@ -146,6 +153,16 @@ SELECT is_empty(
   'the page after the last one is empty'
 );
 
+SELECT results_eq(
+  'SELECT title, public.my_rsvp(a) FROM public.get_feed() AS a',
+  $$VALUES
+    ('Started 2 hours ago', NULL),
+    ('Tomorrow A', 'going'),
+    ('Tomorrow B', NULL),
+    ('Next week', NULL)$$,
+  'my_rsvp is the member''s own RSVP, not anyone else''s'
+);
+
 RESET ROLE;
 
 INSERT INTO public.activities
@@ -185,6 +202,16 @@ RESET ROLE;
 SELECT ok(
   NOT has_function_privilege('anon', 'public.get_feed(timestamptz, uuid, integer)', 'execute'),
   'signed-out visitors cannot call get_feed'
+);
+
+SELECT ok(
+  NOT has_function_privilege('anon', 'public.my_rsvp(public.activities)', 'execute'),
+  'signed-out visitors cannot call my_rsvp'
+);
+
+SELECT ok(
+  has_function_privilege('authenticated', 'public.my_rsvp(public.activities)', 'execute'),
+  'signed-in members can call my_rsvp'
 );
 
 SELECT *
