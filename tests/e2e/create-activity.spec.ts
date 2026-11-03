@@ -30,10 +30,11 @@ test('a member posts an activity and lands on it, going', async ({ page, poster 
   await expect(
     page.getByRole('heading', { level: 1, name: 'Sunrise hike up the R' })
   ).toBeVisible();
-  // Intl puts a narrow no-break space before AM.
-  await expect(page.getByText(/7:00\sAM to 9:30\sAM$/)).toBeVisible();
+  // Intl puts thin spaces around the dash and a narrow no-break space before AM.
+  await expect(page.getByText(/7:00\s–\s9:30\sAM$/)).toBeVisible();
   await expect(page.getByText('Cost: Free')).toBeVisible();
-  await expect(page.getByText("1 going, and you're one of them.")).toBeVisible();
+  await expect(page.getByText('1 going')).toBeVisible();
+  await expect(page.getByText("You're hosting")).toBeVisible();
   await expectAccessible(page);
 
   const { data: rsvps } = await poster.admin
@@ -44,7 +45,7 @@ test('a member posts an activity and lands on it, going', async ({ page, poster 
 
   // "Posted!" shows once.
   await page.reload();
-  await expect(page.getByRole('status')).toHaveCount(0);
+  await expect(page.getByRole('status')).toBeEmpty();
 });
 
 test('the daily limit has a friendly message', async ({ page, poster }) => {

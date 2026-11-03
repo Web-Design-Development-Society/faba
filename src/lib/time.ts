@@ -54,12 +54,6 @@ const when = new Intl.DateTimeFormat('en-US', {
   timeZone: TIME_ZONE,
 });
 
-const clock = new Intl.DateTimeFormat('en-US', {
-  hour: 'numeric',
-  minute: '2-digit',
-  timeZone: TIME_ZONE,
-});
-
 /** A date and time for people, such as `Sat, Nov 7, 7:00 AM`. */
 export function formatWhen(instant: Date): string {
   return when.format(instant);
@@ -71,11 +65,6 @@ export function formatWhen(instant: Date): string {
  */
 export function formatRange(start: Date, end?: Date | null): string {
   return end ? when.formatRange(start, end) : when.format(start);
-}
-
-/** A time for people, such as `9:30 AM`. */
-export function formatClock(instant: Date): string {
-  return clock.format(instant);
 }
 
 /**
