@@ -29,7 +29,7 @@ test('an expired session refreshes without asking to sign in again', async ({
 test('signing out on Me ends the session', async ({ page, context, baseURL, signInAs }) => {
   await signInAs('member');
   await page.goto('/discover');
-  await page.getByRole('link', { name: 'Me' }).click();
+  await page.getByRole('link', { name: 'Me', exact: true }).click();
   await expect(page).toHaveURL('/me');
   const session = await readSession(context, baseURL!);
 
