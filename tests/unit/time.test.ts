@@ -1,7 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
   addDays,
+  formatDay,
   formatRange,
+  formatSoon,
   quickDates,
   rexburgDate,
   rexburgInstant,
@@ -64,6 +66,36 @@ describe('formatRange', () => {
 
   it('is the start without an end', () => {
     expect(plain(formatRange(new Date('2026-11-07T14:00:00Z'), null))).toBe('Sat, Nov 7, 7:00 AM');
+  });
+});
+
+// 10:30 on Monday evening, November 2, in Rexburg, which is already Tuesday in UTC.
+const monday = new Date('2026-11-03T05:30:00Z');
+
+describe('formatDay', () => {
+  it.each([
+    ['2026-11-01', 'Yesterday'],
+    ['2026-11-02', 'Today'],
+    ['2026-11-03', 'Tomorrow'],
+    ['2026-11-04', 'Wed, Nov 4'],
+    ['2026-12-25', 'Fri, Dec 25'],
+  ])('%s is %s', (date, heading) => {
+    expect(formatDay(date, monday)).toBe(heading);
+  });
+});
+
+describe('formatSoon', () => {
+  const plain = (text: string) => text.replace(/\s/g, ' ');
+
+  it.each([
+    ['2026-11-02T05:00:00Z', 'Yesterday 10:00 PM'],
+    ['2026-11-03T06:00:00Z', 'Today 11:00 PM'],
+    ['2026-11-03T14:00:00Z', 'Tomorrow 7:00 AM'],
+    ['2026-11-07T14:00:00Z', 'Sat 7:00 AM'],
+    ['2026-11-09T01:30:00Z', 'Sun 6:30 PM'],
+    ['2026-11-10T01:30:00Z', 'Nov 9, 6:30 PM'],
+  ])('%s is %s', (instant, text) => {
+    expect(plain(formatSoon(new Date(instant), monday))).toBe(text);
   });
 });
 

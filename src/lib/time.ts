@@ -67,6 +67,49 @@ export function formatRange(start: Date, end?: Date | null): string {
   return end ? when.formatRange(start, end) : when.format(start);
 }
 
+const NEARBY: Record<number, string> = { [-1]: 'Yesterday', 0: 'Today', 1: 'Tomorrow' };
+
+const clock = new Intl.DateTimeFormat('en-US', {
+  hour: 'numeric',
+  minute: '2-digit',
+  timeZone: TIME_ZONE,
+});
+const weekday = new Intl.DateTimeFormat('en-US', { weekday: 'short', timeZone: TIME_ZONE });
+const monthDay = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  timeZone: TIME_ZONE,
+});
+// Dates such as `2026-11-07` are read as noon UTC, which is the same date everywhere it's formatted.
+const day = new Intl.DateTimeFormat('en-US', {
+  weekday: 'short',
+  month: 'short',
+  day: 'numeric',
+  timeZone: 'UTC',
+});
+
+/** Days from Rexburg's date at `now` to `date`. */
+function daysFrom(now: Date, date: string): number {
+  return (Date.parse(date) - Date.parse(rexburgDate(now))) / 86_400_000;
+}
+
+/** A day's heading in the feed, such as `Today`, `Tomorrow` or `Sat, Nov 7`. */
+export function formatDay(date: string, now: Date): string {
+  return NEARBY[daysFrom(now, date)] ?? day.format(new Date(`${date}T12:00:00Z`));
+}
+
+/**
+ * When on a card: relative for the next 6 days, such as `Tomorrow 6:30 PM` or `Sat 7:00 AM`, and
+ * a date after that, such as `Nov 14, 6:30 PM` (design document section 7.5).
+ */
+export function formatSoon(instant: Date, now: Date): string {
+  const days = daysFrom(now, rexburgDate(instant));
+  const time = clock.format(instant);
+  if (NEARBY[days]) return `${NEARBY[days]} ${time}`;
+  if (days > 1 && days < 7) return `${weekday.format(instant)} ${time}`;
+  return `${monthDay.format(instant)}, ${time}`;
+}
+
 /**
  * The instant when Rexburg's clocks show `date` and `time`, such as `2026-11-07` and `07:00`.
  * Daylight saving time is handled. A time the spring change skips comes out an hour earlier, and
