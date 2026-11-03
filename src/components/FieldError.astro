@@ -1,0 +1,11 @@
+---
+// A field's error from the server. The field points to it with aria-describedby="<name>-error".
+interface Props {
+  name: string;
+  errors?: string[];
+}
+
+const { name, errors } = Astro.props;
+---
+
+{errors && <span id={`${name}-error`}>{errors[0]}</span>}

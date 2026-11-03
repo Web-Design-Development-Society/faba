@@ -19,6 +19,12 @@ export function activityTimes(date: string, startTime: string, endTime?: string)
   };
 }
 
+/** The form's suggested start: a day from `now`, rounded up to the next half hour (section 7.7). */
+export function suggestedStart(now: Date): Date {
+  const halfHour = 30 * 60 * 1000;
+  return new Date(Math.ceil((now.getTime() + 24 * 60 * 60 * 1000) / halfHour) * halfHour);
+}
+
 /** The latest start allowed for an activity posted at `now`. */
 export function latestStart(now: Date): Date {
   const latest = new Date(now);

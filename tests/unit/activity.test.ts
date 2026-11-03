@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { actionErrorFor } from '../../src/lib/server/errors';
-import { newActivity } from '../../src/lib/validation/activity';
+import { newActivity, suggestedStart } from '../../src/lib/validation/activity';
 
 // Monday, November 2, 2026, at 10:00 in Rexburg.
 beforeAll(() => {
@@ -84,6 +84,16 @@ describe('newActivity', () => {
     ['exactly 12 months ahead', { date: '2027-11-02', start_time: '11:00' }],
   ])('accepts an activity %s', (_, input) => {
     expect(errors(input)).toEqual({});
+  });
+});
+
+describe('suggestedStart', () => {
+  it.each([
+    ['2026-11-02T17:05:00Z', '2026-11-03T17:30:00.000Z'],
+    ['2026-11-02T17:30:00Z', '2026-11-03T17:30:00.000Z'],
+    ['2026-11-02T17:31:00Z', '2026-11-03T18:00:00.000Z'],
+  ])('suggests %s for %s', (now, start) => {
+    expect(suggestedStart(new Date(now)).toISOString()).toBe(start);
   });
 });
 

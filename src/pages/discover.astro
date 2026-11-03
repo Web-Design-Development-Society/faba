@@ -1,7 +1,8 @@
 ---
 // A placeholder home page for the walking skeleton (FND-10): who's signed in, and the next
-// activities. The real feed is ACT-01, and the app shell's bottom navigation replaces the Me link.
+// activities. The real feed is ACT-01, and the app shell's bottom navigation replaces the links.
 import Layout from '../layouts/Layout.astro';
+import { formatWhen } from '../lib/time';
 
 const { supabase, user } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
@@ -17,22 +18,13 @@ const [{ data: profile }, { data: activities, error }] = await Promise.all([
     .order('starts_at')
     .limit(20),
 ]);
-
-// Every activity is in Rexburg (ADR-017).
-const when = new Intl.DateTimeFormat('en-US', {
-  weekday: 'short',
-  month: 'short',
-  day: 'numeric',
-  hour: 'numeric',
-  minute: '2-digit',
-  timeZone: 'America/Denver',
-});
 ---
 
 <Layout title="Discover">
   <h1>Discover</h1>
   <p>Signed in as {profile?.display_name ?? user.email}.</p>
   <nav aria-label="Main">
+    <a href="/activities/new">New activity</a>
     <a href="/me">Me</a>
   </nav>
 
@@ -48,7 +40,7 @@ const when = new Intl.DateTimeFormat('en-US', {
           <strong>{activity.title}</strong>
           {activity.status === 'cancelled' && ' (cancelled)'}
           <br />
-          <time datetime={activity.starts_at}>{when.format(new Date(activity.starts_at))}</time>
+          <time datetime={activity.starts_at}>{formatWhen(new Date(activity.starts_at))}</time>
           {` · ${activity.location_name}`}
           {activity.category && ` · ${activity.category.name}`}
           {activity.organizer && ` · ${activity.organizer.display_name}`}

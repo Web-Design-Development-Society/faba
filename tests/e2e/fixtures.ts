@@ -10,7 +10,7 @@ import {
   stringFromBase64URL,
   stringToBase64URL,
 } from '@supabase/ssr';
-import { createClient, type Session } from '@supabase/supabase-js';
+import { createClient, type Session, type SupabaseClient } from '@supabase/supabase-js';
 
 export { expect };
 
@@ -35,34 +35,65 @@ export const test = base.extend<{
   signInAs: (persona: Persona) => Promise<void>;
   /** Signs in as a new byui.edu account that hasn't been through Welcome, deleted afterwards. */
   newMember: { displayName: string };
+  /**
+   * Signs in as a new member who has accepted the guidelines, so the shared personas' activities
+   * and daily limits stay as they are. `admin` sets up data for them. Their account and activities
+   * are deleted afterwards.
+   */
+  poster: { id: string; admin: SupabaseClient };
 }>({
   signInAs: async ({ context, baseURL }, use) => {
     await use((persona) => signIn(context, baseURL!, PERSONAS[persona]));
   },
   newMember: async ({ context, baseURL }, use) => {
-    // Creating and deleting accounts needs the local secret key, which setup:dev-vars writes.
-    const secretKey = readFileSync('.dev.vars', 'utf8').match(/^SUPABASE_SECRET_KEY=(\S+)/m)?.[1];
-    if (!secretKey) throw new Error('.dev.vars has no SUPABASE_SECRET_KEY. Run setup:dev-vars.');
-    const admin = createClient(SUPABASE_URL, secretKey, { auth: { persistSession: false } });
-
+    const admin = adminClient();
     const displayName = 'Nia Newcomer';
-    const email = `new.${crypto.randomUUID()}@byui.edu`;
-    const { data, error } = await admin.auth.admin.createUser({
-      email,
-      password: PASSWORD,
-      email_confirm: true,
-      // A grey square instead of a Google photo, so the tests stay offline.
-      user_metadata: { full_name: displayName, avatar_url: GREY_SQUARE },
-    });
-    if (error) throw new Error(`Creating ${email} failed: ${error.message}`);
+    const { id, email } = await createAccount(admin, displayName);
     try {
       await signIn(context, baseURL!, email);
       await use({ displayName });
     } finally {
-      await admin.auth.admin.deleteUser(data.user.id);
+      await admin.auth.admin.deleteUser(id);
+    }
+  },
+  poster: async ({ context, baseURL }, use) => {
+    const admin = adminClient();
+    const { id, email } = await createAccount(admin, 'Pat Poster');
+    try {
+      await admin
+        .from('profiles')
+        .update({ guidelines_version: 1, guidelines_accepted_at: new Date().toISOString() })
+        .eq('id', id);
+      await signIn(context, baseURL!, email);
+      await use({ id, admin });
+    } finally {
+      // Deleting the account keeps its activities, with no organizer.
+      await admin.from('activities').delete().eq('organizer_id', id);
+      await admin.auth.admin.deleteUser(id);
     }
   },
 });
+
+/** A client with the local secret key, which setup:dev-vars writes. It bypasses RLS. */
+function adminClient() {
+  const secretKey = readFileSync('.dev.vars', 'utf8').match(/^SUPABASE_SECRET_KEY=(\S+)/m)?.[1];
+  if (!secretKey) throw new Error('.dev.vars has no SUPABASE_SECRET_KEY. Run setup:dev-vars.');
+  return createClient(SUPABASE_URL, secretKey, { auth: { persistSession: false } });
+}
+
+/** A new byui.edu account, whose profile the database makes. */
+async function createAccount(admin: SupabaseClient, displayName: string) {
+  const email = `new.${crypto.randomUUID()}@byui.edu`;
+  const { data, error } = await admin.auth.admin.createUser({
+    email,
+    password: PASSWORD,
+    email_confirm: true,
+    // A grey square instead of a Google photo, so the tests stay offline.
+    user_metadata: { full_name: displayName, avatar_url: GREY_SQUARE },
+  });
+  if (error) throw new Error(`Creating ${email} failed: ${error.message}`);
+  return { id: data.user.id, email };
+}
 
 const GREY_SQUARE =
   "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1 1'><rect width='1' height='1' fill='grey'/></svg>";
