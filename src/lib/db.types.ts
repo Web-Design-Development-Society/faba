@@ -291,6 +291,39 @@ export type Database = {
         };
         Returns: string;
       };
+      get_feed: {
+        Args: { after_id?: string; after_starts_at?: string; page_size?: number };
+        Returns: {
+          cancel_reason: string | null;
+          cancelled_at: string | null;
+          category_id: string;
+          cost_note: string | null;
+          created_at: string;
+          description: string | null;
+          ends_at: string | null;
+          going_count: number;
+          guest_total: number;
+          hidden_at: string | null;
+          hidden_by: string | null;
+          hidden_reason: string | null;
+          id: string;
+          idempotency_key: string | null;
+          location_name: string;
+          organizer_id: string | null;
+          starts_at: string;
+          status: string;
+          timezone: string;
+          title: string;
+          updated_at: string;
+          version: number;
+        }[];
+        SetofOptions: {
+          from: '*';
+          to: 'activities';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
       get_session_context: {
         Args: Record<PropertyKey, never>;
         Returns: {
