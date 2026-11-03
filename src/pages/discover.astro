@@ -4,33 +4,61 @@
 // navigation replaces the links.
 import ActivityCard from '../components/ActivityCard.astro';
 import Layout from '../layouts/Layout.astro';
+import { nextPage, readCursor } from '../lib/feed';
 import { formatDay, rexburgDate } from '../lib/time';
 
 // Activities on a page, and faces on a card.
 const PAGE = 20;
 const FACES = 3;
+const HOUR = 60 * 60 * 1000;
 
 const { supabase, user } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
 
 const now = new Date();
+const cursor = readCursor(Astro.url.searchParams);
+const firstPage = !cursor.after_id;
 
 // Members who aren't active have no profile to read, so they're left out of the faces.
 const CARD = `id, title, starts_at, location_name, going_count, organizer_id,
   category:categories(name, icon, color_token),
   going:rsvps(member:profiles!inner(display_name, avatar_url, use_initials))`;
 
-const feed = await supabase
-  .rpc('get_feed', { page_size: PAGE })
-  .select(`${CARD}, mine:rsvps(status)`)
-  .eq('mine.user_id', user.id)
-  .eq('going.status', 'going')
-  .order('starts_at')
-  .order('id')
-  .order('created_at', { referencedTable: 'going' })
-  .limit(FACES, { referencedTable: 'going' });
+const [feed, plan] = await Promise.all([
+  // One more than a page says whether there's another.
+  supabase
+    .rpc('get_feed', { ...cursor, page_size: PAGE + 1 })
+    .select(`${CARD}, mine:rsvps(status)`)
+    .eq('mine.user_id', user.id)
+    .eq('going.status', 'going')
+    .order('starts_at')
+    .order('id')
+    .order('created_at', { referencedTable: 'going' })
+    .limit(FACES, { referencedTable: 'going' }),
+  // The soonest activity the member is going to in the next 7 days, or one that's underway as in
+  // the feed. Only on the first page.
+  firstPage
+    ? supabase
+        .from('activities')
+        .select(`${CARD}, mine:rsvps!inner(status)`)
+        .eq('mine.user_id', user.id)
+        .eq('mine.status', 'going')
+        .eq('status', 'published')
+        .is('hidden_at', null)
+        .gte('starts_at', new Date(now.getTime() - 3 * HOUR).toISOString())
+        .lt('starts_at', new Date(now.getTime() + 7 * 24 * HOUR).toISOString())
+        .eq('going.status', 'going')
+        .order('starts_at')
+        .order('id')
+        .order('created_at', { referencedTable: 'going' })
+        .limit(FACES, { referencedTable: 'going' })
+        .limit(1)
+        .maybeSingle()
+    : { data: null },
+]);
 
-const activities = feed.data ?? [];
+const activities = feed.data?.slice(0, PAGE) ?? [];
+const more = feed.data && feed.data.length > PAGE ? nextPage(activities.at(-1)!) : null;
 const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(starts_at)));
 ---
 
@@ -40,14 +68,30 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
     <a href="/activities/new">Post</a>
     <a href="/me">Me</a>
   </nav>
+  <p data-zone-note hidden>
+    Times are in Rexburg time.
+  </p>
+
+  {plan.data && (
+    <section aria-labelledby="plan">
+      <h2 id="plan">Your next plan</h2>
+      <ActivityCard activity={plan.data} viewer={user.id} now={now} />
+    </section>
+  )}
 
   {feed.error ? (
     <p role="alert">Activities couldn't load. Please try again.</p>
   ) : activities.length === 0 ? (
-    <div class="empty">
-      <p>It's quiet right now. Be the one who gets people together.</p>
-      <a href="/activities/new">Post the first activity</a>
-    </div>
+    firstPage ? (
+      <div class="empty">
+        <p>It's quiet right now. Be the one who gets people together.</p>
+        <a href="/activities/new">Post the first activity</a>
+      </div>
+    ) : (
+      <p>
+        That's everything for now. <a href="/discover">Back to the start</a>
+      </p>
+    )
   ) : (
     <div data-feed>
       {[...days].map(([date, group]) => (
@@ -64,7 +108,16 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
       ))}
     </div>
   )}
+  {more && (
+    <a class="more" href={`/discover${more}`} data-more>
+      Show more
+    </a>
+  )}
 </Layout>
+
+<script>
+  import '../scripts/feed';
+</script>
 
 <style>
   nav {
@@ -87,10 +140,15 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
     margin-top: 2rem;
     text-align: center;
   }
-  .empty a {
+  .empty a,
+  .more {
     display: inline-grid;
     place-items: center;
     min-height: 44px;
     padding: 0 1rem;
+  }
+  .more {
+    display: grid;
+    margin-top: 1rem;
   }
 </style>
