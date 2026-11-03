@@ -16,14 +16,13 @@ if (!user) return Astro.redirect('/auth/login');
 const now = new Date();
 
 // Members who aren't active have no profile to read, so they're left out of the faces.
-const CARD = `id, title, starts_at, location_name, going_count, organizer_id,
+const CARD = `id, title, starts_at, location_name, going_count, organizer_id, my_rsvp,
   category:categories(name, icon, color_token),
   going:rsvps(member:profiles!inner(display_name, avatar_url, use_initials))`;
 
 const feed = await supabase
   .rpc('get_feed', { page_size: PAGE })
-  .select(`${CARD}, mine:rsvps(status)`)
-  .eq('mine.user_id', user.id)
+  .select(CARD)
   .eq('going.status', 'going')
   .order('starts_at')
   .order('id')

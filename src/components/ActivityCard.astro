@@ -17,7 +17,8 @@ interface Props {
     going: {
       member: { display_name: string; avatar_url: string | null; use_initials: boolean };
     }[];
-    mine: { status: string }[];
+    /** The signed-in member's RSVP. */
+    my_rsvp: string | null;
   };
   /** The signed-in member's id. */
   viewer: string;
@@ -28,7 +29,7 @@ const { activity, viewer, now } = Astro.props;
 const { category } = activity;
 const look = category && categoryLook(category);
 const hosting = activity.organizer_id === viewer;
-const going = activity.mine[0]?.status === 'going';
+const going = activity.my_rsvp === 'going';
 ---
 
 <article class="card" style={look ? `--stripe: ${look.color}` : undefined}>
