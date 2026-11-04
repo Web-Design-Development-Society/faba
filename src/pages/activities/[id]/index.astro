@@ -249,13 +249,21 @@ const email = activity
   .description {
     white-space: pre-line;
   }
-  /* Within thumb reach at the bottom of the screen. */
+  /* Within thumb reach at the bottom of the screen, even when the page is short, so toasts sit
+     above it rather than on ✓ Going. The page leaves room for it. */
   .actions {
-    position: sticky;
+    position: fixed;
+    right: 0;
     bottom: 0;
-    padding: 0.75rem 0 calc(0.75rem + env(safe-area-inset-bottom));
+    left: 0;
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
     background: white;
     border-top: 1px solid #767676;
+  }
+  :global(main) {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
   }
   .actions p {
     margin: 0;
