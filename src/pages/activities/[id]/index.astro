@@ -4,15 +4,18 @@
 // ACT-04, MOD-01 and PROF-03 build.
 import { actions } from 'astro:actions';
 import Avatar from '../../../components/Avatar.astro';
+import GoingList from '../../../components/GoingList.astro';
 import RsvpForm from '../../../components/RsvpForm.astro';
+import Sheet from '../../../components/Sheet.astro';
 import Status from '../../../components/Status.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { linkify, mapsUrl } from '../../../lib/links';
 import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../../../lib/server/flash';
 import { formatRange, isOver } from '../../../lib/time';
 
-// Faces in the going row. RSVP-03 lists everyone.
+// Faces in the going row, and people in who's going before Show all (RSVP-03).
 const FACES = 4;
+const LIST = 50;
 
 const { supabase, user, member } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
@@ -25,24 +28,34 @@ if (rsvp && !rsvp.error) {
 }
 
 // Only its organizer can read a hidden activity (RLS), so it's not available to anyone else. Nor
-// is an id that isn't a UUID, which is an error. Members who aren't active have no profile to
-// read, so they're left out of the going row.
-const { data: activity } = await supabase
-  .from('activities')
-  .select(
-    `id, title, description, starts_at, ends_at, location_name, cost_note, status, cancel_reason,
-    hidden_at, hidden_reason, going_count, organizer_id,
-    category:categories(name),
-    organizer:profiles!activities_organizer_id_fkey(id, display_name, avatar_url, use_initials, department),
-    mine:rsvps(status),
-    going:rsvps(member:profiles!inner(id, display_name, avatar_url, use_initials))`
-  )
-  .eq('id', Astro.params.id!)
-  .eq('mine.user_id', user.id)
-  .eq('going.status', 'going')
-  .order('created_at', { referencedTable: 'going' })
-  .limit(FACES, { referencedTable: 'going' })
-  .maybeSingle();
+// is an id that isn't a UUID, which is an error. Only active members are going, in the faces and
+// the list (RSVP-03). Members can't read suspended members' profiles (RLS), and the filter keeps
+// those out for moderators too, who'll be able to.
+const [{ data: activity }, { data: me }] = await Promise.all([
+  supabase
+    .from('activities')
+    .select(
+      `id, title, description, starts_at, ends_at, location_name, cost_note, status, cancel_reason,
+      hidden_at, hidden_reason, going_count, organizer_id,
+      category:categories(name),
+      organizer:profiles!activities_organizer_id_fkey(id, display_name, avatar_url, use_initials, department),
+      mine:rsvps(status),
+      going:rsvps(member:profiles!inner(id, display_name, avatar_url, use_initials, department))`
+    )
+    .eq('id', Astro.params.id!)
+    .eq('mine.user_id', user.id)
+    .eq('going.status', 'going')
+    .eq('going.member.status', 'active')
+    .order('created_at', { referencedTable: 'going' })
+    .limit(LIST, { referencedTable: 'going' })
+    .maybeSingle(),
+  // The member in who's going, for after I'm in.
+  supabase
+    .from('profiles')
+    .select('id, display_name, avatar_url, use_initials, department')
+    .eq('id', user.id)
+    .single(),
+]);
 if (!activity) Astro.response.status = 404;
 
 const flash = takeFlash(Astro.cookies);
@@ -57,6 +70,7 @@ const open =
     new Date()
   );
 const host = activity?.organizer;
+const people = activity?.going.map(({ member }) => member) ?? [];
 const department = host?.department ? `· ${host.department}` : '';
 const url = new URL(Astro.url.pathname, Astro.url.origin).href;
 const withReason = (label: string, reason: string | null) =>
@@ -119,11 +133,27 @@ const email = activity
       </p>
       {activity.cost_note && <p>Cost: {activity.cost_note}</p>}
       <p class="going" data-going={activity.id} data-faces={FACES}>
-        {activity.going.map(({ member }) => (
-          <Avatar member={member} named mine={member.id === user.id} />
-        ))}
-        <span data-count>{activity.going_count}</span> going
+        <button type="button" commandfor="going" command="show-modal">
+          {people.slice(0, FACES).map((member) => (
+            <Avatar member={member} named mine={member.id === user.id} />
+          ))}
+          <span data-count>{activity.going_count}</span> going
+          <span aria-hidden="true">›</span>
+        </button>
       </p>
+      <Sheet id="going" title="Who's going">
+        <GoingList
+          activityId={activity.id}
+          organizerId={activity.organizer_id}
+          people={people}
+          me={people.length < LIST ? me : null}
+        />
+        {activity.going_count > LIST && (
+          <a class="all" href={`/activities/${activity.id}/going`}>
+            Show all
+          </a>
+        )}
+      </Sheet>
       {host && (
         <p>
           <Avatar member={host} />
@@ -183,6 +213,7 @@ const email = activity
   import { clearDraft } from '../../../scripts/activity-draft';
   import '../../../scripts/rsvp';
   import '../../../scripts/share';
+  import '../../../scripts/sheets';
 
   // The draft from the create form is posted now (ACT-03).
   if (document.querySelector('[data-posted]')) clearDraft();
@@ -241,10 +272,23 @@ const email = activity
     font-weight: 600;
     text-transform: uppercase;
   }
-  .going {
+  .going button {
     display: flex;
     align-items: center;
     gap: 0.25rem;
+    min-height: 44px;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+  .all {
+    display: inline-grid;
+    place-items: center;
+    min-height: 44px;
   }
   .description {
     white-space: pre-line;
