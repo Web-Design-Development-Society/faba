@@ -345,6 +345,7 @@ export type Database = {
         };
         Returns: string;
       };
+      rsvp: { Args: { activity_id: string; status: string }; Returns: number };
     };
     Enums: {
       [_ in never]: never;
