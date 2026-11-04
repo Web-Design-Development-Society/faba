@@ -34,7 +34,7 @@ const firstPage = !cursor.after_id;
 // Members who aren't active have no profile to read, so they're left out of the faces.
 const CARD = `id, title, starts_at, ends_at, location_name, going_count, organizer_id, my_rsvp,
   category:categories(name, icon, color_token),
-  going:rsvps(member:profiles!inner(display_name, avatar_url, use_initials))`;
+  going:rsvps(member:profiles!inner(id, display_name, avatar_url, use_initials))`;
 
 const [feed, plan] = await Promise.all([
   // One more than a page says whether there's another.

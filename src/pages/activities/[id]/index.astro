@@ -35,7 +35,7 @@ const { data: activity } = await supabase
     category:categories(name),
     organizer:profiles!activities_organizer_id_fkey(id, display_name, avatar_url, use_initials, department),
     mine:rsvps(status),
-    going:rsvps(member:profiles!inner(display_name, avatar_url, use_initials))`
+    going:rsvps(member:profiles!inner(id, display_name, avatar_url, use_initials))`
   )
   .eq('id', Astro.params.id!)
   .eq('mine.user_id', user.id)
@@ -120,7 +120,7 @@ const email = activity
       {activity.cost_note && <p>Cost: {activity.cost_note}</p>}
       <p class="going" data-going={activity.id} data-faces={FACES}>
         {activity.going.map(({ member }) => (
-          <Avatar member={member} named />
+          <Avatar member={member} named mine={member.id === user.id} />
         ))}
         <span data-count>{activity.going_count}</span> going
       </p>
