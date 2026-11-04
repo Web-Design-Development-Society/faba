@@ -187,8 +187,13 @@ const back = `/activities/${Astro.params.id}`;
   }
   .activity-status button {
     min-height: 44px;
+    padding: 0 1rem;
   }
+  /* No background, since the red is too dark on WebKit's grey buttons. */
   .destructive {
     color: #b42318;
+    background: none;
+    border: 1px solid currentColor;
+    border-radius: 0.5rem;
   }
 </style>
