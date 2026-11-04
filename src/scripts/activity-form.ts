@@ -1,6 +1,6 @@
-// The create form's extras with JavaScript (ACT-03): quick date picks, checking the time rules
-// before posting, and restoring the draft. The form works without them, and the server checks
-// everything again.
+// The activity form's extras with JavaScript (ACT-03, ACT-04): quick date picks, checking the time
+// rules before posting, and restoring the create form's draft. The form works without them, and
+// the server checks everything again.
 import { rexburgInstant } from '../lib/time';
 import { clearDraft, loadDraft, saveDraft } from './activity-draft';
 
@@ -31,6 +31,9 @@ function enhance(form: HTMLFormElement) {
       end.setCustomValidity('End after the start time.');
     }
   });
+
+  // Only the create form keeps a draft. The edit form starts from what's saved (ACT-04).
+  if (!('draft' in form.dataset)) return;
 
   // After a failed post the server shows what was typed, which is newer than any draft.
   const typed = 'typed' in form.dataset;

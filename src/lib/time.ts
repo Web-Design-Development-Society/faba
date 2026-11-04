@@ -110,6 +110,15 @@ export function formatSoon(instant: Date, now: Date): string {
   return `${monthDay.format(instant)}, ${time}`;
 }
 
+/** How long before `now` `instant` was, such as `just now`, `5m ago`, `2h ago` or `3d ago`. */
+export function formatAgo(instant: Date, now: Date): string {
+  const minutes = Math.floor((now.getTime() - instant.getTime()) / 60_000);
+  if (minutes < 1) return 'just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 24 * 60) return `${Math.floor(minutes / 60)}h ago`;
+  return `${Math.floor(minutes / (24 * 60))}d ago`;
+}
+
 /**
  * True once an activity is over: when it ends, or 3 hours after it starts without an end time.
  * rsvp() uses the same rule, and the feed shows activities for the same 3 hours.

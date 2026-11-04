@@ -1,7 +1,7 @@
 ---
 // An activity's page (ACT-02, design document section 7.6), in the order people ask: what, when,
-// where, who, then the details. Edit, Report and the organizer's profile link to pages that
-// ACT-04, MOD-01 and PROF-03 build.
+// where, who, then the details. Report and the organizer's profile link to pages that MOD-01 and
+// PROF-03 build.
 import { actions } from 'astro:actions';
 import Avatar from '../../../components/Avatar.astro';
 import GoingList from '../../../components/GoingList.astro';
@@ -11,7 +11,7 @@ import Status from '../../../components/Status.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { linkify, mapsUrl } from '../../../lib/links';
 import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../../../lib/server/flash';
-import { formatRange, isOver } from '../../../lib/time';
+import { formatAgo, formatRange, isOver } from '../../../lib/time';
 
 // Faces in the going row, and people in who's going before Show all (RSVP-03).
 const FACES = 4;
@@ -36,7 +36,7 @@ const [{ data: activity }, { data: me }] = await Promise.all([
     .from('activities')
     .select(
       `id, title, description, starts_at, ends_at, location_name, cost_note, status, cancel_reason,
-      hidden_at, hidden_reason, going_count, organizer_id,
+      hidden_at, hidden_reason, going_count, organizer_id, time_or_place_changed_at,
       category:categories(name),
       organizer:profiles!activities_organizer_id_fkey(id, display_name, avatar_url, use_initials, department),
       mine:rsvps(status),
@@ -131,6 +131,14 @@ const email = activity
           Open in Maps
         </a>
       </p>
+      {activity.time_or_place_changed_at && (
+        <p class="updated">
+          Updated{' '}
+          <time datetime={activity.time_or_place_changed_at}>
+            {formatAgo(new Date(activity.time_or_place_changed_at), new Date())}
+          </time>
+        </p>
+      )}
       {activity.cost_note && <p>Cost: {activity.cost_note}</p>}
       <p class="going" data-going={activity.id} data-faces={FACES}>
         <button type="button" commandfor="going" command="show-modal">
@@ -292,6 +300,9 @@ const email = activity
   }
   .description {
     white-space: pre-line;
+  }
+  .updated {
+    font-size: 0.875rem;
   }
   /* Within thumb reach at the bottom of the screen, even when the page is short, so toasts sit
      above it rather than on ✓ Going. The page leaves room for it. */

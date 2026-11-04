@@ -50,6 +50,7 @@ const shown = (name: string) => value(name) ?? suggested[name];
     method="post"
     action={actions.activities.create.queryString}
     data-activity-form
+    data-draft
     data-typed={typed ? '' : undefined}
   >
     <input
