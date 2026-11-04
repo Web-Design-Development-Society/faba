@@ -2,10 +2,13 @@
 // Editing an activity (ACT-04, journey J5): the create form, filled in, with the same rules. Only
 // the organizer can. It works without JavaScript: when a save fails, the form comes back with what
 // was typed and the version it showed, so a save from an older page keeps failing. Once the
-// activity has started, only its description can change (FR-ACT-4).
+// activity has started, only its description can change (FR-ACT-4). Cancel activity is at the
+// bottom, away from Save, and asks first in a sheet. Restore takes its place until the start
+// (ACT-05).
 import { actions, isInputError } from 'astro:actions';
 import ActivityFields from '../../../components/ActivityFields.astro';
 import FieldError from '../../../components/FieldError.astro';
+import Sheet from '../../../components/Sheet.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { setFlash } from '../../../lib/server/flash';
 import { rexburgDate, rexburgTime } from '../../../lib/time';
@@ -21,13 +24,23 @@ if (result && !result.error) {
   setFlash(Astro.cookies, Astro.url, 'saved');
   return Astro.redirect(`/activities/${result.data.id}`, 303);
 }
+const cancel = Astro.getActionResult(actions.activities.cancel);
+if (cancel && !cancel.error) {
+  setFlash(Astro.cookies, Astro.url, 'cancelled');
+  return Astro.redirect(`/activities/${cancel.data.id}`, 303);
+}
+const restore = Astro.getActionResult(actions.activities.restore);
+if (restore && !restore.error) {
+  setFlash(Astro.cookies, Astro.url, 'restored');
+  return Astro.redirect(`/activities/${restore.data.id}`, 303);
+}
 
 // Every category, so an activity keeps one that's no longer offered.
 const [{ data: activity }, { data: categories }] = await Promise.all([
   supabase
     .from('activities')
     .select(
-      'id, title, description, starts_at, ends_at, location_name, cost_note, category_id, organizer_id, version'
+      'id, title, description, starts_at, ends_at, location_name, cost_note, category_id, organizer_id, version, status'
     )
     .eq('id', Astro.params.id!)
     .maybeSingle(),
@@ -56,7 +69,11 @@ const value = (name: string) => (typed ? typed.get(name)?.toString() || undefine
 const fields: Record<string, string[] | undefined> = isInputError(result?.error)
   ? result.error.fields
   : {};
-const failure = result?.error && !isInputError(result.error) ? result.error.message : null;
+// The reason's error shows at the top, since its sheet has closed.
+const failure =
+  (result?.error && !isInputError(result.error) ? result.error.message : null) ??
+  (isInputError(cancel?.error) ? cancel.error.fields.reason?.[0] : cancel?.error?.message) ??
+  restore?.error?.message;
 const started = startsAt <= new Date();
 const offered = categories?.filter((c) => c.is_active || c.id === activity?.category_id) ?? [];
 const back = `/activities/${Astro.params.id}`;
@@ -111,10 +128,67 @@ const back = `/activities/${Astro.params.id}`;
         )}
         <button type="submit">Save</button>
       </form>
+      <div class="activity-status">
+        {activity.status === 'published' ? (
+          <>
+            <button type="button" class="destructive" commandfor="cancel" command="show-modal">
+              Cancel activity
+            </button>
+            <Sheet id="cancel" title="Cancel this activity?">
+              <p>
+                It stays here, marked cancelled, so people who are going can see. It leaves
+                Discover.
+              </p>
+              <form method="post" action={actions.activities.cancel.queryString}>
+                <input type="hidden" name="id" value={activity.id} />
+                <p>
+                  <label for="reason">Reason (optional)</label>
+                  <br />
+                  <textarea
+                    id="reason"
+                    name="reason"
+                    rows="2"
+                    maxlength={ACTIVITY.cancelReason.max}
+                  />
+                </p>
+                <button type="submit" class="destructive">
+                  Yes, cancel it
+                </button>
+              </form>
+              <form method="dialog">
+                <button>No, keep it</button>
+              </form>
+            </Sheet>
+          </>
+        ) : started ? (
+          <p>This activity is cancelled. It has started, so it can't be restored.</p>
+        ) : (
+          <form method="post" action={actions.activities.restore.queryString}>
+            <input type="hidden" name="id" value={activity.id} />
+            <p>This activity is cancelled. Restoring it puts it back on Discover.</p>
+            <button type="submit">Restore activity</button>
+          </form>
+        )}
+      </div>
     </>
   )}
 </Layout>
 
 <script>
   import '../../../scripts/activity-form';
+  import '../../../scripts/sheets';
 </script>
+
+<style>
+  .activity-status {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    border-top: 1px solid #767676;
+  }
+  .activity-status button {
+    min-height: 44px;
+  }
+  .destructive {
+    color: #b42318;
+  }
+</style>
