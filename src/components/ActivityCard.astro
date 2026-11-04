@@ -1,6 +1,6 @@
 ---
 // An activity in the feed (ACT-01, design document section 7.5). The whole card opens the
-// activity, except I'm in (RSVP-01).
+// activity, except I'm in and ✓ Going (RSVP-01, RSVP-02).
 import { categoryLook } from '../lib/categories';
 import { formatSoon, isOver } from '../lib/time';
 import Avatar from './Avatar.astro';
@@ -17,7 +17,12 @@ interface Props {
     organizer_id: string | null;
     category: { name: string; icon: string; color_token: string } | null;
     going: {
-      member: { display_name: string; avatar_url: string | null; use_initials: boolean };
+      member: {
+        id: string;
+        display_name: string;
+        avatar_url: string | null;
+        use_initials: boolean;
+      };
     }[];
     /** The signed-in member's RSVP. */
     my_rsvp: string | null;
@@ -58,15 +63,17 @@ const open = !isOver(
     <p class="place">{activity.location_name}</p>
     <p class="going" data-going={activity.id} data-faces={faces}>
       {activity.going.map(({ member }) => (
-        <Avatar member={member} named />
+        <Avatar member={member} named mine={member.id === viewer} />
       ))}
       <span data-count>{activity.going_count}</span> going
     </p>
   </div>
-  {hosting || going ? (
-    <p class="mine">{hosting ? "You're hosting" : '✓ Going'}</p>
+  {hosting ? (
+    <p class="mine">You're hosting</p>
+  ) : open ? (
+    <RsvpForm activityId={activity.id} going={going} />
   ) : (
-    open && <RsvpForm activityId={activity.id} />
+    going && <p class="mine">✓ Going</p>
   )}
 </article>
 

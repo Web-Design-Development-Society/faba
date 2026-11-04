@@ -4,7 +4,7 @@ import { z } from 'astro/zod';
 import { actionErrorFor } from '../lib/server/errors';
 
 export const rsvps = {
-  /** I'm in (RSVP-01), and its Undo. Returns the activity and its going count. */
+  /** I'm in (RSVP-01), its Undo, and Can't make it (RSVP-02). Returns the RSVP and the count. */
   set: defineAction({
     accept: 'form',
     input: z.object({
@@ -19,7 +19,7 @@ export const rsvps = {
         status,
       });
       if (error) throw new ActionError(actionErrorFor(error));
-      return { activity_id, going_count };
+      return { activity_id, status, going_count };
     },
   }),
 };

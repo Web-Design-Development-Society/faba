@@ -1,4 +1,4 @@
-// Saying I'm in (RSVP-01).
+// Saying I'm in (RSVP-01), and changing it (RSVP-02).
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { expect, expectAccessible, test } from './fixtures';
 
@@ -84,6 +84,65 @@ test("if I'm in can't be saved, it goes back and says why", async ({ page, poste
   expect(await statusOf(host.admin, id, poster.id)).toBeNull();
 });
 
+test("✓ Going opens a sheet, and Can't make it takes the member off the list", async ({
+  page,
+  poster,
+  host,
+}) => {
+  const id = await host.post();
+  await page.goto(`/activities/${id}`);
+  await page.getByRole('button', { name: "I'm in" }).click();
+  await expect.poll(() => statusOf(host.admin, id, poster.id)).toBe('going');
+
+  await page.getByRole('button', { name: '✓ Going' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Are you going?' });
+  await expect(sheet.getByRole('button', { name: 'Going', exact: true })).toBeFocused();
+  await expect(sheet.getByRole('button', { name: 'Going', exact: true })).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  );
+  await expectAccessible(page);
+
+  await sheet.getByRole('button', { name: "Can't make it" }).click();
+  await expect(sheet).toBeHidden();
+  await expect(page.getByRole('button', { name: "I'm in" })).toBeFocused();
+  await expect(page.getByText('1 going')).toBeVisible();
+  await expect(page.getByRole('img', { name: 'Pat Poster' })).toHaveCount(0);
+  await expect(page.getByRole('status')).toHaveText("You're not going.");
+  await expect.poll(() => statusOf(host.admin, id, poster.id)).toBe('not_going');
+});
+
+test("on a card, Going keeps the RSVP, and Can't make it changes the next plan too", async ({
+  page,
+  poster,
+  host,
+}) => {
+  const title = named('Board game night');
+  const id = await host.post({ title, starts_at: new Date(Date.now() + HOUR).toISOString() });
+  await page.goto('/discover');
+  const card = page.getByRole('listitem').filter({ hasText: title });
+  await card.getByRole('button', { name: "I'm in" }).click();
+  await expect.poll(() => statusOf(host.admin, id, poster.id)).toBe('going');
+
+  // Now the page comes from the server with ✓ Going.
+  await page.reload();
+  const going = card.getByRole('button', { name: '✓ Going' });
+  await going.click();
+  await page.getByRole('button', { name: 'Going', exact: true }).click();
+  await expect(page.getByRole('dialog')).toBeHidden();
+  await expect(going).toBeFocused();
+
+  await page.keyboard.press('Enter');
+  await page.getByRole('button', { name: "Can't make it" }).click();
+  await expect(card.getByRole('button', { name: "I'm in" })).toBeVisible();
+  await expect(card.getByText('1 going')).toBeVisible();
+  // Even the face that came from the server goes.
+  await expect(card.getByRole('img', { name: 'Pat Poster' })).toHaveCount(0);
+  const plan = page.getByRole('region', { name: 'Your next plan' });
+  await expect(plan.getByRole('button', { name: "I'm in" })).toBeVisible();
+  await expect.poll(() => statusOf(host.admin, id, poster.id)).toBe('not_going');
+});
+
 test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false });
 
@@ -123,6 +182,25 @@ test.describe('without JavaScript', () => {
     await expect(card.getByRole('img', { name: 'Pat Poster' })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Your next plan' })).toContainText(title);
     expect(await statusOf(host.admin, id, poster.id)).toBe('going');
+  });
+
+  test("✓ Going opens a sheet, and Can't make it saves and comes back", async ({
+    page,
+    poster,
+    host,
+  }) => {
+    const id = await host.post();
+    await page.goto(`/activities/${id}`);
+    await page.getByRole('button', { name: "I'm in" }).click();
+    await page.getByRole('button', { name: '✓ Going' }).click();
+    await page.getByRole('dialog').getByRole('button', { name: "Can't make it" }).click();
+
+    await expect(page).toHaveURL(`/activities/${id}`);
+    await expect(page.getByRole('status')).toHaveText("You're not going.");
+    await expect(page.getByRole('button', { name: "I'm in" })).toBeVisible();
+    await expect(page.getByText('1 going')).toBeVisible();
+    await expect(page.getByRole('img', { name: 'Pat Poster' })).toHaveCount(0);
+    expect(await statusOf(host.admin, id, poster.id)).toBe('not_going');
   });
 
   test("I'm in says why when the activity was cancelled meanwhile", async ({

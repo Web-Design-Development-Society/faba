@@ -17,10 +17,10 @@ const FACES = 4;
 const { supabase, user, member } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
 
-// I'm in without JavaScript (RSVP-01). When it fails, the page says why.
+// I'm in and Can't make it without JavaScript (RSVP-01, RSVP-02). When it fails, the page says why.
 const rsvp = Astro.getActionResult(actions.rsvps.set);
 if (rsvp && !rsvp.error) {
-  setFlash(Astro.cookies, Astro.url, 'going');
+  setFlash(Astro.cookies, Astro.url, rsvp.data.status);
   return Astro.redirect(postedFrom(Astro.url), 303);
 }
 
@@ -35,7 +35,7 @@ const { data: activity } = await supabase
     category:categories(name),
     organizer:profiles!activities_organizer_id_fkey(id, display_name, avatar_url, use_initials, department),
     mine:rsvps(status),
-    going:rsvps(member:profiles!inner(display_name, avatar_url, use_initials))`
+    going:rsvps(member:profiles!inner(id, display_name, avatar_url, use_initials))`
   )
   .eq('id', Astro.params.id!)
   .eq('mine.user_id', user.id)
@@ -120,7 +120,7 @@ const email = activity
       {activity.cost_note && <p>Cost: {activity.cost_note}</p>}
       <p class="going" data-going={activity.id} data-faces={FACES}>
         {activity.going.map(({ member }) => (
-          <Avatar member={member} named />
+          <Avatar member={member} named mine={member.id === user.id} />
         ))}
         <span data-count>{activity.going_count}</span> going
       </p>
@@ -161,10 +161,8 @@ const email = activity
               {going ? '✓ Going' : "I'm in"}
             </button>
           </>
-        ) : going ? (
-          <p>✓ Going</p>
         ) : (
-          <RsvpForm activityId={activity.id} />
+          <RsvpForm activityId={activity.id} going={going} />
         )}
       </div>
     </>
@@ -251,13 +249,21 @@ const email = activity
   .description {
     white-space: pre-line;
   }
-  /* Within thumb reach at the bottom of the screen. */
+  /* Within thumb reach at the bottom of the screen, even when the page is short, so toasts sit
+     above it rather than on ✓ Going. The page leaves room for it. */
   .actions {
-    position: sticky;
+    position: fixed;
+    right: 0;
     bottom: 0;
-    padding: 0.75rem 0 calc(0.75rem + env(safe-area-inset-bottom));
+    left: 0;
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
     background: white;
     border-top: 1px solid #767676;
+  }
+  :global(main) {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
   }
   .actions p {
     margin: 0;

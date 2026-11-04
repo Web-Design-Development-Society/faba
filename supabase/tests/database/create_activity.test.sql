@@ -244,10 +244,11 @@ SELECT set_config(
   TRUE
 );
 
-SELECT isnt_empty(
+-- Not even the organizer (RSVP-02).
+SELECT is_empty(
   $$select from public.rsvps where status = 'not_going'
   and user_id = '00000000-0000-4000-8000-000000000001'$$,
-  'organizers read every RSVP to their activities'
+  'organizers don''t read who isn''t going either'
 );
 
 RESET role;
