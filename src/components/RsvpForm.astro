@@ -1,29 +1,56 @@
 ---
-// I'm in (RSVP-01). It's a form that posts to the page it's on, which saves the RSVP and redirects
-// back (POST, then redirect, then GET), so it works without JavaScript.
+// I'm in (RSVP-01), and ✓ Going, which opens a sheet with Can't make it (RSVP-02, design document
+// section 7.8). Each is a form that posts to the page it's on, which saves the RSVP and redirects
+// back (POST, then redirect, then GET), so it works without JavaScript. So does the sheet, a
+// <dialog> that ✓ Going opens with an invoker command. With JavaScript, src/scripts/rsvp.ts saves
+// without leaving the page, and turns the one button into the other.
 import { actions } from 'astro:actions';
 
 interface Props {
   activityId: string;
+  /** Whether the signed-in member is going. */
+  going: boolean;
 }
 
-const { activityId } = Astro.props;
+const { activityId, going } = Astro.props;
 // The page's own address, so it comes back as it was, such as Discover's second page.
 const target = new URL(Astro.url);
 for (const [name, value] of new URLSearchParams(actions.rsvps.set.queryString)) {
   target.searchParams.set(name, value);
 }
+const action = target.pathname + target.search;
+// Discover can show an activity twice, as the next plan and in the feed.
+const sheet = `rsvp-${crypto.randomUUID()}`;
 ---
 
-<form method="post" action={target.pathname + target.search} data-rsvp>
-  <input type="hidden" name="activity_id" value={activityId} />
-  <input type="hidden" name="status" value="going" />
-  <button>I'm in</button>
-</form>
+<div class="rsvp" data-rsvp={activityId}>
+  <form method="post" action={action}>
+    <input type="hidden" name="activity_id" value={activityId} />
+    <input type="hidden" name="status" value="going" />
+    {going ? (
+      <button type="button" commandfor={sheet} command="show-modal">
+        ✓ Going
+      </button>
+    ) : (
+      <button>I'm in</button>
+    )}
+  </form>
+  <dialog id={sheet} aria-labelledby={`${sheet}-title`} closedby="any">
+    <h2 id={`${sheet}-title`}>Are you going?</h2>
+    <form method="dialog">
+      <button aria-pressed="true">Going</button>
+    </form>
+    <form method="post" action={action}>
+      <input type="hidden" name="activity_id" value={activityId} />
+      <input type="hidden" name="status" value="not_going" />
+      <button aria-pressed="false">Can't make it</button>
+    </form>
+  </dialog>
+</div>
 
 <style>
   /* Above a card's link, which covers the card. */
-  form {
+  .rsvp {
     position: relative;
     z-index: 1;
     flex: none;
@@ -33,5 +60,43 @@ for (const [name, value] of new URLSearchParams(actions.rsvps.set.queryString)) 
   button {
     min-height: 44px;
     padding: 0 1rem;
+  }
+  /* At the bottom of a phone's screen, and in the middle of a bigger one (section 7.16). */
+  dialog {
+    width: 100%;
+    max-width: 100%;
+    margin: auto auto 0;
+    padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom));
+    border: 0;
+    border-radius: 1rem 1rem 0 0;
+  }
+  @media (min-width: 640px) {
+    dialog {
+      width: 24rem;
+      margin: auto;
+      border-radius: 1rem;
+    }
+  }
+  dialog::backdrop {
+    background: rgb(0 0 0 / 0.5);
+  }
+  h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.125rem;
+  }
+  dialog button {
+    width: 100%;
+    margin-top: 0.5rem;
+    text-align: left;
+    background: none;
+    border: 1px solid #767676;
+    border-radius: 0.5rem;
+  }
+  [aria-pressed='true'] {
+    font-weight: 600;
+    border-width: 2px;
+  }
+  [aria-pressed='true']::before {
+    content: '✓ ' / '';
   }
 </style>

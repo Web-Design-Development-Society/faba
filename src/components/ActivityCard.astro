@@ -1,6 +1,6 @@
 ---
 // An activity in the feed (ACT-01, design document section 7.5). The whole card opens the
-// activity, except I'm in (RSVP-01).
+// activity, except I'm in and ✓ Going (RSVP-01, RSVP-02).
 import { categoryLook } from '../lib/categories';
 import { formatSoon, isOver } from '../lib/time';
 import Avatar from './Avatar.astro';
@@ -63,10 +63,12 @@ const open = !isOver(
       <span data-count>{activity.going_count}</span> going
     </p>
   </div>
-  {hosting || going ? (
-    <p class="mine">{hosting ? "You're hosting" : '✓ Going'}</p>
+  {hosting ? (
+    <p class="mine">You're hosting</p>
+  ) : open ? (
+    <RsvpForm activityId={activity.id} going={going} />
   ) : (
-    open && <RsvpForm activityId={activity.id} />
+    going && <p class="mine">✓ Going</p>
   )}
 </article>
 
