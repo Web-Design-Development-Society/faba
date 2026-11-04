@@ -22,6 +22,15 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
   },
   ACTIVITY_OVER: { code: 'CONFLICT', message: "This activity is over, so it isn't taking RSVPs." },
   ORGANIZER_GOING: { code: 'BAD_REQUEST', message: "You're hosting, so you're already going." },
+  NOT_ORGANIZER: { code: 'FORBIDDEN', message: 'Only the organizer can edit this activity.' },
+  STALE_EDIT: {
+    code: 'CONFLICT',
+    message: 'This activity changed after you opened it. Open Edit again to see the changes.',
+  },
+  ACTIVITY_STARTED: {
+    code: 'CONFLICT',
+    message: 'This activity has started, so only its description can change.',
+  },
 };
 
 /**

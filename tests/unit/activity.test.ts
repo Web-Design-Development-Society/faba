@@ -1,6 +1,11 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { actionErrorFor } from '../../src/lib/server/errors';
-import { newActivity, suggestedStart } from '../../src/lib/validation/activity';
+import {
+  activityChanges,
+  descriptionChange,
+  newActivity,
+  suggestedStart,
+} from '../../src/lib/validation/activity';
 
 // Monday, November 2, 2026, at 10:00 in Rexburg.
 beforeAll(() => {
@@ -84,6 +89,52 @@ describe('newActivity', () => {
     ['exactly 12 months ahead', { date: '2027-11-02', start_time: '11:00' }],
   ])('accepts an activity %s', (_, input) => {
     expect(errors(input)).toEqual({});
+  });
+});
+
+describe('activityChanges', () => {
+  const edit = { ...valid, id: 'f0000000-0000-4000-8000-000000000001', version: 3 };
+
+  it("turns the edit form into update_activity()'s patch, with the id and version", () => {
+    expect(activityChanges.parse({ ...edit, end_time: '09:30' })).toEqual({
+      id: edit.id,
+      version: 3,
+      title: 'Sunrise hike',
+      location_name: 'R Mountain trailhead',
+      category_id: 'outdoors',
+      starts_at: '2026-11-07T14:00:00.000Z',
+      ends_at: '2026-11-07T16:30:00.000Z',
+    });
+  });
+
+  it("has the create form's rules", () => {
+    const result = activityChanges.safeParse({
+      ...edit,
+      title: 'Hi',
+      start_time: '06:00',
+      end_time: '05:00',
+    });
+    expect(result.error?.issues.map(({ path }) => path[0])).toEqual(['title', 'end_time']);
+  });
+});
+
+describe('descriptionChange', () => {
+  const id = 'f0000000-0000-4000-8000-000000000001';
+
+  it('takes only the description', () => {
+    expect(descriptionChange.parse({ ...valid, id, version: 2, description: ' Thanks! ' })).toEqual(
+      {
+        id,
+        version: 2,
+        description: 'Thanks!',
+      }
+    );
+  });
+
+  it("has the create form's limit", () => {
+    expect(
+      descriptionChange.safeParse({ id, version: 2, description: 'a'.repeat(2001) }).success
+    ).toBe(false);
   });
 });
 

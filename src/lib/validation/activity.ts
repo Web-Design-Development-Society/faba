@@ -1,5 +1,6 @@
-// Posting an activity (ACT-03). The limits match the activities table's CHECK constraints, and
-// create_activity() checks the time rules again.
+// Posting an activity (ACT-03) and editing it (ACT-04), with the same rules. The limits match the
+// activities table's CHECK constraints, and create_activity() and update_activity() check the time
+// rules again.
 import { z } from 'astro/zod';
 import { rexburgInstant } from '../time';
 
@@ -35,6 +36,35 @@ export function latestStart(now: Date): Date {
 const isDate = (value: string) => z.iso.date().safeParse(value).success;
 const isTime = (value: string) => z.iso.time().safeParse(value).success;
 
+type Times = { date: string; start_time: string; end_time?: string };
+
+/** The start is in the future and in the next 12 months, and the end is after it. */
+function checkTimes({ date, start_time, end_time }: Times, ctx: z.RefinementCtx) {
+  // A malformed date or time has its own message.
+  if (!isDate(date) || !isTime(start_time) || (end_time && !isTime(end_time))) return;
+
+  const { startsAt, endsAt } = activityTimes(date, start_time, end_time);
+  const now = new Date();
+  if (startsAt <= now) {
+    ctx.addIssue({ code: 'custom', path: ['start_time'], message: 'Pick a time in the future.' });
+  } else if (startsAt > latestStart(now)) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['date'],
+      message: `Pick a date in the next ${ACTIVITY.monthsAhead} months.`,
+    });
+  }
+  if (endsAt && endsAt <= startsAt) {
+    ctx.addIssue({ code: 'custom', path: ['end_time'], message: 'End after the start time.' });
+  }
+}
+
+/** The date and times as the instants the database functions take. */
+function toInstants<T extends Times>({ date, start_time, end_time, ...activity }: T) {
+  const { startsAt, endsAt } = activityTimes(date, start_time, end_time);
+  return { ...activity, starts_at: startsAt.toISOString(), ends_at: endsAt?.toISOString() };
+}
+
 /** The create form's fields. The output is create_activity()'s arguments. */
 export const newActivity = z
   .object({
@@ -64,26 +94,20 @@ export const newActivity = z
       .max(ACTIVITY.costNote.max, `Use ${ACTIVITY.costNote.max} characters or fewer.`)
       .optional(),
   })
-  .superRefine(({ date, start_time, end_time }, ctx) => {
-    // A malformed date or time has its own message.
-    if (!isDate(date) || !isTime(start_time) || (end_time && !isTime(end_time))) return;
+  .superRefine(checkTimes)
+  .transform(toInstants);
 
-    const { startsAt, endsAt } = activityTimes(date, start_time, end_time);
-    const now = new Date();
-    if (startsAt <= now) {
-      ctx.addIssue({ code: 'custom', path: ['start_time'], message: 'Pick a time in the future.' });
-    } else if (startsAt > latestStart(now)) {
-      ctx.addIssue({
-        code: 'custom',
-        path: ['date'],
-        message: `Pick a date in the next ${ACTIVITY.monthsAhead} months.`,
-      });
-    }
-    if (endsAt && endsAt <= startsAt) {
-      ctx.addIssue({ code: 'custom', path: ['end_time'], message: 'End after the start time.' });
-    }
-  })
-  .transform(({ date, start_time, end_time, ...activity }) => {
-    const { startsAt, endsAt } = activityTimes(date, start_time, end_time);
-    return { ...activity, starts_at: startsAt.toISOString(), ends_at: endsAt?.toISOString() };
-  });
+/** The edit form's fields. The output is update_activity()'s patch, the id and the version shown. */
+export const activityChanges = z
+  .object(newActivity.in.shape)
+  .omit({ idempotency_key: true })
+  .extend({ id: z.uuid(), version: z.number().int() })
+  .superRefine(checkTimes)
+  .transform(toInstants);
+
+/** The edit form's fields once an activity has started: only the description (FR-ACT-4). */
+export const descriptionChange = z.object({
+  id: z.uuid(),
+  version: z.number().int(),
+  description: newActivity.in.shape.description,
+});
