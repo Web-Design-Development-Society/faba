@@ -13,11 +13,12 @@ test("the going row opens who's going, with the organizer first", async ({
   await signInAs('member');
   const id = await host.post();
   await host.admin.from('profiles').update({ department: 'Biology' }).eq('id', host.id);
-  // Ada said I'm in before Hana posted, and Sam is suspended.
-  await host.admin.from('rsvps').insert([
-    { activity_id: id, user_id: ADA, status: 'going', created_at: '2020-01-01T00:00:00Z' },
-    { activity_id: id, user_id: SAM, status: 'going' },
-  ]);
+  // Ada said I'm in before Hana posted, and Sam is suspended. Apart, since rows inserted together
+  // get null for a column that another row sets.
+  await host.admin
+    .from('rsvps')
+    .insert({ activity_id: id, user_id: ADA, status: 'going', created_at: '2020-01-01T00:00:00Z' });
+  await host.admin.from('rsvps').insert({ activity_id: id, user_id: SAM, status: 'going' });
   await host.admin.from('activities').update({ going_count: 3 }).eq('id', id);
 
   await page.goto(`/activities/${id}`);
