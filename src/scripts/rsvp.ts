@@ -1,7 +1,7 @@
 // I'm in and Can't make it without leaving the page (RSVP-01 and RSVP-02, design document section
-// 7.8). The button, the count and the faces change before the save finishes. After I'm in,
-// "You're going." shows with Undo. If saving fails, they change back and the toast says why.
-// Without JavaScript, the forms post and the page comes back.
+// 7.8). The button, the count, the faces and who's going change before the save finishes. After
+// I'm in, "You're going." shows with Undo. If saving fails, they change back and the toast says
+// why. Without JavaScript, the forms post and the page comes back.
 import { actions } from 'astro:actions';
 import './sheets';
 import { toast } from './toast';
@@ -11,7 +11,7 @@ const FAILED = "Your RSVP couldn't be saved. Please try again.";
 // The member's own face, from the page.
 const face = document.querySelector<HTMLTemplateElement>('template[data-my-face]');
 
-/** Shows the member going or not in every RSVP button, count and row of faces for `id`. */
+/** Shows the member going or not in every RSVP button, count, row of faces and list for `id`. */
 function show(id: string, going: boolean) {
   for (const button of document.querySelectorAll<HTMLButtonElement>(
     `[data-rsvp="${id}"] > form button`
@@ -22,6 +22,13 @@ function show(id: string, going: boolean) {
     button.textContent = going ? '✓ Going' : "I'm in";
     button.type = going ? 'button' : 'submit';
     if (!going) button.removeAttribute('command');
+  }
+
+  // Who's going has the member in it, hidden while they're not (RSVP-03).
+  for (const mine of document.querySelectorAll<HTMLElement>(
+    `[data-going-list="${id}"] > [data-mine]`
+  )) {
+    mine.hidden = !going;
   }
 
   for (const row of document.querySelectorAll<HTMLElement>(`[data-going="${id}"]`)) {

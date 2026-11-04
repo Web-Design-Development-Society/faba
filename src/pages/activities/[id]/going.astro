@@ -1,0 +1,41 @@
+---
+// Everyone who's going to an activity (RSVP-03), from Show all on its page when more than 50 are.
+import GoingList from '../../../components/GoingList.astro';
+import Layout from '../../../layouts/Layout.astro';
+
+const { supabase, user } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+
+// As on the activity's page, only active members.
+const { data: activity } = await supabase
+  .from('activities')
+  .select(
+    `id, title, organizer_id,
+    going:rsvps(member:profiles!inner(id, display_name, avatar_url, use_initials, department))`
+  )
+  .eq('id', Astro.params.id!)
+  .eq('going.status', 'going')
+  .eq('going.member.status', 'active')
+  .order('created_at', { referencedTable: 'going' })
+  .maybeSingle();
+if (!activity) Astro.response.status = 404;
+---
+
+<Layout title={activity ? `Who's going to ${activity.title}` : 'Not available'}>
+  {activity ? (
+    <>
+      <a href={`/activities/${activity.id}`}>Back to {activity.title}</a>
+      <h1>Who's going</h1>
+      <GoingList
+        activityId={activity.id}
+        organizerId={activity.organizer_id}
+        people={activity.going.map(({ member }) => member)}
+      />
+    </>
+  ) : (
+    <>
+      <h1>Not available</h1>
+      <p>This activity isn't available. It may have been removed, or the link may be wrong.</p>
+    </>
+  )}
+</Layout>

@@ -1,0 +1,73 @@
+---
+// Who's going to an activity (RSVP-03, journey J7): each member's face, name and department, with
+// the organizer first. Names open members' profiles, which PROF-03 builds.
+import Avatar from './Avatar.astro';
+
+interface Member {
+  id: string;
+  display_name: string;
+  avatar_url: string | null;
+  use_initials: boolean;
+  department: string | null;
+}
+
+interface Props {
+  activityId: string;
+  organizerId: string | null;
+  people: Member[];
+  /** The signed-in member, hidden while they're not going, for src/scripts/rsvp.ts to show. */
+  me?: Member | null;
+}
+
+const { activityId, organizerId, people, me } = Astro.props;
+// create_activity() makes the organizer going before anyone else, but this doesn't rely on that.
+const rank = ({ id }: Member) => (id === organizerId ? 0 : 1);
+const entries = people
+  .toSorted((a, b) => rank(a) - rank(b))
+  .map((member) => ({ member, hidden: false }));
+if (me && !people.some(({ id }) => id === me.id)) entries.push({ member: me, hidden: true });
+---
+
+<ul data-going-list={activityId}>
+  {entries.map(({ member, hidden }) => (
+    <li data-mine={member.id === me?.id ? '' : undefined} hidden={hidden}>
+      <Avatar member={member} />
+      <span>
+        <a href={`/people/${member.id}`}>{member.display_name}</a>
+        {member.id === organizerId && <span class="badge">Organizer</span>}
+        {member.department && <span class="department">{member.department}</span>}
+      </span>
+    </li>
+  ))}
+</ul>
+
+<style>
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 44px;
+    padding: 0.25rem 0;
+  }
+  li[hidden] {
+    display: none;
+  }
+  .badge {
+    margin-left: 0.5rem;
+    padding: 0 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid #767676;
+    border-radius: 0.25rem;
+  }
+  .department {
+    display: block;
+    font-size: 0.875rem;
+    color: #595959;
+  }
+</style>
