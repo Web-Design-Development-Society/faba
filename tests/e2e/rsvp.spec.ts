@@ -136,6 +136,8 @@ test("on a card, Going keeps the RSVP, and Can't make it changes the next plan t
   await page.getByRole('button', { name: "Can't make it" }).click();
   await expect(card.getByRole('button', { name: "I'm in" })).toBeVisible();
   await expect(card.getByText('1 going')).toBeVisible();
+  // Even the face that came from the server goes.
+  await expect(card.getByRole('img', { name: 'Pat Poster' })).toHaveCount(0);
   const plan = page.getByRole('region', { name: 'Your next plan' });
   await expect(plan.getByRole('button', { name: "I'm in" })).toBeVisible();
   await expect.poll(() => statusOf(host.admin, id, poster.id)).toBe('not_going');

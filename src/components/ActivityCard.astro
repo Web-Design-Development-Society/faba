@@ -17,7 +17,12 @@ interface Props {
     organizer_id: string | null;
     category: { name: string; icon: string; color_token: string } | null;
     going: {
-      member: { display_name: string; avatar_url: string | null; use_initials: boolean };
+      member: {
+        id: string;
+        display_name: string;
+        avatar_url: string | null;
+        use_initials: boolean;
+      };
     }[];
     /** The signed-in member's RSVP. */
     my_rsvp: string | null;
@@ -58,7 +63,7 @@ const open = !isOver(
     <p class="place">{activity.location_name}</p>
     <p class="going" data-going={activity.id} data-faces={faces}>
       {activity.going.map(({ member }) => (
-        <Avatar member={member} named />
+        <Avatar member={member} named mine={member.id === viewer} />
       ))}
       <span data-count>{activity.going_count}</span> going
     </p>
