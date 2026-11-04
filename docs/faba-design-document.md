@@ -3058,7 +3058,8 @@ erDiagram
   - `status` (`published` | `cancelled`), `cancel_reason`, `cancelled_at`.
   - `hidden_at`, `hidden_reason`, `hidden_by`.
   - `going_count`, `guest_total` (denormalized, maintained **only** by `rsvp()`).
-  - `version`, `idempotency_key`.
+  - `version` (bumped by every edit), `idempotency_key`.
+  - `time_or_place_changed_at`: when the start, end, or place last changed. It drives the "Updated" label (ACT-04). `updated_at` can't, because every RSVP changes it.
   - `created_at`, `updated_at`.
 - **Phase 2 adds:** `capacity`, `guests_allowed`, `max_guests_per_rsvp`, `maybe_count`, `is_board_activity`, `announced_at`, `copied_from_id`, and `search_doc tsvector` (generated: title weight A, place weight B, description weight C).
 - **Phase 3 adds:** `group_id`, `visibility` (`members` | `group`), `series_id`, `series_detached`.
