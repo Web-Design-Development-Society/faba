@@ -25,9 +25,11 @@ interface Props {
   /** The signed-in member's id. */
   viewer: string;
   now: Date;
+  /** The most faces in the going row. */
+  faces: number;
 }
 
-const { activity, viewer, now } = Astro.props;
+const { activity, viewer, now, faces } = Astro.props;
 const { category } = activity;
 const look = category && categoryLook(category);
 const hosting = activity.organizer_id === viewer;
@@ -54,11 +56,11 @@ const open = !isOver(
       <time datetime={activity.starts_at}>{formatSoon(new Date(activity.starts_at), now)}</time>
     </p>
     <p class="place">{activity.location_name}</p>
-    <p class="going">
+    <p class="going" data-going={activity.id} data-faces={faces}>
       {activity.going.map(({ member }) => (
         <Avatar member={member} named />
       ))}
-      {activity.going_count} going
+      <span data-count>{activity.going_count}</span> going
     </p>
   </div>
   {hosting || going ? (

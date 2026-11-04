@@ -1,0 +1,43 @@
+---
+// The page's messages, such as "Posted!", announced through role="status". With JavaScript,
+// src/scripts/toast.ts shows them as a toast for 5 seconds, with Undo where there's one (design
+// document section 7.8). Without it, they stay where they are.
+import type { HTMLAttributes } from 'astro/types';
+
+type Props = HTMLAttributes<'p'> & { message?: string };
+
+const { message, ...attributes } = Astro.props;
+---
+
+<p role="status" data-status set:text={message ?? ''} {...attributes} />
+
+<style>
+  /* Above the details page's sticky bar. */
+  [data-toast]:not(:empty) {
+    position: fixed;
+    bottom: calc(5rem + env(safe-area-inset-bottom));
+    left: 50%;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: max-content;
+    max-width: calc(100% - 2rem);
+    margin: 0;
+    padding: 0.25rem 0.25rem 0.25rem 1rem;
+    color: white;
+    background: #222;
+    border-radius: 0.5rem;
+    transform: translateX(-50%);
+  }
+  [data-toast] :global(button) {
+    min-height: 44px;
+    padding: 0 0.75rem;
+    color: inherit;
+    font: inherit;
+    font-weight: 600;
+    text-decoration: underline;
+    background: none;
+    border: 0;
+  }
+</style>
