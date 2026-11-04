@@ -3,6 +3,7 @@
 // "You're going." shows with Undo. If saving fails, they change back and the toast says why.
 // Without JavaScript, the forms post and the page comes back.
 import { actions } from 'astro:actions';
+import './sheets';
 import { toast } from './toast';
 
 const FAILED = "Your RSVP couldn't be saved. Please try again.";
@@ -15,7 +16,9 @@ function show(id: string, going: boolean) {
   for (const button of document.querySelectorAll<HTMLButtonElement>(
     `[data-rsvp="${id}"] > form button`
   )) {
-    // ✓ Going opens the sheet, and I'm in posts.
+    // ✓ Going opens the sheet, and I'm in posts. I'm in doesn't get an invoker command when it
+    // becomes ✓ Going, since the browser would run it as I'm in posts. src/scripts/sheets.ts opens
+    // the sheet instead.
     button.textContent = going ? '✓ Going' : "I'm in";
     button.type = going ? 'button' : 'submit';
     if (!going) button.removeAttribute('command');
@@ -77,27 +80,4 @@ document.addEventListener('submit', async (event) => {
       },
     });
   }
-});
-
-// Safari doesn't give ✓ Going the focus back when its sheet closes.
-document.addEventListener(
-  'close',
-  (event) => {
-    const sheet = event.target;
-    if (!(sheet instanceof HTMLDialogElement)) return;
-    if (document.activeElement === document.body || sheet.contains(document.activeElement)) {
-      sheet.closest('[data-rsvp]')?.querySelector<HTMLElement>(':scope > form button')?.focus();
-    }
-  },
-  true
-);
-
-// ✓ Going opens its sheet. Without JavaScript, its invoker command does that. I'm in doesn't get
-// one when it becomes ✓ Going, since the browser would run it as I'm in posts. Safari before 26.2
-// has no invoker commands either.
-document.addEventListener('click', (event) => {
-  if (!(event.target instanceof Element)) return;
-  const button = event.target.closest<HTMLButtonElement>('[data-rsvp] > form button');
-  const sheet = button?.closest('[data-rsvp]')!.querySelector('dialog');
-  if (button?.type === 'button' && sheet && !sheet.open) sheet.showModal();
 });
