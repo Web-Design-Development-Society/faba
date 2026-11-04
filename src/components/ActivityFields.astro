@@ -1,0 +1,143 @@
+---
+// The fields that the create and edit forms share (ACT-03, ACT-04, design document section 7.7),
+// with each field's value and error. src/scripts/activity-form.ts adds the extras.
+import { quickDates, rexburgDate } from '../lib/time';
+import { ACTIVITY, latestStart } from '../lib/validation/activity';
+import FieldError from './FieldError.astro';
+
+interface Props {
+  /** A field's value, or nothing for an empty field. */
+  value: (name: string) => string | undefined;
+  /** Each field's errors, by name. */
+  errors: Record<string, string[] | undefined>;
+  categories: { id: string; name: string }[];
+}
+
+const { value, errors, categories } = Astro.props;
+const invalid = (name: string) =>
+  errors[name] ? { 'aria-invalid': 'true' as const, 'aria-describedby': `${name}-error` } : {};
+
+const now = new Date();
+const { today, tomorrow, saturday } = quickDates(now);
+const moreOptions = ['end_time', 'cost_note'].some((name) => value(name) || errors[name]);
+---
+
+<p>
+  <label for="title">What are you doing?</label>
+  <br />
+  <input
+    id="title"
+    name="title"
+    value={value('title')}
+    required
+    minlength={ACTIVITY.title.min}
+    maxlength={ACTIVITY.title.max}
+    {...invalid('title')}
+  />
+  <FieldError name="title" errors={errors.title} />
+</p>
+<fieldset>
+  <legend>When?</legend>
+  <p data-quick-dates hidden>
+    <button type="button" data-date={today}>
+      Today
+    </button>
+    <button type="button" data-date={tomorrow}>
+      Tomorrow
+    </button>
+    <button type="button" data-date={saturday}>
+      This Saturday
+    </button>
+  </p>
+  <label for="date">Date</label>
+  <input
+    type="date"
+    id="date"
+    name="date"
+    value={value('date')}
+    min={rexburgDate(now)}
+    max={rexburgDate(latestStart(now))}
+    required
+    {...invalid('date')}
+  />
+  <FieldError name="date" errors={errors.date} />
+  <label for="start_time">Start time</label>
+  <input
+    type="time"
+    id="start_time"
+    name="start_time"
+    value={value('start_time')}
+    required
+    {...invalid('start_time')}
+  />
+  <FieldError name="start_time" errors={errors.start_time} />
+</fieldset>
+<p>
+  <label for="location_name">Where?</label>
+  <br />
+  <input
+    id="location_name"
+    name="location_name"
+    value={value('location_name')}
+    required
+    maxlength={ACTIVITY.place.max}
+    {...invalid('location_name')}
+  />
+  <FieldError name="location_name" errors={errors.location_name} />
+</p>
+<fieldset {...invalid('category_id')}>
+  <legend>Category</legend>
+  {categories.map(({ id, name }) => (
+    <label>
+      <input
+        type="radio"
+        name="category_id"
+        value={id}
+        checked={id === value('category_id')}
+        required
+      />
+      {name}
+    </label>
+  ))}
+  <FieldError name="category_id" errors={errors.category_id} />
+</fieldset>
+<p>
+  <label for="description">Details (optional)</label>
+  <br />
+  <textarea
+    id="description"
+    name="description"
+    rows="4"
+    maxlength={ACTIVITY.description.max}
+    {...invalid('description')}
+  >{value('description')}</textarea>
+  <FieldError name="description" errors={errors.description} />
+</p>
+<details open={moreOptions}>
+  <summary>More options</summary>
+  <p>
+    <label for="end_time">End time</label>
+    <br />
+    <input
+      type="time"
+      id="end_time"
+      name="end_time"
+      value={value('end_time')}
+      {...invalid('end_time')}
+    />
+    <FieldError name="end_time" errors={errors.end_time} />
+  </p>
+  <p>
+    <label for="cost_note">Cost</label>
+    <br />
+    <input
+      id="cost_note"
+      name="cost_note"
+      value={value('cost_note')}
+      placeholder="Free, or $5 for pizza"
+      maxlength={ACTIVITY.costNote.max}
+      {...invalid('cost_note')}
+    />
+    <FieldError name="cost_note" errors={errors.cost_note} />
+  </p>
+</details>
