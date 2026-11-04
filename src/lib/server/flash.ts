@@ -3,7 +3,9 @@
 import type { AstroCookies } from 'astro';
 import { authCookieOptions } from './auth';
 
-export type Flash = 'posted';
+export const FLASH_MESSAGES = { posted: 'Posted!', going: "You're going." };
+
+export type Flash = keyof typeof FLASH_MESSAGES;
 
 const FLASH_COOKIE = 'faba-flash';
 
@@ -16,5 +18,15 @@ export function takeFlash(cookies: AstroCookies): Flash | undefined {
   const flash = cookies.get(FLASH_COOKIE)?.value;
   if (!flash) return undefined;
   cookies.delete(FLASH_COOKIE, { path: '/' });
-  return flash === 'posted' ? flash : undefined;
+  return Object.hasOwn(FLASH_MESSAGES, flash) ? (flash as Flash) : undefined;
+}
+
+/**
+ * Where to redirect after a form posts to an Action on its own page: the same page without the
+ * Action, which Astro names in `_action`, and with `hash`, such as a card's id.
+ */
+export function postedFrom(url: URL, hash = ''): string {
+  const back = new URL(url);
+  back.searchParams.delete('_action');
+  return back.pathname + back.search + hash;
 }

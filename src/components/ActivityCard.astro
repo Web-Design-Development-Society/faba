@@ -1,15 +1,17 @@
 ---
 // An activity in the feed (ACT-01, design document section 7.5). The whole card opens the
-// activity. RSVP-01 adds the I'm in button.
+// activity, except I'm in (RSVP-01).
 import { categoryLook } from '../lib/categories';
-import { formatSoon } from '../lib/time';
+import { formatSoon, isOver } from '../lib/time';
 import Avatar from './Avatar.astro';
+import RsvpForm from './RsvpForm.astro';
 
 interface Props {
   activity: {
     id: string;
     title: string;
     starts_at: string;
+    ends_at: string | null;
     location_name: string;
     going_count: number;
     organizer_id: string | null;
@@ -30,6 +32,12 @@ const { category } = activity;
 const look = category && categoryLook(category);
 const hosting = activity.organizer_id === viewer;
 const going = activity.my_rsvp === 'going';
+// Feed activities are published and not hidden, so they take RSVPs until they're over.
+const open = !isOver(
+  new Date(activity.starts_at),
+  activity.ends_at ? new Date(activity.ends_at) : null,
+  now
+);
 ---
 
 <article class="card" style={look ? `--stripe: ${look.color}` : undefined}>
@@ -53,7 +61,11 @@ const going = activity.my_rsvp === 'going';
       {activity.going_count} going
     </p>
   </div>
-  {(hosting || going) && <p class="mine">{hosting ? "You're hosting" : '✓ Going'}</p>}
+  {hosting || going ? (
+    <p class="mine">{hosting ? "You're hosting" : '✓ Going'}</p>
+  ) : (
+    open && <RsvpForm activityId={activity.id} />
+  )}
 </article>
 
 <style>
