@@ -117,6 +117,8 @@ test('the organizer can edit, and sees why a moderator hid it', async ({ page, p
     `/activities/${id}/edit`
   );
   await expect(page.getByRole('button', { name: "I'm in" })).toHaveCount(0);
+  // Organizers can't withdraw (RSVP-02).
+  await expect(page.getByRole('button', { name: '✓ Going' })).toHaveCount(0);
 
   await poster.admin
     .from('activities')

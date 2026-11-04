@@ -19,10 +19,10 @@ const HOUR = 60 * 60 * 1000;
 const { supabase, user, member } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
 
-// I'm in without JavaScript comes back to the card (RSVP-01).
+// I'm in and Can't make it without JavaScript come back to the card (RSVP-01, RSVP-02).
 const rsvp = Astro.getActionResult(actions.rsvps.set);
 if (rsvp && !rsvp.error) {
-  setFlash(Astro.cookies, Astro.url, 'going');
+  setFlash(Astro.cookies, Astro.url, rsvp.data.status);
   return Astro.redirect(postedFrom(Astro.url, `#activity-${rsvp.data.activity_id}`), 303);
 }
 const flash = takeFlash(Astro.cookies);

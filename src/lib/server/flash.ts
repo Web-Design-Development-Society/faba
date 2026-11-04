@@ -3,7 +3,11 @@
 import type { AstroCookies } from 'astro';
 import { authCookieOptions } from './auth';
 
-export const FLASH_MESSAGES = { posted: 'Posted!', going: "You're going." };
+export const FLASH_MESSAGES = {
+  posted: 'Posted!',
+  going: "You're going.",
+  not_going: "You're not going.",
+};
 
 export type Flash = keyof typeof FLASH_MESSAGES;
 

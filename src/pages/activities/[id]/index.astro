@@ -17,10 +17,10 @@ const FACES = 4;
 const { supabase, user, member } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
 
-// I'm in without JavaScript (RSVP-01). When it fails, the page says why.
+// I'm in and Can't make it without JavaScript (RSVP-01, RSVP-02). When it fails, the page says why.
 const rsvp = Astro.getActionResult(actions.rsvps.set);
 if (rsvp && !rsvp.error) {
-  setFlash(Astro.cookies, Astro.url, 'going');
+  setFlash(Astro.cookies, Astro.url, rsvp.data.status);
   return Astro.redirect(postedFrom(Astro.url), 303);
 }
 
@@ -161,10 +161,8 @@ const email = activity
               {going ? '✓ Going' : "I'm in"}
             </button>
           </>
-        ) : going ? (
-          <p>✓ Going</p>
         ) : (
-          <RsvpForm activityId={activity.id} />
+          <RsvpForm activityId={activity.id} going={going} />
         )}
       </div>
     </>
