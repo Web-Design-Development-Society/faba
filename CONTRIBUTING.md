@@ -5,7 +5,7 @@ FABA is an Astro app that runs as a Cloudflare Worker, with Supabase for sign-in
 ## What you need
 
 - [Node.js](https://nodejs.org/en) 22.23.4 or later (`node --version`).
-- A Docker engine: [Docker Desktop](https://www.docker.com/products/docker-desktop/), [colima](https://github.com/abiosoft/colima), or another. The Supabase CLI runs the local database and auth in Docker.
+- A Docker engine: [Docker Desktop](https://www.docker.com/products/docker-desktop/), [colima](https://github.com/abiosoft/colima), or another. The Supabase CLI runs the local database and auth in Docker. [Running Supabase locally](docs/runbooks/local-supabase.md) walks through installing one, Google sign-in, and fixing problems.
 
 You don't need to install the Supabase CLI or Wrangler. `npm install` adds both, and you run them with `npx`.
 
@@ -164,6 +164,9 @@ Tests sign in as a persona with the `signInAs` fixture in `tests/e2e/fixtures.ts
 - **"port is already allocated" from `npx supabase start`:** another project is using a port in the 5433x range. `docker ps` shows what's running. Run `npx supabase stop` in that project's folder.
 - **"The following environment variables defined in `env.schema` are invalid":** check `.dev.vars` (`npm run setup:dev-vars -- --force` rewrites it) and the `vars` in `wrangler.jsonc`.
 - **"Cannot connect to the Docker daemon":** start Docker Desktop or colima first.
+- **Signing in lands on a live site** instead of <http://localhost:4321>: FABA is using the staging Supabase project. Remove `SUPABASE_URL` from `.dev.vars`, and unset `CLOUDFLARE_ENV`.
+
+[Running Supabase locally](docs/runbooks/local-supabase.md#when-something-goes-wrong) covers more, including Google sign-in errors.
 
 ## Formatting and linting
 
@@ -173,5 +176,6 @@ A pre-commit hook runs Prettier on staged files, and ESLint on staged `.ts`, `.j
 
 - [FABA design document](docs/faba-design-document.md) and [architecture decision records](docs/adr/README.md)
 - [Supabase settings](docs/runbooks/supabase-settings.md) for staging and production, which live in the dashboard rather than in migrations
+- [Running Supabase locally](docs/runbooks/local-supabase.md) in Docker, with Google sign-in and troubleshooting
 - [Astro](https://docs.astro.build) and its [Cloudflare adapter](https://docs.astro.build/en/guides/integrations-guide/cloudflare/)
 - [Supabase local development](https://supabase.com/docs/guides/local-development)
