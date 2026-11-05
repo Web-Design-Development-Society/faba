@@ -94,9 +94,10 @@ SELECT extensions.is(
   'an active member reads every active profile'
 );
 
-SELECT is_empty(
-  'select 1 from public.profile_private',
-  'an active member reads no private profile data yet'
+SELECT results_eq(
+  'select user_id from public.profile_private',
+  $$values ('00000000-0000-4000-8000-000000000001'::uuid)$$,
+  'an active member reads only their own private profile (PROF-02)'
 );
 
 SELECT throws_ok(
