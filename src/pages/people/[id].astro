@@ -1,0 +1,160 @@
+---
+// A member's profile (PROF-03), from their name on an activity or in who's going (journey J7):
+// who they are, and the upcoming activities they organize. Their email shows only when they share
+// it (PROF-04). Faculty type, RSVPs and last-seen time aren't asked for, and members can't read
+// other members' anyway (RLS, FR-PROF-5). Report links to a page that MOD-01 builds.
+import { actions } from 'astro:actions';
+import ActivityCard from '../../components/ActivityCard.astro';
+import Avatar from '../../components/Avatar.astro';
+import Menu from '../../components/Menu.astro';
+import Status from '../../components/Status.astro';
+import Layout from '../../layouts/Layout.astro';
+import { CARD, FACES } from '../../lib/cards';
+import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../../lib/server/flash';
+
+// The most activities in the list.
+const LIMIT = 50;
+const HOUR = 60 * 60 * 1000;
+
+const { supabase, user, member } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+
+// I'm in and Can't make it without JavaScript come back to the card (RSVP-01, RSVP-02).
+const rsvp = Astro.getActionResult(actions.rsvps.set);
+if (rsvp && !rsvp.error) {
+  setFlash(Astro.cookies, Astro.url, rsvp.data.status);
+  return Astro.redirect(postedFrom(Astro.url, `#activity-${rsvp.data.activity_id}`), 303);
+}
+const flash = takeFlash(Astro.cookies);
+
+// Members can't read a profile that isn't active (RLS): a suspended or ineligible member's, or a
+// deleted account's. The filter keeps those out for moderators too, who'll be able to. Nor is an id
+// that isn't a UUID, which is an error. Their activities are the feed's: published, not hidden,
+// and from 3 hours ago, so one that's underway stays.
+const profileId = Astro.params.id!;
+const now = new Date();
+const [{ data: profile }, { data, error }, { data: categories }] = await Promise.all([
+  supabase
+    .from('profiles')
+    .select('id, display_name, avatar_url, use_initials, department, bio, interests, public_email')
+    .eq('id', profileId)
+    .eq('status', 'active')
+    .maybeSingle(),
+  supabase
+    .from('activities')
+    .select(CARD)
+    .eq('organizer_id', profileId)
+    .eq('status', 'published')
+    .is('hidden_at', null)
+    .gte('starts_at', new Date(now.getTime() - 3 * HOUR).toISOString())
+    .eq('going.status', 'going')
+    .order('starts_at')
+    .order('id')
+    .order('created_at', { referencedTable: 'going' })
+    .limit(FACES, { referencedTable: 'going' })
+    .limit(LIMIT),
+  supabase.from('categories').select('id, name').order('sort_order'),
+]);
+if (!profile) Astro.response.status = 404;
+
+const activities = data ?? [];
+const interests = categories?.filter(({ id }) => profile?.interests.includes(id)) ?? [];
+const mine = profile?.id === user.id;
+---
+
+<Layout title={profile?.display_name ?? 'Not available'}>
+  <header class="top">
+    <a href="/discover">Back to Discover</a>
+    {profile && !mine && (
+      <Menu>
+        <li>
+          <a href={`/people/${profile.id}/report`}>Report</a>
+        </li>
+      </Menu>
+    )}
+  </header>
+  <Status message={flash && FLASH_MESSAGES[flash]} />
+  {rsvp?.error && <p role="alert">{rsvp.error.message}</p>}
+  {profile ? (
+    <>
+      <div class="who">
+        <Avatar member={profile} large />
+        <div>
+          <h1>{profile.display_name}</h1>
+          {profile.department && <p>{profile.department}</p>}
+        </div>
+      </div>
+      {profile.bio && <p class="bio">{profile.bio}</p>}
+      {interests.length > 0 && <p>Interests: {interests.map(({ name }) => name).join(', ')}</p>}
+      {profile.public_email && (
+        <p>
+          Email: <a href={`mailto:${profile.public_email}`}>{profile.public_email}</a>
+        </p>
+      )}
+      {mine && (
+        <p>
+          This is how other members see you. <a href="/me/edit">Edit profile</a>
+        </p>
+      )}
+
+      <section aria-labelledby="organizing">
+        <h2 id="organizing">Organizing</h2>
+        {error ? (
+          <p role="alert">These activities couldn't load. Please try again.</p>
+        ) : activities.length === 0 ? (
+          <p>Nothing coming up.</p>
+        ) : (
+          <ul>
+            {activities.map((activity) => (
+              <li id={`activity-${activity.id}`}>
+                <ActivityCard activity={activity} viewer={user.id} now={now} faces={FACES} />
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </>
+  ) : (
+    <>
+      <h1>Not available</h1>
+      <p>This member is no longer active.</p>
+    </>
+  )}
+  {member && (
+    <template data-my-face>
+      <Avatar member={member} named />
+    </template>
+  )}
+</Layout>
+
+<script>
+  import '../../scripts/rsvp';
+</script>
+
+<style>
+  .top,
+  .who {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+  .top {
+    justify-content: space-between;
+  }
+  .who h1,
+  .who p {
+    margin: 0;
+  }
+  .bio {
+    white-space: pre-line;
+  }
+  /* minmax(0, 1fr) keeps a card with a long place on one line from widening the column. */
+  ul {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+</style>

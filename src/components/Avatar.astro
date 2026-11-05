@@ -2,34 +2,42 @@
 // A member's photo, or their initials when they chose those at Welcome or have no photo. With
 // `named`, it says who it is. Without, it's decorative, because their name is beside it. With
 // `mine`, it's the signed-in member's, which src/scripts/rsvp.ts takes away after Can't make it.
+// With `large`, it's twice the size, as on a profile (PROF-03).
 interface Props {
   member: { display_name: string; avatar_url: string | null; use_initials: boolean };
   named?: boolean;
   mine?: boolean;
+  large?: boolean;
 }
 
-const { member, named = false, mine = false } = Astro.props;
+const { member, named = false, mine = false, large = false } = Astro.props;
 const marked = mine ? '' : undefined;
+const size = large ? 64 : 32;
 const words = member.display_name.trim().split(/\s+/);
 const initials = (words[0][0] + (words.length > 1 ? words.at(-1)![0] : '')).toUpperCase();
 ---
 
 {member.avatar_url && !member.use_initials ? (
   <img
-    class="avatar"
+    class:list={['avatar', { large }]}
     data-mine={marked}
     src={member.avatar_url}
     alt={named ? member.display_name : ''}
-    width="32"
-    height="32"
+    width={size}
+    height={size}
     referrerpolicy="no-referrer"
   />
 ) : named ? (
-  <span class="avatar" data-mine={marked} role="img" aria-label={member.display_name}>
+  <span
+    class:list={['avatar', { large }]}
+    data-mine={marked}
+    role="img"
+    aria-label={member.display_name}
+  >
     {initials}
   </span>
 ) : (
-  <span class="avatar" data-mine={marked} aria-hidden="true">
+  <span class:list={['avatar', { large }]} data-mine={marked} aria-hidden="true">
     {initials}
   </span>
 )}
@@ -46,5 +54,10 @@ const initials = (words[0][0] + (words.length > 1 ? words.at(-1)![0] : '')).toUp
     background: #ddd;
     font-size: 0.75rem;
     font-weight: 600;
+  }
+  .large {
+    width: 4rem;
+    height: 4rem;
+    font-size: 1.5rem;
   }
 </style>
