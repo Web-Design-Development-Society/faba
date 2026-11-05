@@ -1,6 +1,7 @@
 ---
-// An activity in the feed (ACT-01, design document section 7.5). The whole card opens the
-// activity, except I'm in and ✓ Going (RSVP-01, RSVP-02).
+// An activity in the feed (ACT-01, design document section 7.5) and in My activities (HIST-02).
+// The whole card opens the activity, except I'm in and ✓ Going (RSVP-01, RSVP-02). A cancelled
+// activity says so in their place (ACT-05).
 import { categoryLook } from '../lib/categories';
 import { formatSoon, isOver } from '../lib/time';
 import Avatar from './Avatar.astro';
@@ -15,6 +16,7 @@ interface Props {
     location_name: string;
     going_count: number;
     organizer_id: string | null;
+    status: string;
     category: { name: string; icon: string; color_token: string } | null;
     going: {
       member: {
@@ -39,12 +41,11 @@ const { category } = activity;
 const look = category && categoryLook(category);
 const hosting = activity.organizer_id === viewer;
 const going = activity.my_rsvp === 'going';
-// Feed activities are published and not hidden, so they take RSVPs until they're over.
-const open = !isOver(
-  new Date(activity.starts_at),
-  activity.ends_at ? new Date(activity.ends_at) : null,
-  now
-);
+const cancelled = activity.status === 'cancelled';
+// Cards aren't hidden, so a published one takes RSVPs until it's over.
+const open =
+  !cancelled &&
+  !isOver(new Date(activity.starts_at), activity.ends_at ? new Date(activity.ends_at) : null, now);
 ---
 
 <article class="card" style={look ? `--stripe: ${look.color}` : undefined}>
@@ -68,7 +69,9 @@ const open = !isOver(
       <span data-count>{activity.going_count}</span> going
     </p>
   </div>
-  {hosting ? (
+  {cancelled ? (
+    <p class="mine cancelled">Cancelled</p>
+  ) : hosting ? (
     <p class="mine">You're hosting</p>
   ) : open ? (
     <RsvpForm activityId={activity.id} going={going} />
@@ -139,5 +142,8 @@ const open = !isOver(
     align-self: center;
     font-weight: 600;
     white-space: nowrap;
+  }
+  .cancelled {
+    color: #b42318;
   }
 </style>

@@ -8,13 +8,13 @@ import Avatar from '../components/Avatar.astro';
 import CategoryChips from '../components/CategoryChips.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
+import { CARD, FACES } from '../lib/cards';
 import { nextPage, readCursor } from '../lib/feed';
 import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../lib/server/flash';
 import { formatDay, rexburgDate } from '../lib/time';
 
-// Activities on a page, and faces on a card.
+// Activities on a page.
 const PAGE = 20;
-const FACES = 3;
 const HOUR = 60 * 60 * 1000;
 
 const { supabase, user, member } = Astro.locals;
@@ -32,11 +32,6 @@ const now = new Date();
 const cursor = readCursor(Astro.url.searchParams);
 const firstPage = !cursor.after_id;
 const cat = Astro.url.searchParams.get('cat') || undefined;
-
-// Members who aren't active have no profile to read, so they're left out of the faces.
-const CARD = `id, title, starts_at, ends_at, location_name, going_count, organizer_id, my_rsvp,
-  category:categories(name, icon, color_token),
-  going:rsvps(member:profiles!inner(id, display_name, avatar_url, use_initials))`;
 
 const [feed, plan, categories] = await Promise.all([
   // One more than a page says whether there's another.
