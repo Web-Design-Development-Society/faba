@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { displayName } from '../../src/lib/validation/profile';
+import { displayName, profileChanges } from '../../src/lib/validation/profile';
 
 describe('displayName', () => {
   it.each([
@@ -16,5 +16,45 @@ describe('displayName', () => {
     ['x'.repeat(51), 'Use 50 characters or fewer.'],
   ])('rejects %j', (input, message) => {
     expect(displayName.safeParse(input).error?.issues[0].message).toBe(message);
+  });
+});
+
+describe('profileChanges', () => {
+  const form = {
+    display_name: ' Elle ',
+    use_initials: false,
+    department: ' Mathematics ',
+    bio: '',
+    interests: ['outdoors', 'games'],
+    faculty_type: 'part_time',
+  };
+
+  it('trims the text and keeps the choices', () => {
+    expect(profileChanges.parse(form)).toEqual({
+      ...form,
+      display_name: 'Elle',
+      department: 'Mathematics',
+    });
+  });
+
+  it('leaves out what was left empty', () => {
+    expect(
+      profileChanges.parse({ display_name: 'Elle', use_initials: true, interests: [] })
+    ).toEqual({ display_name: 'Elle', use_initials: true, interests: [] });
+  });
+
+  it.each([
+    ['department', 'x'.repeat(61), 'Use 60 characters or fewer.'],
+    ['bio', 'x'.repeat(281), 'Use 280 characters or fewer.'],
+    ['faculty_type', 'adjunct', undefined],
+  ])('rejects a %s of %j', (field, value, message) => {
+    const issue = profileChanges.safeParse({ ...form, [field]: value }).error?.issues[0];
+    expect(issue?.path).toEqual([field]);
+    if (message) expect(issue?.message).toBe(message);
+  });
+
+  it('takes 20 interests at most', () => {
+    const interests = Array.from({ length: 21 }, (_, n) => `category-${n}`);
+    expect(profileChanges.safeParse({ ...form, interests }).success).toBe(false);
   });
 });
