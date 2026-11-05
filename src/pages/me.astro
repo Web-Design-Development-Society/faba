@@ -2,7 +2,8 @@
 // The Me screen, with Sign out (AUTH-03). My activities lists the upcoming activities the member is
 // going to, soonest first (HIST-02, FR-HIST-1). Organizers are always going to their own (ACT-03,
 // RSVP-02), so it has what they organize too. Cancelled ones stay, marked cancelled (ACT-05).
-// PROF-02 adds editing the profile, and Phase 2's Plans tab replaces the list (RSVP-08).
+// Phase 2's Plans tab replaces the list (RSVP-08). Edit profile opens the profile form (PROF-02),
+// which comes back here.
 import { actions } from 'astro:actions';
 import ActivityCard from '../components/ActivityCard.astro';
 import Avatar from '../components/Avatar.astro';
@@ -28,25 +29,35 @@ const flash = takeFlash(Astro.cookies);
 
 // From 3 hours ago, so one that's underway stays, as in the feed. Hidden ones are left out.
 const now = new Date();
-const { data, error } = await supabase
-  .from('activities')
-  .select(CARD)
-  .eq('my_rsvp', 'going')
-  .is('hidden_at', null)
-  .gte('starts_at', new Date(now.getTime() - 3 * HOUR).toISOString())
-  .eq('going.status', 'going')
-  .order('starts_at')
-  .order('id')
-  .order('created_at', { referencedTable: 'going' })
-  .limit(FACES, { referencedTable: 'going' })
-  .limit(LIMIT);
+const [{ data, error }, { data: profile }, { data: categories }] = await Promise.all([
+  supabase
+    .from('activities')
+    .select(CARD)
+    .eq('my_rsvp', 'going')
+    .is('hidden_at', null)
+    .gte('starts_at', new Date(now.getTime() - 3 * HOUR).toISOString())
+    .eq('going.status', 'going')
+    .order('starts_at')
+    .order('id')
+    .order('created_at', { referencedTable: 'going' })
+    .limit(FACES, { referencedTable: 'going' })
+    .limit(LIMIT),
+  supabase.from('profiles').select('department, bio, interests').eq('id', user.id).single(),
+  supabase.from('categories').select('id, name').order('sort_order'),
+]);
 const activities = data ?? [];
+const interests = categories?.filter(({ id }) => profile?.interests.includes(id)) ?? [];
 ---
 
 <Layout title="Me">
   <h1>Me</h1>
   <p>You're signed in as {member?.display_name ?? user.email}.</p>
-  <p>Adding your department, a short bio and your interests comes soon.</p>
+  {profile?.department && <p>{profile.department}</p>}
+  {profile?.bio && <p class="bio">{profile.bio}</p>}
+  {interests.length > 0 && <p>Interests: {interests.map(({ name }) => name).join(', ')}</p>}
+  <p>
+    <a href="/me/edit">Edit profile</a>
+  </p>
   <Status message={flash && FLASH_MESSAGES[flash]} />
   {rsvp?.error && <p role="alert">{rsvp.error.message}</p>}
 
@@ -101,5 +112,8 @@ const activities = data ?? [];
   }
   form {
     margin-top: 2rem;
+  }
+  .bio {
+    white-space: pre-line;
   }
 </style>

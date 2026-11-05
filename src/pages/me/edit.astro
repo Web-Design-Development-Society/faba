@@ -1,0 +1,172 @@
+---
+// Editing my profile (PROF-02): the display name, photo or initials, department, a short bio,
+// interests, and a private faculty type. It works without JavaScript: when a save fails, the form
+// comes back with what was typed and an error under each field. Saving returns to Me with "Saved."
+import { actions, isInputError } from 'astro:actions';
+import FieldError from '../../components/FieldError.astro';
+import Layout from '../../layouts/Layout.astro';
+import { setFlash } from '../../lib/server/flash';
+import { DISPLAY_NAME, FACULTY_TYPES, PROFILE } from '../../lib/validation/profile';
+
+const { supabase, user } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+
+const result = Astro.getActionResult(actions.profile.update);
+if (result && !result.error) {
+  setFlash(Astro.cookies, Astro.url, 'saved');
+  return Astro.redirect('/me', 303);
+}
+
+const [{ data: profile }, { data: personal }, { data: categories }, { data: others }] =
+  await Promise.all([
+    supabase
+      .from('profiles')
+      .select('display_name, avatar_url, use_initials, department, bio, interests')
+      .eq('id', user.id)
+      .single(),
+    supabase.from('profile_private').select('faculty_type').eq('user_id', user.id).maybeSingle(),
+    supabase.from('categories').select('id, name').eq('is_active', true).order('sort_order'),
+    // Departments other members use, so the same one is spelled the same way.
+    supabase.from('profiles').select('department').not('department', 'is', null).limit(1000),
+  ]);
+const departments = [...new Set(others?.map(({ department }) => department!))].sort((a, b) =>
+  a.localeCompare(b)
+);
+
+// What was typed, after a failed save. The Action read a copy of the request.
+const typed = result?.error ? await Astro.request.formData() : undefined;
+const text = (name: 'display_name' | 'department' | 'bio') =>
+  typed ? (typed.get(name)?.toString() ?? '') : (profile?.[name] ?? '');
+const useInitials = typed ? typed.has('use_initials') : profile?.use_initials;
+const interests = typed ? typed.getAll('interests') : (profile?.interests ?? []);
+const facultyType = typed ? typed.get('faculty_type') : personal?.faculty_type;
+
+const fields: Record<string, string[] | undefined> = isInputError(result?.error)
+  ? result.error.fields
+  : {};
+const failure = result?.error && !isInputError(result.error) ? result.error.message : null;
+const invalid = (name: string) =>
+  fields[name] ? { 'aria-invalid': 'true' as const, 'aria-describedby': `${name}-error` } : {};
+---
+
+<Layout title="Edit profile">
+  <a href="/me">Back to Me</a>
+  <h1>Edit profile</h1>
+  {failure && <p role="alert">{failure}</p>}
+  <form method="post" action={actions.profile.update.queryString}>
+    <p>
+      <label for="display_name">Display name</label>
+      <br />
+      <input
+        id="display_name"
+        name="display_name"
+        value={text('display_name')}
+        required
+        minlength={DISPLAY_NAME.min}
+        maxlength={DISPLAY_NAME.max}
+        autocomplete="name"
+        {...invalid('display_name')}
+      />
+      <FieldError name="display_name" errors={fields.display_name} />
+    </p>
+    {profile?.avatar_url && (
+      <p>
+        <img
+          src={profile.avatar_url}
+          alt="Your Google photo"
+          width="64"
+          height="64"
+          referrerpolicy="no-referrer"
+        />
+        <br />
+        <label>
+          <input type="checkbox" name="use_initials" checked={useInitials} /> Use initials instead
+        </label>
+      </p>
+    )}
+    <p>
+      <label for="department">Department (optional)</label>
+      <br />
+      <input
+        id="department"
+        name="department"
+        list="departments"
+        value={text('department')}
+        maxlength={PROFILE.department.max}
+        {...invalid('department')}
+      />
+      <datalist id="departments">
+        {departments.map((department) => (
+          <option value={department} />
+        ))}
+      </datalist>
+      <FieldError name="department" errors={fields.department} />
+    </p>
+    <p>
+      <label for="bio">Short bio (optional)</label>
+      <br />
+      <textarea
+        id="bio"
+        name="bio"
+        rows="3"
+        maxlength={PROFILE.bio.max}
+        {...invalid('bio')}
+      >{text('bio')}</textarea>
+      <FieldError name="bio" errors={fields.bio} />
+    </p>
+    <fieldset class="chips">
+      <legend>Interests (optional)</legend>
+      {categories?.map(({ id, name }) => (
+        <label>
+          <input type="checkbox" name="interests" value={id} checked={interests.includes(id)} />
+          {name}
+        </label>
+      ))}
+    </fieldset>
+    <fieldset aria-describedby="faculty_type-hint">
+      <legend>Faculty type (optional)</legend>
+      <p id="faculty_type-hint">Only used for anonymous totals. Never shown to others.</p>
+      {Object.entries(FACULTY_TYPES).map(([value, label]) => (
+        <label>
+          <input type="radio" name="faculty_type" value={value} checked={facultyType === value} />
+          {label}
+        </label>
+      ))}
+    </fieldset>
+    <button type="submit">Save</button>
+  </form>
+</Layout>
+
+<style>
+  fieldset {
+    margin: 1rem 0;
+  }
+  fieldset label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .chips legend {
+    margin-bottom: 0.5rem;
+  }
+  .chips label {
+    display: inline-flex;
+    padding: 0 0.75rem;
+    border: 1px solid #767676;
+    border-radius: 999px;
+  }
+  .chips label:has(:checked) {
+    font-weight: 600;
+    border-width: 2px;
+  }
+  button {
+    min-height: 44px;
+    padding: 0 1rem;
+  }
+</style>
