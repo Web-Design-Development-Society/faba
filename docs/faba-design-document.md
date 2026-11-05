@@ -3098,12 +3098,12 @@ erDiagram
 
 - **Purpose:** member reports of inappropriate content.
 - **Important fields:**
-  - `id`, `reporter_id` (`SET NULL`).
-  - `target_type` (`activity` | `profile`; Phase 2 adds `activity_update`; Phase 3 adds `group`), `target_id`.
-  - `reason`, `note`.
-  - `status` (`open` | `dismissed` | `actioned`), `resolved_by`, `resolved_at`, `resolution_note`.
+  - `id` (uuid, so the audit log can name a report), `reporter_id` (`SET NULL`).
+  - `target_type` (`activity` | `profile`; Phase 2 adds `activity_update`; Phase 3 adds `group`), `target_id` (no foreign key).
+  - `reason` (`inappropriate` | `spam` | `unsafe` | `other`), `note` (500 characters or fewer).
+  - `status` (`open` | `dismissed` | `actioned`). MOD-02 adds `resolved_by`, `resolved_at` and `resolution_note`.
   - `created_at`.
-- **Ownership rules:** created through `report_content()`. Resolved through moderation RPCs. Visible to the reporter and to moderators.
+- **Ownership rules:** created through `report_content()`, which allows only what the reporter can see (an activity that isn't hidden, or an active member), never their own. Resolved through moderation RPCs. Visible to the reporter and to moderators.
 - **Indexing:**
   - Unique `(reporter_id, target_type, target_id)`.
   - Partial `(created_at)` where `status = 'open'`, for the queue.

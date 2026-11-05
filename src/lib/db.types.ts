@@ -233,6 +233,48 @@ export type Database = {
         };
         Relationships: [];
       };
+      reports: {
+        Row: {
+          created_at: string;
+          id: string;
+          note: string | null;
+          reason: string;
+          reporter_id: string | null;
+          status: string;
+          target_id: string;
+          target_type: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          id?: string;
+          note?: string | null;
+          reason: string;
+          reporter_id?: string | null;
+          status?: string;
+          target_id: string;
+          target_type: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          note?: string | null;
+          reason?: string;
+          reporter_id?: string | null;
+          status?: string;
+          target_id?: string;
+          target_type?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'reports_reporter_id_fkey';
+            columns: ['reporter_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       rsvps: {
         Row: {
           activity_id: string;
@@ -353,6 +395,10 @@ export type Database = {
             Database['public']['Tables']['activities']['ComputedFields']
           >;
         };
+        Returns: string;
+      };
+      report_content: {
+        Args: { note?: string; reason: string; target_id: string; target_type: string };
         Returns: string;
       };
       restore_activity: { Args: { activity_id: string }; Returns: undefined };
