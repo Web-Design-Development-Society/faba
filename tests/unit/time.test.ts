@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   addDays,
+  formatAgo,
   formatDay,
   formatRange,
   formatSoon,
@@ -97,6 +98,21 @@ describe('formatSoon', () => {
     ['2026-11-10T01:30:00Z', 'Nov 9, 6:30 PM'],
   ])('%s is %s', (instant, text) => {
     expect(plain(formatSoon(new Date(instant), monday))).toBe(text);
+  });
+});
+
+describe('formatAgo', () => {
+  const now = new Date('2026-11-02T17:00:00Z');
+
+  it.each([
+    ['2026-11-02T16:59:30Z', 'just now'],
+    ['2026-11-02T16:55:00Z', '5m ago'],
+    ['2026-11-02T16:00:01Z', '59m ago'],
+    ['2026-11-02T16:00:00Z', '1h ago'],
+    ['2026-11-01T17:00:01Z', '23h ago'],
+    ['2026-10-30T17:00:00Z', '3d ago'],
+  ])('says %s was %s', (instant, ago) => {
+    expect(formatAgo(new Date(instant), now)).toBe(ago);
   });
 });
 

@@ -18,6 +18,15 @@ describe('the feed cursor', () => {
     });
   });
 
+  it('keeps a category, which the cursor leaves out', () => {
+    const query = nextPage(last, 'outdoors');
+    expect(new URLSearchParams(query).get('cat')).toBe('outdoors');
+    expect(readCursor(new URLSearchParams(query))).toEqual({
+      after_starts_at: last.starts_at,
+      after_id: last.id,
+    });
+  });
+
   it.each([
     ['nothing', ''],
     ['no id', '?after=2026-11-07T14%3A00%3A00%2B00%3A00'],

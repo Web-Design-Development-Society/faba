@@ -1,5 +1,6 @@
 // Home's feed (ACT-01). Show more adds the next page below the cards, without leaving the page.
 // Without JavaScript, it opens the next page. A note says when Rexburg's clock isn't the viewer's.
+// The chosen category's chip is in view, even far along its row (ACT-06).
 import { TIME_ZONE } from '../lib/time';
 
 const offset = (timeZone?: string) =>
@@ -9,6 +10,14 @@ const offset = (timeZone?: string) =>
 
 const note = document.querySelector<HTMLElement>('[data-zone-note]');
 if (note && offset() !== offset(TIME_ZONE)) note.hidden = false;
+
+// Only the row scrolls, not the page, which may have come back to a card.
+const chips = document.querySelector<HTMLElement>('[data-chips]');
+const chosen = chips?.querySelector<HTMLElement>('[aria-current]');
+if (chips && chosen) {
+  const left = chosen.getBoundingClientRect().left - chips.getBoundingClientRect().left;
+  chips.scrollLeft += left - (chips.clientWidth - chosen.offsetWidth) / 2;
+}
 
 const more = document.querySelector<HTMLAnchorElement>('[data-more]');
 

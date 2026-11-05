@@ -282,6 +282,7 @@ export type Database = {
         Args: { display_name: string; use_initials: boolean; version: number };
         Returns: undefined;
       };
+      cancel_activity: { Args: { activity_id: string; reason?: string }; Returns: undefined };
       create_activity: {
         Args: {
           category_id: string;
@@ -296,7 +297,12 @@ export type Database = {
         Returns: string;
       };
       get_feed: {
-        Args: { after_id?: string; after_starts_at?: string; page_size?: number };
+        Args: {
+          after_id?: string;
+          after_starts_at?: string;
+          category?: string;
+          page_size?: number;
+        };
         Returns: {
           cancel_reason: string | null;
           cancelled_at: string | null;
@@ -349,6 +355,7 @@ export type Database = {
         };
         Returns: string;
       };
+      restore_activity: { Args: { activity_id: string }; Returns: undefined };
       rsvp: { Args: { activity_id: string; status: string }; Returns: number };
       update_activity: {
         Args: { activity_id: string; expected_version: number; patch: Json };

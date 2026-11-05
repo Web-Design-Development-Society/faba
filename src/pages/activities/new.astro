@@ -3,11 +3,11 @@
 // post fails, the form comes back with what was typed and the same idempotency key, so posting
 // again can't make a second activity. src/scripts/activity-form.ts adds the extras.
 import { actions, isInputError } from 'astro:actions';
-import FieldError from '../../components/FieldError.astro';
+import ActivityFields from '../../components/ActivityFields.astro';
 import Layout from '../../layouts/Layout.astro';
 import { setFlash } from '../../lib/server/flash';
-import { quickDates, rexburgDate, rexburgTime } from '../../lib/time';
-import { ACTIVITY, latestStart, suggestedStart } from '../../lib/validation/activity';
+import { rexburgDate, rexburgTime } from '../../lib/time';
+import { suggestedStart } from '../../lib/validation/activity';
 
 const result = Astro.getActionResult(actions.activities.create);
 if (result && !result.error) {
@@ -23,21 +23,20 @@ const fields: Record<string, string[] | undefined> = isInputError(result?.error)
   ? result.error.fields
   : {};
 const failure = result?.error && !isInputError(result.error) ? result.error.message : null;
-const invalid = (name: string) =>
-  fields[name] ? { 'aria-invalid': 'true' as const, 'aria-describedby': `${name}-error` } : {};
 
 const { data: categories, error: categoriesError } = await Astro.locals.supabase
   .from('categories')
   .select('id, name')
   .eq('is_active', true)
   .order('sort_order');
-// Discover's category filter can choose one to start with.
-const category = value('category_id') ?? Astro.url.searchParams.get('cat');
-
-const now = new Date();
-const start = suggestedStart(now);
-const { today, tomorrow, saturday } = quickDates(now);
-const moreOptions = ['end_time', 'cost_note'].some((name) => value(name) || fields[name]);
+// The suggested start, and a category that Discover's filter can choose.
+const start = suggestedStart(new Date());
+const suggested: Record<string, string | undefined> = {
+  date: rexburgDate(start),
+  start_time: rexburgTime(start),
+  category_id: Astro.url.searchParams.get('cat') ?? undefined,
+};
+const shown = (name: string) => value(name) ?? suggested[name];
 ---
 
 <Layout title="New activity">
@@ -51,6 +50,7 @@ const moreOptions = ['end_time', 'cost_note'].some((name) => value(name) || fiel
     method="post"
     action={actions.activities.create.queryString}
     data-activity-form
+    data-draft
     data-typed={typed ? '' : undefined}
   >
     <input
@@ -58,119 +58,7 @@ const moreOptions = ['end_time', 'cost_note'].some((name) => value(name) || fiel
       name="idempotency_key"
       value={value('idempotency_key') ?? crypto.randomUUID()}
     />
-    <p>
-      <label for="title">What are you doing?</label>
-      <br />
-      <input
-        id="title"
-        name="title"
-        value={value('title')}
-        required
-        minlength={ACTIVITY.title.min}
-        maxlength={ACTIVITY.title.max}
-        {...invalid('title')}
-      />
-      <FieldError name="title" errors={fields.title} />
-    </p>
-    <fieldset>
-      <legend>When?</legend>
-      <p data-quick-dates hidden>
-        <button type="button" data-date={today}>
-          Today
-        </button>
-        <button type="button" data-date={tomorrow}>
-          Tomorrow
-        </button>
-        <button type="button" data-date={saturday}>
-          This Saturday
-        </button>
-      </p>
-      <label for="date">Date</label>
-      <input
-        type="date"
-        id="date"
-        name="date"
-        value={value('date') ?? rexburgDate(start)}
-        min={rexburgDate(now)}
-        max={rexburgDate(latestStart(now))}
-        required
-        {...invalid('date')}
-      />
-      <FieldError name="date" errors={fields.date} />
-      <label for="start_time">Start time</label>
-      <input
-        type="time"
-        id="start_time"
-        name="start_time"
-        value={value('start_time') ?? rexburgTime(start)}
-        required
-        {...invalid('start_time')}
-      />
-      <FieldError name="start_time" errors={fields.start_time} />
-    </fieldset>
-    <p>
-      <label for="location_name">Where?</label>
-      <br />
-      <input
-        id="location_name"
-        name="location_name"
-        value={value('location_name')}
-        required
-        maxlength={ACTIVITY.place.max}
-        {...invalid('location_name')}
-      />
-      <FieldError name="location_name" errors={fields.location_name} />
-    </p>
-    <fieldset {...invalid('category_id')}>
-      <legend>Category</legend>
-      {categories?.map(({ id, name }) => (
-        <label>
-          <input type="radio" name="category_id" value={id} checked={id === category} required />
-          {name}
-        </label>
-      ))}
-      <FieldError name="category_id" errors={fields.category_id} />
-    </fieldset>
-    <p>
-      <label for="description">Details (optional)</label>
-      <br />
-      <textarea
-        id="description"
-        name="description"
-        rows="4"
-        maxlength={ACTIVITY.description.max}
-        {...invalid('description')}
-      >{value('description')}</textarea>
-      <FieldError name="description" errors={fields.description} />
-    </p>
-    <details open={moreOptions}>
-      <summary>More options</summary>
-      <p>
-        <label for="end_time">End time</label>
-        <br />
-        <input
-          type="time"
-          id="end_time"
-          name="end_time"
-          value={value('end_time')}
-          {...invalid('end_time')}
-        />
-        <FieldError name="end_time" errors={fields.end_time} />
-      </p>
-      <p>
-        <label for="cost_note">Cost</label>
-        <br />
-        <input
-          id="cost_note"
-          name="cost_note"
-          value={value('cost_note')}
-          placeholder="Free, or $5 for pizza"
-          maxlength={ACTIVITY.costNote.max}
-          {...invalid('cost_note')}
-        />
-        <FieldError name="cost_note" errors={fields.cost_note} />
-      </p>
-    </details>
+    <ActivityFields value={shown} errors={fields} categories={categories ?? []} />
     <button type="submit">Post activity</button>
   </form>
 </Layout>

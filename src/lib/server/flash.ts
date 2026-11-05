@@ -5,6 +5,9 @@ import { authCookieOptions } from './auth';
 
 export const FLASH_MESSAGES = {
   posted: 'Posted!',
+  saved: 'Saved.',
+  cancelled: 'Cancelled.',
+  restored: "Restored. It's back on.",
   going: "You're going.",
   not_going: "You're not going.",
 };

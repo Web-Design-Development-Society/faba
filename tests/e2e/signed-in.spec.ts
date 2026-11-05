@@ -20,8 +20,8 @@ test('a suspended member sees no activities', async ({ page, signInAs }) => {
 
 test('members who have accepted the guidelines skip Welcome', async ({ page, signInAs }) => {
   await signInAs('member');
-  await page.goto('/welcome?next=%2Fdiscover%3Fcat%3Dhiking');
-  await expect(page).toHaveURL('/discover?cat=hiking');
+  await page.goto('/welcome?next=%2Fdiscover%3Fcat%3Doutdoors');
+  await expect(page).toHaveURL('/discover?cat=outdoors');
 
   await page.goto('/me');
   await expect(page.getByRole('heading', { level: 1, name: 'Me' })).toBeVisible();
