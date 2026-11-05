@@ -1,0 +1,42 @@
+---
+// The ⋯ menu at the top of a page, for what's needed less often, such as Share and Report (ACT-02,
+// PROF-03). Each item is an li with a link.
+---
+
+<details class="menu">
+  <summary aria-label="More actions">⋯</summary>
+  <ul>
+    <slot />
+  </ul>
+</details>
+
+<style>
+  .menu {
+    position: relative;
+  }
+  summary {
+    display: grid;
+    place-items: center;
+    min-width: 44px;
+    min-height: 44px;
+    list-style: none;
+    cursor: pointer;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  ul {
+    position: absolute;
+    right: 0;
+    z-index: 1;
+    margin: 0;
+    padding: 0.5rem 1rem;
+    list-style: none;
+    background: white;
+    border: 1px solid #767676;
+  }
+  ul :global(a) {
+    display: block;
+    padding: 0.5rem 0;
+  }
+</style>

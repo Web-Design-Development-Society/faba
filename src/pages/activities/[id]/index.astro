@@ -1,10 +1,10 @@
 ---
 // An activity's page (ACT-02, design document section 7.6), in the order people ask: what, when,
-// where, who, then the details. Report and the organizer's profile link to pages that MOD-01 and
-// PROF-03 build.
+// where, who, then the details. Report links to a page that MOD-01 builds.
 import { actions } from 'astro:actions';
 import Avatar from '../../../components/Avatar.astro';
 import GoingList from '../../../components/GoingList.astro';
+import Menu from '../../../components/Menu.astro';
 import RsvpForm from '../../../components/RsvpForm.astro';
 import Sheet from '../../../components/Sheet.astro';
 import Status from '../../../components/Status.astro';
@@ -84,19 +84,16 @@ const email = activity
   <header class="top">
     <a href="/discover">Back to Discover</a>
     {activity && (
-      <details class="menu">
-        <summary aria-label="More actions">⋯</summary>
-        <ul>
-          <li>
-            <a href={email} data-share data-title={activity.title} data-url={url}>
-              Share
-            </a>
-          </li>
-          <li>
-            <a href={`/activities/${activity.id}/report`}>Report</a>
-          </li>
-        </ul>
-      </details>
+      <Menu>
+        <li>
+          <a href={email} data-share data-title={activity.title} data-url={url}>
+            Share
+          </a>
+        </li>
+        <li>
+          <a href={`/activities/${activity.id}/report`}>Report</a>
+        </li>
+      </Menu>
     )}
   </header>
   <Status
@@ -234,34 +231,6 @@ const email = activity
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
-  }
-  .menu {
-    position: relative;
-  }
-  .menu summary {
-    display: grid;
-    place-items: center;
-    min-width: 44px;
-    min-height: 44px;
-    list-style: none;
-    cursor: pointer;
-  }
-  .menu summary::-webkit-details-marker {
-    display: none;
-  }
-  .menu ul {
-    position: absolute;
-    right: 0;
-    z-index: 1;
-    margin: 0;
-    padding: 0.5rem 1rem;
-    list-style: none;
-    background: white;
-    border: 1px solid #767676;
-  }
-  .menu li a {
-    display: block;
-    padding: 0.5rem 0;
   }
   .banner {
     padding: 0.75rem 1rem;
