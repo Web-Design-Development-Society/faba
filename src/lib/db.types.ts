@@ -23,6 +23,7 @@ export type Database = {
           organizer_id: string | null;
           starts_at: string;
           status: string;
+          time_or_place_changed_at: string | null;
           timezone: string;
           title: string;
           updated_at: string;
@@ -49,6 +50,7 @@ export type Database = {
           organizer_id?: string | null;
           starts_at: string;
           status?: string;
+          time_or_place_changed_at?: string | null;
           timezone?: string;
           title: string;
           updated_at?: string;
@@ -73,6 +75,7 @@ export type Database = {
           organizer_id?: string | null;
           starts_at?: string;
           status?: string;
+          time_or_place_changed_at?: string | null;
           timezone?: string;
           title?: string;
           updated_at?: string;
@@ -313,6 +316,7 @@ export type Database = {
           organizer_id: string | null;
           starts_at: string;
           status: string;
+          time_or_place_changed_at: string | null;
           timezone: string;
           title: string;
           updated_at: string;
@@ -346,6 +350,10 @@ export type Database = {
         Returns: string;
       };
       rsvp: { Args: { activity_id: string; status: string }; Returns: number };
+      update_activity: {
+        Args: { activity_id: string; expected_version: number; patch: Json };
+        Returns: undefined;
+      };
     };
     Enums: {
       [_ in never]: never;
