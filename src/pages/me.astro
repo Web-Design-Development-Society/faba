@@ -1,16 +1,105 @@
 ---
-// A placeholder for the Me screen, which Welcome links to (PROF-01), with Sign out (AUTH-03).
-// PROF-02 adds editing the profile.
+// The Me screen, with Sign out (AUTH-03). My activities lists the upcoming activities the member is
+// going to, soonest first (HIST-02, FR-HIST-1). Organizers are always going to their own (ACT-03,
+// RSVP-02), so it has what they organize too. Cancelled ones stay, marked cancelled (ACT-05).
+// PROF-02 adds editing the profile, and Phase 2's Plans tab replaces the list (RSVP-08).
+import { actions } from 'astro:actions';
+import ActivityCard from '../components/ActivityCard.astro';
+import Avatar from '../components/Avatar.astro';
+import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
+import { CARD, FACES } from '../lib/cards';
+import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../lib/server/flash';
 
-const { member, user } = Astro.locals;
+// The most activities in the list.
+const LIMIT = 50;
+const HOUR = 60 * 60 * 1000;
+
+const { supabase, member, user } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+
+// Can't make it without JavaScript comes back to the card (RSVP-02).
+const rsvp = Astro.getActionResult(actions.rsvps.set);
+if (rsvp && !rsvp.error) {
+  setFlash(Astro.cookies, Astro.url, rsvp.data.status);
+  return Astro.redirect(postedFrom(Astro.url, `#activity-${rsvp.data.activity_id}`), 303);
+}
+const flash = takeFlash(Astro.cookies);
+
+// From 3 hours ago, so one that's underway stays, as in the feed. Hidden ones are left out.
+const now = new Date();
+const { data, error } = await supabase
+  .from('activities')
+  .select(CARD)
+  .eq('my_rsvp', 'going')
+  .is('hidden_at', null)
+  .gte('starts_at', new Date(now.getTime() - 3 * HOUR).toISOString())
+  .eq('going.status', 'going')
+  .order('starts_at')
+  .order('id')
+  .order('created_at', { referencedTable: 'going' })
+  .limit(FACES, { referencedTable: 'going' })
+  .limit(LIMIT);
+const activities = data ?? [];
 ---
 
 <Layout title="Me">
   <h1>Me</h1>
-  <p>You're signed in as {member?.display_name ?? user?.email}.</p>
+  <p>You're signed in as {member?.display_name ?? user.email}.</p>
   <p>Adding your department, a short bio and your interests comes soon.</p>
+  <Status message={flash && FLASH_MESSAGES[flash]} />
+  {rsvp?.error && <p role="alert">{rsvp.error.message}</p>}
+
+  <section aria-labelledby="my-activities">
+    <h2 id="my-activities">My activities</h2>
+    {error ? (
+      <p role="alert">Your activities couldn't load. Please try again.</p>
+    ) : activities.length === 0 ? (
+      <div class="empty">
+        <p>No plans yet. Find something fun.</p>
+        <a href="/discover">Browse activities</a>
+      </div>
+    ) : (
+      <ul>
+        {activities.map((activity) => (
+          <li id={`activity-${activity.id}`}>
+            <ActivityCard activity={activity} viewer={user.id} now={now} faces={FACES} />
+          </li>
+        ))}
+      </ul>
+    )}
+  </section>
+
   <form method="post" action="/auth/logout">
     <button type="submit">Sign out</button>
   </form>
+  {member && (
+    <template data-my-face>
+      <Avatar member={member} named />
+    </template>
+  )}
 </Layout>
+
+<script>
+  import '../scripts/rsvp';
+</script>
+
+<style>
+  /* minmax(0, 1fr) keeps a card with a long place on one line from widening the column. */
+  ul {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .empty a {
+    display: inline-grid;
+    place-items: center;
+    min-height: 44px;
+  }
+  form {
+    margin-top: 2rem;
+  }
+</style>
