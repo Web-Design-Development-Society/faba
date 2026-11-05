@@ -3013,7 +3013,7 @@ erDiagram
   - `id` (PK, FK to `auth.users.id`, `ON DELETE CASCADE`).
   - `display_name` (2 to 50 characters).
   - `avatar_url`, `use_initials`.
-  - `department` (60 characters or fewer), `bio` (280 characters or fewer), `interests text[]` (category slugs).
+  - `department` (60 characters or fewer), `bio` (280 characters or fewer), `interests text[]` (category slugs, 20 at most).
   - `public_email` (null unless the member opted in, kept in sync by the identity-sync function).
   - `timezone` (default `America/Denver`).
   - `role` (`member` | `moderator` | `admin`).
