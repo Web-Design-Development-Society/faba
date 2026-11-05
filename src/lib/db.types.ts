@@ -297,7 +297,12 @@ export type Database = {
         Returns: string;
       };
       get_feed: {
-        Args: { after_id?: string; after_starts_at?: string; page_size?: number };
+        Args: {
+          after_id?: string;
+          after_starts_at?: string;
+          category?: string;
+          page_size?: number;
+        };
         Returns: {
           cancel_reason: string | null;
           cancelled_at: string | null;
