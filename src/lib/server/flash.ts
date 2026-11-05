@@ -11,6 +11,7 @@ export const FLASH_MESSAGES = {
   going: "You're going.",
   not_going: "You're not going.",
   reported: 'Thanks, a moderator will review this.',
+  dismissed: 'Report dismissed.',
 };
 
 export type Flash = keyof typeof FLASH_MESSAGES;

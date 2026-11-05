@@ -1,0 +1,173 @@
+---
+// The reports queue (MOD-02, design document section 7.11): open reports, oldest first, each with
+// what was reported, the reason and note, who reported it, and when. Only moderators and admins
+// can open it, and the database checks again. Dismiss asks for a reason in a sheet, which goes to
+// the audit log. Hide content (MOD-03) and Suspend member (MOD-04) come with their stories.
+import { actions, isInputError } from 'astro:actions';
+import Sheet from '../components/Sheet.astro';
+import Status from '../components/Status.astro';
+import Layout from '../layouts/Layout.astro';
+import { FLASH_MESSAGES, setFlash, takeFlash } from '../lib/server/flash';
+import { formatAgo } from '../lib/time';
+import { MODERATION_REASON_MAX } from '../lib/validation/moderation';
+import { REASONS } from '../lib/validation/report';
+
+// The most reports on the page.
+const LIMIT = 50;
+
+const { supabase, user, member } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+
+const dismiss = Astro.getActionResult(actions.moderation.dismiss);
+if (dismiss && !dismiss.error) {
+  setFlash(Astro.cookies, Astro.url, 'dismissed');
+  return Astro.redirect('/mod', 303);
+}
+const flash = takeFlash(Astro.cookies);
+// The reason's error shows at the top, since its sheet has closed.
+const failure = isInputError(dismiss?.error)
+  ? dismiss.error.fields.reason?.[0]
+  : dismiss?.error?.message;
+
+const moderator =
+  member?.status === 'active' && (member.role === 'moderator' || member.role === 'admin');
+if (!moderator) Astro.response.status = 403;
+
+// Reporters who aren't active have no profile to read, and nor does a deleted account.
+const { data: reports, error } = moderator
+  ? await supabase
+      .from('reports')
+      .select(
+        `id, target_type, target_id, reason, note, created_at,
+        reporter:profiles!reports_reporter_id_fkey(display_name)`
+      )
+      .eq('status', 'open')
+      .order('created_at')
+      .order('id')
+      .limit(LIMIT)
+  : { data: [], error: null };
+
+// What was reported. Activities that are hidden, and members who aren't active, aren't readable
+// yet: moderators get those with MOD-03 and MOD-04.
+const targets = (type: string) =>
+  reports?.filter(({ target_type }) => target_type === type).map(({ target_id }) => target_id) ??
+  [];
+const [{ data: activities }, { data: profiles }] = await Promise.all([
+  supabase.from('activities').select('id, title').in('id', targets('activity')),
+  supabase.from('profiles').select('id, display_name').in('id', targets('profile')),
+]);
+const preview = (type: string, id: string) =>
+  type === 'activity'
+    ? {
+        kind: 'Activity',
+        href: `/activities/${id}`,
+        name: activities?.find((a) => a.id === id)?.title,
+      }
+    : {
+        kind: 'Member',
+        href: `/people/${id}`,
+        name: profiles?.find((p) => p.id === id)?.display_name,
+      };
+const now = new Date();
+---
+
+<Layout title="Reports">
+  <a href="/me">Back to Me</a>
+  <h1>Reports</h1>
+  <Status message={flash && FLASH_MESSAGES[flash]} />
+  {failure && <p role="alert">{failure}</p>}
+  {!moderator ? (
+    <p>Only moderators can see the reports queue.</p>
+  ) : error ? (
+    <p role="alert">The reports couldn't load. Please try again.</p>
+  ) : !reports?.length ? (
+    <p>No open reports. Nice.</p>
+  ) : (
+    <ul>
+      {reports.map((report) => {
+        const target = preview(report.target_type, report.target_id);
+        return (
+          <li>
+            <article aria-labelledby={`report-${report.id}`}>
+              <p class="kind">{target.kind}</p>
+              <h2 id={`report-${report.id}`}>
+                {target.name ? <a href={target.href}>{target.name}</a> : 'Not available'}
+              </h2>
+              <p>
+                <strong>{REASONS[report.reason as keyof typeof REASONS] ?? report.reason}</strong>
+              </p>
+              {report.note && <p class="note">{report.note}</p>}
+              <p class="meta">
+                Reported by {report.reporter?.display_name ?? "a member who's no longer active"} ·{' '}
+                <time datetime={report.created_at}>
+                  {formatAgo(new Date(report.created_at), now)}
+                </time>
+              </p>
+              <button type="button" commandfor={`dismiss-${report.id}`} command="show-modal">
+                Dismiss
+              </button>
+              <Sheet id={`dismiss-${report.id}`} title="Dismiss this report?">
+                <form method="post" action={actions.moderation.dismiss.queryString}>
+                  <input type="hidden" name="report_id" value={report.id} />
+                  <p>
+                    <label for={`reason-${report.id}`}>Reason, for the audit log</label>
+                    <br />
+                    <textarea
+                      id={`reason-${report.id}`}
+                      name="reason"
+                      rows="2"
+                      required
+                      maxlength={MODERATION_REASON_MAX}
+                    />
+                  </p>
+                  <button type="submit">Dismiss report</button>
+                </form>
+                <form method="dialog">
+                  <button>Keep it open</button>
+                </form>
+              </Sheet>
+            </article>
+          </li>
+        );
+      })}
+    </ul>
+  )}
+</Layout>
+
+<script>
+  import '../scripts/sheets';
+</script>
+
+<style>
+  ul {
+    display: grid;
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  article {
+    padding: 0.75rem;
+    border: 1px solid #767676;
+    border-radius: 0.5rem;
+  }
+  article p,
+  article h2 {
+    margin: 0 0 0.25rem;
+  }
+  h2 {
+    font-size: 1rem;
+  }
+  .kind,
+  .meta {
+    font-size: 0.875rem;
+    color: #595959;
+  }
+  .note {
+    white-space: pre-line;
+  }
+  button {
+    min-height: 44px;
+    padding: 0 1rem;
+  }
+</style>
