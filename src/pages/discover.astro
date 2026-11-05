@@ -70,8 +70,10 @@ const [feed, plan, categories] = await Promise.all([
   supabase.from('categories').select('id, name').eq('is_active', true).order('sort_order'),
 ]);
 
-// A link to a category that isn't offered shows them all.
-const category = categories.data?.find(({ id }) => id === cat);
+// A link to a category that isn't offered shows them all. Members who aren't active can't read the
+// categories, so they get no chips.
+const chips = categories.data?.length ? categories.data : null;
+const category = chips?.find(({ id }) => id === cat);
 if (cat && categories.data && !category) return Astro.redirect('/discover');
 const here = category ? `/discover?cat=${encodeURIComponent(category.id)}` : '/discover';
 const post = category
@@ -102,7 +104,7 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
       <ActivityCard activity={plan.data} viewer={user.id} now={now} faces={FACES} />
     </section>
   )}
-  {categories.data && <CategoryChips categories={categories.data} current={category?.id} />}
+  {chips && <CategoryChips categories={chips} current={category?.id} />}
 
   {feed.error ? (
     <p role="alert">Activities couldn't load. Please try again.</p>
