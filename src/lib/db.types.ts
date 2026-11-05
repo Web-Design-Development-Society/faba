@@ -405,6 +405,8 @@ export type Database = {
           use_initials: boolean;
         }[];
       };
+      moderate_hide: { Args: { activity_id: string; reason: string }; Returns: undefined };
+      moderate_unhide: { Args: { activity_id: string; reason: string }; Returns: undefined };
       my_rsvp: {
         Args: {
           activity: Omit<
