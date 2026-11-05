@@ -10,6 +10,7 @@ export const FLASH_MESSAGES = {
   restored: "Restored. It's back on.",
   going: "You're going.",
   not_going: "You're not going.",
+  reported: 'Thanks, a moderator will review this.',
 };
 
 export type Flash = keyof typeof FLASH_MESSAGES;

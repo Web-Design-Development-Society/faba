@@ -1,0 +1,57 @@
+---
+// Reporting an activity (MOD-01), from Report in its ⋯ menu. Sending it goes back to the activity,
+// which says thanks.
+import { actions } from 'astro:actions';
+import ReportForm from '../../../components/ReportForm.astro';
+import Layout from '../../../layouts/Layout.astro';
+import { setFlash } from '../../../lib/server/flash';
+
+const { supabase, user } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+
+const id = Astro.params.id!;
+const result = Astro.getActionResult(actions.reports.create);
+if (result && !result.error) {
+  setFlash(Astro.cookies, Astro.url, 'reported');
+  return Astro.redirect(`/activities/${id}`, 303);
+}
+
+// What report_content() takes: an activity that isn't hidden. The member's own earlier report, by
+// reporter, since moderators will read everyone's.
+const [{ data: activity }, { data: report }] = await Promise.all([
+  supabase
+    .from('activities')
+    .select('id, title, organizer_id')
+    .eq('id', id)
+    .is('hidden_at', null)
+    .maybeSingle(),
+  supabase
+    .from('reports')
+    .select('id')
+    .eq('reporter_id', user.id)
+    .eq('target_type', 'activity')
+    .eq('target_id', id)
+    .maybeSingle(),
+]);
+if (!activity) Astro.response.status = 404;
+---
+
+<Layout title={activity ? `Report ${activity.title}` : 'Not available'}>
+  {activity ? (
+    <>
+      <a href={`/activities/${activity.id}`}>Back to {activity.title}</a>
+      <h1>Report this activity</h1>
+      <ReportForm
+        type="activity"
+        id={activity.id}
+        mine={activity.organizer_id === user.id}
+        reported={!!report}
+      />
+    </>
+  ) : (
+    <>
+      <h1>Not available</h1>
+      <p>This activity isn't available. It may have been removed, or the link may be wrong.</p>
+    </>
+  )}
+</Layout>

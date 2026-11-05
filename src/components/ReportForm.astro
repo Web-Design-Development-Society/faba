@@ -1,0 +1,99 @@
+---
+// The Report form (MOD-01): a reason and an optional note about an activity or a member. Only
+// moderators see who sent it (FR-REP-1). It works without JavaScript. Once it's sent, the page goes
+// back to what was reported, which says thanks. Each member reports each thing once, and never
+// their own.
+import { actions, isInputError } from 'astro:actions';
+import { NOTE_MAX, REASONS } from '../lib/validation/report';
+import FieldError from './FieldError.astro';
+
+interface Props {
+  type: 'activity' | 'profile';
+  id: string;
+  /** Whether it's the signed-in member's own. */
+  mine: boolean;
+  /** Whether the signed-in member has reported it already. */
+  reported: boolean;
+}
+
+const { type, id, mine, reported } = Astro.props;
+const result = Astro.getActionResult(actions.reports.create);
+// What was typed, after a failed send. The Action read a copy of the request.
+const typed = result?.error ? await Astro.request.formData() : undefined;
+const fields: Record<string, string[] | undefined> = isInputError(result?.error)
+  ? result.error.fields
+  : {};
+const failure = result?.error && !isInputError(result.error) ? result.error.message : null;
+---
+
+{mine ? (
+  <p>You can't report your own {type}.</p>
+) : reported ? (
+  <p>You've already reported this. A moderator will review it.</p>
+) : (
+  <form method="post" action={actions.reports.create.queryString}>
+    {failure && <p role="alert">{failure}</p>}
+    <input type="hidden" name="target_type" value={type} />
+    <input type="hidden" name="target_id" value={id} />
+    <fieldset class="chips" aria-describedby={fields.reason ? 'reason-error' : undefined}>
+      <legend>Reason</legend>
+      {Object.entries(REASONS).map(([value, label]) => (
+        <label>
+          <input
+            type="radio"
+            name="reason"
+            value={value}
+            required
+            checked={typed?.get('reason') === value}
+          />
+          {label}
+        </label>
+      ))}
+    </fieldset>
+    <FieldError name="reason" errors={fields.reason} />
+    <p>
+      <label for="note">Note (optional)</label>
+      <br />
+      <textarea
+        id="note"
+        name="note"
+        rows="3"
+        maxlength={NOTE_MAX}
+        aria-invalid={fields.note ? 'true' : undefined}
+        aria-describedby={fields.note ? 'note-error' : undefined}
+      >{typed?.get('note')?.toString() ?? ''}</textarea>
+      <FieldError name="note" errors={fields.note} />
+    </p>
+    <p>Only moderators see who sent a report.</p>
+    <button type="submit">Send report</button>
+  </form>
+)}
+
+<style>
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 1rem 0;
+  }
+  .chips legend {
+    margin-bottom: 0.5rem;
+  }
+  .chips label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0 0.75rem;
+    border: 1px solid #767676;
+    border-radius: 999px;
+  }
+  .chips label:has(:checked) {
+    font-weight: 600;
+    border-width: 2px;
+  }
+  button {
+    min-height: 44px;
+    padding: 0 1rem;
+  }
+</style>

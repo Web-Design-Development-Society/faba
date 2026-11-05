@@ -138,9 +138,13 @@ async function acceptGuidelines(admin: SupabaseClient, id: string) {
     .eq('id', id);
 }
 
-/** Deletes an account and its activities. Deleting only the account keeps them, with no organizer. */
+/**
+ * Deletes an account, its activities and its reports. Deleting only the account keeps them, with
+ * no organizer or reporter.
+ */
 async function deleteAccount(admin: SupabaseClient, id: string) {
   await admin.from('activities').delete().eq('organizer_id', id);
+  await admin.from('reports').delete().eq('reporter_id', id);
   await admin.auth.admin.deleteUser(id);
 }
 
