@@ -240,6 +240,9 @@ export type Database = {
           note: string | null;
           reason: string;
           reporter_id: string | null;
+          resolution_note: string | null;
+          resolved_at: string | null;
+          resolved_by: string | null;
           status: string;
           target_id: string;
           target_type: string;
@@ -251,6 +254,9 @@ export type Database = {
           note?: string | null;
           reason: string;
           reporter_id?: string | null;
+          resolution_note?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
           status?: string;
           target_id: string;
           target_type: string;
@@ -261,6 +267,9 @@ export type Database = {
           note?: string | null;
           reason?: string;
           reporter_id?: string | null;
+          resolution_note?: string | null;
+          resolved_at?: string | null;
+          resolved_by?: string | null;
           status?: string;
           target_id?: string;
           target_type?: string;
@@ -269,6 +278,13 @@ export type Database = {
           {
             foreignKeyName: 'reports_reporter_id_fkey';
             columns: ['reporter_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'reports_resolved_by_fkey';
+            columns: ['resolved_by'];
             isOneToOne: false;
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
@@ -338,6 +354,7 @@ export type Database = {
         };
         Returns: string;
       };
+      dismiss_report: { Args: { reason: string; report_id: string }; Returns: undefined };
       get_feed: {
         Args: {
           after_id?: string;
