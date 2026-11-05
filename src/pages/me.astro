@@ -3,7 +3,7 @@
 // going to, soonest first (HIST-02, FR-HIST-1). Organizers are always going to their own (ACT-03,
 // RSVP-02), so it has what they organize too. Cancelled ones stay, marked cancelled (ACT-05).
 // Phase 2's Plans tab replaces the list (RSVP-08). Edit profile opens the profile form (PROF-02),
-// which comes back here.
+// which comes back here. Moderators see how many reports are open, which opens the queue (MOD-02).
 import { actions } from 'astro:actions';
 import ActivityCard from '../components/ActivityCard.astro';
 import Avatar from '../components/Avatar.astro';
@@ -29,7 +29,9 @@ const flash = takeFlash(Astro.cookies);
 
 // From 3 hours ago, so one that's underway stays, as in the feed. Hidden ones are left out.
 const now = new Date();
-const [{ data, error }, { data: profile }, { data: categories }] = await Promise.all([
+const moderator =
+  member?.status === 'active' && (member.role === 'moderator' || member.role === 'admin');
+const [{ data, error }, { data: profile }, { data: categories }, open] = await Promise.all([
   supabase
     .from('activities')
     .select(CARD)
@@ -44,6 +46,9 @@ const [{ data, error }, { data: profile }, { data: categories }] = await Promise
     .limit(LIMIT),
   supabase.from('profiles').select('department, bio, interests').eq('id', user.id).single(),
   supabase.from('categories').select('id, name').order('sort_order'),
+  moderator
+    ? supabase.from('reports').select('id', { count: 'exact', head: true }).eq('status', 'open')
+    : null,
 ]);
 const activities = data ?? [];
 const interests = categories?.filter(({ id }) => profile?.interests.includes(id)) ?? [];
@@ -58,6 +63,11 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
   <p>
     <a href="/me/edit">Edit profile</a>
   </p>
+  {typeof open?.count === 'number' && (
+    <p>
+      <a href="/mod">Open reports: {open.count}</a>
+    </p>
+  )}
   <Status message={flash && FLASH_MESSAGES[flash]} />
   {rsvp?.error && <p role="alert">{rsvp.error.message}</p>}
 
