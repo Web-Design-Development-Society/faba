@@ -1,0 +1,61 @@
+---
+// Discover's category chips (ACT-06, design document section 7.10). They're links, so they work
+// without JavaScript and a filter can be shared. All comes first, and the row scrolls sideways. The
+// chosen chip has aria-current and a check. src/scripts/feed.ts scrolls it into view.
+interface Props {
+  categories: { id: string; name: string }[];
+  /** The chosen category, or nothing for All. */
+  current?: string;
+}
+
+const { categories, current } = Astro.props;
+const chips = [{ id: undefined, name: 'All' }, ...categories];
+---
+
+<nav aria-label="Categories">
+  <ul data-chips>
+    {chips.map(({ id, name }) => (
+      <li>
+        <a
+          href={id ? `/discover?cat=${encodeURIComponent(id)}` : '/discover'}
+          aria-current={id === current ? 'page' : undefined}
+        >
+          {name}
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<style>
+  /* Out to the screen's edges, so it's clear the row scrolls. The padding keeps focus rings in. */
+  ul {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem -1rem 0;
+    padding: 0.25rem 1rem 0.5rem;
+    overflow-x: auto;
+    list-style: none;
+  }
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-height: 44px;
+    padding: 0 1rem;
+    color: inherit;
+    white-space: nowrap;
+    text-decoration: none;
+    border: 1px solid #767676;
+    border-radius: 999px;
+  }
+  [aria-current] {
+    font-weight: 600;
+    color: white;
+    background: #222;
+    border-color: #222;
+  }
+  [aria-current]::before {
+    content: '✓' / '';
+  }
+</style>

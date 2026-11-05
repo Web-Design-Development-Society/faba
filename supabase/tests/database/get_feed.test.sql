@@ -3,7 +3,7 @@ BEGIN;
 
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
 
-SELECT plan(11);
+SELECT plan(14);
 
 -- Only this test's activities, until the rollback.
 DELETE FROM public.activities;
@@ -165,6 +165,66 @@ SELECT results_eq(
 
 RESET ROLE;
 
+-- Hikes in 2 days, between Tomorrow B and Next week
+INSERT INTO public.activities
+  (organizer_id, category_id, title, starts_at, location_name, status, cancelled_at, hidden_at)
+VALUES
+  (
+    'c0000000-0000-4000-8000-000000000011',
+    'outdoors',
+    'Hike',
+    now() + INTERVAL '2 days',
+    'Here',
+    'published',
+    NULL,
+    NULL
+  ),
+  (
+    'c0000000-0000-4000-8000-000000000011',
+    'outdoors',
+    'Cancelled hike',
+    now() + INTERVAL '2 days',
+    'Here',
+    'cancelled',
+    now(),
+    NULL
+  ),
+  (
+    'c0000000-0000-4000-8000-000000000011',
+    'outdoors',
+    'Hidden hike',
+    now() + INTERVAL '2 days',
+    'Here',
+    'published',
+    NULL,
+    now()
+  );
+
+SET LOCAL ROLE authenticated;
+
+SELECT results_eq(
+  $$SELECT title FROM public.get_feed(category => 'outdoors')$$,
+  ARRAY['Hike'],
+  'a category''s feed holds only its activities, without cancelled or hidden ones'
+);
+
+SELECT results_eq(
+  $$SELECT title FROM public.get_feed(
+    date_trunc('hour', now()) + interval '1 day',
+    'e0000000-0000-4000-8000-000000000003',
+    category => 'games'
+  )$$,
+  ARRAY['Tomorrow B', 'Next week'],
+  'its next page starts after the cursor, without other categories'
+);
+
+SELECT is_empty(
+  $$SELECT title FROM public.get_feed(category => 'family')$$,
+  'a category with nothing coming up has an empty feed'
+);
+
+RESET ROLE;
+
 INSERT INTO public.activities
   (organizer_id, category_id, title, starts_at, location_name)
 SELECT
@@ -200,7 +260,11 @@ SELECT is_empty(
 RESET ROLE;
 
 SELECT ok(
-  NOT has_function_privilege('anon', 'public.get_feed(timestamptz, uuid, integer)', 'execute'),
+  NOT has_function_privilege(
+    'anon',
+    'public.get_feed(timestamptz, uuid, integer, text)',
+    'execute'
+  ),
   'signed-out visitors cannot call get_feed'
 );
 
