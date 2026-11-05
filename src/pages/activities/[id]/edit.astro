@@ -1,0 +1,120 @@
+---
+// Editing an activity (ACT-04, journey J5): the create form, filled in, with the same rules. Only
+// the organizer can. It works without JavaScript: when a save fails, the form comes back with what
+// was typed and the version it showed, so a save from an older page keeps failing. Once the
+// activity has started, only its description can change (FR-ACT-4).
+import { actions, isInputError } from 'astro:actions';
+import ActivityFields from '../../../components/ActivityFields.astro';
+import FieldError from '../../../components/FieldError.astro';
+import Layout from '../../../layouts/Layout.astro';
+import { setFlash } from '../../../lib/server/flash';
+import { rexburgDate, rexburgTime } from '../../../lib/time';
+import { ACTIVITY } from '../../../lib/validation/activity';
+
+const { supabase, user } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+
+const result =
+  Astro.getActionResult(actions.activities.update) ??
+  Astro.getActionResult(actions.activities.updateDescription);
+if (result && !result.error) {
+  setFlash(Astro.cookies, Astro.url, 'saved');
+  return Astro.redirect(`/activities/${result.data.id}`, 303);
+}
+
+// Every category, so an activity keeps one that's no longer offered.
+const [{ data: activity }, { data: categories }] = await Promise.all([
+  supabase
+    .from('activities')
+    .select(
+      'id, title, description, starts_at, ends_at, location_name, cost_note, category_id, organizer_id, version'
+    )
+    .eq('id', Astro.params.id!)
+    .maybeSingle(),
+  supabase.from('categories').select('id, name, is_active').order('sort_order'),
+]);
+const mine = activity?.organizer_id === user.id;
+if (!activity) Astro.response.status = 404;
+else if (!mine) Astro.response.status = 403;
+
+// What was typed, after a failed save. The Action read a copy of the request.
+const typed = result?.error ? await Astro.request.formData() : undefined;
+const startsAt = new Date(activity?.starts_at ?? 0);
+const saved: Record<string, string | undefined> = {
+  title: activity?.title,
+  date: rexburgDate(startsAt),
+  start_time: rexburgTime(startsAt),
+  end_time: activity?.ends_at ? rexburgTime(new Date(activity.ends_at)) : undefined,
+  location_name: activity?.location_name,
+  category_id: activity?.category_id,
+  description: activity?.description ?? undefined,
+  cost_note: activity?.cost_note ?? undefined,
+  version: activity?.version.toString(),
+};
+const value = (name: string) => (typed ? typed.get(name)?.toString() || undefined : saved[name]);
+
+const fields: Record<string, string[] | undefined> = isInputError(result?.error)
+  ? result.error.fields
+  : {};
+const failure = result?.error && !isInputError(result.error) ? result.error.message : null;
+const started = startsAt <= new Date();
+const offered = categories?.filter((c) => c.is_active || c.id === activity?.category_id) ?? [];
+const back = `/activities/${Astro.params.id}`;
+---
+
+<Layout title="Edit activity">
+  <a href={back}>Back to the activity</a>
+  {!activity ? (
+    <>
+      <h1>Not available</h1>
+      <p>This activity isn't available. It may have been removed, or the link may be wrong.</p>
+    </>
+  ) : !mine ? (
+    <>
+      <h1>Edit activity</h1>
+      <p>Only the organizer can edit this activity.</p>
+    </>
+  ) : (
+    <>
+      <h1>Edit activity</h1>
+      {failure && <p role="alert">{failure}</p>}
+      <form
+        method="post"
+        action={
+          started
+            ? actions.activities.updateDescription.queryString
+            : actions.activities.update.queryString
+        }
+        data-activity-form={started ? undefined : ''}
+      >
+        <input type="hidden" name="id" value={activity.id} />
+        <input type="hidden" name="version" value={value('version')} />
+        {started ? (
+          <>
+            <p>This activity has started, so only its description can change.</p>
+            <p>
+              <label for="description">Details (optional)</label>
+              <br />
+              <textarea
+                id="description"
+                name="description"
+                rows="4"
+                maxlength={ACTIVITY.description.max}
+                aria-invalid={fields.description ? 'true' : undefined}
+                aria-describedby={fields.description ? 'description-error' : undefined}
+              >{value('description')}</textarea>
+              <FieldError name="description" errors={fields.description} />
+            </p>
+          </>
+        ) : (
+          <ActivityFields value={value} errors={fields} categories={offered} />
+        )}
+        <button type="submit">Save</button>
+      </form>
+    </>
+  )}
+</Layout>
+
+<script>
+  import '../../../scripts/activity-form';
+</script>
