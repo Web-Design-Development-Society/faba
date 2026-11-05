@@ -3101,7 +3101,7 @@ erDiagram
   - `id` (uuid, so the audit log can name a report), `reporter_id` (`SET NULL`).
   - `target_type` (`activity` | `profile`; Phase 2 adds `activity_update`; Phase 3 adds `group`), `target_id` (no foreign key).
   - `reason` (`inappropriate` | `spam` | `unsafe` | `other`), `note` (500 characters or fewer).
-  - `status` (`open` | `dismissed` | `actioned`). MOD-02 adds `resolved_by`, `resolved_at` and `resolution_note`.
+  - `status` (`open` | `dismissed` | `actioned`), `resolved_by`, `resolved_at`, `resolution_note` (the reason, also in the audit log).
   - `created_at`.
 - **Ownership rules:** created through `report_content()`, which allows only what the reporter can see (an activity that isn't hidden, or an active member), never their own. Resolved through moderation RPCs. Visible to the reporter and to moderators.
 - **Indexing:**
@@ -3154,7 +3154,7 @@ erDiagram
 | `cancel_activity(id, reason)` / `restore_activity(id)`                                                        | 1           | Status change. **Phase 2:** notifies going and maybe attendees                                                                                                                      |
 | `rsvp(activity_id, status, guests)`                                                                           | 1           | Locks the activity, validates its state, updates counts. **Phase 2:** capacity. **Phase 3:** waitlist and promotion                                                                 |
 | `report_content(target_type, target_id, reason, note)`                                                        | 1           | Quota, deduplication, insert                                                                                                                                                        |
-| `moderate_hide`, `moderate_unhide`, `resolve_report`, `suspend_member`, `reinstate_member`, `set_member_role` | 1           | Moderator or admin checks; audit log row                                                                                                                                            |
+| `moderate_hide`, `moderate_unhide`, `dismiss_report`, `suspend_member`, `reinstate_member`, `set_member_role` | 1           | Moderator or admin checks; audit log row                                                                                                                                            |
 | `delete_my_account()`                                                                                         | 1           | Cancels upcoming solo-organized activities, clears RSVPs, and audit-logs the deletion. The Worker then deletes the auth user with the admin API, and cascades complete the deletion |
 | `search_activities(q, filters, cursor)` / `get_feed(filters, cursor)`                                         | 2 (feed: 1) | Filtered, paginated reads (`SECURITY INVOKER`, so RLS applies)                                                                                                                      |
 | `post_activity_update(activity_id, body)`                                                                     | 2           | Organizer check, quota, insert, notify                                                                                                                                              |
