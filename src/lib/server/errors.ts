@@ -35,6 +35,19 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
     code: 'CONFLICT',
     message: "This activity has started, so it can't be restored.",
   },
+  REPORT_TARGET_NOT_FOUND: {
+    code: 'NOT_FOUND',
+    message: "This isn't available to report. It may have been removed.",
+  },
+  REPORT_OWN: { code: 'BAD_REQUEST', message: "You can't report your own activity or profile." },
+  ALREADY_REPORTED: {
+    code: 'CONFLICT',
+    message: "You've already reported this. A moderator will review it.",
+  },
+  REPORT_QUOTA_EXCEEDED: {
+    code: 'TOO_MANY_REQUESTS',
+    message: 'You can send up to 10 reports a day. Try again tomorrow.',
+  },
 };
 
 /**
