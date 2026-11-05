@@ -1,10 +1,11 @@
 ---
 // Home (ACT-01, design document section 7.4): what's coming up, soonest first, under a heading
-// for each day in Rexburg time. ACT-06 adds the category chips, and the app shell's bottom
-// navigation replaces the links.
+// for each day in Rexburg time. Category chips filter it, as in /discover?cat=outdoors (ACT-06).
+// The app shell's bottom navigation replaces the links.
 import { actions } from 'astro:actions';
 import ActivityCard from '../components/ActivityCard.astro';
 import Avatar from '../components/Avatar.astro';
+import CategoryChips from '../components/CategoryChips.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
 import { nextPage, readCursor } from '../lib/feed';
@@ -30,16 +31,17 @@ const flash = takeFlash(Astro.cookies);
 const now = new Date();
 const cursor = readCursor(Astro.url.searchParams);
 const firstPage = !cursor.after_id;
+const cat = Astro.url.searchParams.get('cat') || undefined;
 
 // Members who aren't active have no profile to read, so they're left out of the faces.
 const CARD = `id, title, starts_at, ends_at, location_name, going_count, organizer_id, my_rsvp,
   category:categories(name, icon, color_token),
   going:rsvps(member:profiles!inner(id, display_name, avatar_url, use_initials))`;
 
-const [feed, plan] = await Promise.all([
+const [feed, plan, categories] = await Promise.all([
   // One more than a page says whether there's another.
   supabase
-    .rpc('get_feed', { ...cursor, page_size: PAGE + 1 })
+    .rpc('get_feed', { ...cursor, category: cat, page_size: PAGE + 1 })
     .select(CARD)
     .eq('going.status', 'going')
     .order('starts_at')
@@ -65,17 +67,27 @@ const [feed, plan] = await Promise.all([
         .limit(1)
         .maybeSingle()
     : { data: null },
+  supabase.from('categories').select('id, name').eq('is_active', true).order('sort_order'),
 ]);
 
+// A link to a category that isn't offered shows them all.
+const category = categories.data?.find(({ id }) => id === cat);
+if (cat && categories.data && !category) return Astro.redirect('/discover');
+const here = category ? `/discover?cat=${encodeURIComponent(category.id)}` : '/discover';
+const post = category
+  ? `/activities/new?cat=${encodeURIComponent(category.id)}`
+  : '/activities/new';
+
 const activities = feed.data?.slice(0, PAGE) ?? [];
-const more = feed.data && feed.data.length > PAGE ? nextPage(activities.at(-1)!) : null;
+const more =
+  feed.data && feed.data.length > PAGE ? nextPage(activities.at(-1)!, category?.id) : null;
 const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(starts_at)));
 ---
 
-<Layout title="Discover">
+<Layout title={category ? `${category.name} · Discover` : 'Discover'}>
   <h1>Discover</h1>
   <nav aria-label="Main">
-    <a href="/activities/new">Post</a>
+    <a href={post}>Post</a>
     <a href="/me">Me</a>
   </nav>
   <p data-zone-note hidden>
@@ -90,18 +102,27 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
       <ActivityCard activity={plan.data} viewer={user.id} now={now} faces={FACES} />
     </section>
   )}
+  {categories.data && <CategoryChips categories={categories.data} current={category?.id} />}
 
   {feed.error ? (
     <p role="alert">Activities couldn't load. Please try again.</p>
   ) : activities.length === 0 ? (
-    firstPage ? (
+    firstPage && category ? (
+      <div class="empty">
+        <p>
+          Nothing matches <em>{category.name}</em>.
+        </p>
+        <a href="/discover">Clear filters</a>
+        <a href={post}>Post one</a>
+      </div>
+    ) : firstPage ? (
       <div class="empty">
         <p>It's quiet right now. Be the one who gets people together.</p>
         <a href="/activities/new">Post the first activity</a>
       </div>
     ) : (
       <p>
-        That's everything for now. <a href="/discover">Back to the start</a>
+        That's everything for now. <a href={here}>Back to the start</a>
       </p>
     )
   ) : (
