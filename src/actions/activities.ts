@@ -2,7 +2,13 @@
 import { ActionError, defineAction } from 'astro:actions';
 import type { Json } from '../lib/db.types';
 import { actionErrorFor } from '../lib/server/errors';
-import { activityChanges, descriptionChange, newActivity } from '../lib/validation/activity';
+import {
+  activityChanges,
+  cancellation,
+  descriptionChange,
+  newActivity,
+  restoration,
+} from '../lib/validation/activity';
 
 /** Saves `patch` to activity `id`, if it's still at `version` (ACT-04). Returns its id. */
 async function update(locals: App.Locals, id: string, version: number, patch: Json) {
@@ -50,5 +56,31 @@ export const activities = {
     input: descriptionChange,
     handler: ({ id, version, description }, { locals }) =>
       update(locals, id, version, { description: description ?? null }),
+  }),
+
+  /** Cancelling an activity (ACT-05). It stays, marked cancelled. Returns its id. */
+  cancel: defineAction({
+    accept: 'form',
+    input: cancellation,
+    handler: async ({ id, reason }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('cancel_activity', { activity_id: id, reason });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { id };
+    },
+  }),
+
+  /** Restoring a cancelled activity, until it starts (ACT-05). Returns its id. */
+  restore: defineAction({
+    accept: 'form',
+    input: restoration,
+    handler: async ({ id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('restore_activity', { activity_id: id });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { id };
+    },
   }),
 };

@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { actionErrorFor } from '../../src/lib/server/errors';
 import {
   activityChanges,
+  cancellation,
   descriptionChange,
   newActivity,
   suggestedStart,
@@ -135,6 +136,25 @@ describe('descriptionChange', () => {
     expect(
       descriptionChange.safeParse({ id, version: 2, description: 'a'.repeat(2001) }).success
     ).toBe(false);
+  });
+});
+
+describe('cancellation', () => {
+  const id = 'f0000000-0000-4000-8000-000000000001';
+
+  it('takes an optional reason, trimmed', () => {
+    expect(cancellation.parse({ id, reason: ' Rained out ' })).toEqual({
+      id,
+      reason: 'Rained out',
+    });
+    expect(cancellation.parse({ id })).toEqual({ id });
+  });
+
+  it('keeps the reason to 200 characters', () => {
+    expect(cancellation.safeParse({ id, reason: 'a'.repeat(200) }).success).toBe(true);
+    expect(cancellation.safeParse({ id, reason: 'a'.repeat(201) }).error?.issues[0].message).toBe(
+      'Use 200 characters or fewer for the reason.'
+    );
   });
 });
 

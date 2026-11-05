@@ -1,6 +1,6 @@
-// Posting an activity (ACT-03) and editing it (ACT-04), with the same rules. The limits match the
-// activities table's CHECK constraints, and create_activity() and update_activity() check the time
-// rules again.
+// Posting an activity (ACT-03), editing it with the same rules (ACT-04), and cancelling it
+// (ACT-05). The limits match the activities table's CHECK constraints, and create_activity() and
+// update_activity() check the time rules again.
 import { z } from 'astro/zod';
 import { rexburgInstant } from '../time';
 
@@ -9,6 +9,7 @@ export const ACTIVITY = {
   place: { max: 120 },
   description: { max: 2000 },
   costNote: { max: 60 },
+  cancelReason: { max: 200 },
   monthsAhead: 12,
 };
 
@@ -111,3 +112,19 @@ export const descriptionChange = z.object({
   version: z.number().int(),
   description: newActivity.in.shape.description,
 });
+
+/** Cancelling an activity (ACT-05), with an optional reason for its banner. */
+export const cancellation = z.object({
+  id: z.uuid(),
+  reason: z
+    .string()
+    .trim()
+    .max(
+      ACTIVITY.cancelReason.max,
+      `Use ${ACTIVITY.cancelReason.max} characters or fewer for the reason.`
+    )
+    .optional(),
+});
+
+/** Restoring a cancelled activity (ACT-05). */
+export const restoration = z.object({ id: z.uuid() });

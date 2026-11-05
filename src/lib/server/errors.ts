@@ -31,6 +31,10 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
     code: 'CONFLICT',
     message: 'This activity has started, so only its description can change.',
   },
+  RESTORE_TOO_LATE: {
+    code: 'CONFLICT',
+    message: "This activity has started, so it can't be restored.",
+  },
 };
 
 /**
