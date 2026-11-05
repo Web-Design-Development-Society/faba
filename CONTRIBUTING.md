@@ -177,5 +177,6 @@ A pre-commit hook runs Prettier on staged files, and ESLint on staged `.ts`, `.j
 - [FABA design document](docs/faba-design-document.md) and [architecture decision records](docs/adr/README.md)
 - [Supabase settings](docs/runbooks/supabase-settings.md) for staging and production, which live in the dashboard rather than in migrations
 - [Running Supabase locally](docs/runbooks/local-supabase.md) in Docker, with Google sign-in and troubleshooting
+- [Reading the audit log](docs/runbooks/audit-log.md) of moderation and role changes, and recording an admin data fix in it
 - [Astro](https://docs.astro.build) and its [Cloudflare adapter](https://docs.astro.build/en/guides/integrations-guide/cloudflare/)
 - [Supabase local development](https://supabase.com/docs/guides/local-development)
