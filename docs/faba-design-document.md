@@ -3055,7 +3055,7 @@ erDiagram
   - `starts_at`, `ends_at` (`CHECK ends_at > starts_at`), `timezone`.
   - `location_type` (`in_person` | `online`), `location_name`, `online_url` (`CHECK https`).
   - `cost_note`.
-  - `status` (`published` | `cancelled`), `cancel_reason`, `cancelled_at`.
+  - `status` (`published` | `cancelled`), `cancel_reason` (up to 200 characters), `cancelled_at`.
   - `hidden_at`, `hidden_reason`, `hidden_by`.
   - `going_count`, `guest_total` (denormalized, maintained **only** by `rsvp()`).
   - `version` (bumped by every edit), `idempotency_key`.
