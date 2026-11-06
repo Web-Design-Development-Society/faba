@@ -49,6 +49,14 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
   REPORT_NOT_OPEN: { code: 'CONFLICT', message: 'This report has already been handled.' },
   ALREADY_HIDDEN: { code: 'CONFLICT', message: 'This activity is already hidden.' },
   NOT_HIDDEN: { code: 'CONFLICT', message: "This activity isn't hidden." },
+  MEMBER_NOT_FOUND: { code: 'NOT_FOUND', message: "This member isn't available." },
+  SUSPEND_SELF: { code: 'BAD_REQUEST', message: "You can't suspend yourself." },
+  SUSPEND_MODERATOR: {
+    code: 'FORBIDDEN',
+    message: 'Only admins can suspend a moderator or an admin.',
+  },
+  ALREADY_SUSPENDED: { code: 'CONFLICT', message: 'This member is already suspended.' },
+  NOT_SUSPENDED: { code: 'CONFLICT', message: "This member isn't suspended." },
   REPORT_QUOTA_EXCEEDED: {
     code: 'TOO_MANY_REQUESTS',
     message: 'You can send up to 10 reports a day. Try again tomorrow.',

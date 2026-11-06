@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { activityModeration, dismissal } from '../../src/lib/validation/moderation';
+import {
+  activityModeration,
+  dismissal,
+  memberModeration,
+} from '../../src/lib/validation/moderation';
 
 describe('dismissal', () => {
   const form = { report_id: 'e0000000-0000-4000-8000-000000000091', reason: '  Not a sale  ' };
@@ -32,6 +36,23 @@ describe('activityModeration', () => {
     ['activity_id', 'not-an-id', undefined],
   ])('rejects a %s of %j', (field, value, message) => {
     const issue = activityModeration.safeParse({ ...form, [field]: value }).error?.issues[0];
+    expect(issue?.path).toEqual([field]);
+    if (message) expect(issue?.message).toBe(message);
+  });
+});
+
+describe('memberModeration', () => {
+  const form = { user_id: 'c0000000-0000-4000-8000-0000000000b4', reason: ' Harassment ' };
+
+  it('trims the reason', () => {
+    expect(memberModeration.parse(form)).toEqual({ ...form, reason: 'Harassment' });
+  });
+
+  it.each([
+    ['reason', ' ', 'Give a reason. It goes to the audit log.'],
+    ['user_id', 'not-an-id', undefined],
+  ])('rejects a %s of %j', (field, value, message) => {
+    const issue = memberModeration.safeParse({ ...form, [field]: value }).error?.issues[0];
     expect(issue?.path).toEqual([field]);
     if (message) expect(issue?.message).toBe(message);
   });

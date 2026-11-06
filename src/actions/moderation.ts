@@ -2,7 +2,7 @@
 // rule again (ADR-004).
 import { ActionError, defineAction } from 'astro:actions';
 import { actionErrorFor } from '../lib/server/errors';
-import { activityModeration, dismissal } from '../lib/validation/moderation';
+import { activityModeration, dismissal, memberModeration } from '../lib/validation/moderation';
 
 export const moderation = {
   /** Dismissing a report from the queue, with a reason (MOD-02). Returns its id. */
@@ -41,6 +41,32 @@ export const moderation = {
       const { error } = await locals.supabase.rpc('moderate_unhide', { activity_id, reason });
       if (error) throw new ActionError(actionErrorFor(error));
       return { activity_id };
+    },
+  }),
+
+  /** Suspending a member, with a reason (MOD-04). Returns their id. */
+  suspend: defineAction({
+    accept: 'form',
+    input: memberModeration,
+    handler: async ({ user_id, reason }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('suspend_member', { user_id, reason });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { user_id };
+    },
+  }),
+
+  /** Reinstating a suspended member, with a reason (MOD-04). Returns their id. */
+  reinstate: defineAction({
+    accept: 'form',
+    input: memberModeration,
+    handler: async ({ user_id, reason }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('reinstate_member', { user_id, reason });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { user_id };
     },
   }),
 };

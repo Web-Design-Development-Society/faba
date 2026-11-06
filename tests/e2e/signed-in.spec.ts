@@ -10,12 +10,15 @@ test('a member sees upcoming activities', async ({ page, signInAs }) => {
   await expectAccessible(page);
 });
 
-test('a suspended member sees no activities', async ({ page, signInAs }) => {
+test('a suspended member sees no activities, only Access paused (MOD-04)', async ({
+  page,
+  signInAs,
+}) => {
   await signInAs('suspended');
   await page.goto('/discover');
-  await expect(page.getByText("It's quiet right now.")).toBeVisible();
+  await expect(page).toHaveURL('/paused');
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Your access is paused');
   await expect(page.getByRole('listitem')).toHaveCount(0);
-  await expectAccessible(page);
 });
 
 test('members who have accepted the guidelines skip Welcome', async ({ page, signInAs }) => {
