@@ -27,6 +27,7 @@ describe('profileChanges', () => {
     bio: '',
     interests: ['outdoors', 'games'],
     faculty_type: 'part_time',
+    email_visible: true,
   };
 
   it('trims the text and keeps the choices', () => {
@@ -39,8 +40,13 @@ describe('profileChanges', () => {
 
   it('leaves out what was left empty', () => {
     expect(
-      profileChanges.parse({ display_name: 'Elle', use_initials: true, interests: [] })
-    ).toEqual({ display_name: 'Elle', use_initials: true, interests: [] });
+      profileChanges.parse({
+        display_name: 'Elle',
+        use_initials: true,
+        interests: [],
+        email_visible: false,
+      })
+    ).toEqual({ display_name: 'Elle', use_initials: true, interests: [], email_visible: false });
   });
 
   it.each([
