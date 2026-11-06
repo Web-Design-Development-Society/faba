@@ -32,6 +32,8 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      # Supabase CLI 3 targets the local stack unless told --remote, and changes a hosted project
+      # only with --yes.
       - name: Push migrations to the staging database
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
@@ -39,7 +41,7 @@ jobs:
           SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
         run: |
           npx supabase link --project-ref "$SUPABASE_PROJECT_REF"
-          npx supabase db push --yes
+          npx supabase db push --remote --yes
       - name: Build for staging
         run: npm run build
         env:
