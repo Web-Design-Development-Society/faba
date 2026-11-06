@@ -406,6 +406,7 @@ export type Database = {
           use_initials: boolean;
         }[];
       };
+      member_email: { Args: { member_id: string }; Returns: string };
       moderate_hide: { Args: { activity_id: string; reason: string }; Returns: undefined };
       moderate_unhide: { Args: { activity_id: string; reason: string }; Returns: undefined };
       my_rsvp: {
@@ -424,6 +425,7 @@ export type Database = {
       };
       restore_activity: { Args: { activity_id: string }; Returns: undefined };
       rsvp: { Args: { activity_id: string; status: string }; Returns: number };
+      set_email_visibility: { Args: { visible: boolean }; Returns: undefined };
       suspend_member: { Args: { reason: string; user_id: string }; Returns: undefined };
       update_activity: {
         Args: { activity_id: string; expected_version: number; patch: Json };

@@ -1,6 +1,6 @@
 ---
 // Editing my profile (PROF-02): the display name, photo or initials, department, a short bio,
-// interests, and a private faculty type. It works without JavaScript: when a save fails, the form
+// interests, a private faculty type, and whether to show my email (PROF-04). It works without JavaScript: when a save fails, the form
 // comes back with what was typed and an error under each field. Saving returns to Me with "Saved."
 import { actions, isInputError } from 'astro:actions';
 import FieldError from '../../components/FieldError.astro';
@@ -24,7 +24,11 @@ const [{ data: profile }, { data: personal }, { data: categories }, { data: othe
       .select('display_name, avatar_url, use_initials, department, bio, interests')
       .eq('id', user.id)
       .single(),
-    supabase.from('profile_private').select('faculty_type').eq('user_id', user.id).maybeSingle(),
+    supabase
+      .from('profile_private')
+      .select('faculty_type, email, email_visible')
+      .eq('user_id', user.id)
+      .maybeSingle(),
     supabase.from('categories').select('id, name').eq('is_active', true).order('sort_order'),
     // Departments other members use, so the same one is spelled the same way.
     supabase.from('profiles').select('department').not('department', 'is', null).limit(1000),
@@ -40,6 +44,7 @@ const text = (name: 'display_name' | 'department' | 'bio') =>
 const useInitials = typed ? typed.has('use_initials') : profile?.use_initials;
 const interests = typed ? typed.getAll('interests') : (profile?.interests ?? []);
 const facultyType = typed ? typed.get('faculty_type') : personal?.faculty_type;
+const emailVisible = typed ? typed.has('email_visible') : personal?.email_visible;
 
 const fields: Record<string, string[] | undefined> = isInputError(result?.error)
   ? result.error.fields
@@ -133,6 +138,20 @@ const invalid = (name: string) =>
         </label>
       ))}
     </fieldset>
+    <p>
+      <label>
+        <input
+          type="checkbox"
+          name="email_visible"
+          checked={emailVisible}
+          aria-describedby="email_visible-hint"
+        />
+        Show my email on my profile
+      </label>
+      <span id="email_visible-hint">
+        {personal?.email}. Only signed-in members see it. Moderators can always see it.
+      </span>
+    </p>
     <button type="submit">Save</button>
   </form>
 </Layout>

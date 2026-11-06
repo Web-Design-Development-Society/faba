@@ -42,12 +42,16 @@ export const profile = {
 
   /**
    * Editing the profile (PROF-02). Members update their own columns directly, which column grants
-   * and Row Level Security limit (ADR-004). Faculty type is in the private profile.
+   * and Row Level Security limit (ADR-004). Faculty type is in the private profile. Showing the
+   * email goes through set_email_visibility(), which copies it to the profile (PROF-04).
    */
   update: defineAction({
     accept: 'form',
     input: profileChanges,
-    handler: async ({ faculty_type, department, bio, interests, ...changes }, { locals }) => {
+    handler: async (
+      { faculty_type, email_visible, department, bio, interests, ...changes },
+      { locals }
+    ) => {
       const { supabase, user } = locals;
       if (!user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
@@ -84,6 +88,11 @@ export const profile = {
       if (privateError) {
         throw new ActionError({ code: 'INTERNAL_SERVER_ERROR', message: NOT_SAVED });
       }
+
+      const { error: emailError } = await supabase.rpc('set_email_visibility', {
+        visible: email_visible,
+      });
+      if (emailError) throw new ActionError({ code: 'INTERNAL_SERVER_ERROR', message: NOT_SAVED });
     },
   }),
 
