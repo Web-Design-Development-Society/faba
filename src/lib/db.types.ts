@@ -349,6 +349,7 @@ export type Database = {
       cancel_activity: { Args: { activity_id: string; reason?: string }; Returns: undefined };
       create_activity: {
         Args: {
+          capacity?: number;
           category_id: string;
           cost_note?: string;
           description?: string;
