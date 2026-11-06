@@ -21,6 +21,7 @@ export type Database = {
           idempotency_key: string | null;
           location_name: string;
           organizer_id: string | null;
+          search_doc: unknown;
           starts_at: string;
           status: string;
           time_or_place_changed_at: string | null;
@@ -48,6 +49,7 @@ export type Database = {
           idempotency_key?: string | null;
           location_name: string;
           organizer_id?: string | null;
+          search_doc?: never;
           starts_at: string;
           status?: string;
           time_or_place_changed_at?: string | null;
@@ -73,6 +75,7 @@ export type Database = {
           idempotency_key?: string | null;
           location_name?: string;
           organizer_id?: string | null;
+          search_doc?: never;
           starts_at?: string;
           status?: string;
           time_or_place_changed_at?: string | null;
@@ -380,6 +383,7 @@ export type Database = {
           idempotency_key: string | null;
           location_name: string;
           organizer_id: string | null;
+          search_doc: unknown;
           starts_at: string;
           status: string;
           time_or_place_changed_at: string | null;
@@ -433,6 +437,47 @@ export type Database = {
       };
       restore_activity: { Args: { activity_id: string }; Returns: undefined };
       rsvp: { Args: { activity_id: string; status: string }; Returns: number };
+      search_activities: {
+        Args: {
+          after_id?: string;
+          after_starts_at?: string;
+          include_past?: boolean;
+          page_size?: number;
+          q: string;
+        };
+        Returns: {
+          cancel_reason: string | null;
+          cancelled_at: string | null;
+          category_id: string;
+          cost_note: string | null;
+          created_at: string;
+          description: string | null;
+          ends_at: string | null;
+          going_count: number;
+          guest_total: number;
+          hidden_at: string | null;
+          hidden_by: string | null;
+          hidden_reason: string | null;
+          id: string;
+          idempotency_key: string | null;
+          location_name: string;
+          organizer_id: string | null;
+          search_doc: unknown;
+          starts_at: string;
+          status: string;
+          time_or_place_changed_at: string | null;
+          timezone: string;
+          title: string;
+          updated_at: string;
+          version: number;
+        }[];
+        SetofOptions: {
+          from: '*';
+          to: 'activities';
+          isOneToOne: false;
+          isSetofReturn: true;
+        };
+      };
       set_email_visibility: { Args: { visible: boolean }; Returns: undefined };
       suspend_member: { Args: { reason: string; user_id: string }; Returns: undefined };
       sync_my_identity: { Args: Record<PropertyKey, never>; Returns: string };
