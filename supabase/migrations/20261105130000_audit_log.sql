@@ -8,17 +8,16 @@ CREATE TABLE private.audit_log (
   -- admin runs a runbook in the dashboard, where nobody is signed in.
   actor_id uuid,
   action text NOT NULL CHECK (
-    action IN
-      (
-        'hide',
-        'unhide',
-        'suspend',
-        'reinstate',
-        'dismiss_report',
-        'set_role',
-        'delete_account',
-        'data_fix'
-      )
+    action IN (
+      'hide',
+      'unhide',
+      'suspend',
+      'reinstate',
+      'dismiss_report',
+      'set_role',
+      'delete_account',
+      'data_fix'
+    )
   ),
   target_type text NOT NULL CHECK (target_type IN ('activity', 'profile', 'report')),
   target_id uuid NOT NULL,

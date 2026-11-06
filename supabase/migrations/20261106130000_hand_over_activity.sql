@@ -10,19 +10,18 @@ DROP CONSTRAINT audit_log_action_check;
 ALTER TABLE private.audit_log
 ADD CONSTRAINT audit_log_action_check
   CHECK (
-    action IN
-      (
-        'hide',
-        'unhide',
-        'suspend',
-        'reinstate',
-        'dismiss_report',
-        'set_role',
-        'delete_account',
-        'data_fix',
-        'transfer_activity',
-        'cancel_activity'
-      )
+    action IN (
+      'hide',
+      'unhide',
+      'suspend',
+      'reinstate',
+      'dismiss_report',
+      'set_role',
+      'delete_account',
+      'data_fix',
+      'transfer_activity',
+      'cancel_activity'
+    )
   );
 
 -- The activity a moderator can hand over, locked: its organizer is no longer eligible, and it's on
