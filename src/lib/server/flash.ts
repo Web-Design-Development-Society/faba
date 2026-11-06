@@ -16,6 +16,7 @@ export const FLASH_MESSAGES = {
   unhidden: 'Activity unhidden.',
   suspended: 'Member suspended.',
   reinstated: 'Member reinstated.',
+  transferred: 'New host set.',
 };
 
 export type Flash = keyof typeof FLASH_MESSAGES;

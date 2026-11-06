@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   activityModeration,
+  activityTransfer,
   dismissal,
   memberModeration,
 } from '../../src/lib/validation/moderation';
@@ -38,6 +39,28 @@ describe('activityModeration', () => {
     const issue = activityModeration.safeParse({ ...form, [field]: value }).error?.issues[0];
     expect(issue?.path).toEqual([field]);
     if (message) expect(issue?.message).toBe(message);
+  });
+});
+
+describe('activityTransfer', () => {
+  const form = {
+    activity_id: 'f0000000-0000-4000-8000-0000000001b1',
+    to_user: 'c0000000-0000-4000-8000-0000000001b4',
+    reason: ' Gus agreed to host ',
+  };
+
+  it('trims the reason', () => {
+    expect(activityTransfer.parse(form)).toEqual({ ...form, reason: 'Gus agreed to host' });
+  });
+
+  it.each([
+    ['to_user', undefined, 'Pick the new host.'],
+    ['to_user', '', 'Pick the new host.'],
+    ['reason', '', 'Give a reason. It goes to the audit log.'],
+  ])('rejects a %s of %j', (field, value, message) => {
+    const issue = activityTransfer.safeParse({ ...form, [field]: value }).error?.issues[0];
+    expect(issue?.path).toEqual([field]);
+    expect(issue?.message).toBe(message);
   });
 });
 

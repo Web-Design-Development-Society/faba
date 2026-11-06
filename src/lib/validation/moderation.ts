@@ -16,5 +16,10 @@ export const dismissal = z.object({ report_id: z.uuid(), reason });
 /** Hiding an activity, or unhiding it (MOD-03). */
 export const activityModeration = z.object({ activity_id: z.uuid(), reason });
 
+/** Giving an ineligible organizer's activity to a member who's going (AUTH-05). */
+export const activityTransfer = activityModeration.extend({
+  to_user: z.uuid({ error: 'Pick the new host.' }),
+});
+
 /** Suspending a member, or reinstating them (MOD-04). */
 export const memberModeration = z.object({ user_id: z.uuid(), reason });

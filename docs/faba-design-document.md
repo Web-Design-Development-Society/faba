@@ -3112,7 +3112,7 @@ erDiagram
 #### `private.audit_log` (Phase 1)
 
 - **Purpose:** an append-only record of privileged actions.
-- **Important fields:** `id bigint identity`, `actor_id` (uuid, deliberately no foreign key; null for a runbook run in the dashboard), `action` (`hide` | `unhide` | `suspend` | `reinstate` | `dismiss_report` | `set_role` | `delete_account` | `data_fix`), `target_type` (`activity` | `profile` | `report`), `target_id`, `reason` (500 characters or fewer), `metadata jsonb` (never personal data), `created_at`.
+- **Important fields:** `id bigint identity`, `actor_id` (uuid, deliberately no foreign key; null for a runbook run in the dashboard), `action` (`hide` | `unhide` | `suspend` | `reinstate` | `dismiss_report` | `set_role` | `delete_account` | `data_fix` | `transfer_activity` | `cancel_activity`), `target_type` (`activity` | `profile` | `report`), `target_id`, `reason` (500 characters or fewer), `metadata jsonb` (never personal data), `created_at`.
 - **Ownership rules:** inserted only through `private.audit()`, which `SECURITY DEFINER` functions call in the same transaction as the change. No privileges for any application role. A trigger refuses updates, and deletes of rows newer than 3 years, even for the database owner. In Phase 1, admins read it in the dashboard ([Reading the audit log](runbooks/audit-log.md)). Phase 3 adds an admin RPC.
 - **Indexing:** `(target_type, target_id)`, `(actor_id, created_at)`, `(created_at)`.
 
