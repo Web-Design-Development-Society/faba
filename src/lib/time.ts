@@ -141,3 +141,34 @@ export function rexburgInstant(date: string, time: string): Date {
   for (let i = 0; i < 2; i++) guess = wanted - (wallClock(new Date(guess)) - guess);
   return new Date(guess);
 }
+
+/** The date chips (SRCH-02), as the `when` in a link, such as /discover?when=weekend. */
+export const WHENS = { today: 'Today', week: 'This week', weekend: 'This weekend' } as const;
+
+export type When = keyof typeof WHENS;
+
+/** Start times from `from`, up to but not including `before`. */
+export type StartRange = { from: Date; before: Date };
+
+/**
+ * The start times a date chip covers at `now`, in Rexburg (SRCH-02). This week runs through
+ * Sunday, and this weekend from Friday at 5 PM through Sunday, so on a Saturday or Sunday it's the
+ * one under way. The feed leaves out what's over, so on a Sunday this weekend is what's left of it.
+ */
+export function whenRange(when: When, now: Date): StartRange {
+  const today = rexburgDate(now);
+  const weekday = new Date(`${today}T00:00:00Z`).getUTCDay();
+  const monday = addDays(today, (8 - weekday) % 7 || 7);
+  if (when === 'today') return datesRange(today, today);
+  const before = rexburgInstant(monday, '00:00');
+  if (when === 'week') return { from: rexburgInstant(today, '00:00'), before };
+  return { from: rexburgInstant(addDays(monday, -3), '17:00'), before };
+}
+
+/** The start times from the start of `first` to the end of `last`, dates in Rexburg (SRCH-02). */
+export function datesRange(first: string, last: string): StartRange {
+  return {
+    from: rexburgInstant(first, '00:00'),
+    before: rexburgInstant(addDays(last, 1), '00:00'),
+  };
+}
