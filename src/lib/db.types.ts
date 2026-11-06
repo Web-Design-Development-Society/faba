@@ -354,6 +354,7 @@ export type Database = {
         };
         Returns: string;
       };
+      delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
       dismiss_report: { Args: { reason: string; report_id: string }; Returns: undefined };
       get_feed: {
         Args: {
