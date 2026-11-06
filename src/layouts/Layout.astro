@@ -1,6 +1,7 @@
 ---
 // A plain layout for the walking skeleton (FND-10). The real layouts and styles come with
-// Iteration 1 tasks AS-2 and AS-3.
+// Iteration 1 tasks AS-2 and AS-3. Every page's footer says FABA isn't an official BYU-Idaho
+// channel, and links the public pages (INFO-01, ADR-016).
 interface Props {
   title: string;
 }
@@ -20,6 +21,16 @@ const { title } = Astro.props;
     <main>
       <slot />
     </main>
+    <footer>
+      <p>
+        FABA is an informal group run by the Faculty Association Board. It isn't an official
+        BYU-Idaho channel.
+      </p>
+      <p>
+        <a href="/about">About</a> · <a href="/privacy">Privacy</a> ·
+        <a href="/guidelines">Guidelines</a>
+      </p>
+    </footer>
   </body>
 </html>
 
@@ -30,5 +41,16 @@ const { title } = Astro.props;
     padding: 1rem;
     font-family: system-ui, sans-serif;
     line-height: 1.5;
+  }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1rem;
+    font-size: 0.875rem;
+    color: #595959;
+    border-top: 1px solid #767676;
+  }
+  footer a {
+    display: inline-block;
+    padding: 0.75rem 0;
   }
 </style>

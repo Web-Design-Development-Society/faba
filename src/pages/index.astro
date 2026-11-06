@@ -15,10 +15,7 @@ const next = safeNextPath(Astro.url.searchParams.get('next'));
   <h1>FABA</h1>
   <p>Find and share activities with other BYU-Idaho faculty in Rexburg.</p>
   <SignIn next={next} error={error} />
-  <p>For BYU-Idaho faculty with a byui.edu account.</p>
   <p>
-    <small>
-      FABA is run by the Faculty Association Board. It isn't an official BYU-Idaho site.
-    </small>
+    For BYU-Idaho faculty with a byui.edu account. <a href="/about">What is FABA?</a>
   </p>
 </Layout>

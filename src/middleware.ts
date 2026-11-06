@@ -5,10 +5,13 @@ import { ALLOWED_EMAIL_DOMAIN } from 'astro:env/server';
 import { isAllowedEmail } from './lib/server/auth';
 import { createSupabase } from './lib/server/supabase';
 
-// Pages anyone can open without signing in (design document section 9.7). New members read the
-// guidelines here before they accept them on Welcome.
+// Pages anyone can open without signing in (design document section 9.7, INFO-01). New members read
+// the guidelines here before they accept them on Welcome. About, Privacy and Guidelines are
+// prerendered, so the middleware skips them anyway.
 const PUBLIC_PATHS = new Set([
   '/',
+  '/about',
+  '/privacy',
   '/auth/login',
   '/auth/callback',
   '/auth/logout',
@@ -65,8 +68,9 @@ export const onRequest = defineMiddleware(async (context, next) => {
 });
 
 // Pages depend on who's signed in, and refreshed sessions set cookies, so browsers and
-// Cloudflare must never cache them.
+// Cloudflare must never cache them. Nor should search engines index them (FR-PROF-7).
 function noStore(response: Response) {
   response.headers.set('Cache-Control', 'private, no-store');
+  response.headers.set('X-Robots-Tag', 'noindex');
   return response;
 }
