@@ -7,6 +7,9 @@ import cloudflare from '@astrojs/cloudflare';
 export default defineConfig({
   // Pages render on demand unless they opt in to prerendering (ADR-001).
   output: 'server',
+  // Prerendered pages are written as about.html rather than about/index.html, so Cloudflare serves
+  // them at /about instead of redirecting to /about/ (INFO-01).
+  build: { format: 'file' },
   // One Cloudflare Worker runs the whole app (ADR-002, ADR-014).
   adapter: cloudflare({
     // FABA has no image transforms.
