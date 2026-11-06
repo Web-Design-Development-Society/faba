@@ -365,6 +365,8 @@ export type Database = {
           after_starts_at?: string;
           category?: string;
           page_size?: number;
+          starts_before?: string;
+          starts_from?: string;
         };
         Returns: {
           cancel_reason: string | null;
@@ -441,9 +443,12 @@ export type Database = {
         Args: {
           after_id?: string;
           after_starts_at?: string;
+          category?: string;
           include_past?: boolean;
           page_size?: number;
           q: string;
+          starts_before?: string;
+          starts_from?: string;
         };
         Returns: {
           cancel_reason: string | null;
