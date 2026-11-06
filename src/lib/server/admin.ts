@@ -6,6 +6,9 @@ import { SUPABASE_SECRET_KEY, SUPABASE_URL } from 'astro:env/server';
 
 /** Deletes an auth user, which the database's foreign keys follow through (PROF-05). */
 export async function deleteAuthUser(id: string) {
+  // It's optional in env.schema, for builds (astro.config.mjs), but every deployment sets it.
+  if (!SUPABASE_SECRET_KEY) throw new Error('SUPABASE_SECRET_KEY is missing.');
+
   const admin = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },
   });

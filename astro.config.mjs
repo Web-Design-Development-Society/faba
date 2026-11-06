@@ -29,10 +29,14 @@ export default defineConfig({
         access: 'public',
         startsWith: 'sb_publishable_',
       }),
+      // Optional, because astro:env/server reads every required secret when it loads, and
+      // building the prerendered public pages (INFO-01) has no secrets. Only account deletion
+      // uses it, and src/lib/server/admin.ts fails without it.
       SUPABASE_SECRET_KEY: envField.string({
         context: 'server',
         access: 'secret',
         startsWith: 'sb_secret_',
+        optional: true,
       }),
       ALLOWED_EMAIL_DOMAIN: envField.string({ context: 'server', access: 'public' }),
       LOG_LEVEL: envField.enum({
