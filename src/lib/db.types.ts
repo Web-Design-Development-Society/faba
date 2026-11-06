@@ -416,12 +416,14 @@ export type Database = {
         };
         Returns: string;
       };
+      reinstate_member: { Args: { reason: string; user_id: string }; Returns: undefined };
       report_content: {
         Args: { note?: string; reason: string; target_id: string; target_type: string };
         Returns: string;
       };
       restore_activity: { Args: { activity_id: string }; Returns: undefined };
       rsvp: { Args: { activity_id: string; status: string }; Returns: number };
+      suspend_member: { Args: { reason: string; user_id: string }; Returns: undefined };
       update_activity: {
         Args: { activity_id: string; expected_version: number; patch: Json };
         Returns: undefined;
