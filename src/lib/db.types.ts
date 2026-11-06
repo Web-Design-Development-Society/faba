@@ -407,7 +407,15 @@ export type Database = {
         }[];
       };
       member_email: { Args: { member_id: string }; Returns: string };
+      moderate_cancel_activity: {
+        Args: { activity_id: string; reason: string };
+        Returns: undefined;
+      };
       moderate_hide: { Args: { activity_id: string; reason: string }; Returns: undefined };
+      moderate_transfer_activity: {
+        Args: { activity_id: string; reason: string; to_user: string };
+        Returns: undefined;
+      };
       moderate_unhide: { Args: { activity_id: string; reason: string }; Returns: undefined };
       my_rsvp: {
         Args: {
