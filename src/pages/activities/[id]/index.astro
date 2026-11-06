@@ -4,13 +4,16 @@
 // one here (MOD-03).
 import { actions, isInputError } from 'astro:actions';
 import Avatar from '../../../components/Avatar.astro';
+import BoardContact from '../../../components/BoardContact.astro';
 import GoingList from '../../../components/GoingList.astro';
 import Menu from '../../../components/Menu.astro';
 import ModerationAction from '../../../components/ModerationAction.astro';
+import ParticipationDisclaimer from '../../../components/ParticipationDisclaimer.astro';
 import RsvpForm from '../../../components/RsvpForm.astro';
 import Sheet from '../../../components/Sheet.astro';
 import Status from '../../../components/Status.astro';
 import Layout from '../../../layouts/Layout.astro';
+import { PHYSICAL_CATEGORIES } from '../../../lib/contact';
 import { linkify, mapsUrl } from '../../../lib/links';
 import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../../../lib/server/flash';
 import { formatAgo, formatRange, isOver } from '../../../lib/time';
@@ -47,7 +50,7 @@ const [{ data: activity }, { data: me }] = await Promise.all([
     .from('activities')
     .select(
       `id, title, description, starts_at, ends_at, location_name, cost_note, status, cancel_reason,
-      hidden_at, hidden_reason, going_count, organizer_id, time_or_place_changed_at,
+      hidden_at, hidden_reason, going_count, organizer_id, time_or_place_changed_at, category_id,
       category:categories(name),
       organizer:profiles!activities_organizer_id_fkey(id, display_name, avatar_url, use_initials, department),
       mine:rsvps(status),
@@ -122,7 +125,9 @@ const email = activity
         <div class="banner">
           <p>{withReason('Hidden by a moderator', activity.hidden_reason)}</p>
           {hosting ? (
-            <p>Contact the FABA board if you think this was a mistake.</p>
+            <p>
+              Contact <BoardContact /> if you think this was a mistake.
+            </p>
           ) : (
             moderator && (
               <ModerationAction
@@ -190,12 +195,15 @@ const email = activity
           </a>
         )}
       </Sheet>
-      {host && (
+      {host ? (
         <p>
           <Avatar member={host} />
           Hosted by <a href={`/people/${host.id}`}>{host.display_name}</a>
           {department}
         </p>
+      ) : (
+        // Its organizer deleted their account (PROF-05).
+        !activity.organizer_id && <p>Hosted by Former member</p>
       )}
       {activity.description && (
         <p class="description">
@@ -210,6 +218,7 @@ const email = activity
           )}
         </p>
       )}
+      {PHYSICAL_CATEGORIES.includes(activity.category_id) && <ParticipationDisclaimer />}
       <div class="actions">
         {hosting ? (
           <>
@@ -319,7 +328,7 @@ const email = activity
     background: white;
     border-top: 1px solid #767676;
   }
-  :global(main) {
+  :global(footer) {
     padding-bottom: calc(5rem + env(safe-area-inset-bottom));
   }
   .actions p {

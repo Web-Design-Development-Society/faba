@@ -1,7 +1,7 @@
 ---
 // Access paused (MOD-04, journey J1): a suspended member sees only this page, until a moderator
-// reinstates them. Anyone else goes to Discover. The final copy, with the board's contact details,
-// comes with Iteration 1 task UX-6.
+// reinstates them. Anyone else goes to Discover. The final copy comes with Iteration 1 task UX-6.
+import BoardContact from '../components/BoardContact.astro';
 import Layout from '../layouts/Layout.astro';
 
 const { member } = Astro.locals;
@@ -11,7 +11,9 @@ if (member?.status !== 'suspended') return Astro.redirect('/discover');
 <Layout title="Access paused">
   <h1>Your access is paused</h1>
   <p>A moderator paused your FABA account, so you can't see or post activities for now.</p>
-  <p>Contact the FABA board if you think this was a mistake.</p>
+  <p>
+    Contact <BoardContact /> if you think this was a mistake.
+  </p>
   <form method="post" action="/auth/logout">
     <button type="submit">Sign out</button>
   </form>

@@ -1,0 +1,6 @@
+---
+// "The FABA board", as an email link once the board has an address (src/lib/contact.ts).
+import { BOARD_EMAIL } from '../lib/contact';
+---
+
+{BOARD_EMAIL ? <a href={`mailto:${BOARD_EMAIL}`}>the FABA board</a> : 'the FABA board'}

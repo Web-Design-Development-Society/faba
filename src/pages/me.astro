@@ -4,6 +4,7 @@
 // RSVP-02), so it has what they organize too. Cancelled ones stay, marked cancelled (ACT-05).
 // Phase 2's Plans tab replaces the list (RSVP-08). Edit profile opens the profile form (PROF-02),
 // which comes back here. Moderators see how many reports are open, which opens the queue (MOD-02).
+// Delete account is at the bottom, away from everything else (PROF-05).
 import { actions } from 'astro:actions';
 import ActivityCard from '../components/ActivityCard.astro';
 import Avatar from '../components/Avatar.astro';
@@ -94,6 +95,9 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
   <form method="post" action="/auth/logout">
     <button type="submit">Sign out</button>
   </form>
+  <p>
+    <a href="/me/delete">Delete account</a>
+  </p>
   {member && (
     <template data-my-face>
       <Avatar member={member} named />

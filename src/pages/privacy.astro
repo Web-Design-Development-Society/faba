@@ -1,0 +1,79 @@
+---
+// The privacy notice, for visitors and members (INFO-01). It follows the data inventory and
+// retention table in section 9.14 of the design document, which it must match (FND-05).
+// Prerendered (ADR-001). A draft until the board approves it.
+import BoardContact from '../components/BoardContact.astro';
+import Layout from '../layouts/Layout.astro';
+
+export const prerender = true;
+---
+
+<Layout title="Privacy notice">
+  <h1>Privacy notice</h1>
+  <p>This is a draft. The Faculty Association Board hasn't approved it yet.</p>
+  <p>
+    FABA keeps as little about you as it can, and shows it only to other signed-in faculty. Nothing
+    is public, and search engines are asked not to index it.
+  </p>
+
+  <h2>What FABA keeps, and who sees it</h2>
+  <ul>
+    <li>
+      <strong>Your name and photo</strong>, from Google, which you can change. Other members see
+      them.
+    </li>
+    <li>
+      <strong>Your email</strong>, from Google. Only you and the moderators see it, unless you
+      choose to show it on your profile.
+    </li>
+    <li>
+      <strong>Your department, bio and interests</strong>, if you add them. Other members see them.
+    </li>
+    <li>
+      <strong>Your faculty type</strong>, if you add it. Only you see it. The board sees totals, and
+      only for groups of 10 or more.
+    </li>
+    <li>
+      <strong>The activities you post.</strong> Other members see them, unless a moderator hides
+      one.
+    </li>
+    <li>
+      <strong>Your RSVPs.</strong> Other members see who's going. Only you see "Can't make it", and
+      organizers see the other answers to their own activities.
+    </li>
+    <li>
+      <strong>Reports you send.</strong> Only you and the moderators see them, never the member you
+      reported.
+    </li>
+    <li>
+      <strong>Moderation records</strong>, such as a hidden activity or a suspension. Only admins
+      see them.
+    </li>
+  </ul>
+
+  <h2>How long FABA keeps it</h2>
+  <ul>
+    <li>Your profile, email and RSVPs: until you delete your account.</li>
+    <li>
+      Activities: as long as FABA runs. If you delete your account, yours stay, by "Former member".
+    </li>
+    <li>Reports: 2 years after a moderator deals with them.</li>
+    <li>Moderation records: 3 years.</li>
+    <li>Server logs: the few days our hosting providers keep them.</li>
+  </ul>
+
+  <h2>Deleting your account</h2>
+  <p>
+    <strong>Me → Delete account</strong> deletes your profile, your email and your RSVPs, and
+    cancels the upcoming activities you organize. It can't be undone.
+  </p>
+
+  <h2>Who handles it</h2>
+  <p>
+    FABA runs on Cloudflare and Supabase, and you sign in with Google. FABA doesn't sell or share
+    your information, and it isn't connected to BYU-Idaho's systems.
+  </p>
+  <p>
+    Questions? Contact <BoardContact />.
+  </p>
+</Layout>
