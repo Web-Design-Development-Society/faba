@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { displayName, profileChanges } from '../../src/lib/validation/profile';
+import { accountDeletion, displayName, profileChanges } from '../../src/lib/validation/profile';
 
 describe('displayName', () => {
   it.each([
@@ -56,5 +56,17 @@ describe('profileChanges', () => {
   it('takes 20 interests at most', () => {
     const interests = Array.from({ length: 21 }, (_, n) => `category-${n}`);
     expect(profileChanges.safeParse({ ...form, interests }).success).toBe(false);
+  });
+});
+
+describe('accountDeletion', () => {
+  it('takes DELETE, typed exactly', () => {
+    expect(accountDeletion.parse({ confirm: ' DELETE ' })).toEqual({ confirm: 'DELETE' });
+  });
+
+  it.each([undefined, '', 'delete', 'DELETE ME'])('rejects %j', (confirm) => {
+    expect(accountDeletion.safeParse({ confirm }).error?.issues[0].message).toBe(
+      'Type DELETE to confirm.'
+    );
   });
 });

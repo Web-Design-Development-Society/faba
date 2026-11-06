@@ -57,6 +57,7 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
   },
   ALREADY_SUSPENDED: { code: 'CONFLICT', message: 'This member is already suspended.' },
   NOT_SUSPENDED: { code: 'CONFLICT', message: "This member isn't suspended." },
+  ACCOUNT_NOT_FOUND: { code: 'NOT_FOUND', message: 'Your account is already deleted.' },
   REPORT_QUOTA_EXCEEDED: {
     code: 'TOO_MANY_REQUESTS',
     message: 'You can send up to 10 reports a day. Try again tomorrow.',

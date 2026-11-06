@@ -1,7 +1,9 @@
 // Profile Actions. Each checks who's signed in, and Postgres checks every rule again (ADR-004).
 import { ActionError, defineAction } from 'astro:actions';
 import { z } from 'astro/zod';
-import { displayName, profileChanges } from '../lib/validation/profile';
+import { deleteAuthUser } from '../lib/server/admin';
+import { actionErrorFor } from '../lib/server/errors';
+import { accountDeletion, displayName, profileChanges } from '../lib/validation/profile';
 
 const NOT_SAVED = "Your profile couldn't be saved. Please try again.";
 
@@ -81,6 +83,33 @@ export const profile = {
         .eq('user_id', user.id);
       if (privateError) {
         throw new ActionError({ code: 'INTERNAL_SERVER_ERROR', message: NOT_SAVED });
+      }
+    },
+  }),
+
+  /**
+   * Deleting the account (PROF-05). delete_my_account() cancels the member's upcoming activities,
+   * removes their RSVPs and logs it. Then the admin API deletes their auth user, and the foreign
+   * keys remove their profile. Both steps can run again, so a failure can be retried. The page
+   * signs them out.
+   */
+  deleteAccount: defineAction({
+    accept: 'form',
+    input: accountDeletion,
+    handler: async (_input, { locals }) => {
+      const { supabase, user } = locals;
+      if (!user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await supabase.rpc('delete_my_account');
+      if (error) throw new ActionError(actionErrorFor(error));
+
+      const { error: authError } = await deleteAuthUser(user.id);
+      if (authError) {
+        console.error(JSON.stringify({ action: 'deleteAccount', message: authError.message }));
+        throw new ActionError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: "Your account couldn't be deleted. Please try again.",
+        });
       }
     },
   }),

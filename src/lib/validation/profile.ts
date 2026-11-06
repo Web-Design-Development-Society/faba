@@ -40,3 +40,11 @@ export const profileChanges = z.object({
   interests: z.array(z.string()).max(PROFILE.interests.max),
   faculty_type: z.enum(['full_time', 'part_time', 'prefer_not']).optional(),
 });
+
+/** Deleting the account (PROF-05). Typing DELETE, exactly, confirms it. */
+export const accountDeletion = z.object({
+  confirm: z
+    .string({ error: 'Type DELETE to confirm.' })
+    .trim()
+    .refine((typed) => typed === 'DELETE', 'Type DELETE to confirm.'),
+});

@@ -190,12 +190,15 @@ const email = activity
           </a>
         )}
       </Sheet>
-      {host && (
+      {host ? (
         <p>
           <Avatar member={host} />
           Hosted by <a href={`/people/${host.id}`}>{host.display_name}</a>
           {department}
         </p>
+      ) : (
+        // Its organizer deleted their account (PROF-05).
+        !activity.organizer_id && <p>Hosted by Former member</p>
       )}
       {activity.description && (
         <p class="description">

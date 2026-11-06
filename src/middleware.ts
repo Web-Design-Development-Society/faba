@@ -13,6 +13,7 @@ const PUBLIC_PATHS = new Set([
   '/auth/callback',
   '/auth/logout',
   '/not-eligible',
+  '/goodbye',
   '/guidelines',
   '/api/health',
 ]);
