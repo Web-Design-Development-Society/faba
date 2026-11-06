@@ -7,6 +7,7 @@ export type Database = {
         Row: {
           cancel_reason: string | null;
           cancelled_at: string | null;
+          capacity: number | null;
           category_id: string;
           cost_note: string | null;
           created_at: string;
@@ -35,6 +36,7 @@ export type Database = {
         Insert: {
           cancel_reason?: string | null;
           cancelled_at?: string | null;
+          capacity?: number | null;
           category_id: string;
           cost_note?: string | null;
           created_at?: string;
@@ -61,6 +63,7 @@ export type Database = {
         Update: {
           cancel_reason?: string | null;
           cancelled_at?: string | null;
+          capacity?: number | null;
           category_id?: string;
           cost_note?: string | null;
           created_at?: string;
@@ -371,6 +374,7 @@ export type Database = {
         Returns: {
           cancel_reason: string | null;
           cancelled_at: string | null;
+          capacity: number | null;
           category_id: string;
           cost_note: string | null;
           created_at: string;
@@ -453,6 +457,7 @@ export type Database = {
         Returns: {
           cancel_reason: string | null;
           cancelled_at: string | null;
+          capacity: number | null;
           category_id: string;
           cost_note: string | null;
           created_at: string;
