@@ -427,6 +427,7 @@ export type Database = {
       rsvp: { Args: { activity_id: string; status: string }; Returns: number };
       set_email_visibility: { Args: { visible: boolean }; Returns: undefined };
       suspend_member: { Args: { reason: string; user_id: string }; Returns: undefined };
+      sync_my_identity: { Args: Record<PropertyKey, never>; Returns: string };
       update_activity: {
         Args: { activity_id: string; expected_version: number; patch: Json };
         Returns: undefined;
