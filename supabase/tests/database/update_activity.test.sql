@@ -30,12 +30,11 @@ SET
     ELSE 'active'
   END
 WHERE
-  id IN
-    (
-      'c0000000-0000-4000-8000-000000000041',
-      'c0000000-0000-4000-8000-000000000042',
-      'c0000000-0000-4000-8000-000000000043'
-    );
+  id IN (
+    'c0000000-0000-4000-8000-000000000041',
+    'c0000000-0000-4000-8000-000000000042',
+    'c0000000-0000-4000-8000-000000000043'
+  );
 
 -- Upcoming, in a category that's no longer offered, started an hour ago, and hidden.
 INSERT INTO public.activities
