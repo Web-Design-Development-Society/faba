@@ -1,15 +1,14 @@
 ---
 // The reports queue (MOD-02, design document section 7.11): open reports, oldest first, each with
 // what was reported, the reason and note, who reported it, and when. Only moderators and admins
-// can open it, and the database checks again. Dismiss asks for a reason in a sheet, which goes to
-// the audit log. Hide content (MOD-03) and Suspend member (MOD-04) come with their stories.
+// can open it, and the database checks again. Dismiss, and Hide content for an activity (MOD-03),
+// ask for a reason in a sheet, which goes to the audit log. Suspend member comes with MOD-04.
 import { actions, isInputError } from 'astro:actions';
-import Sheet from '../components/Sheet.astro';
+import ModerationAction from '../components/ModerationAction.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
 import { FLASH_MESSAGES, setFlash, takeFlash } from '../lib/server/flash';
 import { formatAgo } from '../lib/time';
-import { MODERATION_REASON_MAX } from '../lib/validation/moderation';
 import { REASONS } from '../lib/validation/report';
 
 // The most reports on the page.
@@ -23,11 +22,15 @@ if (dismiss && !dismiss.error) {
   setFlash(Astro.cookies, Astro.url, 'dismissed');
   return Astro.redirect('/mod', 303);
 }
+const hide = Astro.getActionResult(actions.moderation.hide);
+if (hide && !hide.error) {
+  setFlash(Astro.cookies, Astro.url, 'hidden');
+  return Astro.redirect('/mod', 303);
+}
 const flash = takeFlash(Astro.cookies);
 // The reason's error shows at the top, since its sheet has closed.
-const failure = isInputError(dismiss?.error)
-  ? dismiss.error.fields.reason?.[0]
-  : dismiss?.error?.message;
+const failed = dismiss?.error ?? hide?.error;
+const failure = isInputError(failed) ? failed.fields.reason?.[0] : failed?.message;
 
 const moderator =
   member?.status === 'active' && (member.role === 'moderator' || member.role === 'admin');
@@ -47,8 +50,8 @@ const { data: reports, error } = moderator
       .limit(LIMIT)
   : { data: [], error: null };
 
-// What was reported. Activities that are hidden, and members who aren't active, aren't readable
-// yet: moderators get those with MOD-03 and MOD-04.
+// What was reported. Members who aren't active aren't readable yet: moderators get those with
+// MOD-04. Hide content needs an activity that's there.
 const targets = (type: string) =>
   reports?.filter(({ target_type }) => target_type === type).map(({ target_id }) => target_id) ??
   [];
@@ -103,29 +106,33 @@ const now = new Date();
                   {formatAgo(new Date(report.created_at), now)}
                 </time>
               </p>
-              <button type="button" commandfor={`dismiss-${report.id}`} command="show-modal">
-                Dismiss
-              </button>
-              <Sheet id={`dismiss-${report.id}`} title="Dismiss this report?">
-                <form method="post" action={actions.moderation.dismiss.queryString}>
-                  <input type="hidden" name="report_id" value={report.id} />
-                  <p>
-                    <label for={`reason-${report.id}`}>Reason, for the audit log</label>
-                    <br />
-                    <textarea
-                      id={`reason-${report.id}`}
-                      name="reason"
-                      rows="2"
-                      required
-                      maxlength={MODERATION_REASON_MAX}
-                    />
-                  </p>
-                  <button type="submit">Dismiss report</button>
-                </form>
-                <form method="dialog">
-                  <button>Keep it open</button>
-                </form>
-              </Sheet>
+              <div class="actions">
+                <ModerationAction
+                  id={`dismiss-${report.id}`}
+                  label="Dismiss"
+                  title="Dismiss this report?"
+                  action={actions.moderation.dismiss.queryString}
+                  fields={{ report_id: report.id }}
+                  confirm="Dismiss report"
+                  cancel="Keep it open"
+                />
+                {report.target_type === 'activity' && target.name && (
+                  <ModerationAction
+                    id={`hide-${report.id}`}
+                    label="Hide content"
+                    title="Hide this activity?"
+                    action={actions.moderation.hide.queryString}
+                    fields={{ activity_id: report.target_id }}
+                    confirm="Hide activity"
+                    cancel="Keep it visible"
+                  >
+                    <p>
+                      Members won't see it. Its organizer sees your reason, and can edit it. Its
+                      other open reports are dealt with too.
+                    </p>
+                  </ModerationAction>
+                )}
+              </div>
             </article>
           </li>
         );
@@ -166,8 +173,9 @@ const now = new Date();
   .note {
     white-space: pre-line;
   }
-  button {
-    min-height: 44px;
-    padding: 0 1rem;
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
   }
 </style>

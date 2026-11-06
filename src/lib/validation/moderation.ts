@@ -12,3 +12,6 @@ const reason = z
 
 /** Dismissing a report: nothing needed doing. */
 export const dismissal = z.object({ report_id: z.uuid(), reason });
+
+/** Hiding an activity, or unhiding it (MOD-03). */
+export const activityModeration = z.object({ activity_id: z.uuid(), reason });
