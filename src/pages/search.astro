@@ -1,0 +1,209 @@
+---
+// Search (SRCH-01, design document sections 7.10 and J3): a keyword search over each activity's
+// title, place and description, and its organizer's name, upcoming by default, with Include past.
+// The query lives in the URL, as in /search?q=hike&past=1, so it works without JavaScript and can
+// be shared. Without a query, it shows recent searches, which only this device keeps, and the
+// categories. Results are cards, under a heading for each day, as on Discover.
+import { actions } from 'astro:actions';
+import ActivityCard from '../components/ActivityCard.astro';
+import Avatar from '../components/Avatar.astro';
+import CategoryChips from '../components/CategoryChips.astro';
+import Status from '../components/Status.astro';
+import Layout from '../layouts/Layout.astro';
+import { CARD, FACES } from '../lib/cards';
+import { readCursor } from '../lib/feed';
+import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../lib/server/flash';
+import { formatDay, rexburgDate } from '../lib/time';
+
+// Results on a page, and the longest query, as search_activities() reads it.
+const PAGE = 20;
+const MAX_QUERY = 100;
+
+const { supabase, user, member } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+
+// I'm in and Can't make it without JavaScript come back to the card (RSVP-01, RSVP-02).
+const rsvp = Astro.getActionResult(actions.rsvps.set);
+if (rsvp && !rsvp.error) {
+  setFlash(Astro.cookies, Astro.url, rsvp.data.status);
+  return Astro.redirect(postedFrom(Astro.url, `#activity-${rsvp.data.activity_id}`), 303);
+}
+const flash = takeFlash(Astro.cookies);
+
+const now = new Date();
+const q = (Astro.url.searchParams.get('q') ?? '').trim().slice(0, MAX_QUERY);
+const past = Astro.url.searchParams.get('past') === '1';
+const cursor = readCursor(Astro.url.searchParams);
+const firstPage = !cursor.after_id;
+
+const [results, categories] = await Promise.all([
+  // One more than a page says whether there's another.
+  q
+    ? supabase
+        .rpc('search_activities', { q, include_past: past, ...cursor, page_size: PAGE + 1 })
+        .select(CARD)
+        .eq('going.status', 'going')
+        .order('starts_at', { ascending: !past })
+        .order('id', { ascending: !past })
+        .order('created_at', { referencedTable: 'going' })
+        .limit(FACES, { referencedTable: 'going' })
+    : { data: null, error: null },
+  q
+    ? { data: null }
+    : supabase.from('categories').select('id, name').eq('is_active', true).order('sort_order'),
+]);
+
+const activities = results.data?.slice(0, PAGE) ?? [];
+const last = activities.at(-1);
+const more =
+  last && results.data!.length > PAGE
+    ? `?${new URLSearchParams({ q, ...(past ? { past: '1' } : {}), after: last.starts_at, id: last.id })}`
+    : null;
+const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(starts_at)));
+const withPast = `/search?${new URLSearchParams({ q, past: '1' })}`;
+---
+
+<Layout title={q ? `${q} · Search` : 'Search'}>
+  <a href="/discover">Back to Discover</a>
+  <h1>Search</h1>
+  <form method="get" action="/search" role="search" data-search>
+    <label for="q">Search activities</label>
+    <div class="field">
+      <input
+        id="q"
+        name="q"
+        type="search"
+        value={q}
+        maxlength={MAX_QUERY}
+        autocomplete="off"
+        enterkeyhint="search"
+        autofocus={!q}
+      />
+      <button>Search</button>
+    </div>
+    <label class="past">
+      <input type="checkbox" name="past" value="1" checked={past} />
+      Include past
+    </label>
+  </form>
+  <Status message={flash && FLASH_MESSAGES[flash]} />
+  {rsvp?.error && <p role="alert">{rsvp.error.message}</p>}
+
+  {!q ? (
+    <>
+      <section aria-labelledby="recent" data-recent hidden>
+        <h2 id="recent">Recent searches</h2>
+        <ul class="recent"></ul>
+      </section>
+      {categories.data?.length ? (
+        <section aria-labelledby="browse">
+          <h2 id="browse">Browse by category</h2>
+          {/* None is chosen here, not even All. */}
+          <CategoryChips categories={categories.data} current="" />
+        </section>
+      ) : null}
+    </>
+  ) : results.error ? (
+    <p role="alert">Search didn't work. Please try again.</p>
+  ) : activities.length === 0 ? (
+    firstPage ? (
+      <div class="empty">
+        <p>
+          Nothing {past ? '' : 'coming up '}matches <em>{q}</em>.
+        </p>
+        {!past && <a href={withPast}>Include past activities</a>}
+        <a href="/discover">Back to Discover</a>
+      </div>
+    ) : (
+      <p>That's everything.</p>
+    )
+  ) : (
+    <div data-feed>
+      {[...days].map(([date, group]) => (
+        <section data-day={date} aria-labelledby={`day-${date}`}>
+          <h2 id={`day-${date}`}>{formatDay(date, now)}</h2>
+          <ul>
+            {group.map((activity) => (
+              <li id={`activity-${activity.id}`}>
+                <ActivityCard activity={activity} viewer={user.id} now={now} faces={FACES} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))}
+    </div>
+  )}
+  {more && (
+    <a class="more" href={`/search${more}`} data-more>
+      Show more
+    </a>
+  )}
+  {member && (
+    <template data-my-face>
+      <Avatar member={member} named />
+    </template>
+  )}
+</Layout>
+
+<script>
+  import '../scripts/feed';
+  import '../scripts/rsvp';
+  import '../scripts/search';
+</script>
+
+<style>
+  .field {
+    display: flex;
+    gap: 0.5rem;
+  }
+  .field input {
+    flex: 1;
+    min-width: 0;
+    min-height: 44px;
+    font: inherit;
+  }
+  .field button {
+    min-height: 44px;
+    padding: 0 1rem;
+  }
+  .past {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+  }
+  h2 {
+    margin: 1.5rem 0 0.5rem;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+  }
+  /* minmax(0, 1fr) keeps a card with a long place on one line from widening the column. */
+  ul {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .recent a {
+    display: inline-grid;
+    align-items: center;
+    min-height: 44px;
+  }
+  .empty {
+    margin-top: 2rem;
+    text-align: center;
+  }
+  .empty a,
+  .more {
+    display: inline-grid;
+    place-items: center;
+    min-height: 44px;
+    padding: 0 1rem;
+  }
+  .more {
+    display: grid;
+    margin-top: 1rem;
+  }
+</style>
