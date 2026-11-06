@@ -6,9 +6,10 @@
 -- description.
 ALTER TABLE public.activities
 ADD COLUMN search_doc tsvector GENERATED ALWAYS AS (
-  setweight(to_tsvector('english', title), 'A') ||
-    setweight(to_tsvector('english', location_name), 'B') ||
-    setweight(to_tsvector('english', coalesce(description, '')), 'C')
+  setweight(to_tsvector('english', title), 'A') || setweight(
+    to_tsvector('english', location_name),
+    'B'
+  ) || setweight(to_tsvector('english', coalesce(description, '')), 'C')
 ) STORED;
 
 CREATE INDEX activities_search_idx ON public.activities USING gin (search_doc);
@@ -48,11 +49,10 @@ AS $$
         SELECT to_tsquery(
           'english',
           string_agg(
-            word ||
-              CASE
-                WHEN n = last THEN ':*'
-                ELSE ''
-              END,
+            word || CASE
+              WHEN n = last THEN ':*'
+              ELSE ''
+            END,
             ' & '
             ORDER BY n
           )
