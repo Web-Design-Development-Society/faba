@@ -47,6 +47,8 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
   NOT_MODERATOR: { code: 'FORBIDDEN', message: 'Only moderators can do that.' },
   REASON_REQUIRED: { code: 'BAD_REQUEST', message: 'Give a reason. It goes to the audit log.' },
   REPORT_NOT_OPEN: { code: 'CONFLICT', message: 'This report has already been handled.' },
+  ALREADY_HIDDEN: { code: 'CONFLICT', message: 'This activity is already hidden.' },
+  NOT_HIDDEN: { code: 'CONFLICT', message: "This activity isn't hidden." },
   REPORT_QUOTA_EXCEEDED: {
     code: 'TOO_MANY_REQUESTS',
     message: 'You can send up to 10 reports a day. Try again tomorrow.',

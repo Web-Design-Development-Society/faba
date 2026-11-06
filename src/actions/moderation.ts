@@ -2,7 +2,7 @@
 // rule again (ADR-004).
 import { ActionError, defineAction } from 'astro:actions';
 import { actionErrorFor } from '../lib/server/errors';
-import { dismissal } from '../lib/validation/moderation';
+import { activityModeration, dismissal } from '../lib/validation/moderation';
 
 export const moderation = {
   /** Dismissing a report from the queue, with a reason (MOD-02). Returns its id. */
@@ -15,6 +15,32 @@ export const moderation = {
       const { error } = await locals.supabase.rpc('dismiss_report', { report_id, reason });
       if (error) throw new ActionError(actionErrorFor(error));
       return { report_id };
+    },
+  }),
+
+  /** Hiding an activity, with the reason its organizer sees (MOD-03). Returns its id. */
+  hide: defineAction({
+    accept: 'form',
+    input: activityModeration,
+    handler: async ({ activity_id, reason }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('moderate_hide', { activity_id, reason });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { activity_id };
+    },
+  }),
+
+  /** Unhiding an activity, with a reason (MOD-03). Returns its id. */
+  unhide: defineAction({
+    accept: 'form',
+    input: activityModeration,
+    handler: async ({ activity_id, reason }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('moderate_unhide', { activity_id, reason });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { activity_id };
     },
   }),
 };
