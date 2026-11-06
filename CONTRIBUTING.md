@@ -179,5 +179,6 @@ A pre-commit hook runs Prettier on staged files, and ESLint on staged `.ts`, `.j
 - [Running Supabase locally](docs/runbooks/local-supabase.md) in Docker, with Google sign-in and troubleshooting
 - [Reading the audit log](docs/runbooks/audit-log.md) of moderation and role changes, and recording an admin data fix in it
 - [Appointing moderators and admins](docs/runbooks/roles.md) in the Supabase dashboard
+- [Moving a member to a new account](docs/runbooks/transfer-account.md), when they sign in with a different Google account
 - [Astro](https://docs.astro.build) and its [Cloudflare adapter](https://docs.astro.build/en/guides/integrations-guide/cloudflare/)
 - [Supabase local development](https://supabase.com/docs/guides/local-development)
