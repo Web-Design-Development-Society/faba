@@ -40,7 +40,7 @@ const [{ data: activity }, { data: categories }] = await Promise.all([
   supabase
     .from('activities')
     .select(
-      'id, title, description, starts_at, ends_at, location_name, cost_note, category_id, organizer_id, version, status'
+      'id, title, description, starts_at, ends_at, location_name, cost_note, capacity, category_id, organizer_id, version, status'
     )
     .eq('id', Astro.params.id!)
     .maybeSingle(),
@@ -62,6 +62,7 @@ const saved: Record<string, string | undefined> = {
   category_id: activity?.category_id,
   description: activity?.description ?? undefined,
   cost_note: activity?.cost_note ?? undefined,
+  capacity: activity?.capacity?.toString(),
   version: activity?.version.toString(),
 };
 const value = (name: string) => (typed ? typed.get(name)?.toString() || undefined : saved[name]);

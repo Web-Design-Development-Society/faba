@@ -1,4 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import { isFull } from '../../src/lib/cards';
 import { actionErrorFor } from '../../src/lib/server/errors';
 import {
   activityChanges,
@@ -90,6 +91,31 @@ describe('newActivity', () => {
     ['exactly 12 months ahead', { date: '2027-11-02', start_time: '11:00' }],
   ])('accepts an activity %s', (_, input) => {
     expect(errors(input)).toEqual({});
+  });
+
+  it.each([
+    [0, 'Allow at least 1 spot.'],
+    [501, 'Allow 500 spots or fewer.'],
+    [2.5, 'Enter a whole number of spots.'],
+    [Number.NaN, 'Enter a number of spots, or leave it empty.'],
+  ])('rejects %s spots', (capacity, message) => {
+    expect(errors({ capacity })).toEqual({ capacity: message });
+  });
+
+  it('takes a number of spots, or none', () => {
+    expect(newActivity.parse({ ...valid, capacity: 12 }).capacity).toBe(12);
+    expect(newActivity.parse(valid).capacity).toBeUndefined();
+  });
+});
+
+describe('isFull', () => {
+  it.each([
+    [{ going_count: 4, guest_total: 0, capacity: 5 }, false],
+    [{ going_count: 4, guest_total: 1, capacity: 5 }, true],
+    [{ going_count: 7, guest_total: 0, capacity: 5 }, true],
+    [{ going_count: 400, guest_total: 0, capacity: null }, false],
+  ])('%j is full: %s', (activity, full) => {
+    expect(isFull(activity)).toBe(full);
   });
 });
 

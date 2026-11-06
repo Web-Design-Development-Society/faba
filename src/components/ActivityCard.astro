@@ -1,8 +1,9 @@
 ---
 // An activity in the feed (ACT-01, design document section 7.5) and in My activities (HIST-02).
 // The whole card opens the activity, except I'm in and ✓ Going (RSVP-01, RSVP-02). A cancelled
-// activity says so in their place (ACT-05).
+// activity says so in their place (ACT-05), and a full one says Full to anyone not going (RSVP-04).
 import { categoryLook } from '../lib/categories';
+import { isFull } from '../lib/cards';
 import { formatSoon, isOver } from '../lib/time';
 import Avatar from './Avatar.astro';
 import RsvpForm from './RsvpForm.astro';
@@ -15,6 +16,8 @@ interface Props {
     ends_at: string | null;
     location_name: string;
     going_count: number;
+    guest_total: number;
+    capacity: number | null;
     organizer_id: string | null;
     status: string;
     category: { name: string; icon: string; color_token: string } | null;
@@ -46,6 +49,7 @@ const cancelled = activity.status === 'cancelled';
 const open =
   !cancelled &&
   !isOver(new Date(activity.starts_at), activity.ends_at ? new Date(activity.ends_at) : null, now);
+const full = isFull(activity);
 ---
 
 <article class="card" style={look ? `--stripe: ${look.color}` : undefined}>
@@ -73,6 +77,8 @@ const open =
     <p class="mine cancelled">Cancelled</p>
   ) : hosting ? (
     <p class="mine">You're hosting</p>
+  ) : open && full && !going ? (
+    <p class="mine">Full</p>
   ) : open ? (
     <RsvpForm activityId={activity.id} going={going} />
   ) : (

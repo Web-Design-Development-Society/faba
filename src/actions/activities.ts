@@ -47,6 +47,7 @@ export const activities = {
         description: activity.description ?? null,
         ends_at: activity.ends_at ?? null,
         cost_note: activity.cost_note ?? null,
+        capacity: activity.capacity ?? null,
       }),
   }),
 

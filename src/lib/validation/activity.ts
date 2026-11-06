@@ -10,6 +10,7 @@ export const ACTIVITY = {
   description: { max: 2000 },
   costNote: { max: 60 },
   cancelReason: { max: 200 },
+  capacity: { min: 1, max: 500 },
   monthsAhead: 12,
 };
 
@@ -93,6 +94,13 @@ export const newActivity = z
       .string()
       .trim()
       .max(ACTIVITY.costNote.max, `Use ${ACTIVITY.costNote.max} characters or fewer.`)
+      .optional(),
+    // RSVP-04. Empty means no limit.
+    capacity: z
+      .number({ error: 'Enter a number of spots, or leave it empty.' })
+      .int('Enter a whole number of spots.')
+      .min(ACTIVITY.capacity.min, `Allow at least ${ACTIVITY.capacity.min} spot.`)
+      .max(ACTIVITY.capacity.max, `Allow ${ACTIVITY.capacity.max} spots or fewer.`)
       .optional(),
   })
   .superRefine(checkTimes)
