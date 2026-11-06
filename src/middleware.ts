@@ -58,6 +58,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
     if (member?.status === 'suspended' && context.url.pathname !== '/paused') {
       return noStore(context.redirect('/paused'));
     }
+    // A member whose address is no longer byui.edu is signed out (AUTH-05).
+    if (member?.status === 'ineligible') {
+      await supabase.auth.signOut({ scope: 'local' });
+      return noStore(context.redirect('/not-eligible'));
+    }
     // Until they accept the current guidelines, members see only Welcome (PROF-01).
     if (member && !member.guidelines_ok && context.url.pathname !== '/welcome') {
       return noStore(context.redirect(`/welcome?next=${back}`));

@@ -1,5 +1,5 @@
 // Google sends people back here through Supabase after they choose an account (design document
-// section 9.7).
+// section 9.7). Each sign-in syncs the member's email from Google (AUTH-05).
 import type { APIRoute } from 'astro';
 import { ALLOWED_EMAIL_DOMAIN } from 'astro:env/server';
 import {
@@ -22,6 +22,14 @@ export const GET = (async ({ url, cookies, locals, redirect }) => {
 
   const { data, error } = await locals.supabase.auth.exchangeCodeForSession(code);
   if (error) return redirect(signInErrorPath('failed', next));
+
+  // Copies the email Google verified to the profile, and marks the account ineligible if it's no
+  // longer byui.edu (AUTH-05). A failure doesn't stop sign-in: the check below and the database's
+  // own checks still apply.
+  const { error: syncError } = await locals.supabase.rpc('sync_my_identity');
+  if (syncError) {
+    console.error(JSON.stringify({ route: 'auth/callback', message: syncError.message }));
+  }
 
   // The callback check (ADR-005). Signing out leaves no session behind.
   if (!isEligibleGoogleUser(data.user, ALLOWED_EMAIL_DOMAIN)) {
