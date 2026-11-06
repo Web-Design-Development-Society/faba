@@ -57,6 +57,15 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
   },
   ALREADY_SUSPENDED: { code: 'CONFLICT', message: 'This member is already suspended.' },
   NOT_SUSPENDED: { code: 'CONFLICT', message: "This member isn't suspended." },
+  ORGANIZER_ELIGIBLE: {
+    code: 'CONFLICT',
+    message: "This activity's organizer is still active, so it stays theirs.",
+  },
+  ACTIVITY_NOT_UPCOMING: {
+    code: 'CONFLICT',
+    message: 'This activity is cancelled or has started, so it stays as it is.',
+  },
+  NEW_HOST_NOT_GOING: { code: 'BAD_REQUEST', message: "Pick someone who's going." },
   ACCOUNT_NOT_FOUND: { code: 'NOT_FOUND', message: 'Your account is already deleted.' },
   REPORT_QUOTA_EXCEEDED: {
     code: 'TOO_MANY_REQUESTS',

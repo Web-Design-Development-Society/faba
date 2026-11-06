@@ -3,12 +3,14 @@
 // what was reported, the reason and note, who reported it, and when. Only moderators and admins
 // can open it, and the database checks again. Dismiss, Hide content for an activity (MOD-03) and
 // Suspend member for a member (MOD-04) ask for a reason in a sheet, which goes to the audit log.
+// Below them, upcoming activities whose organizer is no longer eligible, for a moderator to give to
+// a new host or cancel on their pages (AUTH-05).
 import { actions, isInputError } from 'astro:actions';
 import ModerationAction from '../components/ModerationAction.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
 import { FLASH_MESSAGES, setFlash, takeFlash } from '../lib/server/flash';
-import { formatAgo } from '../lib/time';
+import { formatAgo, formatRange } from '../lib/time';
 import { REASONS } from '../lib/validation/report';
 
 // The most reports on the page.
@@ -60,9 +62,20 @@ const { data: reports, error } = moderator
 const targets = (type: string) =>
   reports?.filter(({ target_type }) => target_type === type).map(({ target_id }) => target_id) ??
   [];
-const [{ data: activities }, { data: profiles }] = await Promise.all([
+const now = new Date();
+const [{ data: activities }, { data: profiles }, { data: handovers }] = await Promise.all([
   supabase.from('activities').select('id, title, hidden_at').in('id', targets('activity')),
   supabase.from('profiles').select('id, display_name, status').in('id', targets('profile')),
+  moderator
+    ? supabase
+        .from('activities')
+        .select('id, title, starts_at, organizer:profiles!activities_organizer_id_fkey!inner()')
+        .eq('organizer.status', 'ineligible')
+        .eq('status', 'published')
+        .gt('starts_at', now.toISOString())
+        .order('starts_at')
+        .limit(LIMIT)
+    : { data: [] },
 ]);
 const preview = (type: string, id: string) => {
   if (type === 'activity') {
@@ -82,7 +95,6 @@ const preview = (type: string, id: string) => {
     actionable: profile?.status === 'active',
   };
 };
-const now = new Date();
 ---
 
 <Layout title="Reports">
@@ -167,6 +179,22 @@ const now = new Date();
       })}
     </ul>
   )}
+  {!!handovers?.length && (
+    <section class="handovers" aria-labelledby="handovers">
+      <h2 id="handovers">Organizer no longer active</h2>
+      <p>Give each one to someone going who agrees to host it, or cancel it.</p>
+      <ul>
+        {handovers.map((activity) => (
+          <li>
+            <a href={`/activities/${activity.id}`}>{activity.title}</a> ·{' '}
+            <time datetime={activity.starts_at}>
+              {formatRange(new Date(activity.starts_at), null)}
+            </time>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
 </Layout>
 
 <script>
@@ -200,6 +228,12 @@ const now = new Date();
   }
   .note {
     white-space: pre-line;
+  }
+  .handovers {
+    margin-top: 2rem;
+  }
+  .handovers h2 {
+    font-size: 1.25rem;
   }
   .actions {
     display: flex;

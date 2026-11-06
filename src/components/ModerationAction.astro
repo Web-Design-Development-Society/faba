@@ -1,7 +1,8 @@
 ---
 // A moderator's action, such as Dismiss or Hide content (MOD-02, MOD-03): a button that opens a
 // sheet asking why, which posts to the Action. The reason goes to the audit log (FR-MOD-1). It
-// works without JavaScript. Anything in the slot explains the action above the reason.
+// works without JavaScript. Anything in the slot explains the action above the reason, and the
+// `fields` slot adds fields to the form, such as a choice.
 import { MODERATION_REASON_MAX } from '../lib/validation/moderation';
 import Sheet from './Sheet.astro';
 
@@ -34,6 +35,7 @@ const { id, label, title, action, fields, confirm, cancel } = Astro.props;
     {Object.entries(fields).map(([name, value]) => (
       <input type="hidden" name={name} value={value} />
     ))}
+    <slot name="fields" />
     <p>
       <label for={`${id}-reason`}>Reason, for the audit log</label>
       <br />

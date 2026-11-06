@@ -36,14 +36,14 @@ To see what one moderator did, filter by `actor_id = '<their ID>'` instead.
 
 ## What a row says
 
-| Column                        | Meaning                                                                                                      |
-| ----------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| `actor_id`                    | The member who did it. Empty for a runbook run in the dashboard                                              |
-| `action`                      | `hide`, `unhide`, `suspend`, `reinstate`, `dismiss_report`, `set_role`, `delete_account` or `data_fix`       |
-| `target_type` and `target_id` | An `activity`, `profile` or `report`, and its ID                                                             |
-| `reason`                      | The reason given, 500 characters at most. Moderation actions require one (MOD-02). Account deletion has none |
-| `metadata`                    | Details, such as the old and new role. Never names or emails                                                 |
-| `created_at`                  | When it happened                                                                                             |
+| Column                        | Meaning                                                                                                                                        |
+| ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `actor_id`                    | The member who did it. Empty for a runbook run in the dashboard                                                                                |
+| `action`                      | `hide`, `unhide`, `suspend`, `reinstate`, `dismiss_report`, `set_role`, `delete_account`, `data_fix`, `transfer_activity` or `cancel_activity` |
+| `target_type` and `target_id` | An `activity`, `profile` or `report`, and its ID                                                                                               |
+| `reason`                      | The reason given, 500 characters at most. Moderation actions require one (MOD-02). Account deletion has none                                   |
+| `metadata`                    | Details, such as the old and new role. Never names or emails                                                                                   |
+| `created_at`                  | When it happened                                                                                                                               |
 
 Rows keep the member's ID after they delete their account, but no personal data (PROF-05).
 
