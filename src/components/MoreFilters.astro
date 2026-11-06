@@ -1,0 +1,75 @@
+---
+// More filters (SRCH-02, design document section 7.10): a sheet with a custom date range, which
+// SRCH-03 will add to. It's a GET form, so it works without JavaScript, and it keeps the page's
+// other filters and words. Dates replace a date chip. The button counts the filters it holds that
+// are on.
+import Sheet from './Sheet.astro';
+
+interface Props {
+  /** The page the form filters, such as /discover. */
+  page: string;
+  query: URLSearchParams;
+  /** The dates that are on, as readDates() read them. */
+  dates: { from?: string; to?: string };
+}
+
+const { page, query, dates } = Astro.props;
+const on = dates.from || dates.to ? 1 : 0;
+const kept = [...query].filter(([name]) => !['from', 'to', 'when', 'after', 'id'].includes(name));
+// Dates in the link that readDates() couldn't use, such as an end before the start.
+const wrong = !on && (query.get('from') || query.get('to'));
+const clear = new URLSearchParams(kept);
+---
+
+{wrong && <p role="alert">Those dates don't work together. Pick a start on or before the end.</p>}
+<button type="button" commandfor="more-filters" command="show-modal">
+  {on ? `More filters (${on})` : 'More filters'}
+</button>
+<Sheet id="more-filters" title="More filters">
+  <form method="get" action={page}>
+    {kept.map(([name, value]) => (
+      <input type="hidden" name={name} value={value} />
+    ))}
+    <fieldset>
+      <legend>Dates</legend>
+      <p>
+        <label for="filter-from">From</label>
+        <br />
+        <input id="filter-from" type="date" name="from" value={dates.from} />
+      </p>
+      <p>
+        <label for="filter-to">To</label>
+        <br />
+        <input id="filter-to" type="date" name="to" value={dates.to} />
+      </p>
+    </fieldset>
+    <button>Apply</button>
+  </form>
+  {on ? <a href={clear.size ? `${page}?${clear}` : page}>Clear dates</a> : null}
+  <form method="dialog">
+    <button>Close</button>
+  </form>
+</Sheet>
+
+<style>
+  button,
+  a,
+  input {
+    min-height: 44px;
+  }
+  button {
+    padding: 0 1rem;
+  }
+  a {
+    display: inline-grid;
+    align-items: center;
+  }
+  fieldset {
+    margin: 0 0 1rem;
+    padding: 0;
+    border: 0;
+  }
+  legend {
+    font-weight: 600;
+  }
+</style>
