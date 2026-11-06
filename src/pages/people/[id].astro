@@ -2,11 +2,13 @@
 // A member's profile (PROF-03), from their name on an activity or in who's going (journey J7):
 // who they are, and the upcoming activities they organize. Their email shows only when they share
 // it (PROF-04). Faculty type, RSVPs and last-seen time aren't asked for, and members can't read
-// other members' anyway (RLS, FR-PROF-5). Report opens the Report form (MOD-01).
-import { actions } from 'astro:actions';
+// other members' anyway (RLS, FR-PROF-5). Report opens the Report form (MOD-01). Moderators also
+// see a suspended member's profile, to reinstate them (MOD-04).
+import { actions, isInputError } from 'astro:actions';
 import ActivityCard from '../../components/ActivityCard.astro';
 import Avatar from '../../components/Avatar.astro';
 import Menu from '../../components/Menu.astro';
+import ModerationAction from '../../components/ModerationAction.astro';
 import Status from '../../components/Status.astro';
 import Layout from '../../layouts/Layout.astro';
 import { CARD, FACES } from '../../lib/cards';
@@ -25,20 +27,33 @@ if (rsvp && !rsvp.error) {
   setFlash(Astro.cookies, Astro.url, rsvp.data.status);
   return Astro.redirect(postedFrom(Astro.url, `#activity-${rsvp.data.activity_id}`), 303);
 }
+const reinstate = Astro.getActionResult(actions.moderation.reinstate);
+if (reinstate && !reinstate.error) {
+  setFlash(Astro.cookies, Astro.url, 'reinstated');
+  return Astro.redirect(postedFrom(Astro.url), 303);
+}
 const flash = takeFlash(Astro.cookies);
+// The reason's error shows at the top, since its sheet has closed.
+const reinstateFailure = isInputError(reinstate?.error)
+  ? reinstate.error.fields.reason?.[0]
+  : reinstate?.error?.message;
 
 // Members can't read a profile that isn't active (RLS): a suspended or ineligible member's, or a
-// deleted account's. The filter keeps those out for moderators too, who'll be able to. Nor is an id
-// that isn't a UUID, which is an error. Their activities are the feed's: published, not hidden,
-// and from 3 hours ago, so one that's underway stays.
+// deleted account's. Moderators can, and see suspended ones here. Nor is an id that isn't a UUID,
+// which is an error. Their activities are the feed's: published, not hidden, and from 3 hours ago,
+// so one that's underway stays.
 const profileId = Astro.params.id!;
 const now = new Date();
+const moderator =
+  member?.status === 'active' && (member.role === 'moderator' || member.role === 'admin');
 const [{ data: profile }, { data, error }, { data: categories }] = await Promise.all([
   supabase
     .from('profiles')
-    .select('id, display_name, avatar_url, use_initials, department, bio, interests, public_email')
+    .select(
+      'id, display_name, avatar_url, use_initials, department, bio, interests, public_email, status'
+    )
     .eq('id', profileId)
-    .eq('status', 'active')
+    .in('status', moderator ? ['active', 'suspended'] : ['active'])
     .maybeSingle(),
   supabase
     .from('activities')
@@ -65,7 +80,7 @@ const mine = profile?.id === user.id;
 <Layout title={profile?.display_name ?? 'Not available'}>
   <header class="top">
     <a href="/discover">Back to Discover</a>
-    {profile && !mine && (
+    {profile?.status === 'active' && !mine && (
       <Menu>
         <li>
           <a href={`/people/${profile.id}/report`}>Report</a>
@@ -75,8 +90,27 @@ const mine = profile?.id === user.id;
   </header>
   <Status message={flash && FLASH_MESSAGES[flash]} />
   {rsvp?.error && <p role="alert">{rsvp.error.message}</p>}
+  {reinstateFailure && <p role="alert">{reinstateFailure}</p>}
   {profile ? (
     <>
+      {profile.status === 'suspended' && (
+        <div class="banner">
+          <p>Suspended</p>
+          <ModerationAction
+            id="reinstate"
+            label="Reinstate"
+            title="Reinstate this member?"
+            action={actions.moderation.reinstate.queryString}
+            fields={{ user_id: profile.id }}
+            confirm="Yes, reinstate them"
+            cancel="No, keep them suspended"
+          >
+            <p>
+              They can use FABA again. Their hidden activities stay hidden until you unhide them.
+            </p>
+          </ModerationAction>
+        </div>
+      )}
       <div class="who">
         <Avatar member={profile} large />
         <div>
@@ -147,6 +181,15 @@ const mine = profile?.id === user.id;
   }
   .bio {
     white-space: pre-line;
+  }
+  .banner {
+    padding: 0.75rem 1rem;
+    border-left: 0.25rem solid #b42318;
+    background: #fef3f2;
+  }
+  .banner > p:first-child {
+    margin-top: 0;
+    font-weight: 600;
   }
   /* minmax(0, 1fr) keeps a card with a long place on one line from widening the column. */
   ul {

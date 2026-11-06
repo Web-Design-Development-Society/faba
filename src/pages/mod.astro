@@ -1,8 +1,8 @@
 ---
 // The reports queue (MOD-02, design document section 7.11): open reports, oldest first, each with
 // what was reported, the reason and note, who reported it, and when. Only moderators and admins
-// can open it, and the database checks again. Dismiss, and Hide content for an activity (MOD-03),
-// ask for a reason in a sheet, which goes to the audit log. Suspend member comes with MOD-04.
+// can open it, and the database checks again. Dismiss, Hide content for an activity (MOD-03) and
+// Suspend member for a member (MOD-04) ask for a reason in a sheet, which goes to the audit log.
 import { actions, isInputError } from 'astro:actions';
 import ModerationAction from '../components/ModerationAction.astro';
 import Status from '../components/Status.astro';
@@ -27,16 +27,21 @@ if (hide && !hide.error) {
   setFlash(Astro.cookies, Astro.url, 'hidden');
   return Astro.redirect('/mod', 303);
 }
+const suspend = Astro.getActionResult(actions.moderation.suspend);
+if (suspend && !suspend.error) {
+  setFlash(Astro.cookies, Astro.url, 'suspended');
+  return Astro.redirect('/mod', 303);
+}
 const flash = takeFlash(Astro.cookies);
 // The reason's error shows at the top, since its sheet has closed.
-const failed = dismiss?.error ?? hide?.error;
+const failed = dismiss?.error ?? hide?.error ?? suspend?.error;
 const failure = isInputError(failed) ? failed.fields.reason?.[0] : failed?.message;
 
 const moderator =
   member?.status === 'active' && (member.role === 'moderator' || member.role === 'admin');
 if (!moderator) Astro.response.status = 403;
 
-// Reporters who aren't active have no profile to read, and nor does a deleted account.
+// A deleted account has no profile to read.
 const { data: reports, error } = moderator
   ? await supabase
       .from('reports')
@@ -50,27 +55,33 @@ const { data: reports, error } = moderator
       .limit(LIMIT)
   : { data: [], error: null };
 
-// What was reported. Members who aren't active aren't readable yet: moderators get those with
-// MOD-04. Hide content needs an activity that's there.
+// What was reported. Moderators read every activity and profile, so only a deleted one is
+// missing. Hide content and Suspend member need it there, and not hidden or suspended already.
 const targets = (type: string) =>
   reports?.filter(({ target_type }) => target_type === type).map(({ target_id }) => target_id) ??
   [];
 const [{ data: activities }, { data: profiles }] = await Promise.all([
-  supabase.from('activities').select('id, title').in('id', targets('activity')),
-  supabase.from('profiles').select('id, display_name').in('id', targets('profile')),
+  supabase.from('activities').select('id, title, hidden_at').in('id', targets('activity')),
+  supabase.from('profiles').select('id, display_name, status').in('id', targets('profile')),
 ]);
-const preview = (type: string, id: string) =>
-  type === 'activity'
-    ? {
-        kind: 'Activity',
-        href: `/activities/${id}`,
-        name: activities?.find((a) => a.id === id)?.title,
-      }
-    : {
-        kind: 'Member',
-        href: `/people/${id}`,
-        name: profiles?.find((p) => p.id === id)?.display_name,
-      };
+const preview = (type: string, id: string) => {
+  if (type === 'activity') {
+    const activity = activities?.find((a) => a.id === id);
+    return {
+      kind: 'Activity',
+      href: `/activities/${id}`,
+      name: activity?.title,
+      actionable: !!activity && !activity.hidden_at,
+    };
+  }
+  const profile = profiles?.find((p) => p.id === id);
+  return {
+    kind: 'Member',
+    href: `/people/${id}`,
+    name: profile?.display_name,
+    actionable: profile?.status === 'active',
+  };
+};
 const now = new Date();
 ---
 
@@ -116,7 +127,7 @@ const now = new Date();
                   confirm="Dismiss report"
                   cancel="Keep it open"
                 />
-                {report.target_type === 'activity' && target.name && (
+                {report.target_type === 'activity' && target.actionable && (
                   <ModerationAction
                     id={`hide-${report.id}`}
                     label="Hide content"
@@ -129,6 +140,23 @@ const now = new Date();
                     <p>
                       Members won't see it. Its organizer sees your reason, and can edit it. Its
                       other open reports are dealt with too.
+                    </p>
+                  </ModerationAction>
+                )}
+                {report.target_type === 'profile' && target.actionable && (
+                  <ModerationAction
+                    id={`suspend-${report.id}`}
+                    label="Suspend member"
+                    title="Suspend this member?"
+                    action={actions.moderation.suspend.queryString}
+                    fields={{ user_id: report.target_id }}
+                    confirm="Yes, suspend them"
+                    cancel="Don't suspend"
+                  >
+                    <p>
+                      They can't use FABA until a moderator reinstates them. Their activities that
+                      aren't over are hidden, and stay hidden after that. Their other open reports
+                      are dealt with too.
                     </p>
                   </ModerationAction>
                 )}

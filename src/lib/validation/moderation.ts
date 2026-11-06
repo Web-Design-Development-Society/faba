@@ -15,3 +15,6 @@ export const dismissal = z.object({ report_id: z.uuid(), reason });
 
 /** Hiding an activity, or unhiding it (MOD-03). */
 export const activityModeration = z.object({ activity_id: z.uuid(), reason });
+
+/** Suspending a member, or reinstating them (MOD-04). */
+export const memberModeration = z.object({ user_id: z.uuid(), reason });

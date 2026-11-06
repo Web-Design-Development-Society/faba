@@ -14,6 +14,8 @@ export const FLASH_MESSAGES = {
   dismissed: 'Report dismissed.',
   hidden: 'Activity hidden.',
   unhidden: 'Activity unhidden.',
+  suspended: 'Member suspended.',
+  reinstated: 'Member reinstated.',
 };
 
 export type Flash = keyof typeof FLASH_MESSAGES;

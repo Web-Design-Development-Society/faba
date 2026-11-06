@@ -49,6 +49,11 @@ export const onRequest = defineMiddleware(async (context, next) => {
   if (context.locals.user && !PUBLIC_PATHS.has(context.url.pathname)) {
     const { data: member } = await supabase.rpc('get_session_context').maybeSingle();
     context.locals.member = member;
+    // A suspended member sees only Access paused (MOD-04). Row Level Security gives them nothing
+    // else anyway.
+    if (member?.status === 'suspended' && context.url.pathname !== '/paused') {
+      return noStore(context.redirect('/paused'));
+    }
     // Until they accept the current guidelines, members see only Welcome (PROF-01).
     if (member && !member.guidelines_ok && context.url.pathname !== '/welcome') {
       return noStore(context.redirect(`/welcome?next=${back}`));
