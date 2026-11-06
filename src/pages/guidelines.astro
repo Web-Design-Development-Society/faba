@@ -1,8 +1,12 @@
 ---
-// The community guidelines, for visitors and members (PROF-01). INFO-01 replaces this draft with
-// the text the board approves (FND-05).
+// The community guidelines, for visitors and members (PROF-01, INFO-01). Prerendered, since they're
+// the same for everyone (ADR-001). They're drafts until the board approves them (FND-05).
+import BoardContact from '../components/BoardContact.astro';
+import ParticipationDisclaimer from '../components/ParticipationDisclaimer.astro';
 import Layout from '../layouts/Layout.astro';
 import { GUIDELINES } from '../lib/guidelines';
+
+export const prerender = true;
 ---
 
 <Layout title="Community guidelines">
@@ -13,5 +17,18 @@ import { GUIDELINES } from '../lib/guidelines';
       <li>{guideline}</li>
     ))}
   </ul>
-  <p>FABA is run by the Faculty Association Board. It isn't an official BYU-Idaho site.</p>
+
+  <h2>Taking part</h2>
+  <ParticipationDisclaimer />
+
+  <h2>If something goes wrong</h2>
+  <p>
+    <strong>In an emergency, call 911</strong>, or BYU-Idaho Campus Security on campus.
+  </p>
+  <p>
+    For an urgent safety concern about a member or an activity, contact <BoardContact /> directly.
+    Use
+    <strong>Report</strong> on the activity or profile for anything else, and a moderator will
+    review it.
+  </p>
 </Layout>
