@@ -31,12 +31,11 @@ SET
     ELSE 'active'
   END
 WHERE
-  id IN
-    (
-      'c0000000-0000-4000-8000-000000000031',
-      'c0000000-0000-4000-8000-000000000032',
-      'c0000000-0000-4000-8000-000000000033'
-    );
+  id IN (
+    'c0000000-0000-4000-8000-000000000031',
+    'c0000000-0000-4000-8000-000000000032',
+    'c0000000-0000-4000-8000-000000000033'
+  );
 
 INSERT INTO public.activities
   (id, organizer_id, category_id, title, starts_at, location_name, going_count)
