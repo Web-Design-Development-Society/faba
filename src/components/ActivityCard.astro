@@ -77,10 +77,10 @@ const full = isFull(activity);
     <p class="mine cancelled">Cancelled</p>
   ) : hosting ? (
     <p class="mine">You're hosting</p>
-  ) : open && full && !going ? (
+  ) : open && full && !going && activity.my_rsvp !== 'maybe' ? (
     <p class="mine">Full</p>
   ) : open ? (
-    <RsvpForm activityId={activity.id} going={going} />
+    <RsvpForm activityId={activity.id} status={activity.my_rsvp} />
   ) : (
     going && <p class="mine">✓ Going</p>
   )}
