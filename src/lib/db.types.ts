@@ -21,6 +21,7 @@ export type Database = {
           id: string;
           idempotency_key: string | null;
           location_name: string;
+          maybe_count: number;
           organizer_id: string | null;
           search_doc: unknown;
           starts_at: string;
@@ -50,6 +51,7 @@ export type Database = {
           id?: string;
           idempotency_key?: string | null;
           location_name: string;
+          maybe_count?: number;
           organizer_id?: string | null;
           search_doc?: never;
           starts_at: string;
@@ -77,6 +79,7 @@ export type Database = {
           id?: string;
           idempotency_key?: string | null;
           location_name?: string;
+          maybe_count?: number;
           organizer_id?: string | null;
           search_doc?: never;
           starts_at?: string;
@@ -450,6 +453,7 @@ export type Database = {
           id: string;
           idempotency_key: string | null;
           location_name: string;
+          maybe_count: number;
           organizer_id: string | null;
           search_doc: unknown;
           starts_at: string;
@@ -535,6 +539,7 @@ export type Database = {
           id: string;
           idempotency_key: string | null;
           location_name: string;
+          maybe_count: number;
           organizer_id: string | null;
           search_doc: unknown;
           starts_at: string;
