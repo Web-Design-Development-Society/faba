@@ -111,6 +111,37 @@ export type Database = {
           },
         ];
       };
+      activity_tags: {
+        Row: {
+          activity_id: string;
+          tag_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          activity_id: string;
+          tag_id: string;
+        };
+        Update: {
+          activity_id?: string;
+          tag_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'activity_tags_activity_id_fkey';
+            columns: ['activity_id'];
+            isOneToOne: false;
+            referencedRelation: 'activities';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'activity_tags_tag_id_fkey';
+            columns: ['tag_id'];
+            isOneToOne: false;
+            referencedRelation: 'tags';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       categories: {
         Row: {
           color_token: string;
@@ -337,6 +368,34 @@ export type Database = {
           },
         ];
       };
+      tags: {
+        Row: {
+          created_at: string;
+          id: string;
+          is_active: boolean;
+          name: string;
+          sort_order: number;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          id: string;
+          is_active?: boolean;
+          name: string;
+          sort_order: number;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          name?: string;
+          sort_order?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -489,6 +548,7 @@ export type Database = {
           isSetofReturn: true;
         };
       };
+      set_activity_tags: { Args: { activity_id: string; tag_ids: string[] }; Returns: undefined };
       set_email_visibility: { Args: { visible: boolean }; Returns: undefined };
       suspend_member: { Args: { reason: string; user_id: string }; Returns: undefined };
       sync_my_identity: { Args: Record<PropertyKey, never>; Returns: string };
