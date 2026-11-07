@@ -425,8 +425,10 @@ export type Database = {
           cost_note?: string;
           description?: string;
           ends_at?: string;
+          guests_allowed?: boolean;
           idempotency_key?: string;
           location_name: string;
+          max_guests_per_rsvp?: number;
           starts_at: string;
           title: string;
         };
