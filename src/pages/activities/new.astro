@@ -24,11 +24,14 @@ const fields: Record<string, string[] | undefined> = isInputError(result?.error)
   : {};
 const failure = result?.error && !isInputError(result.error) ? result.error.message : null;
 
-const { data: categories, error: categoriesError } = await Astro.locals.supabase
-  .from('categories')
-  .select('id, name')
-  .eq('is_active', true)
-  .order('sort_order');
+const [{ data: categories, error: categoriesError }, { data: tags }] = await Promise.all([
+  Astro.locals.supabase
+    .from('categories')
+    .select('id, name')
+    .eq('is_active', true)
+    .order('sort_order'),
+  Astro.locals.supabase.from('tags').select('id, name').eq('is_active', true).order('sort_order'),
+]);
 // The suggested start, and a category that Discover's filter can choose.
 const start = suggestedStart(new Date());
 const suggested: Record<string, string | undefined> = {
@@ -58,7 +61,13 @@ const shown = (name: string) => value(name) ?? suggested[name];
       name="idempotency_key"
       value={value('idempotency_key') ?? crypto.randomUUID()}
     />
-    <ActivityFields value={shown} errors={fields} categories={categories ?? []} />
+    <ActivityFields
+      value={shown}
+      errors={fields}
+      categories={categories ?? []}
+      tags={tags ?? []}
+      chosen={typed?.getAll('tags').map(String) ?? []}
+    />
     <button type="submit">Post activity</button>
   </form>
 </Layout>

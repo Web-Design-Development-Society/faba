@@ -43,7 +43,9 @@ function enhance(form: HTMLFormElement) {
       const field = form.elements.namedItem(name) as HTMLInputElement | RadioNodeList | null;
       if (field) field.value = value;
     }
-    if (draft.end_time || draft.cost_note) form.querySelector('details')!.open = true;
+    if (draft.end_time || draft.cost_note || draft.capacity) {
+      form.querySelector('details')!.open = true;
+    }
     const notice = document.querySelector<HTMLElement>('[data-draft-notice]')!;
     notice.hidden = false;
     notice.querySelector('button')!.addEventListener('click', () => {
