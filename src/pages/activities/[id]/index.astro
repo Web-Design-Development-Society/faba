@@ -61,12 +61,13 @@ const [{ data: activity }, { data: me }] = await Promise.all([
     .from('activities')
     .select(
       `id, title, description, starts_at, ends_at, location_name, cost_note, status, cancel_reason,
-      hidden_at, hidden_reason, going_count, maybe_count, guest_total, capacity, organizer_id,
+      hidden_at, hidden_reason, going_count, maybe_count, guest_total, capacity, guests_allowed,
+      max_guests_per_rsvp, organizer_id,
       time_or_place_changed_at, category_id,
       category:categories(name),
       tags:activity_tags(tag:tags(name, sort_order)),
       organizer:profiles!activities_organizer_id_fkey(id, display_name, avatar_url, use_initials, department, status),
-      mine:rsvps(status),
+      mine:rsvps(status, guest_count),
       going:rsvps(member:profiles!inner(id, display_name, avatar_url, use_initials, department)),
       maybe:rsvps(member:profiles!inner(id, display_name, avatar_url, use_initials, department))`
     )
@@ -216,6 +217,13 @@ const email = activity
             <Avatar member={member} named mine={member.id === user.id} />
           ))}
           <span data-count>{activity.going_count}</span> going
+          <span
+            data-guest-total={activity.id}
+            data-value={activity.guest_total}
+            hidden={!activity.guest_total}
+          >
+            {` (+${activity.guest_total} ${activity.guest_total === 1 ? 'guest' : 'guests'})`}
+          </span>
           <span data-maybe={activity.id} hidden={!activity.maybe_count}>
             · <span data-count>{activity.maybe_count}</span> maybe
           </span>
@@ -337,7 +345,15 @@ const email = activity
             </button>
           </>
         ) : (
-          <RsvpForm activityId={activity.id} status={answer} />
+          <RsvpForm
+            activityId={activity.id}
+            status={answer}
+            guests={
+              activity.guests_allowed
+                ? { most: activity.max_guests_per_rsvp, mine: activity.mine[0]?.guest_count ?? 0 }
+                : undefined
+            }
+          />
         )}
       </div>
     </>

@@ -12,6 +12,7 @@ export const ACTIVITY = {
   cancelReason: { max: 200 },
   capacity: { min: 1, max: 500 },
   tags: { max: 3 },
+  guests: { max: 5, suggested: 3 },
   monthsAhead: 12,
 };
 
@@ -102,6 +103,14 @@ export const newActivity = z
       .int('Enter a whole number of spots.')
       .min(ACTIVITY.capacity.min, `Allow at least ${ACTIVITY.capacity.min} spot.`)
       .max(ACTIVITY.capacity.max, `Allow ${ACTIVITY.capacity.max} spots or fewer.`)
+      .optional(),
+    // RSVP-06. Without Guests welcome, the most each can bring is kept for later.
+    guests_allowed: z.boolean().optional(),
+    max_guests_per_rsvp: z
+      .number({ error: 'Choose how many guests each member can bring.' })
+      .int()
+      .min(1, 'Allow at least 1 guest each.')
+      .max(ACTIVITY.guests.max, `Allow ${ACTIVITY.guests.max} guests each or fewer.`)
       .optional(),
     // SRCH-03. set_activity_tags() checks they're offered.
     tags: z

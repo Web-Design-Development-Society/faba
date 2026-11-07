@@ -24,6 +24,10 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
   ACTIVITY_FULL: { code: 'CONFLICT', message: 'This activity is full. Every spot is taken.' },
   INVALID_CAPACITY: { code: 'BAD_REQUEST', message: 'Allow between 1 and 500 spots.' },
   TOO_MANY_TAGS: { code: 'BAD_REQUEST', message: 'Pick up to 3 tags.' },
+  INVALID_GUESTS: {
+    code: 'BAD_REQUEST',
+    message: "That's more guests than the organizer allows. Bring fewer.",
+  },
   INVALID_TAG: {
     code: 'BAD_REQUEST',
     message: 'One of those tags is no longer offered. Pick another.',
