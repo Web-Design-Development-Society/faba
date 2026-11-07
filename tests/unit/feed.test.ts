@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { nextPage, readCursor, readDates } from '../../src/lib/feed';
+import { filterQuery, nextPage, readCursor, readDates, readMore } from '../../src/lib/feed';
 
 const last = {
   starts_at: '2026-11-07T14:00:00.123456+00:00',
@@ -79,5 +79,22 @@ describe('the date filter', () => {
     ['empty dates', '?from=&to='],
   ])('has no filter for %s', (_, query) => {
     expect(read(query)).toEqual({});
+  });
+});
+
+describe('More filters', () => {
+  it('reads spots left and each tag once', () => {
+    const params = new URLSearchParams('?spots=1&tag=free&tag=accessible&tag=free&tag=Not%20one');
+    expect(readMore(params)).toEqual({ spots: true, tags: ['free', 'accessible'] });
+    expect(readMore(new URLSearchParams('?spots=yes'))).toEqual({ spots: false, tags: [] });
+  });
+
+  it('keeps each tag in a link', () => {
+    expect(filterQuery({ cat: 'food', tag: ['free', 'accessible'], spots: undefined })).toBe(
+      'cat=food&tag=free&tag=accessible'
+    );
+    expect(
+      new URLSearchParams(nextPage(last, { tag: ['free', 'accessible'] })).getAll('tag')
+    ).toEqual(['free', 'accessible']);
   });
 });
