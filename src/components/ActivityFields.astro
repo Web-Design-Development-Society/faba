@@ -24,7 +24,9 @@ const now = new Date();
 const { today, tomorrow, saturday } = quickDates(now);
 const moreOptions =
   chosen.length > 0 ||
-  ['end_time', 'cost_note', 'capacity', 'tags'].some((name) => value(name) || errors[name]);
+  ['end_time', 'cost_note', 'capacity', 'tags', 'guests_allowed', 'max_guests_per_rsvp'].some(
+    (name) => value(name) || errors[name]
+  );
 ---
 
 <p>
@@ -162,6 +164,39 @@ const moreOptions =
       aria-invalid={errors.capacity ? 'true' : undefined}
     />
     <FieldError name="capacity" errors={errors.capacity} />
+  </p>
+  <p>
+    <label>
+      <input
+        type="checkbox"
+        name="guests_allowed"
+        value="true"
+        checked={value('guests_allowed') === 'true'}
+      />
+      Guests welcome
+    </label>
+  </p>
+  <p>
+    <label for="max_guests_per_rsvp">Most guests each member can bring</label>
+    <br />
+    <select
+      id="max_guests_per_rsvp"
+      name="max_guests_per_rsvp"
+      aria-invalid={errors.max_guests_per_rsvp ? 'true' : undefined}
+      aria-describedby={errors.max_guests_per_rsvp ? 'max_guests_per_rsvp-error' : undefined}
+    >
+      {Array.from({ length: ACTIVITY.guests.max }, (_, n) => n + 1).map((most) => (
+        <option
+          value={most}
+          selected={
+            (value('max_guests_per_rsvp') ?? String(ACTIVITY.guests.suggested)) === String(most)
+          }
+        >
+          {most}
+        </option>
+      ))}
+    </select>
+    <FieldError name="max_guests_per_rsvp" errors={errors.max_guests_per_rsvp} />
   </p>
   {tags.length > 0 && (
     <fieldset aria-describedby={errors.tags ? 'tags-hint tags-error' : 'tags-hint'}>

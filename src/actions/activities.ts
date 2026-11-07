@@ -8,6 +8,7 @@ import {
   descriptionChange,
   newActivity,
   restoration,
+  ACTIVITY,
 } from '../lib/validation/activity';
 
 /** Sets activity `id`'s tags (SRCH-03). Returns its id. */
@@ -61,6 +62,8 @@ export const activities = {
         ends_at: activity.ends_at ?? null,
         cost_note: activity.cost_note ?? null,
         capacity: activity.capacity ?? null,
+        guests_allowed: activity.guests_allowed ?? false,
+        max_guests_per_rsvp: activity.max_guests_per_rsvp ?? ACTIVITY.guests.max,
       });
       return setTags(locals, id, tags ?? []);
     },

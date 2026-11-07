@@ -102,6 +102,18 @@ describe('newActivity', () => {
     expect(errors({ capacity })).toEqual({ capacity: message });
   });
 
+  it('takes Guests welcome and the most each member can bring', () => {
+    expect(
+      newActivity.parse({ ...valid, guests_allowed: true, max_guests_per_rsvp: 2 })
+    ).toMatchObject({ guests_allowed: true, max_guests_per_rsvp: 2 });
+    expect(errors({ max_guests_per_rsvp: 6 })).toEqual({
+      max_guests_per_rsvp: 'Allow 5 guests each or fewer.',
+    });
+    expect(errors({ max_guests_per_rsvp: 0 })).toEqual({
+      max_guests_per_rsvp: 'Allow at least 1 guest each.',
+    });
+  });
+
   it('takes up to 3 tags', () => {
     expect(newActivity.parse({ ...valid, tags: ['free', 'accessible'] }).tags).toEqual([
       'free',
