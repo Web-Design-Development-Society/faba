@@ -262,7 +262,7 @@ RESET ROLE;
 SELECT ok(
   NOT has_function_privilege(
     'anon',
-    'public.get_feed(timestamptz, uuid, integer, text)',
+    'public.get_feed(timestamptz, uuid, integer, text, timestamptz, timestamptz)',
     'execute'
   ),
   'signed-out visitors cannot call get_feed'

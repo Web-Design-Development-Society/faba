@@ -7,6 +7,7 @@ export type Database = {
         Row: {
           cancel_reason: string | null;
           cancelled_at: string | null;
+          capacity: number | null;
           category_id: string;
           cost_note: string | null;
           created_at: string;
@@ -35,6 +36,7 @@ export type Database = {
         Insert: {
           cancel_reason?: string | null;
           cancelled_at?: string | null;
+          capacity?: number | null;
           category_id: string;
           cost_note?: string | null;
           created_at?: string;
@@ -61,6 +63,7 @@ export type Database = {
         Update: {
           cancel_reason?: string | null;
           cancelled_at?: string | null;
+          capacity?: number | null;
           category_id?: string;
           cost_note?: string | null;
           created_at?: string;
@@ -346,6 +349,7 @@ export type Database = {
       cancel_activity: { Args: { activity_id: string; reason?: string }; Returns: undefined };
       create_activity: {
         Args: {
+          capacity?: number;
           category_id: string;
           cost_note?: string;
           description?: string;
@@ -365,10 +369,13 @@ export type Database = {
           after_starts_at?: string;
           category?: string;
           page_size?: number;
+          starts_before?: string;
+          starts_from?: string;
         };
         Returns: {
           cancel_reason: string | null;
           cancelled_at: string | null;
+          capacity: number | null;
           category_id: string;
           cost_note: string | null;
           created_at: string;
@@ -441,13 +448,17 @@ export type Database = {
         Args: {
           after_id?: string;
           after_starts_at?: string;
+          category?: string;
           include_past?: boolean;
           page_size?: number;
           q: string;
+          starts_before?: string;
+          starts_from?: string;
         };
         Returns: {
           cancel_reason: string | null;
           cancelled_at: string | null;
+          capacity: number | null;
           category_id: string;
           cost_note: string | null;
           created_at: string;

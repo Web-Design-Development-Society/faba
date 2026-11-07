@@ -18,9 +18,11 @@ describe('the feed cursor', () => {
     });
   });
 
-  it('keeps a category, which the cursor leaves out', () => {
-    const query = nextPage(last, 'outdoors');
+  it('keeps the filters that are set, which the cursor leaves out', () => {
+    const query = nextPage(last, { cat: 'outdoors', when: 'weekend', q: undefined });
     expect(new URLSearchParams(query).get('cat')).toBe('outdoors');
+    expect(new URLSearchParams(query).get('when')).toBe('weekend');
+    expect(new URLSearchParams(query).has('q')).toBe(false);
     expect(readCursor(new URLSearchParams(query))).toEqual({
       after_starts_at: last.starts_at,
       after_id: last.id,

@@ -12,10 +12,19 @@ export function readCursor(params: URLSearchParams) {
   return parsed.success ? { after_starts_at: parsed.data.after, after_id: parsed.data.id } : {};
 }
 
-/** The query of the Show more link after `last`, in `category` if the page is. */
-export function nextPage(last: { starts_at: string; id: string }, category?: string): string {
+/** The page's `filters` that are set, as a query, such as `cat=outdoors&when=weekend`. */
+export function filterQuery(filters: Record<string, string | undefined>): string {
+  const set = Object.entries(filters).filter((entry): entry is [string, string] => !!entry[1]);
+  return new URLSearchParams(set).toString();
+}
+
+/** The query of the Show more link after `last`, keeping the page's `filters` that are set. */
+export function nextPage(
+  last: { starts_at: string; id: string },
+  filters: Record<string, string | undefined> = {}
+): string {
   const query = new URLSearchParams({ after: last.starts_at, id: last.id });
-  if (category) query.set('cat', category);
+  for (const [name, value] of Object.entries(filters)) if (value) query.set(name, value);
   return `?${query}`;
 }
 

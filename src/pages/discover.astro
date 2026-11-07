@@ -1,17 +1,19 @@
 ---
 // Home (ACT-01, design document section 7.4): what's coming up, soonest first, under a heading
-// for each day in Rexburg time. Category chips filter it, as in /discover?cat=outdoors (ACT-06).
-// The app shell's bottom navigation replaces the links.
+// for each day in Rexburg time. Chips filter it by date and category, as in
+// /discover?when=weekend&cat=outdoors (ACT-06, SRCH-02), and More filters by custom dates. The app
+// shell's bottom navigation replaces the links.
 import { actions } from 'astro:actions';
 import ActivityCard from '../components/ActivityCard.astro';
 import Avatar from '../components/Avatar.astro';
-import CategoryChips from '../components/CategoryChips.astro';
+import FilterChips from '../components/FilterChips.astro';
+import MoreFilters from '../components/MoreFilters.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
 import { CARD, FACES } from '../lib/cards';
-import { nextPage, readCursor } from '../lib/feed';
+import { filterQuery, nextPage, readCursor, readDates } from '../lib/feed';
 import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../lib/server/flash';
-import { formatDay, rexburgDate } from '../lib/time';
+import { formatDay, rexburgDate, WHENS } from '../lib/time';
 
 // Activities on a page.
 const PAGE = 20;
@@ -32,11 +34,18 @@ const now = new Date();
 const cursor = readCursor(Astro.url.searchParams);
 const firstPage = !cursor.after_id;
 const cat = Astro.url.searchParams.get('cat') || undefined;
+const dates = readDates(Astro.url.searchParams, now);
 
 const [feed, plan, categories] = await Promise.all([
   // One more than a page says whether there's another.
   supabase
-    .rpc('get_feed', { ...cursor, category: cat, page_size: PAGE + 1 })
+    .rpc('get_feed', {
+      ...cursor,
+      category: cat,
+      page_size: PAGE + 1,
+      starts_from: dates.starts_from,
+      starts_before: dates.starts_before,
+    })
     .select(CARD)
     .eq('going.status', 'going')
     .order('starts_at')
@@ -70,14 +79,24 @@ const [feed, plan, categories] = await Promise.all([
 const chips = categories.data?.length ? categories.data : null;
 const category = chips?.find(({ id }) => id === cat);
 if (cat && categories.data && !category) return Astro.redirect('/discover');
-const here = category ? `/discover?cat=${encodeURIComponent(category.id)}` : '/discover';
+const filters = { cat: category?.id, when: dates.when, from: dates.from, to: dates.to };
+const kept = filterQuery(filters);
+const here = kept ? `/discover?${kept}` : '/discover';
+// What the filters ask for, such as "Outdoors this weekend", when nothing matches.
+const matching = [
+  category?.name,
+  dates.when && WHENS[dates.when].toLowerCase(),
+  dates.from && `from ${formatDay(dates.from, now)}`,
+  dates.to && `${dates.from ? 'to' : 'until'} ${formatDay(dates.to, now)}`,
+]
+  .filter(Boolean)
+  .join(' ');
 const post = category
   ? `/activities/new?cat=${encodeURIComponent(category.id)}`
   : '/activities/new';
 
 const activities = feed.data?.slice(0, PAGE) ?? [];
-const more =
-  feed.data && feed.data.length > PAGE ? nextPage(activities.at(-1)!, category?.id) : null;
+const more = feed.data && feed.data.length > PAGE ? nextPage(activities.at(-1)!, filters) : null;
 const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(starts_at)));
 ---
 
@@ -100,15 +119,16 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
       <ActivityCard activity={plan.data} viewer={user.id} now={now} faces={FACES} />
     </section>
   )}
-  {chips && <CategoryChips categories={chips} current={category?.id} />}
+  {chips && <FilterChips categories={chips} page="/discover" query={Astro.url.searchParams} />}
+  <MoreFilters page="/discover" query={Astro.url.searchParams} dates={dates} />
 
   {feed.error ? (
     <p role="alert">Activities couldn't load. Please try again.</p>
   ) : activities.length === 0 ? (
-    firstPage && category ? (
+    firstPage && matching ? (
       <div class="empty">
         <p>
-          Nothing matches <em>{category.name}</em>.
+          Nothing matches <em>{matching}</em>.
         </p>
         <a href="/discover">Clear filters</a>
         <a href={post}>Post one</a>
@@ -154,6 +174,7 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
 <script>
   import '../scripts/feed';
   import '../scripts/rsvp';
+  import '../scripts/sheets';
 </script>
 
 <style>

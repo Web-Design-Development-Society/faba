@@ -21,6 +21,8 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
     message: "This activity is cancelled, so it isn't taking RSVPs.",
   },
   ACTIVITY_OVER: { code: 'CONFLICT', message: "This activity is over, so it isn't taking RSVPs." },
+  ACTIVITY_FULL: { code: 'CONFLICT', message: 'This activity is full. Every spot is taken.' },
+  INVALID_CAPACITY: { code: 'BAD_REQUEST', message: 'Allow between 1 and 500 spots.' },
   ORGANIZER_GOING: { code: 'BAD_REQUEST', message: "You're hosting, so you're already going." },
   NOT_ORGANIZER: { code: 'FORBIDDEN', message: 'Only the organizer can edit this activity.' },
   STALE_EDIT: {

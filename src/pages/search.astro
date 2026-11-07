@@ -2,18 +2,21 @@
 // Search (SRCH-01, design document sections 7.10 and J3): a keyword search over each activity's
 // title, place and description, and its organizer's name, upcoming by default, with Include past.
 // The query lives in the URL, as in /search?q=hike&past=1, so it works without JavaScript and can
-// be shared. Without a query, it shows recent searches, which only this device keeps, and the
-// categories. Results are cards, under a heading for each day, as on Discover.
+// be shared. The chips and More filters narrow the results by date and category, as on Discover
+// (SRCH-02), and searching again keeps them. Without a query, it shows recent searches, which only
+// this device keeps, and the chips, as links to Discover. Results are cards, under a heading for
+// each day, as on Discover.
 import { actions } from 'astro:actions';
 import ActivityCard from '../components/ActivityCard.astro';
 import Avatar from '../components/Avatar.astro';
-import CategoryChips from '../components/CategoryChips.astro';
+import FilterChips from '../components/FilterChips.astro';
+import MoreFilters from '../components/MoreFilters.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
 import { CARD, FACES } from '../lib/cards';
-import { readCursor } from '../lib/feed';
+import { filterQuery, nextPage, readCursor, readDates } from '../lib/feed';
 import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../lib/server/flash';
-import { formatDay, rexburgDate } from '../lib/time';
+import { formatDay, rexburgDate, WHENS } from '../lib/time';
 
 // Results on a page, and the longest query, as search_activities() reads it.
 const PAGE = 20;
@@ -33,6 +36,8 @@ const flash = takeFlash(Astro.cookies);
 const now = new Date();
 const q = (Astro.url.searchParams.get('q') ?? '').trim().slice(0, MAX_QUERY);
 const past = Astro.url.searchParams.get('past') === '1';
+const cat = Astro.url.searchParams.get('cat') || undefined;
+const dates = readDates(Astro.url.searchParams, now);
 const cursor = readCursor(Astro.url.searchParams);
 const firstPage = !cursor.after_id;
 
@@ -40,7 +45,15 @@ const [results, categories] = await Promise.all([
   // One more than a page says whether there's another.
   q
     ? supabase
-        .rpc('search_activities', { q, include_past: past, ...cursor, page_size: PAGE + 1 })
+        .rpc('search_activities', {
+          q,
+          include_past: past,
+          ...cursor,
+          page_size: PAGE + 1,
+          category: cat,
+          starts_from: dates.starts_from,
+          starts_before: dates.starts_before,
+        })
         .select(CARD)
         .eq('going.status', 'going')
         .order('starts_at', { ascending: !past })
@@ -48,19 +61,28 @@ const [results, categories] = await Promise.all([
         .order('created_at', { referencedTable: 'going' })
         .limit(FACES, { referencedTable: 'going' })
     : { data: null, error: null },
-  q
-    ? { data: null }
-    : supabase.from('categories').select('id, name').eq('is_active', true).order('sort_order'),
+  supabase.from('categories').select('id, name').eq('is_active', true).order('sort_order'),
 ]);
 
+const category = categories.data?.find(({ id }) => id === cat);
+const filters = { cat: category?.id, when: dates.when, from: dates.from, to: dates.to };
 const activities = results.data?.slice(0, PAGE) ?? [];
-const last = activities.at(-1);
 const more =
-  last && results.data!.length > PAGE
-    ? `?${new URLSearchParams({ q, ...(past ? { past: '1' } : {}), after: last.starts_at, id: last.id })}`
+  results.data && results.data.length > PAGE
+    ? nextPage(activities.at(-1)!, { q, past: past ? '1' : undefined, ...filters })
     : null;
 const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(starts_at)));
-const withPast = `/search?${new URLSearchParams({ q, past: '1' })}`;
+const withPast = `/search?${filterQuery({ q, past: '1', ...filters })}`;
+// What the search asks for, such as "hike this weekend", when nothing matches.
+const matching = [
+  q,
+  category && `in ${category.name}`,
+  dates.when && WHENS[dates.when].toLowerCase(),
+  dates.from && `from ${formatDay(dates.from, now)}`,
+  dates.to && `${dates.from ? 'to' : 'until'} ${formatDay(dates.to, now)}`,
+]
+  .filter(Boolean)
+  .join(' ');
 ---
 
 <Layout title={q ? `${q} · Search` : 'Search'}>
@@ -85,7 +107,14 @@ const withPast = `/search?${new URLSearchParams({ q, past: '1' })}`;
       <input type="checkbox" name="past" value="1" checked={past} />
       Include past
     </label>
+    {Object.entries(filters).map(([name, value]) =>
+      value ? <input type="hidden" name={name} value={value} /> : null
+    )}
   </form>
+  {q && categories.data?.length ? (
+    <FilterChips categories={categories.data} page="/search" query={Astro.url.searchParams} />
+  ) : null}
+  {q && <MoreFilters page="/search" query={Astro.url.searchParams} dates={dates} />}
   <Status message={flash && FLASH_MESSAGES[flash]} />
   {rsvp?.error && <p role="alert">{rsvp.error.message}</p>}
 
@@ -97,9 +126,13 @@ const withPast = `/search?${new URLSearchParams({ q, past: '1' })}`;
       </section>
       {categories.data?.length ? (
         <section aria-labelledby="browse">
-          <h2 id="browse">Browse by category</h2>
-          {/* None is chosen here, not even All. */}
-          <CategoryChips categories={categories.data} current="" />
+          <h2 id="browse">Browse</h2>
+          <FilterChips
+            categories={categories.data}
+            page="/discover"
+            query={new URLSearchParams()}
+            browse
+          />
         </section>
       ) : null}
     </>
@@ -109,7 +142,7 @@ const withPast = `/search?${new URLSearchParams({ q, past: '1' })}`;
     firstPage ? (
       <div class="empty">
         <p>
-          Nothing {past ? '' : 'coming up '}matches <em>{q}</em>.
+          Nothing {past ? '' : 'coming up '}matches <em>{matching}</em>.
         </p>
         {!past && <a href={withPast}>Include past activities</a>}
         <a href="/discover">Back to Discover</a>
@@ -149,6 +182,7 @@ const withPast = `/search?${new URLSearchParams({ q, past: '1' })}`;
   import '../scripts/feed';
   import '../scripts/rsvp';
   import '../scripts/search';
+  import '../scripts/sheets';
 </script>
 
 <style>

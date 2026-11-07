@@ -213,7 +213,16 @@ RESET ROLE;
 SELECT function_privs_are(
   'public',
   'search_activities',
-  ARRAY['text', 'boolean', 'timestamp with time zone', 'uuid', 'integer'],
+  ARRAY[
+    'text',
+    'boolean',
+    'timestamp with time zone',
+    'uuid',
+    'integer',
+    'timestamp with time zone',
+    'timestamp with time zone',
+    'text'
+  ],
   'anon',
   ARRAY[]::text[],
   'visitors can''t search'
