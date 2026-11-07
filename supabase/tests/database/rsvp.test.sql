@@ -255,7 +255,7 @@ SELECT results_eq(
 );
 
 SELECT ok(
-  NOT has_function_privilege('anon', 'public.rsvp(uuid, text)', 'execute'),
+  NOT has_function_privilege('anon', 'public.rsvp(uuid, text, integer)', 'execute'),
   'signed-out visitors can''t RSVP'
 );
 

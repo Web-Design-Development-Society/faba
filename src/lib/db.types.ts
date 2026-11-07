@@ -15,12 +15,14 @@ export type Database = {
           ends_at: string | null;
           going_count: number;
           guest_total: number;
+          guests_allowed: boolean;
           hidden_at: string | null;
           hidden_by: string | null;
           hidden_reason: string | null;
           id: string;
           idempotency_key: string | null;
           location_name: string;
+          max_guests_per_rsvp: number;
           maybe_count: number;
           organizer_id: string | null;
           search_doc: unknown;
@@ -45,12 +47,14 @@ export type Database = {
           ends_at?: string | null;
           going_count?: number;
           guest_total?: number;
+          guests_allowed?: boolean;
           hidden_at?: string | null;
           hidden_by?: string | null;
           hidden_reason?: string | null;
           id?: string;
           idempotency_key?: string | null;
           location_name: string;
+          max_guests_per_rsvp?: number;
           maybe_count?: number;
           organizer_id?: string | null;
           search_doc?: never;
@@ -73,12 +77,14 @@ export type Database = {
           ends_at?: string | null;
           going_count?: number;
           guest_total?: number;
+          guests_allowed?: boolean;
           hidden_at?: string | null;
           hidden_by?: string | null;
           hidden_reason?: string | null;
           id?: string;
           idempotency_key?: string | null;
           location_name?: string;
+          max_guests_per_rsvp?: number;
           maybe_count?: number;
           organizer_id?: string | null;
           search_doc?: never;
@@ -335,6 +341,7 @@ export type Database = {
         Row: {
           activity_id: string;
           created_at: string;
+          guest_count: number;
           status: string;
           updated_at: string;
           user_id: string;
@@ -343,6 +350,7 @@ export type Database = {
         Insert: {
           activity_id: string;
           created_at?: string;
+          guest_count?: number;
           status: string;
           updated_at?: string;
           user_id: string;
@@ -350,6 +358,7 @@ export type Database = {
         Update: {
           activity_id?: string;
           created_at?: string;
+          guest_count?: number;
           status?: string;
           updated_at?: string;
           user_id?: string;
@@ -447,12 +456,14 @@ export type Database = {
           ends_at: string | null;
           going_count: number;
           guest_total: number;
+          guests_allowed: boolean;
           hidden_at: string | null;
           hidden_by: string | null;
           hidden_reason: string | null;
           id: string;
           idempotency_key: string | null;
           location_name: string;
+          max_guests_per_rsvp: number;
           maybe_count: number;
           organizer_id: string | null;
           search_doc: unknown;
@@ -508,7 +519,7 @@ export type Database = {
         Returns: string;
       };
       restore_activity: { Args: { activity_id: string }; Returns: undefined };
-      rsvp: { Args: { activity_id: string; status: string }; Returns: number };
+      rsvp: { Args: { activity_id: string; guests?: number; status: string }; Returns: number };
       search_activities: {
         Args: {
           after_id?: string;
@@ -533,12 +544,14 @@ export type Database = {
           ends_at: string | null;
           going_count: number;
           guest_total: number;
+          guests_allowed: boolean;
           hidden_at: string | null;
           hidden_by: string | null;
           hidden_reason: string | null;
           id: string;
           idempotency_key: string | null;
           location_name: string;
+          max_guests_per_rsvp: number;
           maybe_count: number;
           organizer_id: string | null;
           search_doc: unknown;
