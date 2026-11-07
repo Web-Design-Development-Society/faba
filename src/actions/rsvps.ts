@@ -4,12 +4,15 @@ import { z } from 'astro/zod';
 import { actionErrorFor } from '../lib/server/errors';
 
 export const rsvps = {
-  /** I'm in (RSVP-01), its Undo, and Can't make it (RSVP-02). Returns the RSVP and the count. */
+  /**
+   * I'm in (RSVP-01), its Undo, Can't make it (RSVP-02) and Maybe (RSVP-05). Returns the RSVP and
+   * the going count.
+   */
   set: defineAction({
     accept: 'form',
     input: z.object({
       activity_id: z.uuid(),
-      status: z.enum(['going', 'not_going']),
+      status: z.enum(['going', 'maybe', 'not_going']),
     }),
     handler: async ({ activity_id, status }, { locals }) => {
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
