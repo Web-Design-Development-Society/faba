@@ -1,12 +1,13 @@
 ---
 // Home (ACT-01, design document section 7.4): what's coming up, soonest first, under a heading
 // for each day in Rexburg time. Chips filter it by date and category, as in
-// /discover?when=weekend&cat=outdoors (ACT-06, SRCH-02). The app shell's bottom navigation replaces
-// the links.
+// /discover?when=weekend&cat=outdoors (ACT-06, SRCH-02), and More filters by custom dates. The app
+// shell's bottom navigation replaces the links.
 import { actions } from 'astro:actions';
 import ActivityCard from '../components/ActivityCard.astro';
 import Avatar from '../components/Avatar.astro';
 import FilterChips from '../components/FilterChips.astro';
+import MoreFilters from '../components/MoreFilters.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
 import { CARD, FACES } from '../lib/cards';
@@ -119,6 +120,7 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
     </section>
   )}
   {chips && <FilterChips categories={chips} page="/discover" query={Astro.url.searchParams} />}
+  <MoreFilters page="/discover" query={Astro.url.searchParams} dates={dates} />
 
   {feed.error ? (
     <p role="alert">Activities couldn't load. Please try again.</p>
@@ -172,6 +174,7 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
 <script>
   import '../scripts/feed';
   import '../scripts/rsvp';
+  import '../scripts/sheets';
 </script>
 
 <style>

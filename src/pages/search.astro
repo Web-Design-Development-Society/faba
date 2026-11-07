@@ -2,7 +2,7 @@
 // Search (SRCH-01, design document sections 7.10 and J3): a keyword search over each activity's
 // title, place and description, and its organizer's name, upcoming by default, with Include past.
 // The query lives in the URL, as in /search?q=hike&past=1, so it works without JavaScript and can
-// be shared. The chips narrow the results by date and category, as on Discover
+// be shared. The chips and More filters narrow the results by date and category, as on Discover
 // (SRCH-02), and searching again keeps them. Without a query, it shows recent searches, which only
 // this device keeps, and the chips, as links to Discover. Results are cards, under a heading for
 // each day, as on Discover.
@@ -10,6 +10,7 @@ import { actions } from 'astro:actions';
 import ActivityCard from '../components/ActivityCard.astro';
 import Avatar from '../components/Avatar.astro';
 import FilterChips from '../components/FilterChips.astro';
+import MoreFilters from '../components/MoreFilters.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
 import { CARD, FACES } from '../lib/cards';
@@ -113,6 +114,7 @@ const matching = [
   {q && categories.data?.length ? (
     <FilterChips categories={categories.data} page="/search" query={Astro.url.searchParams} />
   ) : null}
+  {q && <MoreFilters page="/search" query={Astro.url.searchParams} dates={dates} />}
   <Status message={flash && FLASH_MESSAGES[flash]} />
   {rsvp?.error && <p role="alert">{rsvp.error.message}</p>}
 
@@ -180,6 +182,7 @@ const matching = [
   import '../scripts/feed';
   import '../scripts/rsvp';
   import '../scripts/search';
+  import '../scripts/sheets';
 </script>
 
 <style>

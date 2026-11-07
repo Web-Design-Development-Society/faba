@@ -1,7 +1,7 @@
-// Date filters (SRCH-02). Discover has other tests' activities too, so the first test searches for
-// a word only its own activities have, where the chips work the same. The unit tests in
-// time.test.ts cover the ranges on each day of the week.
-import { whenRange } from '../../src/lib/time';
+// Date filters (SRCH-02). Discover has other tests' activities too, so the first two tests search
+// for a word only their own activities have, where the chips and More filters work the same. The
+// unit tests in time.test.ts cover the ranges on each day of the week.
+import { rexburgDate, whenRange } from '../../src/lib/time';
 import { expect, expectAccessible, test } from './fixtures';
 
 const HOUR = 60 * 60 * 1000;
@@ -37,6 +37,30 @@ test('the weekend chip combines with a category and search', async ({ page, sign
   await chip('This weekend').click();
   await expect(page).toHaveURL(`/search?q=${tag}&cat=outdoors`);
   await expect(page.getByText(`Next hike ${tag}`)).toBeVisible();
+});
+
+test('More filters takes a custom date range', async ({ page, signInAs, host }) => {
+  await signInAs('member');
+  const tag = word();
+  const soon = Date.now() + 2 * 24 * HOUR;
+  await host.post({ title: `Soon ${tag}`, starts_at: new Date(soon).toISOString() });
+  await host.post({
+    title: `Later ${tag}`,
+    starts_at: new Date(soon + 3 * 24 * HOUR).toISOString(),
+  });
+  const day = rexburgDate(new Date(soon));
+
+  await page.goto(`/search?q=${tag}`);
+  await page.getByRole('button', { name: 'More filters' }).click();
+  const sheet = page.getByRole('dialog', { name: 'More filters' });
+  await sheet.getByLabel('From').fill(day);
+  await sheet.getByLabel('To').fill(day);
+  await expectAccessible(page);
+  await sheet.getByRole('button', { name: 'Apply' }).click();
+  await expect(page).toHaveURL(`/search?q=${tag}&from=${day}&to=${day}`);
+  await expect(page.getByText(`Soon ${tag}`)).toBeVisible();
+  await expect(page.getByText(`Later ${tag}`)).toHaveCount(0);
+  await expect(page.getByRole('button', { name: 'More filters (1)' })).toBeVisible();
 });
 
 test('Discover says what nothing matches, and chips can be combined', async ({
