@@ -221,7 +221,9 @@ SELECT function_privs_are(
     'integer',
     'timestamp with time zone',
     'timestamp with time zone',
-    'text'
+    'text',
+    'boolean',
+    'text[]'
   ],
   'anon',
   ARRAY[]::text[],
