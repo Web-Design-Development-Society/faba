@@ -14,6 +14,7 @@ import RsvpForm from '../../../components/RsvpForm.astro';
 import Sheet from '../../../components/Sheet.astro';
 import Status from '../../../components/Status.astro';
 import Layout from '../../../layouts/Layout.astro';
+import { isFull } from '../../../lib/cards';
 import { PHYSICAL_CATEGORIES } from '../../../lib/contact';
 import { linkify, mapsUrl } from '../../../lib/links';
 import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../../../lib/server/flash';
@@ -60,7 +61,8 @@ const [{ data: activity }, { data: me }] = await Promise.all([
     .from('activities')
     .select(
       `id, title, description, starts_at, ends_at, location_name, cost_note, status, cancel_reason,
-      hidden_at, hidden_reason, going_count, organizer_id, time_or_place_changed_at, category_id,
+      hidden_at, hidden_reason, going_count, guest_total, capacity, organizer_id,
+      time_or_place_changed_at, category_id,
       category:categories(name),
       organizer:profiles!activities_organizer_id_fkey(id, display_name, avatar_url, use_initials, department, status),
       mine:rsvps(status),
@@ -97,6 +99,8 @@ const open =
     new Date()
   );
 const host = activity?.organizer;
+// Full to anyone not going (RSVP-04).
+const full = !!activity && !going && isFull(activity);
 // An ineligible organizer's upcoming activity, which moderators can give to someone going or
 // cancel (AUTH-05). Members can't read that organizer, but moderators can.
 const handover =
@@ -292,17 +296,19 @@ const email = activity
             <p>You're hosting</p>
             <a href={`/activities/${activity.id}/edit`}>Edit</a>
           </>
-        ) : !open ? (
+        ) : !open || full ? (
           <>
             <p id="rsvp-note">
               {activity.status === 'cancelled'
                 ? 'This activity is cancelled.'
                 : activity.hidden_at
                   ? 'This activity is hidden.'
-                  : 'This activity is over.'}
+                  : open
+                    ? 'Every spot is taken.'
+                    : 'This activity is over.'}
             </p>
             <button type="button" disabled aria-describedby="rsvp-note">
-              {going ? '✓ Going' : "I'm in"}
+              {going ? '✓ Going' : open ? 'Full' : "I'm in"}
             </button>
           </>
         ) : (

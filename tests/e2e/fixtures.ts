@@ -54,6 +54,11 @@ export const test = base.extend<{
     admin: SupabaseClient;
     post: (activity?: Partial<NewActivity>) => Promise<string>;
   };
+  /**
+   * `count` new members who have accepted the guidelines, each with a client signed in as them,
+   * for many at once (RSVP-04). Their accounts are deleted afterwards.
+   */
+  crowd: (count: number) => Promise<SupabaseClient<Database>[]>;
 }>({
   signInAs: async ({ context, baseURL }, use) => {
     await use((persona) => signIn(context, baseURL!, PERSONAS[persona]));
@@ -105,6 +110,30 @@ export const test = base.extend<{
       await use({ id, admin, post });
     } finally {
       await deleteAccount(admin, id);
+    }
+  },
+  // eslint-disable-next-line no-empty-pattern -- Playwright needs the object, and this uses nothing.
+  crowd: async ({}, use) => {
+    const admin = adminClient();
+    const ids: string[] = [];
+    try {
+      await use((count) =>
+        Promise.all(
+          Array.from({ length: count }, async (_, n) => {
+            const { id, email } = await createAccount(admin, `Crowd Member ${n + 1}`);
+            ids.push(id);
+            await acceptGuidelines(admin, id);
+            const member = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+              auth: { persistSession: false },
+            });
+            const { error } = await member.auth.signInWithPassword({ email, password: PASSWORD });
+            if (error) throw new Error(`Signing in as ${email} failed: ${error.message}`);
+            return member;
+          })
+        )
+      );
+    } finally {
+      await Promise.all(ids.map((id) => deleteAccount(admin, id)));
     }
   },
 });

@@ -19,7 +19,9 @@ const invalid = (name: string) =>
 
 const now = new Date();
 const { today, tomorrow, saturday } = quickDates(now);
-const moreOptions = ['end_time', 'cost_note'].some((name) => value(name) || errors[name]);
+const moreOptions = ['end_time', 'cost_note', 'capacity'].some(
+  (name) => value(name) || errors[name]
+);
 ---
 
 <p>
@@ -139,5 +141,23 @@ const moreOptions = ['end_time', 'cost_note'].some((name) => value(name) || erro
       {...invalid('cost_note')}
     />
     <FieldError name="cost_note" errors={errors.cost_note} />
+  </p>
+  <p>
+    <label for="capacity">Spots</label>
+    <br />
+    <span id="capacity-hint">Leave empty for no limit. Guests take spots too.</span>
+    <br />
+    <input
+      type="number"
+      id="capacity"
+      name="capacity"
+      value={value('capacity')}
+      min={ACTIVITY.capacity.min}
+      max={ACTIVITY.capacity.max}
+      inputmode="numeric"
+      aria-describedby={errors.capacity ? 'capacity-hint capacity-error' : 'capacity-hint'}
+      aria-invalid={errors.capacity ? 'true' : undefined}
+    />
+    <FieldError name="capacity" errors={errors.capacity} />
   </p>
 </details>
