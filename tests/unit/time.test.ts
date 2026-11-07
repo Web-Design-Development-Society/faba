@@ -10,6 +10,9 @@ import {
   rexburgDate,
   rexburgInstant,
   rexburgTime,
+  whenRange,
+  datesRange,
+  type When,
 } from '../../src/lib/time';
 
 describe('addDays', () => {
@@ -144,5 +147,105 @@ describe('rexburgInstant', () => {
     ['2026-11-01', '02:30', '2026-11-01T09:30:00.000Z'],
   ])('%s %s in Rexburg is %s', (date, time, instant) => {
     expect(rexburgInstant(date, time).toISOString()).toBe(instant);
+  });
+});
+
+describe('whenRange', () => {
+  const iso = ({ from, before }: { from: Date; before: Date }) => [
+    from.toISOString(),
+    before.toISOString(),
+  ];
+
+  it.each<[string, When, string, string, string]>([
+    // Wednesday, November 11, 2026, at 3 PM in Rexburg (UTC-7)
+    [
+      'today',
+      'today',
+      '2026-11-11T22:00:00Z',
+      '2026-11-11T07:00:00.000Z',
+      '2026-11-12T07:00:00.000Z',
+    ],
+    // At 10 PM in Rexburg, it's already the next day in UTC.
+    [
+      'today, late',
+      'today',
+      '2026-11-12T05:00:00Z',
+      '2026-11-11T07:00:00.000Z',
+      '2026-11-12T07:00:00.000Z',
+    ],
+    [
+      'this week, through Sunday',
+      'week',
+      '2026-11-11T22:00:00Z',
+      '2026-11-11T07:00:00.000Z',
+      '2026-11-16T07:00:00.000Z',
+    ],
+    [
+      'this week, on a Sunday',
+      'week',
+      '2026-11-15T22:00:00Z',
+      '2026-11-15T07:00:00.000Z',
+      '2026-11-16T07:00:00.000Z',
+    ],
+    [
+      'this week, on a Monday',
+      'week',
+      '2026-11-16T22:00:00Z',
+      '2026-11-16T07:00:00.000Z',
+      '2026-11-23T07:00:00.000Z',
+    ],
+    [
+      'this weekend, from Friday at 5 PM',
+      'weekend',
+      '2026-11-11T22:00:00Z',
+      '2026-11-14T00:00:00.000Z',
+      '2026-11-16T07:00:00.000Z',
+    ],
+    [
+      'this weekend, on a Friday morning',
+      'weekend',
+      '2026-11-13T17:00:00Z',
+      '2026-11-14T00:00:00.000Z',
+      '2026-11-16T07:00:00.000Z',
+    ],
+    [
+      'this weekend, on a Saturday',
+      'weekend',
+      '2026-11-14T22:00:00Z',
+      '2026-11-14T00:00:00.000Z',
+      '2026-11-16T07:00:00.000Z',
+    ],
+    [
+      'this weekend, on a Sunday',
+      'weekend',
+      '2026-11-15T22:00:00Z',
+      '2026-11-14T00:00:00.000Z',
+      '2026-11-16T07:00:00.000Z',
+    ],
+    // Clocks fall back on Sunday, November 1, 2026, so Friday is UTC-6 and Monday UTC-7.
+    [
+      'this weekend, as clocks fall back',
+      'weekend',
+      '2026-10-31T18:00:00Z',
+      '2026-10-30T23:00:00.000Z',
+      '2026-11-02T07:00:00.000Z',
+    ],
+    // And spring forward on Sunday, March 8, 2026, so Thursday is UTC-7 and Monday UTC-6.
+    [
+      'this week, as clocks spring forward',
+      'week',
+      '2026-03-05T18:00:00Z',
+      '2026-03-05T07:00:00.000Z',
+      '2026-03-09T06:00:00.000Z',
+    ],
+  ])('%s', (_, when, now, from, before) => {
+    expect(iso(whenRange(when, new Date(now)))).toEqual([from, before]);
+  });
+
+  it('covers whole days for dates', () => {
+    expect(iso(datesRange('2026-11-20', '2026-11-21'))).toEqual([
+      '2026-11-20T07:00:00.000Z',
+      '2026-11-22T07:00:00.000Z',
+    ]);
   });
 });
