@@ -427,9 +427,11 @@ export type Database = {
           after_id?: string;
           after_starts_at?: string;
           category?: string;
+          has_spots?: boolean;
           page_size?: number;
           starts_before?: string;
           starts_from?: string;
+          tag_ids?: string[];
         };
         Returns: {
           cancel_reason: string | null;
@@ -508,11 +510,13 @@ export type Database = {
           after_id?: string;
           after_starts_at?: string;
           category?: string;
+          has_spots?: boolean;
           include_past?: boolean;
           page_size?: number;
           q: string;
           starts_before?: string;
           starts_from?: string;
+          tag_ids?: string[];
         };
         Returns: {
           cancel_reason: string | null;
