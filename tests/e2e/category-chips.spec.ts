@@ -7,7 +7,7 @@ const HOUR = 60 * 60 * 1000;
 // Other tests post at the same time, so each activity has a title of its own.
 const named = (title: string) => `${title} ${crypto.randomUUID().slice(0, 8)}`;
 const chip = (page: Page, name: string) =>
-  page.getByRole('navigation', { name: 'Categories' }).getByRole('link', { name, exact: true });
+  page.getByRole('navigation', { name: 'Filters' }).getByRole('link', { name, exact: true });
 
 /** Whether every card in the feed is in `category`. */
 async function expectOnly(page: Page, category: string) {
@@ -28,7 +28,7 @@ test('a chip shows only its category, and says it is chosen', async ({ page, sig
   await host.post({ title: hike, starts_at: soon });
 
   await page.goto('/discover');
-  const chips = page.getByRole('navigation', { name: 'Categories' });
+  const chips = page.getByRole('navigation', { name: 'Filters' });
   await expect(chips.getByRole('link').first()).toHaveText('All');
   await expect(chip(page, 'All')).toHaveAttribute('aria-current', 'page');
   // The row scrolls sideways, and the page doesn't.

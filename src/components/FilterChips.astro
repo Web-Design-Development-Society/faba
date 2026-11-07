@@ -1,0 +1,94 @@
+---
+// The filter chips on Discover and Search (ACT-06, SRCH-02, design document section 7.10): All, the
+// date chips, then the categories. They're links, so they work without JavaScript and a filter can
+// be shared. A date chip keeps the category, and a category keeps the dates, as in
+// /discover?when=weekend&cat=outdoors. Tapping a chosen chip takes it off, and All takes them all
+// off. On Search they keep the words too. The row scrolls sideways. Chosen chips have aria-current
+// and a check, and src/scripts/feed.ts scrolls the first into view.
+import { WHENS } from '../lib/time';
+
+interface Props {
+  categories: { id: string; name: string }[];
+  /** The page the chips filter, such as /discover. */
+  page: string;
+  /** The page's query, whose filters the chips change. */
+  query: URLSearchParams;
+  /** True for links to Discover's filters with none chosen, as on Search before searching. */
+  browse?: boolean;
+}
+
+const { categories, page, query, browse } = Astro.props;
+const custom = query.has('from') || query.has('to');
+const when = custom ? null : query.get('when');
+const cat = query.get('cat');
+
+// The page with `changes`, starting again from its first page.
+const link = (changes: Record<string, string | null>) => {
+  const next = new URLSearchParams(query);
+  for (const name of ['after', 'id', ...Object.keys(changes)]) next.delete(name);
+  for (const [name, value] of Object.entries(changes)) if (value) next.set(name, value);
+  return next.size ? `${page}?${next}` : page;
+};
+const chips = [
+  {
+    name: 'All',
+    chosen: !when && !custom && !cat,
+    href: link({ when: null, from: null, to: null, cat: null }),
+  },
+  ...Object.entries(WHENS).map(([id, name]) => ({
+    name,
+    chosen: when === id,
+    href: link({ when: when === id ? null : id, from: null, to: null }),
+  })),
+  ...categories.map(({ id, name }) => ({
+    name,
+    chosen: cat === id,
+    href: link({ cat: cat === id ? null : id }),
+  })),
+];
+---
+
+<nav aria-label="Filters">
+  <ul data-chips>
+    {chips.map(({ name, chosen, href }) => (
+      <li>
+        <a href={href} aria-current={chosen && !browse ? 'page' : undefined}>
+          {name}
+        </a>
+      </li>
+    ))}
+  </ul>
+</nav>
+
+<style>
+  /* Out to the screen's edges, so it's clear the row scrolls. The padding keeps focus rings in. */
+  ul {
+    display: flex;
+    gap: 0.5rem;
+    margin: 1rem -1rem 0;
+    padding: 0.25rem 1rem 0.5rem;
+    overflow-x: auto;
+    list-style: none;
+  }
+  a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-height: 44px;
+    padding: 0 1rem;
+    color: inherit;
+    white-space: nowrap;
+    text-decoration: none;
+    border: 1px solid #767676;
+    border-radius: 999px;
+  }
+  [aria-current] {
+    font-weight: 600;
+    color: white;
+    background: #222;
+    border-color: #222;
+  }
+  [aria-current]::before {
+    content: '✓' / '';
+  }
+</style>
