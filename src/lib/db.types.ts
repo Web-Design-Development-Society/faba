@@ -15,12 +15,15 @@ export type Database = {
           ends_at: string | null;
           going_count: number;
           guest_total: number;
+          guests_allowed: boolean;
           hidden_at: string | null;
           hidden_by: string | null;
           hidden_reason: string | null;
           id: string;
           idempotency_key: string | null;
           location_name: string;
+          max_guests_per_rsvp: number;
+          maybe_count: number;
           organizer_id: string | null;
           search_doc: unknown;
           starts_at: string;
@@ -44,12 +47,15 @@ export type Database = {
           ends_at?: string | null;
           going_count?: number;
           guest_total?: number;
+          guests_allowed?: boolean;
           hidden_at?: string | null;
           hidden_by?: string | null;
           hidden_reason?: string | null;
           id?: string;
           idempotency_key?: string | null;
           location_name: string;
+          max_guests_per_rsvp?: number;
+          maybe_count?: number;
           organizer_id?: string | null;
           search_doc?: never;
           starts_at: string;
@@ -71,12 +77,15 @@ export type Database = {
           ends_at?: string | null;
           going_count?: number;
           guest_total?: number;
+          guests_allowed?: boolean;
           hidden_at?: string | null;
           hidden_by?: string | null;
           hidden_reason?: string | null;
           id?: string;
           idempotency_key?: string | null;
           location_name?: string;
+          max_guests_per_rsvp?: number;
+          maybe_count?: number;
           organizer_id?: string | null;
           search_doc?: never;
           starts_at?: string;
@@ -107,6 +116,37 @@ export type Database = {
             columns: ['organizer_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      activity_tags: {
+        Row: {
+          activity_id: string;
+          tag_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          activity_id: string;
+          tag_id: string;
+        };
+        Update: {
+          activity_id?: string;
+          tag_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'activity_tags_activity_id_fkey';
+            columns: ['activity_id'];
+            isOneToOne: false;
+            referencedRelation: 'activities';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'activity_tags_tag_id_fkey';
+            columns: ['tag_id'];
+            isOneToOne: false;
+            referencedRelation: 'tags';
             referencedColumns: ['id'];
           },
         ];
@@ -301,6 +341,7 @@ export type Database = {
         Row: {
           activity_id: string;
           created_at: string;
+          guest_count: number;
           status: string;
           updated_at: string;
           user_id: string;
@@ -309,6 +350,7 @@ export type Database = {
         Insert: {
           activity_id: string;
           created_at?: string;
+          guest_count?: number;
           status: string;
           updated_at?: string;
           user_id: string;
@@ -316,6 +358,7 @@ export type Database = {
         Update: {
           activity_id?: string;
           created_at?: string;
+          guest_count?: number;
           status?: string;
           updated_at?: string;
           user_id?: string;
@@ -337,6 +380,34 @@ export type Database = {
           },
         ];
       };
+      tags: {
+        Row: {
+          created_at: string;
+          id: string;
+          is_active: boolean;
+          name: string;
+          sort_order: number;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          id: string;
+          is_active?: boolean;
+          name: string;
+          sort_order: number;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          is_active?: boolean;
+          name?: string;
+          sort_order?: number;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -354,8 +425,10 @@ export type Database = {
           cost_note?: string;
           description?: string;
           ends_at?: string;
+          guests_allowed?: boolean;
           idempotency_key?: string;
           location_name: string;
+          max_guests_per_rsvp?: number;
           starts_at: string;
           title: string;
         };
@@ -368,9 +441,11 @@ export type Database = {
           after_id?: string;
           after_starts_at?: string;
           category?: string;
+          has_spots?: boolean;
           page_size?: number;
           starts_before?: string;
           starts_from?: string;
+          tag_ids?: string[];
         };
         Returns: {
           cancel_reason: string | null;
@@ -383,12 +458,15 @@ export type Database = {
           ends_at: string | null;
           going_count: number;
           guest_total: number;
+          guests_allowed: boolean;
           hidden_at: string | null;
           hidden_by: string | null;
           hidden_reason: string | null;
           id: string;
           idempotency_key: string | null;
           location_name: string;
+          max_guests_per_rsvp: number;
+          maybe_count: number;
           organizer_id: string | null;
           search_doc: unknown;
           starts_at: string;
@@ -443,17 +521,19 @@ export type Database = {
         Returns: string;
       };
       restore_activity: { Args: { activity_id: string }; Returns: undefined };
-      rsvp: { Args: { activity_id: string; status: string }; Returns: number };
+      rsvp: { Args: { activity_id: string; guests?: number; status: string }; Returns: number };
       search_activities: {
         Args: {
           after_id?: string;
           after_starts_at?: string;
           category?: string;
+          has_spots?: boolean;
           include_past?: boolean;
           page_size?: number;
           q: string;
           starts_before?: string;
           starts_from?: string;
+          tag_ids?: string[];
         };
         Returns: {
           cancel_reason: string | null;
@@ -466,12 +546,15 @@ export type Database = {
           ends_at: string | null;
           going_count: number;
           guest_total: number;
+          guests_allowed: boolean;
           hidden_at: string | null;
           hidden_by: string | null;
           hidden_reason: string | null;
           id: string;
           idempotency_key: string | null;
           location_name: string;
+          max_guests_per_rsvp: number;
+          maybe_count: number;
           organizer_id: string | null;
           search_doc: unknown;
           starts_at: string;
@@ -489,6 +572,7 @@ export type Database = {
           isSetofReturn: true;
         };
       };
+      set_activity_tags: { Args: { activity_id: string; tag_ids: string[] }; Returns: undefined };
       set_email_visibility: { Args: { visible: boolean }; Returns: undefined };
       suspend_member: { Args: { reason: string; user_id: string }; Returns: undefined };
       sync_my_identity: { Args: Record<PropertyKey, never>; Returns: string };

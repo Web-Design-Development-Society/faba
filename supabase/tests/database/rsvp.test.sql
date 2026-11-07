@@ -204,10 +204,10 @@ SELECT throws_ok(
 );
 
 SELECT throws_ok(
-  $$select public.rsvp('f0000000-0000-4000-8000-000000000001', 'maybe')$$,
+  $$select public.rsvp('f0000000-0000-4000-8000-000000000001', 'perhaps')$$,
   '22023',
   'INVALID_STATUS',
-  'Maybe waits for RSVP-05'
+  'an answer that isn''t one is refused'
 );
 
 SELECT throws_ok(
@@ -255,7 +255,7 @@ SELECT results_eq(
 );
 
 SELECT ok(
-  NOT has_function_privilege('anon', 'public.rsvp(uuid, text)', 'execute'),
+  NOT has_function_privilege('anon', 'public.rsvp(uuid, text, integer)', 'execute'),
   'signed-out visitors can''t RSVP'
 );
 

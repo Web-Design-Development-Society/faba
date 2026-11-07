@@ -102,6 +102,14 @@ describe('newActivity', () => {
     expect(errors({ capacity })).toEqual({ capacity: message });
   });
 
+  it('takes up to 3 tags', () => {
+    expect(newActivity.parse({ ...valid, tags: ['free', 'accessible'] }).tags).toEqual([
+      'free',
+      'accessible',
+    ]);
+    expect(errors({ tags: ['a', 'b', 'c', 'd'] })).toEqual({ tags: 'Pick up to 3 tags.' });
+  });
+
   it('takes a number of spots, or none', () => {
     expect(newActivity.parse({ ...valid, capacity: 12 }).capacity).toBe(12);
     expect(newActivity.parse(valid).capacity).toBeUndefined();

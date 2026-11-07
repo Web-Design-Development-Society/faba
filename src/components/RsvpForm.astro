@@ -1,6 +1,6 @@
 ---
-// I'm in (RSVP-01), and ✓ Going, which opens a sheet with Can't make it (RSVP-02, design document
-// section 7.8). Each is a form that posts to the page it's on, which saves the RSVP and redirects
+// I'm in (RSVP-01), and ✓ Going or Maybe, which open a sheet with Going, Maybe and Can't make it
+// (RSVP-02, RSVP-05, design document section 7.8). The member's answer is pressed. Each is a form that posts to the page it's on, which saves the RSVP and redirects
 // back (POST, then redirect, then GET), so it works without JavaScript. So does the sheet. With
 // JavaScript, src/scripts/rsvp.ts saves without leaving the page, and turns the one button into the
 // other.
@@ -9,11 +9,16 @@ import Sheet from './Sheet.astro';
 
 interface Props {
   activityId: string;
-  /** Whether the signed-in member is going. */
-  going: boolean;
+  /** The signed-in member's answer, if any. */
+  status: string | null;
 }
 
-const { activityId, going } = Astro.props;
+const { activityId, status } = Astro.props;
+const CHOICES = [
+  ['going', 'Going'],
+  ['maybe', 'Maybe'],
+  ['not_going', "Can't make it"],
+];
 // The page's own address, so it comes back as it was, such as Discover's second page.
 const target = new URL(Astro.url);
 for (const [name, value] of new URLSearchParams(actions.rsvps.set.queryString)) {
@@ -26,13 +31,13 @@ const action = target.pathname + target.search;
 const sheet = `rsvp-${crypto.randomUUID()}`;
 ---
 
-<div class="rsvp" data-rsvp={activityId}>
+<div class="rsvp" data-rsvp={activityId} data-status={status ?? 'not_going'}>
   <form method="post" action={action}>
     <input type="hidden" name="activity_id" value={activityId} />
     <input type="hidden" name="status" value="going" />
-    {going ? (
+    {status === 'going' || status === 'maybe' ? (
       <button type="button" commandfor={sheet} command="show-modal">
-        ✓ Going
+        {status === 'going' ? '✓ Going' : 'Maybe'}
       </button>
     ) : (
       <button type="submit" commandfor={sheet}>
@@ -42,14 +47,15 @@ const sheet = `rsvp-${crypto.randomUUID()}`;
   </form>
   <Sheet id={sheet} title="Are you going?">
     <div class="choices">
-      <form method="dialog">
-        <button aria-pressed="true">Going</button>
-      </form>
-      <form method="post" action={action}>
-        <input type="hidden" name="activity_id" value={activityId} />
-        <input type="hidden" name="status" value="not_going" />
-        <button aria-pressed="false">Can't make it</button>
-      </form>
+      {CHOICES.map(([value, label]) => (
+        <form method="post" action={action}>
+          <input type="hidden" name="activity_id" value={activityId} />
+          <input type="hidden" name="status" value={value} />
+          <button aria-pressed={value === (status ?? 'not_going') ? 'true' : 'false'}>
+            {label}
+          </button>
+        </form>
+      ))}
     </div>
   </Sheet>
 </div>

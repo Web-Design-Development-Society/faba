@@ -11,6 +11,7 @@ export const ACTIVITY = {
   costNote: { max: 60 },
   cancelReason: { max: 200 },
   capacity: { min: 1, max: 500 },
+  tags: { max: 3 },
   monthsAhead: 12,
 };
 
@@ -101,6 +102,11 @@ export const newActivity = z
       .int('Enter a whole number of spots.')
       .min(ACTIVITY.capacity.min, `Allow at least ${ACTIVITY.capacity.min} spot.`)
       .max(ACTIVITY.capacity.max, `Allow ${ACTIVITY.capacity.max} spots or fewer.`)
+      .optional(),
+    // SRCH-03. set_activity_tags() checks they're offered.
+    tags: z
+      .array(z.string())
+      .max(ACTIVITY.tags.max, `Pick up to ${ACTIVITY.tags.max} tags.`)
       .optional(),
   })
   .superRefine(checkTimes)

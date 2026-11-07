@@ -1,8 +1,8 @@
 ---
-// More filters (SRCH-02, design document section 7.10): a sheet with a custom date range, which
-// SRCH-03 will add to. It's a GET form, so it works without JavaScript, and it keeps the page's
-// other filters and words. Dates replace a date chip. The button counts the filters it holds that
-// are on.
+// More filters (SRCH-02, SRCH-03, design document section 7.10): a sheet with a custom date range,
+// Has spots left and the curated tags. It's a GET form, so it works without JavaScript, and it
+// keeps the page's chips and words. Dates replace a date chip. The button counts the filters it
+// holds that are on, and Clear all, always in the sheet, takes every filter off.
 import Sheet from './Sheet.astro';
 
 interface Props {
@@ -11,14 +11,19 @@ interface Props {
   query: URLSearchParams;
   /** The dates that are on, as readDates() read them. */
   dates: { from?: string; to?: string };
+  /** Has spots left and the tags that are on, as readMore() read them, and the tags offered. */
+  more: { spots: boolean; tags: string[] };
+  tags: { id: string; name: string }[];
 }
 
-const { page, query, dates } = Astro.props;
-const on = dates.from || dates.to ? 1 : 0;
-const kept = [...query].filter(([name]) => !['from', 'to', 'when', 'after', 'id'].includes(name));
+const { page, query, dates, more, tags } = Astro.props;
+const on = (dates.from || dates.to ? 1 : 0) + (more.spots ? 1 : 0) + more.tags.length;
+const mine = ['from', 'to', 'when', 'spots', 'tag', 'after', 'id'];
+const kept = [...query].filter(([name]) => !mine.includes(name));
 // Dates in the link that readDates() couldn't use, such as an end before the start.
-const wrong = !on && (query.get('from') || query.get('to'));
-const clear = new URLSearchParams(kept);
+const wrong = !dates.from && !dates.to && (query.get('from') || query.get('to'));
+// Every filter off, keeping only the search words.
+const clear = new URLSearchParams([...query].filter(([name]) => ['q', 'past'].includes(name)));
 ---
 
 {wrong && <p role="alert">Those dates don't work together. Pick a start on or before the end.</p>}
@@ -26,7 +31,7 @@ const clear = new URLSearchParams(kept);
   {on ? `More filters (${on})` : 'More filters'}
 </button>
 <Sheet id="more-filters" title="More filters">
-  <form method="get" action={page}>
+  <form method="get" action={page} data-more-filters>
     {kept.map(([name, value]) => (
       <input type="hidden" name={name} value={value} />
     ))}
@@ -43,13 +48,41 @@ const clear = new URLSearchParams(kept);
         <input id="filter-to" type="date" name="to" value={dates.to} />
       </p>
     </fieldset>
+    <fieldset>
+      <legend>Spots</legend>
+      <label>
+        <input type="checkbox" name="spots" value="1" checked={more.spots} />
+        Has spots left
+      </label>
+    </fieldset>
+    {tags.length > 0 && (
+      <fieldset>
+        <legend>Tags</legend>
+        {tags.map(({ id, name }) => (
+          <label>
+            <input type="checkbox" name="tag" value={id} checked={more.tags.includes(id)} />
+            {name}
+          </label>
+        ))}
+      </fieldset>
+    )}
     <button>Apply</button>
   </form>
-  {on ? <a href={clear.size ? `${page}?${clear}` : page}>Clear dates</a> : null}
+  <a href={clear.size ? `${page}?${clear}` : page}>Clear all</a>
   <form method="dialog">
     <button>Close</button>
   </form>
 </Sheet>
+
+<script>
+  // Dates left empty stay out of the link. Without JavaScript they're in it, and readDates()
+  // ignores them.
+  for (const form of document.querySelectorAll<HTMLFormElement>('[data-more-filters]')) {
+    form.addEventListener('formdata', ({ formData }) => {
+      for (const name of ['from', 'to']) if (!formData.get(name)) formData.delete(name);
+    });
+  }
+</script>
 
 <style>
   button,
@@ -71,5 +104,11 @@ const clear = new URLSearchParams(kept);
   }
   legend {
     font-weight: 600;
+  }
+  fieldset label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
   }
 </style>

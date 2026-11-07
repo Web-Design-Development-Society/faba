@@ -9,6 +9,7 @@ export const FLASH_MESSAGES = {
   cancelled: 'Cancelled.',
   restored: "Restored. It's back on.",
   going: "You're going.",
+  maybe: "You're a maybe.",
   not_going: "You're not going.",
   reported: 'Thanks, a moderator will review this.',
   dismissed: 'Report dismissed.',
