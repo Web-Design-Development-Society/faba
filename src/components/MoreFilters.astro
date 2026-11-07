@@ -31,7 +31,7 @@ const clear = new URLSearchParams([...query].filter(([name]) => ['q', 'past'].in
   {on ? `More filters (${on})` : 'More filters'}
 </button>
 <Sheet id="more-filters" title="More filters">
-  <form method="get" action={page}>
+  <form method="get" action={page} data-more-filters>
     {kept.map(([name, value]) => (
       <input type="hidden" name={name} value={value} />
     ))}
@@ -73,6 +73,16 @@ const clear = new URLSearchParams([...query].filter(([name]) => ['q', 'past'].in
     <button>Close</button>
   </form>
 </Sheet>
+
+<script>
+  // Dates left empty stay out of the link. Without JavaScript they're in it, and readDates()
+  // ignores them.
+  for (const form of document.querySelectorAll<HTMLFormElement>('[data-more-filters]')) {
+    form.addEventListener('formdata', ({ formData }) => {
+      for (const name of ['from', 'to']) if (!formData.get(name)) formData.delete(name);
+    });
+  }
+</script>
 
 <style>
   button,
