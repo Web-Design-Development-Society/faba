@@ -32,8 +32,8 @@ const link = (changes: Record<string, string | null>) => {
 const chips = [
   {
     name: 'All',
-    chosen: !when && !custom && !cat,
-    href: link({ when: null, from: null, to: null, cat: null }),
+    chosen: !when && !custom && !cat && !query.has('spots') && !query.has('tag'),
+    href: link({ when: null, from: null, to: null, cat: null, spots: null, tag: null }),
   },
   ...Object.entries(WHENS).map(([id, name]) => ({
     name,

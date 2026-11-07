@@ -12,20 +12,38 @@ export function readCursor(params: URLSearchParams) {
   return parsed.success ? { after_starts_at: parsed.data.after, after_id: parsed.data.id } : {};
 }
 
+/** A page's filters, where a filter can have more than one value, such as tags (SRCH-03). */
+export type Filters = Record<string, string | string[] | undefined>;
+
 /** The page's `filters` that are set, as a query, such as `cat=outdoors&when=weekend`. */
-export function filterQuery(filters: Record<string, string | undefined>): string {
-  const set = Object.entries(filters).filter((entry): entry is [string, string] => !!entry[1]);
-  return new URLSearchParams(set).toString();
+export function filterQuery(filters: Filters): string {
+  return new URLSearchParams(
+    Object.entries(filters).flatMap(([name, value]) =>
+      [value ?? []]
+        .flat()
+        .filter(Boolean)
+        .map((one) => [name, one])
+    )
+  ).toString();
 }
 
 /** The query of the Show more link after `last`, keeping the page's `filters` that are set. */
-export function nextPage(
-  last: { starts_at: string; id: string },
-  filters: Record<string, string | undefined> = {}
-): string {
+export function nextPage(last: { starts_at: string; id: string }, filters: Filters = {}): string {
   const query = new URLSearchParams({ after: last.starts_at, id: last.id });
-  for (const [name, value] of Object.entries(filters)) if (value) query.set(name, value);
-  return `?${query}`;
+  const kept = filterQuery(filters);
+  return kept ? `?${query}&${kept}` : `?${query}`;
+}
+
+/**
+ * More filters' other filters in a link (SRCH-03): ?spots=1 for activities with spots left, and a
+ * tag for each tag asked for, as in ?tag=free&tag=family-friendly, as get_feed() and
+ * search_activities() take them. They leave out a tag that isn't offered, and so should the page.
+ */
+export function readMore(params: URLSearchParams) {
+  return {
+    spots: params.get('spots') === '1',
+    tags: [...new Set(params.getAll('tag'))].filter((tag) => /^[a-z][a-z0-9-]*$/.test(tag)),
+  };
 }
 
 const dates = z

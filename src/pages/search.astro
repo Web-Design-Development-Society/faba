@@ -14,7 +14,7 @@ import MoreFilters from '../components/MoreFilters.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
 import { CARD, FACES } from '../lib/cards';
-import { filterQuery, nextPage, readCursor, readDates } from '../lib/feed';
+import { filterQuery, nextPage, readCursor, readDates, readMore } from '../lib/feed';
 import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../lib/server/flash';
 import { formatDay, rexburgDate, WHENS } from '../lib/time';
 
@@ -38,10 +38,11 @@ const q = (Astro.url.searchParams.get('q') ?? '').trim().slice(0, MAX_QUERY);
 const past = Astro.url.searchParams.get('past') === '1';
 const cat = Astro.url.searchParams.get('cat') || undefined;
 const dates = readDates(Astro.url.searchParams, now);
+const moreFilters = readMore(Astro.url.searchParams);
 const cursor = readCursor(Astro.url.searchParams);
 const firstPage = !cursor.after_id;
 
-const [results, categories] = await Promise.all([
+const [results, categories, tags] = await Promise.all([
   // One more than a page says whether there's another.
   q
     ? supabase
@@ -53,6 +54,8 @@ const [results, categories] = await Promise.all([
           category: cat,
           starts_from: dates.starts_from,
           starts_before: dates.starts_before,
+          has_spots: moreFilters.spots,
+          tag_ids: moreFilters.tags,
         })
         .select(CARD)
         .eq('going.status', 'going')
@@ -62,10 +65,20 @@ const [results, categories] = await Promise.all([
         .limit(FACES, { referencedTable: 'going' })
     : { data: null, error: null },
   supabase.from('categories').select('id, name').eq('is_active', true).order('sort_order'),
+  supabase.from('tags').select('id, name').eq('is_active', true).order('sort_order'),
 ]);
 
 const category = categories.data?.find(({ id }) => id === cat);
-const filters = { cat: category?.id, when: dates.when, from: dates.from, to: dates.to };
+// The tags asked for that are offered, which are the ones the database used.
+const chosenTags = tags.data?.filter(({ id }) => moreFilters.tags.includes(id)) ?? [];
+const filters = {
+  cat: category?.id,
+  when: dates.when,
+  from: dates.from,
+  to: dates.to,
+  spots: moreFilters.spots ? '1' : undefined,
+  tag: chosenTags.map(({ id }) => id),
+};
 const activities = results.data?.slice(0, PAGE) ?? [];
 const more =
   results.data && results.data.length > PAGE
@@ -80,6 +93,8 @@ const matching = [
   dates.when && WHENS[dates.when].toLowerCase(),
   dates.from && `from ${formatDay(dates.from, now)}`,
   dates.to && `${dates.from ? 'to' : 'until'} ${formatDay(dates.to, now)}`,
+  moreFilters.spots && 'with spots left',
+  chosenTags.length && `tagged ${chosenTags.map(({ name }) => name).join(', ')}`,
 ]
   .filter(Boolean)
   .join(' ');
@@ -107,14 +122,22 @@ const matching = [
       <input type="checkbox" name="past" value="1" checked={past} />
       Include past
     </label>
-    {Object.entries(filters).map(([name, value]) =>
-      value ? <input type="hidden" name={name} value={value} /> : null
+    {Object.entries(filters).flatMap(([name, value]) =>
+      [value ?? []].flat().map((one) => <input type="hidden" name={name} value={one} />)
     )}
   </form>
   {q && categories.data?.length ? (
     <FilterChips categories={categories.data} page="/search" query={Astro.url.searchParams} />
   ) : null}
-  {q && <MoreFilters page="/search" query={Astro.url.searchParams} dates={dates} />}
+  {q && (
+    <MoreFilters
+      page="/search"
+      query={Astro.url.searchParams}
+      dates={dates}
+      more={{ spots: moreFilters.spots, tags: filters.tag }}
+      tags={tags.data ?? []}
+    />
+  )}
   <Status message={flash && FLASH_MESSAGES[flash]} />
   {rsvp?.error && <p role="alert">{rsvp.error.message}</p>}
 
