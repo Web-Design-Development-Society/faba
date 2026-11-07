@@ -103,9 +103,10 @@ async function save(id: string, status: Status, guests?: number) {
     .set(body)
     .catch(() => ({ data: undefined, error: { message: FAILED } }));
   if (data) {
-    // The saved count, which also counts anyone else who said I'm in meanwhile.
-    for (const count of document.querySelectorAll(`[data-going="${id}"] [data-count]`)) {
-      count.textContent = String(data.going_count);
+    // The saved count, which also counts anyone else who said I'm in meanwhile. A row's first count
+    // is its going count. The maybe count after it changes only as the member does.
+    for (const row of document.querySelectorAll(`[data-going="${id}"]`)) {
+      row.querySelector('[data-count]')!.textContent = String(data.going_count);
     }
     return true;
   }
