@@ -11,17 +11,20 @@ interface Props {
   /** Each field's errors, by name. */
   errors: Record<string, string[] | undefined>;
   categories: { id: string; name: string }[];
+  /** The tags to offer (SRCH-03), and the ones chosen. */
+  tags: { id: string; name: string }[];
+  chosen: string[];
 }
 
-const { value, errors, categories } = Astro.props;
+const { value, errors, categories, tags, chosen } = Astro.props;
 const invalid = (name: string) =>
   errors[name] ? { 'aria-invalid': 'true' as const, 'aria-describedby': `${name}-error` } : {};
 
 const now = new Date();
 const { today, tomorrow, saturday } = quickDates(now);
-const moreOptions = ['end_time', 'cost_note', 'capacity'].some(
-  (name) => value(name) || errors[name]
-);
+const moreOptions =
+  chosen.length > 0 ||
+  ['end_time', 'cost_note', 'capacity', 'tags'].some((name) => value(name) || errors[name]);
 ---
 
 <p>
@@ -160,4 +163,17 @@ const moreOptions = ['end_time', 'cost_note', 'capacity'].some(
     />
     <FieldError name="capacity" errors={errors.capacity} />
   </p>
+  {tags.length > 0 && (
+    <fieldset aria-describedby={errors.tags ? 'tags-hint tags-error' : 'tags-hint'}>
+      <legend>Tags</legend>
+      <span id="tags-hint">Pick up to {ACTIVITY.tags.max}, so members can find it.</span>
+      {tags.map(({ id, name }) => (
+        <label>
+          <input type="checkbox" name="tags" value={id} checked={chosen.includes(id)} />
+          {name}
+        </label>
+      ))}
+      <FieldError name="tags" errors={errors.tags} />
+    </fieldset>
+  )}
 </details>
