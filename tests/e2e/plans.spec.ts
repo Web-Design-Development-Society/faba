@@ -80,7 +80,10 @@ test('Plans has what the member is going to, organizing and went to, with badges
 
   // Going has what Pat is going to but doesn't organize, soonest first.
   await page.goto('/me');
-  await page.getByRole('link', { name: 'Your plans' }).click();
+  await page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Plans' }).click();
+  await expect(
+    page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Plans' })
+  ).toHaveAttribute('aria-current', 'page');
   const segments = page.getByRole('navigation', { name: 'Plans' });
   await expect(segments.getByRole('link', { name: 'Going' })).toHaveAttribute(
     'aria-current',
