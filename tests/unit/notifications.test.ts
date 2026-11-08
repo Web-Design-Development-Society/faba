@@ -65,3 +65,18 @@ group('changeLine', () => {
     expect(describe('activity_changed', {}).summary).toBe('Time or place changed');
   });
 });
+
+group('cancelled and back on', () => {
+  it.each([
+    ['activity_cancelled', { reason: 'Snowed in' }, 'Cancelled: Snowed in'],
+    ['activity_cancelled', { reason: null }, 'Cancelled'],
+    [
+      'activity_restored',
+      { starts_at: '2026-12-04T19:00:00-07:00' },
+      'Back on for Fri, Dec 4, 7:00 PM',
+    ],
+    ['activity_restored', {}, 'Back on'],
+  ])('says %s with %j as %j', (type, payload, line) => {
+    expect(describe(type, payload).summary).toBe(line);
+  });
+});
