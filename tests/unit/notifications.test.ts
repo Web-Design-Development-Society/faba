@@ -1,5 +1,5 @@
 import { describe as group, expect, it } from 'vitest';
-import { alertsLabel, badge, describe, TYPES } from '../../src/lib/notifications';
+import { badge, describe, TYPES } from '../../src/lib/notifications';
 
 group('describe', () => {
   it('has an icon and a line for each Phase 2 type', () => {
@@ -23,13 +23,12 @@ group('describe', () => {
 
 group('the Alerts badge', () => {
   it.each([
-    [0, '', 'Alerts'],
-    [1, '1', 'Alerts, 1 unread'],
-    [9, '9', 'Alerts, 9 unread'],
-    [10, '9+', 'Alerts, 10 unread'],
-    [250, '9+', 'Alerts, 250 unread'],
-  ])('shows %i unread as %j', (count, shown, label) => {
+    [0, ''],
+    [1, '1'],
+    [9, '9'],
+    [10, '9+'],
+    [250, '9+'],
+  ])('shows %i unread as %j', (count, shown) => {
     expect(badge(count)).toBe(shown);
-    expect(alertsLabel(count)).toBe(label);
   });
 });

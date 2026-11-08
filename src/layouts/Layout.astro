@@ -5,7 +5,7 @@
 // navigation (design document section 7.3): Discover, Plans, Post, Alerts and Me. Alerts shows the
 // unread count (NOTIF-01), which src/scripts/unread.ts keeps current. Detail and form pages don't
 // have it, so their own sticky actions keep the bottom of the screen.
-import { alertsLabel, badge } from '../lib/notifications';
+import { badge } from '../lib/notifications';
 
 interface Props {
   title: string;
@@ -53,15 +53,12 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
         <a href={post} class="post">
           <span aria-hidden="true">＋</span> Post
         </a>
-        <a
-          href="/notifications"
-          aria-current={current('alerts')}
-          aria-label={alertsLabel(unread)}
-          data-alerts
-        >
+        <a href="/notifications" aria-current={current('alerts')} data-alerts>
           Alerts
+          {/* Screen readers hear "Alerts 3 unread", which keeps what's shown in the link's name. */}
           <span class="badge" data-badge hidden={!unread}>
-            {badge(unread)}
+            <span data-count>{badge(unread)}</span>
+            <span class="unread"> unread</span>
           </span>
         </a>
         <a href="/me" aria-current={current('me')}>
@@ -138,6 +135,15 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     text-align: center;
     background: #b42318;
     border-radius: 999px;
+  }
+  /* Heard, not seen. */
+  .tabs .unread {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
   /* The one filled button in the bar. */
   .tabs .post {

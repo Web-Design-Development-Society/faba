@@ -24,8 +24,3 @@ export function describe(type: string): { icon: string; summary: string } {
 export function badge(count: number): string {
   return count > 9 ? '9+' : count > 0 ? String(count) : '';
 }
-
-/** The Alerts link's name for screen readers, such as "Alerts, 3 unread". */
-export function alertsLabel(count: number): string {
-  return count > 0 ? `Alerts, ${count} unread` : 'Alerts';
-}

@@ -1,7 +1,7 @@
 // The Alerts badge (NOTIF-01). The page shows the unread count when it loads. While the page is
 // visible, this asks for it again every 60 seconds, and as soon as the page comes back into view.
 // A hidden page doesn't ask.
-import { alertsLabel, badge } from '../lib/notifications';
+import { badge } from '../lib/notifications';
 
 const MINUTE = 60 * 1000;
 const link = document.querySelector<HTMLAnchorElement>('[data-alerts]');
@@ -13,9 +13,8 @@ async function refresh() {
     if (!response.ok) return;
     const { count } = (await response.json()) as { count: number };
     const shown = link!.querySelector<HTMLElement>('[data-badge]')!;
-    shown.textContent = badge(count);
+    shown.querySelector('[data-count]')!.textContent = badge(count);
     shown.hidden = count === 0;
-    link!.setAttribute('aria-label', alertsLabel(count));
   } catch {
     // Offline for now. The next minute tries again.
   }
