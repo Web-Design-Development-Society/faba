@@ -18,6 +18,7 @@ export const FLASH_MESSAGES = {
   suspended: 'Member suspended.',
   reinstated: 'Member reinstated.',
   transferred: 'New host set.',
+  read: 'All caught up.',
 };
 
 export type Flash = keyof typeof FLASH_MESSAGES;
