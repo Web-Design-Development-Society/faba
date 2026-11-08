@@ -1,5 +1,5 @@
 import { describe as group, expect, it } from 'vitest';
-import { describe, TYPES } from '../../src/lib/notifications';
+import { alertsLabel, badge, describe, TYPES } from '../../src/lib/notifications';
 
 group('describe', () => {
   it('has an icon and a line for each Phase 2 type', () => {
@@ -18,5 +18,18 @@ group('describe', () => {
 
   it("has a plain line for a type it doesn't know", () => {
     expect(describe('league_score')).toEqual({ icon: '•', summary: 'Update' });
+  });
+});
+
+group('the Alerts badge', () => {
+  it.each([
+    [0, '', 'Alerts'],
+    [1, '1', 'Alerts, 1 unread'],
+    [9, '9', 'Alerts, 9 unread'],
+    [10, '9+', 'Alerts, 10 unread'],
+    [250, '9+', 'Alerts, 250 unread'],
+  ])('shows %i unread as %j', (count, shown, label) => {
+    expect(badge(count)).toBe(shown);
+    expect(alertsLabel(count)).toBe(label);
   });
 });

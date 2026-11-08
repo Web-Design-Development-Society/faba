@@ -2,17 +2,21 @@
 // A plain layout for the walking skeleton (FND-10). The real layouts and styles come with
 // Iteration 1 tasks AS-2 and AS-3. Every page's footer says FABA isn't an official BYU-Idaho
 // channel, and links the public pages (INFO-01, ADR-016). The main screens have the bottom
-// navigation (design document section 7.3): Discover, Plans, Post and Me, with Alerts to come with
-// NOTIF-01. Detail and form pages don't, so their own sticky actions keep the bottom of the screen.
+// navigation (design document section 7.3): Discover, Plans, Post, Alerts and Me. Alerts shows the
+// unread count (NOTIF-01), which src/scripts/unread.ts keeps current. Detail and form pages don't
+// have it, so their own sticky actions keep the bottom of the screen.
+import { alertsLabel, badge } from '../lib/notifications';
+
 interface Props {
   title: string;
   /** The bottom navigation's current item, for the main screens. */
-  tab?: 'discover' | 'plans' | 'me';
+  tab?: 'discover' | 'plans' | 'alerts' | 'me';
   /** Where Post goes, such as with Discover's category. */
   post?: string;
 }
 
 const { title, tab, post = '/activities/new' } = Astro.props;
+const unread = Astro.locals.member?.unread_count ?? 0;
 const current = (item: string) => (item === tab ? ('page' as const) : undefined);
 ---
 
@@ -49,6 +53,17 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
         <a href={post} class="post">
           <span aria-hidden="true">＋</span> Post
         </a>
+        <a
+          href="/notifications"
+          aria-current={current('alerts')}
+          aria-label={alertsLabel(unread)}
+          data-alerts
+        >
+          Alerts
+          <span class="badge" data-badge hidden={!unread}>
+            {badge(unread)}
+          </span>
+        </a>
         <a href="/me" aria-current={current('me')}>
           Me
         </a>
@@ -56,6 +71,10 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     )}
   </body>
 </html>
+
+<script>
+  import '../scripts/unread';
+</script>
 
 <style is:global>
   body {
@@ -93,6 +112,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     border-top: 1px solid #767676;
   }
   .tabs a {
+    position: relative;
     display: grid;
     flex: 1;
     place-items: center;
@@ -104,6 +124,20 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     font-weight: 600;
     text-decoration: underline;
     text-underline-offset: 0.25rem;
+  }
+  .tabs .badge {
+    position: absolute;
+    top: 0;
+    left: calc(50% + 1rem);
+    min-width: 1.25rem;
+    padding: 0 0.25rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    line-height: 1.25rem;
+    color: white;
+    text-align: center;
+    background: #b42318;
+    border-radius: 999px;
   }
   /* The one filled button in the bar. */
   .tabs .post {
