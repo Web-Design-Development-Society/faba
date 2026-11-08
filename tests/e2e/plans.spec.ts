@@ -1,4 +1,4 @@
-// My activities on the Me screen (HIST-02).
+// Plans (RSVP-08), which replaced My activities on the Me screen (HIST-02).
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { expect, expectAccessible, test } from './fixtures';
 
@@ -18,7 +18,7 @@ async function goTo(admin: SupabaseClient, id: string, member: string) {
     .eq('id', id);
 }
 
-test('My activities lists what the member is going to and organizing, soonest first, with cancelled ones marked', async ({
+test('Plans has what the member is going to, organizing and went to, with badges', async ({
   page,
   poster,
   host,
@@ -54,17 +54,23 @@ test('My activities lists what the member is going to and organizing, soonest fi
     .single();
   await goTo(poster.admin, mine!.id, poster.id);
 
+  // Its place changed, and Pat has the last spot.
   const goingId = await host.post({ title: going, category_id: 'games', starts_at: inHours(48) });
   await goTo(host.admin, goingId, poster.id);
+  await host.admin
+    .from('activities')
+    .update({ capacity: 2, time_or_place_changed_at: new Date().toISOString() })
+    .eq('id', goingId);
   await host.post({ title: later, starts_at: inHours(30) });
 
-  // Over, so it's left out.
+  // Over, so it's in Past.
+  const yesterday = named('Yesterday');
   const { data: past } = await host.admin
     .from('activities')
     .insert({
       organizer_id: host.id,
       category_id: 'outdoors',
-      title: named('Yesterday'),
+      title: yesterday,
       starts_at: inHours(-5),
       location_name: 'R Mountain trailhead',
     })
@@ -72,15 +78,32 @@ test('My activities lists what the member is going to and organizing, soonest fi
     .single();
   await goTo(host.admin, past!.id, poster.id);
 
+  // Going has what Pat is going to but doesn't organize, soonest first.
   await page.goto('/me');
-  const list = page.getByRole('region', { name: 'My activities' });
-  await expect(list.getByRole('heading', { level: 3 })).toHaveText([cancelled, organized, going]);
-  const card = (title: string) => list.getByRole('listitem').filter({ hasText: title });
+  await page.getByRole('link', { name: 'Your plans' }).click();
+  const segments = page.getByRole('navigation', { name: 'Plans' });
+  await expect(segments.getByRole('link', { name: 'Going' })).toHaveAttribute(
+    'aria-current',
+    'page'
+  );
+  const titles = page.getByRole('main').getByRole('heading', { level: 3 });
+  await expect(titles).toHaveText([cancelled, going]);
+  const card = (title: string) => page.getByRole('listitem').filter({ hasText: title });
   await expect(card(cancelled).getByText('Cancelled', { exact: true })).toBeVisible();
   await expect(card(cancelled).getByRole('button')).toHaveCount(0);
-  await expect(card(organized).getByText("You're hosting")).toBeVisible();
   await expect(card(going).getByRole('button', { name: '✓ Going' })).toBeVisible();
+  await expect(card(going).getByRole('listitem')).toHaveText(['Changed', 'Full']);
   await expectAccessible(page);
+
+  await segments.getByRole('link', { name: 'Organizing' }).click();
+  await expect(page).toHaveURL('/plans?show=organizing');
+  await expect(titles).toHaveText([organized]);
+  await expect(card(organized).getByText("You're hosting")).toBeVisible();
+
+  await segments.getByRole('link', { name: 'Past' }).click();
+  await expect(titles).toHaveText([yesterday]);
+
+  await segments.getByRole('link', { name: 'Going' }).click();
 
   // Each opens the activity.
   await card(cancelled).click();
@@ -88,17 +111,16 @@ test('My activities lists what the member is going to and organizing, soonest fi
   await expect(page.getByText('Cancelled: No snow')).toBeVisible();
 });
 
-test('with no plans, My activities invites the member to browse', async ({ page, poster }) => {
+test('with no plans, Plans invites the member to browse', async ({ page, poster }) => {
   const { count } = await poster.admin
     .from('rsvps')
     .select('*', { count: 'exact', head: true })
     .eq('user_id', poster.id);
   expect(count).toBe(0);
 
-  await page.goto('/me');
-  const list = page.getByRole('region', { name: 'My activities' });
-  await expect(list.getByText('No plans yet. Find something fun.')).toBeVisible();
-  await expect(list.getByRole('link', { name: 'Browse activities' })).toHaveAttribute(
+  await page.goto('/plans');
+  await expect(page.getByText('No plans yet. Find something fun.')).toBeVisible();
+  await expect(page.getByRole('link', { name: 'Browse activities' })).toHaveAttribute(
     'href',
     '/discover'
   );
@@ -107,7 +129,7 @@ test('with no plans, My activities invites the member to browse', async ({ page,
 test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false });
 
-  test("Can't make it comes back to My activities, without the activity", async ({
+  test("Can't make it comes back to Plans, without the activity", async ({
     page,
     poster,
     host,
@@ -116,12 +138,12 @@ test.describe('without JavaScript', () => {
     const id = await host.post({ title, starts_at: inHours(24) });
     await goTo(host.admin, id, poster.id);
 
-    await page.goto('/me');
+    await page.goto('/plans');
     const card = page.getByRole('listitem').filter({ hasText: title });
     await card.getByRole('button', { name: '✓ Going' }).click();
     await page.getByRole('dialog').getByRole('button', { name: "Can't make it" }).click();
 
-    await expect(page).toHaveURL(`/me#activity-${id}`);
+    await expect(page).toHaveURL(`/plans#activity-${id}`);
     await expect(page.getByRole('status')).toHaveText("You're not going.");
     await expect(page.getByText(title)).toHaveCount(0);
   });

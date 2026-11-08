@@ -1,57 +1,26 @@
 ---
-// The Me screen, with Sign out (AUTH-03). My activities lists the upcoming activities the member is
-// going to, soonest first (HIST-02, FR-HIST-1). Organizers are always going to their own (ACT-03,
-// RSVP-02), so it has what they organize too. Cancelled ones stay, marked cancelled (ACT-05).
-// Phase 2's Plans tab replaces the list (RSVP-08). Edit profile opens the profile form (PROF-02),
+// The Me screen, with Sign out (AUTH-03). The member's activities are in Plans (RSVP-08), which
+// replaced Phase 1's My activities here (HIST-02). Edit profile opens the profile form (PROF-02),
 // which comes back here. Moderators see how many reports are open, which opens the queue (MOD-02).
 // Delete account is at the bottom, away from everything else (PROF-05).
-import { actions } from 'astro:actions';
-import ActivityCard from '../components/ActivityCard.astro';
-import Avatar from '../components/Avatar.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
-import { CARD, FACES } from '../lib/cards';
-import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../lib/server/flash';
-
-// The most activities in the list.
-const LIMIT = 50;
-const HOUR = 60 * 60 * 1000;
+import { FLASH_MESSAGES, takeFlash } from '../lib/server/flash';
 
 const { supabase, member, user } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
 
-// Can't make it without JavaScript comes back to the card (RSVP-02).
-const rsvp = Astro.getActionResult(actions.rsvps.set);
-if (rsvp && !rsvp.error) {
-  setFlash(Astro.cookies, Astro.url, rsvp.data.status);
-  return Astro.redirect(postedFrom(Astro.url, `#activity-${rsvp.data.activity_id}`), 303);
-}
 const flash = takeFlash(Astro.cookies);
 
-// From 3 hours ago, so one that's underway stays, as in the feed. Hidden ones are left out.
-const now = new Date();
 const moderator =
   member?.status === 'active' && (member.role === 'moderator' || member.role === 'admin');
-const [{ data, error }, { data: profile }, { data: categories }, open] = await Promise.all([
-  supabase
-    .from('activities')
-    .select(CARD)
-    .eq('my_rsvp', 'going')
-    .is('hidden_at', null)
-    .gte('starts_at', new Date(now.getTime() - 3 * HOUR).toISOString())
-    .eq('going.status', 'going')
-    .order('starts_at')
-    .order('id')
-    .order('created_at', { referencedTable: 'going' })
-    .limit(FACES, { referencedTable: 'going' })
-    .limit(LIMIT),
+const [{ data: profile }, { data: categories }, open] = await Promise.all([
   supabase.from('profiles').select('department, bio, interests').eq('id', user.id).single(),
   supabase.from('categories').select('id, name').order('sort_order'),
   moderator
     ? supabase.from('reports').select('id', { count: 'exact', head: true }).eq('status', 'open')
     : null,
 ]);
-const activities = data ?? [];
 const interests = categories?.filter(({ id }) => profile?.interests.includes(id)) ?? [];
 ---
 
@@ -70,27 +39,9 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
     </p>
   )}
   <Status message={flash && FLASH_MESSAGES[flash]} />
-  {rsvp?.error && <p role="alert">{rsvp.error.message}</p>}
-
-  <section aria-labelledby="my-activities">
-    <h2 id="my-activities">My activities</h2>
-    {error ? (
-      <p role="alert">Your activities couldn't load. Please try again.</p>
-    ) : activities.length === 0 ? (
-      <div class="empty">
-        <p>No plans yet. Find something fun.</p>
-        <a href="/discover">Browse activities</a>
-      </div>
-    ) : (
-      <ul>
-        {activities.map((activity) => (
-          <li id={`activity-${activity.id}`}>
-            <ActivityCard activity={activity} viewer={user.id} now={now} faces={FACES} />
-          </li>
-        ))}
-      </ul>
-    )}
-  </section>
+  <p>
+    <a href="/plans">Your plans</a>
+  </p>
 
   <form method="post" action="/auth/logout">
     <button type="submit">Sign out</button>
@@ -98,32 +49,9 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
   <p>
     <a href="/me/delete">Delete account</a>
   </p>
-  {member && (
-    <template data-my-face>
-      <Avatar member={member} named />
-    </template>
-  )}
 </Layout>
 
-<script>
-  import '../scripts/rsvp';
-</script>
-
 <style>
-  /* minmax(0, 1fr) keeps a card with a long place on one line from widening the column. */
-  ul {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.75rem;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-  .empty a {
-    display: inline-grid;
-    place-items: center;
-    min-height: 44px;
-  }
   form {
     margin-top: 2rem;
   }

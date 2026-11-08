@@ -1,0 +1,156 @@
+---
+// Plans (RSVP-08, design document section 7.3): everything the member is going to or organizing,
+// in three segments. Going has the upcoming activities they're going to or maybe for, and
+// Organizing the ones they organize, soonest first, as in /plans?show=organizing. Past has the
+// ones they went to or organized, newest first. Each is a card, as on Home, with badges for what
+// changed (FR-HIST-1). Cancelled ones stay, marked cancelled (ACT-05), and hidden ones stay for
+// their organizer. It replaces Phase 1's My activities on Me (HIST-02).
+import { actions } from 'astro:actions';
+import ActivityCard from '../components/ActivityCard.astro';
+import Avatar from '../components/Avatar.astro';
+import Status from '../components/Status.astro';
+import Layout from '../layouts/Layout.astro';
+import { CARD, FACES } from '../lib/cards';
+import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../lib/server/flash';
+
+// The most activities in a segment.
+const LIMIT = 50;
+const HOUR = 60 * 60 * 1000;
+const SEGMENTS = { going: 'Going', organizing: 'Organizing', past: 'Past' } as const;
+type Segment = keyof typeof SEGMENTS;
+
+const { supabase, member, user } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+
+// I'm in and Can't make it without JavaScript come back to the card (RSVP-01, RSVP-02).
+const rsvp = Astro.getActionResult(actions.rsvps.set);
+if (rsvp && !rsvp.error) {
+  setFlash(Astro.cookies, Astro.url, rsvp.data.status);
+  return Astro.redirect(postedFrom(Astro.url, `#activity-${rsvp.data.activity_id}`), 303);
+}
+const flash = takeFlash(Astro.cookies);
+
+const asked = Astro.url.searchParams.get('show') ?? '';
+const segment: Segment = Object.hasOwn(SEGMENTS, asked) ? (asked as Segment) : 'going';
+
+// Upcoming is from 3 hours ago, so one that's underway stays, as in the feed.
+const now = new Date();
+const since = new Date(now.getTime() - 3 * HOUR).toISOString();
+const cards = supabase
+  .from('activities')
+  .select(CARD)
+  .eq('going.status', 'going')
+  .order('created_at', { referencedTable: 'going' })
+  .limit(FACES, { referencedTable: 'going' })
+  .limit(LIMIT);
+const { data, error } = await (segment === 'going'
+  ? cards
+      .in('my_rsvp', ['going', 'maybe'])
+      .neq('organizer_id', user.id)
+      .is('hidden_at', null)
+      .gte('starts_at', since)
+      .order('starts_at')
+      .order('id')
+  : segment === 'organizing'
+    ? cards.eq('organizer_id', user.id).gte('starts_at', since).order('starts_at').order('id')
+    : cards
+        .or(`organizer_id.eq.${user.id},my_rsvp.eq.going`)
+        .lt('starts_at', since)
+        .order('starts_at', { ascending: false })
+        .order('id', { ascending: false }));
+const activities = data ?? [];
+---
+
+<Layout title={segment === 'going' ? 'Plans' : `${SEGMENTS[segment]} · Plans`}>
+  <h1>Plans</h1>
+  <nav aria-label="Plans" class="segments">
+    {Object.entries(SEGMENTS).map(([id, name]) => (
+      <a
+        href={id === 'going' ? '/plans' : `/plans?show=${id}`}
+        aria-current={id === segment ? 'page' : undefined}
+      >
+        {name}
+      </a>
+    ))}
+  </nav>
+  <Status message={flash && FLASH_MESSAGES[flash]} />
+  {rsvp?.error && <p role="alert">{rsvp.error.message}</p>}
+
+  {error ? (
+    <p role="alert">Your plans couldn't load. Please try again.</p>
+  ) : activities.length === 0 ? (
+    <div class="empty">
+      {segment === 'going' ? (
+        <>
+          <p>No plans yet. Find something fun.</p>
+          <a href="/discover">Browse activities</a>
+        </>
+      ) : segment === 'organizing' ? (
+        <>
+          <p>You're not organizing anything coming up.</p>
+          <a href="/activities/new">Post an activity</a>
+        </>
+      ) : (
+        <p>Activities you've been to or organized will show here.</p>
+      )}
+    </div>
+  ) : (
+    <ul>
+      {activities.map((activity) => (
+        <li id={`activity-${activity.id}`}>
+          <ActivityCard activity={activity} viewer={user.id} now={now} faces={FACES} badges />
+        </li>
+      ))}
+    </ul>
+  )}
+  {member && (
+    <template data-my-face>
+      <Avatar member={member} named />
+    </template>
+  )}
+</Layout>
+
+<script>
+  import '../scripts/rsvp';
+</script>
+
+<style>
+  .segments {
+    display: flex;
+    overflow: hidden;
+    margin-bottom: 1rem;
+    border: 1px solid #767676;
+    border-radius: 0.5rem;
+  }
+  .segments a {
+    display: grid;
+    flex: 1;
+    place-items: center;
+    min-height: 44px;
+    color: inherit;
+    text-decoration: none;
+  }
+  .segments [aria-current] {
+    font-weight: 600;
+    color: white;
+    background: #222;
+  }
+  /* minmax(0, 1fr) keeps a card with a long place on one line from widening the column. */
+  ul {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.75rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .empty {
+    margin-top: 2rem;
+    text-align: center;
+  }
+  .empty a {
+    display: inline-grid;
+    place-items: center;
+    min-height: 44px;
+  }
+</style>
