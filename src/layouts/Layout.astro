@@ -76,12 +76,14 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     display: inline-block;
     padding: 0.75rem 0;
   }
-  /* In thumb reach at the bottom of the screen (section 7.16). The page leaves room for it. */
+  /* In thumb reach at the bottom of the screen (section 7.16), above the cards' I'm in buttons,
+     which sit above their links. The page leaves room for it. */
   body:has(> .tabs) {
     padding-bottom: calc(5rem + env(safe-area-inset-bottom));
   }
   .tabs {
     position: fixed;
+    z-index: 2;
     right: 0;
     bottom: 0;
     left: 0;
