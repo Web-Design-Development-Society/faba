@@ -98,6 +98,11 @@ export function formatDay(date: string, now: Date): string {
   return NEARBY[daysFrom(now, date)] ?? day.format(new Date(`${date}T12:00:00Z`));
 }
 
+/** The time in Rexburg for people, such as `7:30 PM`. */
+export function formatClock(instant: Date): string {
+  return clock.format(instant);
+}
+
 /**
  * When on a card: relative for the next 6 days, such as `Tomorrow 6:30 PM` or `Sat 7:00 AM`, and
  * a date after that, such as `Nov 14, 6:30 PM` (design document section 7.5).
