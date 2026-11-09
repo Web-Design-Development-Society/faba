@@ -24,7 +24,7 @@ const [{ data: profile }, { data: categories }, open] = await Promise.all([
 const interests = categories?.filter(({ id }) => profile?.interests.includes(id)) ?? [];
 ---
 
-<Layout title="Me">
+<Layout title="Me" tab="me">
   <h1>Me</h1>
   <p>You're signed in as {member?.display_name ?? user.email}.</p>
   {profile?.department && <p>{profile.department}</p>}
@@ -39,9 +39,6 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
     </p>
   )}
   <Status message={flash && FLASH_MESSAGES[flash]} />
-  <p>
-    <a href="/plans">Your plans</a>
-  </p>
 
   <form method="post" action="/auth/logout">
     <button type="submit">Sign out</button>

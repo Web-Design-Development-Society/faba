@@ -1,12 +1,19 @@
 ---
 // A plain layout for the walking skeleton (FND-10). The real layouts and styles come with
 // Iteration 1 tasks AS-2 and AS-3. Every page's footer says FABA isn't an official BYU-Idaho
-// channel, and links the public pages (INFO-01, ADR-016).
+// channel, and links the public pages (INFO-01, ADR-016). The main screens have the bottom
+// navigation (design document section 7.3): Discover, Plans, Post and Me, with Alerts to come with
+// NOTIF-01. Detail and form pages don't, so their own sticky actions keep the bottom of the screen.
 interface Props {
   title: string;
+  /** The bottom navigation's current item, for the main screens. */
+  tab?: 'discover' | 'plans' | 'me';
+  /** Where Post goes, such as with Discover's category. */
+  post?: string;
 }
 
-const { title } = Astro.props;
+const { title, tab, post = '/activities/new' } = Astro.props;
+const current = (item: string) => (item === tab ? ('page' as const) : undefined);
 ---
 
 <html lang="en">
@@ -31,6 +38,22 @@ const { title } = Astro.props;
         <a href="/guidelines">Guidelines</a>
       </p>
     </footer>
+    {tab && (
+      <nav aria-label="Main" class="tabs">
+        <a href="/discover" aria-current={current('discover')}>
+          Discover
+        </a>
+        <a href="/plans" aria-current={current('plans')}>
+          Plans
+        </a>
+        <a href={post} class="post">
+          <span aria-hidden="true">＋</span> Post
+        </a>
+        <a href="/me" aria-current={current('me')}>
+          Me
+        </a>
+      </nav>
+    )}
   </body>
 </html>
 
@@ -52,5 +75,44 @@ const { title } = Astro.props;
   footer a {
     display: inline-block;
     padding: 0.75rem 0;
+  }
+  /* In thumb reach at the bottom of the screen (section 7.16), above the cards' I'm in buttons,
+     which sit above their links. The page leaves room for it. */
+  body:has(> .tabs) {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+  }
+  .tabs {
+    position: fixed;
+    z-index: 2;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: flex;
+    max-width: 40rem;
+    margin: 0 auto;
+    padding: 0.25rem 0.5rem calc(0.25rem + env(safe-area-inset-bottom));
+    background: white;
+    border-top: 1px solid #767676;
+  }
+  .tabs a {
+    display: grid;
+    flex: 1;
+    place-items: center;
+    min-height: 48px;
+    color: inherit;
+    text-decoration: none;
+  }
+  .tabs [aria-current] {
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 0.25rem;
+  }
+  /* The one filled button in the bar. */
+  .tabs .post {
+    margin: 0 0.25rem;
+    font-weight: 600;
+    color: white;
+    background: #222;
+    border-radius: 999px;
   }
 </style>

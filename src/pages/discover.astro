@@ -1,8 +1,8 @@
 ---
 // Home (ACT-01, design document section 7.4): what's coming up, soonest first, under a heading
 // for each day in Rexburg time. Chips filter it by date and category, as in
-// /discover?when=weekend&cat=outdoors (ACT-06, SRCH-02), and More filters by custom dates. The app
-// shell's bottom navigation replaces the links.
+// /discover?when=weekend&cat=outdoors (ACT-06, SRCH-02), and More filters by custom dates. Search is
+// at the top, and the bottom navigation's Post starts in the chosen category (RSVP-08).
 import { actions } from 'astro:actions';
 import ActivityCard from '../components/ActivityCard.astro';
 import Avatar from '../components/Avatar.astro';
@@ -115,14 +115,11 @@ const more = feed.data && feed.data.length > PAGE ? nextPage(activities.at(-1)!,
 const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(starts_at)));
 ---
 
-<Layout title={category ? `${category.name} · Discover` : 'Discover'}>
-  <h1>Discover</h1>
-  <nav aria-label="Main">
+<Layout title={category ? `${category.name} · Discover` : 'Discover'} tab="discover" post={post}>
+  <header class="top">
+    <h1>Discover</h1>
     <a href="/search">Search</a>
-    <a href="/plans">Plans</a>
-    <a href={post}>Post</a>
-    <a href="/me">Me</a>
-  </nav>
+  </header>
   <p data-zone-note hidden>
     Times are in Rexburg time.
   </p>
@@ -200,9 +197,15 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
 </script>
 
 <style>
-  nav {
+  .top {
     display: flex;
-    gap: 1rem;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .top a {
+    display: inline-grid;
+    place-items: center;
+    min-height: 44px;
   }
   h2 {
     margin: 1.5rem 0 0.5rem;
