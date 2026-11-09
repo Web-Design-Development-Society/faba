@@ -43,9 +43,22 @@ export function changeLine(before: Snapshot, after: Snapshot): string {
 /** The center's line for a notification of `type`, and its icon, using its payload if it can. */
 export function describe(type: string, payload?: unknown): { icon: string; summary: string } {
   const found = TYPES[type] ?? { icon: '•', summary: 'Update' };
-  const { before, after } = (payload ?? {}) as { before?: Snapshot; after?: Snapshot };
-  const changed = type === 'activity_changed' && before && after ? changeLine(before, after) : '';
-  return changed ? { ...found, summary: changed } : found;
+  const { before, after, reason, starts_at } = (payload ?? {}) as {
+    before?: Snapshot;
+    after?: Snapshot;
+    reason?: string | null;
+    starts_at?: string;
+  };
+  // NOTIF-03: "Cancelled: Snowed in", and "Back on for Fri, Dec 4, 7:00 PM".
+  const summary =
+    type === 'activity_changed' && before && after
+      ? changeLine(before, after)
+      : type === 'activity_cancelled' && reason
+        ? `Cancelled: ${reason}`
+        : type === 'activity_restored' && starts_at
+          ? `Back on for ${formatWhen(new Date(starts_at))}`
+          : '';
+  return summary ? { ...found, summary } : found;
 }
 
 /** The Alerts badge for `count` unread notifications, which stops at "9+", or nothing for none. */
