@@ -1,0 +1,188 @@
+---
+// The notification center (NOTIF-01, design document section 7.9, journey J8): the last 90 days,
+// newest first, 30 at a time, with the unread ones under New and the rest under Earlier. Each row
+// has an icon, a line about what happened, the activity's title, and how long ago. Unread rows are
+// bold and have a dot, not just a color. Tapping one marks it read and opens its activity, and an
+// activity that's gone, or hidden, opens "not available". Mark all read is at the top. It all works
+// without JavaScript.
+import { actions } from 'astro:actions';
+import Status from '../components/Status.astro';
+import Layout from '../layouts/Layout.astro';
+import { nextPage, readCursor } from '../lib/feed';
+import { describe } from '../lib/notifications';
+import { FLASH_MESSAGES, setFlash, takeFlash } from '../lib/server/flash';
+import { formatAgo } from '../lib/time';
+
+const PAGE = 30;
+const KEPT_DAYS = 90;
+
+const { supabase, user } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+
+const opened = Astro.getActionResult(actions.notifications.open);
+if (opened && !opened.error) return Astro.redirect(opened.data.href, 303);
+const readAll = Astro.getActionResult(actions.notifications.readAll);
+if (readAll && !readAll.error) {
+  setFlash(Astro.cookies, Astro.url, 'read');
+  return Astro.redirect('/notifications', 303);
+}
+const failed = opened?.error ?? readAll?.error;
+const flash = takeFlash(Astro.cookies);
+
+const now = new Date();
+const cursor = readCursor(Astro.url.searchParams);
+let query = supabase
+  .from('notifications')
+  .select('id, type, read_at, created_at, activity:activities(title)')
+  .gte('created_at', new Date(now.getTime() - KEPT_DAYS * 24 * 60 * 60 * 1000).toISOString())
+  .order('created_at', { ascending: false })
+  .order('id', { ascending: false })
+  .limit(PAGE + 1);
+if (cursor.after_id) {
+  query = query.or(
+    `created_at.lt."${cursor.after_starts_at}",and(created_at.eq."${cursor.after_starts_at}",id.lt.${cursor.after_id})`
+  );
+}
+const { data, error } = await query;
+const shown = data?.slice(0, PAGE) ?? [];
+const last = shown.at(-1);
+const more =
+  last && data!.length > PAGE ? nextPage({ starts_at: last.created_at, id: last.id }) : null;
+const groups = [
+  { name: 'New', items: shown.filter(({ read_at }) => !read_at) },
+  { name: 'Earlier', items: shown.filter(({ read_at }) => read_at) },
+].filter(({ items }) => items.length > 0);
+const unread = groups[0]?.name === 'New';
+---
+
+<Layout title="Alerts">
+  <header class="top">
+    <h1>Alerts</h1>
+    {unread && (
+      <form method="post" action={actions.notifications.readAll.queryString}>
+        <button>Mark all read</button>
+      </form>
+    )}
+  </header>
+  <Status message={flash && FLASH_MESSAGES[flash]} />
+  {failed && <p role="alert">{failed.message}</p>}
+
+  {error ? (
+    <p role="alert">Your alerts couldn't load. Please try again.</p>
+  ) : shown.length === 0 ? (
+    <p class="empty">You're all caught up. We'll let you know when plans change.</p>
+  ) : (
+    groups.map(({ name, items }) => (
+      <section aria-labelledby={`alerts-${name}`}>
+        <h2 id={`alerts-${name}`}>{name}</h2>
+        <ul>
+          {items.map((notification) => {
+            const { icon, summary } = describe(notification.type);
+            return (
+              <li class:list={{ unread: !notification.read_at }}>
+                <form method="post" action={actions.notifications.open.queryString}>
+                  <input type="hidden" name="id" value={notification.id} />
+                  <button>
+                    <span class="icon" aria-hidden="true">
+                      {icon}
+                    </span>
+                    <span class="text">
+                      <span class="summary">
+                        {!notification.read_at && <span class="dot">Unread: </span>}
+                        {summary}
+                      </span>
+                      <span class="title">
+                        {notification.activity?.title ?? 'No longer available'}
+                      </span>
+                      <time datetime={notification.created_at}>
+                        {formatAgo(new Date(notification.created_at), now)}
+                      </time>
+                    </span>
+                  </button>
+                </form>
+              </li>
+            );
+          })}
+        </ul>
+      </section>
+    ))
+  )}
+  {more && (
+    <a class="more" href={`/notifications${more}`}>
+      Show more
+    </a>
+  )}
+</Layout>
+
+<style>
+  .top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .top button {
+    min-height: 44px;
+    padding: 0;
+    font: inherit;
+    color: inherit;
+    text-decoration: underline;
+    background: none;
+    border: 0;
+  }
+  h2 {
+    margin: 1.5rem 0 0.5rem;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+  }
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  li button {
+    display: flex;
+    gap: 0.75rem;
+    width: 100%;
+    min-height: 44px;
+    padding: 0.75rem 0;
+    font: inherit;
+    color: inherit;
+    text-align: left;
+    background: none;
+    border: 0;
+    border-bottom: 1px solid #767676;
+  }
+  .text {
+    display: grid;
+  }
+  .unread .summary,
+  .unread .title {
+    font-weight: 700;
+  }
+  /* A dot for sighted people, and "Unread:" for screen readers. */
+  .dot {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-right: 0.5rem;
+    overflow: hidden;
+    vertical-align: middle;
+    color: transparent;
+    background: #222;
+    border-radius: 50%;
+  }
+  time {
+    font-size: 0.875rem;
+    color: #595959;
+  }
+  .empty {
+    margin-top: 2rem;
+    text-align: center;
+  }
+  .more {
+    display: grid;
+    place-items: center;
+    min-height: 44px;
+    margin-top: 1rem;
+  }
+</style>
