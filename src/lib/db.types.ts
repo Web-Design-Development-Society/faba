@@ -185,6 +185,65 @@ export type Database = {
         };
         Relationships: [];
       };
+      notifications: {
+        Row: {
+          activity_id: string | null;
+          actor_id: string | null;
+          created_at: string;
+          dedupe_key: string | null;
+          id: string;
+          payload: NonNullable<Json>;
+          read_at: string | null;
+          recipient_id: string;
+          type: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          activity_id?: string | null;
+          actor_id?: string | null;
+          created_at?: string;
+          dedupe_key?: string | null;
+          id?: string;
+          payload?: NonNullable<Json>;
+          read_at?: string | null;
+          recipient_id: string;
+          type: string;
+        };
+        Update: {
+          activity_id?: string | null;
+          actor_id?: string | null;
+          created_at?: string;
+          dedupe_key?: string | null;
+          id?: string;
+          payload?: NonNullable<Json>;
+          read_at?: string | null;
+          recipient_id?: string;
+          type?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notifications_activity_id_fkey';
+            columns: ['activity_id'];
+            isOneToOne: false;
+            referencedRelation: 'activities';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'notifications_actor_id_fkey';
+            columns: ['actor_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'notifications_recipient_id_fkey';
+            columns: ['recipient_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       profile_private: {
         Row: {
           created_at: string;
@@ -492,9 +551,11 @@ export type Database = {
           guidelines_ok: boolean;
           role: string;
           status: string;
+          unread_count: number;
           use_initials: boolean;
         }[];
       };
+      mark_notifications_read: { Args: { ids?: string[] }; Returns: number };
       member_email: { Args: { member_id: string }; Returns: string };
       moderate_cancel_activity: {
         Args: { activity_id: string; reason: string };
