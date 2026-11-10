@@ -1,8 +1,9 @@
 ---
 // An activity's page (ACT-02, design document section 7.6), in the order people ask: what, when,
 // where, who, then the details. Report opens the Report form (MOD-01), and those going or maybe can
-// Mute updates from the same menu (NOTIF-08). Moderators unhide a hidden one here (MOD-03), and
-// give an ineligible organizer's upcoming one to a new host or cancel it (AUTH-05).
+// Mute updates from the same menu (NOTIF-08). Its organizer's updates come last, newest first, and
+// Post update sits beside Edit (NOTIF-04). Moderators unhide a hidden one here (MOD-03), and give
+// an ineligible organizer's upcoming one to a new host or cancel it (AUTH-05).
 import { actions, isInputError } from 'astro:actions';
 import Avatar from '../../../components/Avatar.astro';
 import BoardContact from '../../../components/BoardContact.astro';
@@ -53,8 +54,14 @@ if (mute && !mute.error) {
   setFlash(Astro.cookies, Astro.url, mute.data.muted ? 'muted' : 'unmuted');
   return Astro.redirect(postedFrom(Astro.url), 303);
 }
+const unhideUpdate = Astro.getActionResult(actions.moderation.unhideUpdate);
+if (unhideUpdate && !unhideUpdate.error) {
+  setFlash(Astro.cookies, Astro.url, 'update_unhidden');
+  return Astro.redirect(postedFrom(Astro.url, '#updates'), 303);
+}
 // The error shows at the top, since its sheet has closed.
-const failed = unhide?.error ?? transfer?.error ?? cancel?.error ?? mute?.error;
+const failed =
+  unhide?.error ?? transfer?.error ?? cancel?.error ?? mute?.error ?? unhideUpdate?.error;
 const failure = isInputError(failed) ? Object.values(failed.fields).flat()[0] : failed?.message;
 
 // Only its organizer and moderators can read a hidden activity (RLS), so it's not available to
@@ -74,7 +81,9 @@ const [{ data: activity }, { data: me }] = await Promise.all([
       organizer:profiles!activities_organizer_id_fkey(id, display_name, avatar_url, use_initials, department, status),
       mine:rsvps(status, guest_count, mute:activity_mutes(muted_at)),
       going:rsvps(member:profiles!inner(id, display_name, avatar_url, use_initials, department)),
-      maybe:rsvps(member:profiles!inner(id, display_name, avatar_url, use_initials, department))`
+      maybe:rsvps(member:profiles!inner(id, display_name, avatar_url, use_initials, department)),
+      updates:activity_updates(id, body, created_at, author_id, hidden_at, hidden_reason,
+        author:profiles!activity_updates_author_id_fkey(display_name))`
     )
     .eq('id', Astro.params.id!)
     .eq('mine.user_id', user.id)
@@ -84,6 +93,8 @@ const [{ data: activity }, { data: me }] = await Promise.all([
     .eq('maybe.member.status', 'active')
     .order('created_at', { referencedTable: 'going' })
     .limit(LIST, { referencedTable: 'going' })
+    .order('created_at', { referencedTable: 'updates', ascending: false })
+    .limit(LIST, { referencedTable: 'updates' })
     .maybeSingle(),
   // The member in who's going, for after I'm in.
   supabase
@@ -340,11 +351,65 @@ const email = activity
         </p>
       )}
       {PHYSICAL_CATEGORIES.includes(activity.category_id) && <ParticipationDisclaimer />}
+      {activity.updates.length > 0 && (
+        <section class="updates" aria-labelledby="updates">
+          <h2 id="updates">Updates</h2>
+          <ul>
+            {activity.updates.map((update) => (
+              <li>
+                {update.hidden_at && (
+                  // Only its author and moderators read a hidden update (NOTIF-04).
+                  <p class="hidden">{withReason('Hidden by a moderator', update.hidden_reason)}</p>
+                )}
+                <p class="byline">
+                  {update.author?.display_name ?? 'Organizer'},{' '}
+                  <time datetime={update.created_at}>
+                    {formatAgo(new Date(update.created_at), new Date())}
+                  </time>
+                  {!update.hidden_at && update.author_id !== user.id && (
+                    <>
+                      {' · '}
+                      <a href={`/activities/${activity.id}/updates/${update.id}/report`}>Report</a>
+                    </>
+                  )}
+                </p>
+                <p class="description">
+                  {linkify(update.body).map(({ text, href }) =>
+                    href ? (
+                      <a href={href} rel="nofollow ugc noopener">
+                        {text}
+                      </a>
+                    ) : (
+                      text
+                    )
+                  )}
+                </p>
+                {update.hidden_at && moderator && (
+                  <ModerationAction
+                    id={`unhide-update-${update.id}`}
+                    label="Unhide update"
+                    title="Unhide this update?"
+                    action={actions.moderation.unhideUpdate.queryString}
+                    fields={{ update_id: update.id }}
+                    confirm="Yes, unhide it"
+                    cancel="No, keep it hidden"
+                  >
+                    <p>Members will see it again on this page and in Alerts.</p>
+                  </ModerationAction>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
       <div class="actions">
         {hosting ? (
           <>
             <p>You're hosting</p>
-            <a href={`/activities/${activity.id}/edit`}>Edit</a>
+            <span class="hosting">
+              {!activity.hidden_at && <a href={`/activities/${activity.id}/update`}>Post update</a>}
+              <a href={`/activities/${activity.id}/edit`}>Edit</a>
+            </span>
           </>
         ) : !open || full ? (
           <>
@@ -476,5 +541,38 @@ const email = activity
     place-items: center;
     min-width: 8rem;
     min-height: 44px;
+  }
+  /* Post update and Edit side by side, which fit beside "You're hosting" at 320 px. */
+  .hosting {
+    display: flex;
+    gap: 1rem;
+  }
+  .actions .hosting a {
+    min-width: 44px;
+  }
+  .updates ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .updates li + li {
+    border-top: 1px solid #767676;
+  }
+  .byline {
+    margin-bottom: 0;
+    font-size: 0.875rem;
+    color: #595959;
+  }
+  /* Report, at least 24 px tall (WCAG 2.2 target size). */
+  .byline a {
+    display: inline-block;
+    padding: 0.25rem 0;
+  }
+  .updates .hidden {
+    margin-bottom: 0;
+    padding: 0.25rem 0.75rem;
+    font-weight: 600;
+    border-left: 0.25rem solid #b42318;
+    background: #fef3f2;
   }
 </style>

@@ -185,6 +185,8 @@ export type Database = {
           body: string;
           created_at: string;
           hidden_at: string | null;
+          hidden_by: string | null;
+          hidden_reason: string | null;
           id: string;
           idempotency_key: string | null;
         };
@@ -195,6 +197,8 @@ export type Database = {
           body: string;
           created_at?: string;
           hidden_at?: string | null;
+          hidden_by?: string | null;
+          hidden_reason?: string | null;
           id?: string;
           idempotency_key?: string | null;
         };
@@ -204,6 +208,8 @@ export type Database = {
           body?: string;
           created_at?: string;
           hidden_at?: string | null;
+          hidden_by?: string | null;
+          hidden_reason?: string | null;
           id?: string;
           idempotency_key?: string | null;
         };
@@ -218,6 +224,13 @@ export type Database = {
           {
             foreignKeyName: 'activity_updates_author_id_fkey';
             columns: ['author_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'activity_updates_hidden_by_fkey';
+            columns: ['hidden_by'];
             isOneToOne: false;
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
@@ -635,11 +648,13 @@ export type Database = {
         Returns: undefined;
       };
       moderate_hide: { Args: { activity_id: string; reason: string }; Returns: undefined };
+      moderate_hide_update: { Args: { reason: string; update_id: string }; Returns: undefined };
       moderate_transfer_activity: {
         Args: { activity_id: string; reason: string; to_user: string };
         Returns: undefined;
       };
       moderate_unhide: { Args: { activity_id: string; reason: string }; Returns: undefined };
+      moderate_unhide_update: { Args: { reason: string; update_id: string }; Returns: undefined };
       mute_activity: { Args: { activity_id: string; muted: boolean }; Returns: undefined };
       my_rsvp: {
         Args: {

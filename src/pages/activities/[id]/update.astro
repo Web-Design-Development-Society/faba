@@ -1,0 +1,100 @@
+---
+// Posting an update to an activity's attendees (NOTIF-04), from Post update on its page. Only its
+// organizer can, and not while it's hidden. It works without JavaScript: when posting fails, the
+// form comes back with what was typed and the same idempotency key, so posting again never posts
+// twice. Once it's posted, the page goes back to the activity, which shows it first.
+import { actions, isInputError } from 'astro:actions';
+import FieldError from '../../../components/FieldError.astro';
+import Layout from '../../../layouts/Layout.astro';
+import { setFlash } from '../../../lib/server/flash';
+import { UPDATE_MAX } from '../../../lib/validation/update';
+
+const { supabase, user } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+
+const result = Astro.getActionResult(actions.activities.postUpdate);
+if (result && !result.error) {
+  setFlash(Astro.cookies, Astro.url, 'update_posted');
+  return Astro.redirect(`/activities/${result.data.id}#updates`, 303);
+}
+
+const { data: activity } = await supabase
+  .from('activities')
+  .select('id, title, organizer_id, hidden_at')
+  .eq('id', Astro.params.id!)
+  .maybeSingle();
+const mine = activity?.organizer_id === user.id;
+if (!activity) Astro.response.status = 404;
+else if (!mine) Astro.response.status = 403;
+
+// What was typed, after a failed post. The Action read a copy of the request.
+const typed = result?.error ? await Astro.request.formData() : undefined;
+const fields: Record<string, string[] | undefined> = isInputError(result?.error)
+  ? result.error.fields
+  : {};
+const failure = result?.error && !isInputError(result.error) ? result.error.message : null;
+---
+
+<Layout title={activity ? `Post an update to ${activity.title}` : 'Not available'}>
+  {!activity ? (
+    <>
+      <h1>Not available</h1>
+      <p>This activity isn't available. It may have been removed, or the link may be wrong.</p>
+    </>
+  ) : (
+    <>
+      <a href={`/activities/${activity.id}`}>Back to {activity.title}</a>
+      <h1>Post an update</h1>
+      {!mine ? (
+        <p>Only the organizer can post updates to this activity.</p>
+      ) : activity.hidden_at ? (
+        <p>This activity is hidden, so you can't post updates to it.</p>
+      ) : (
+        <form method="post" action={actions.activities.postUpdate.queryString}>
+          {failure && <p role="alert">{failure}</p>}
+          <input type="hidden" name="activity_id" value={activity.id} />
+          <input
+            type="hidden"
+            name="idempotency_key"
+            value={typed?.get('idempotency_key')?.toString() ?? crypto.randomUUID()}
+          />
+          <p>
+            <label for="body">Update</label>
+            <br />
+            <textarea
+              id="body"
+              name="body"
+              rows="5"
+              maxlength={UPDATE_MAX}
+              required
+              aria-invalid={fields.body ? 'true' : undefined}
+              aria-describedby={fields.body ? 'body-hint body-error' : 'body-hint'}
+            >{typed?.get('body')?.toString() ?? ''}</textarea>
+            <br />
+            <span id="body-hint">
+              Up to {UPDATE_MAX} characters. Everyone going or maybe gets it in Alerts.
+            </span>
+            <FieldError name="body" errors={fields.body} />
+          </p>
+          <button type="submit">Post update</button>
+        </form>
+      )}
+    </>
+  )}
+</Layout>
+
+<style>
+  textarea {
+    box-sizing: border-box;
+    width: 100%;
+    font: inherit;
+  }
+  #body-hint {
+    font-size: 0.875rem;
+    color: #595959;
+  }
+  button {
+    min-height: 44px;
+    padding: 0 1rem;
+  }
+</style>

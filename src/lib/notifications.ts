@@ -40,8 +40,31 @@ export function changeLine(before: Snapshot, after: Snapshot): string {
   return lines.join('. ');
 }
 
-/** The center's line for a notification of `type`, and its icon, using its payload if it can. */
-export function describe(type: string, payload?: unknown): { icon: string; summary: string } {
+/** An organizer update, as the center reads it by the id in its notification (NOTIF-04). */
+export type PostedUpdate = { author: string | null; body: string };
+
+/** The most of an update's text the center shows. */
+export const EXCERPT_MAX = 120;
+
+/** `text` on one line, cut at a word to at most `max` characters with an ellipsis. */
+export function excerpt(text: string, max = EXCERPT_MAX): string {
+  const line = text.replace(/\s+/g, ' ').trim();
+  if (line.length <= max) return line;
+  // A space right after the cut still ends a whole word.
+  const space = line.lastIndexOf(' ', max - 1);
+  return `${(space > max / 2 ? line.slice(0, space) : line.slice(0, max - 1)).trimEnd()}…`;
+}
+
+/**
+ * The center's line for a notification of `type`, and its icon, using its payload if it can. For
+ * organizer_update, `update` is the update it names, or null when it can't be read because a
+ * moderator hid it or it's gone.
+ */
+export function describe(
+  type: string,
+  payload?: unknown,
+  update?: PostedUpdate | null
+): { icon: string; summary: string } {
   const found = TYPES[type] ?? { icon: '•', summary: 'Update' };
   const { before, after, reason, starts_at } = (payload ?? {}) as {
     before?: Snapshot;
@@ -57,7 +80,12 @@ export function describe(type: string, payload?: unknown): { icon: string; summa
         ? `Cancelled: ${reason}`
         : type === 'activity_restored' && starts_at
           ? `Back on for ${formatWhen(new Date(starts_at))}`
-          : '';
+          : // NOTIF-04: "Dana Smith: Parking is at the trailhead…".
+            type === 'organizer_update' && update !== undefined
+            ? update
+              ? `${update.author ?? 'The organizer'}: ${excerpt(update.body)}`
+              : 'This update is no longer available'
+            : '';
   return summary ? { ...found, summary } : found;
 }
 

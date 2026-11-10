@@ -7,6 +7,7 @@ import {
   activityTransfer,
   dismissal,
   memberModeration,
+  updateModeration,
 } from '../lib/validation/moderation';
 
 export const moderation = {
@@ -46,6 +47,32 @@ export const moderation = {
       const { error } = await locals.supabase.rpc('moderate_unhide', { activity_id, reason });
       if (error) throw new ActionError(actionErrorFor(error));
       return { activity_id };
+    },
+  }),
+
+  /** Hiding an organizer's update, with the reason its author sees (NOTIF-04). Returns its id. */
+  hideUpdate: defineAction({
+    accept: 'form',
+    input: updateModeration,
+    handler: async ({ update_id, reason }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('moderate_hide_update', { update_id, reason });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { update_id };
+    },
+  }),
+
+  /** Unhiding an organizer's update, with a reason (NOTIF-04). Returns its id. */
+  unhideUpdate: defineAction({
+    accept: 'form',
+    input: updateModeration,
+    handler: async ({ update_id, reason }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('moderate_unhide_update', { update_id, reason });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { update_id };
     },
   }),
 

@@ -50,7 +50,7 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
     code: 'NOT_FOUND',
     message: "This isn't available to report. It may have been removed.",
   },
-  REPORT_OWN: { code: 'BAD_REQUEST', message: "You can't report your own activity or profile." },
+  REPORT_OWN: { code: 'BAD_REQUEST', message: "You can't report something you posted." },
   ALREADY_REPORTED: {
     code: 'CONFLICT',
     message: "You've already reported this. A moderator will review it.",
@@ -81,6 +81,18 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
   REPORT_QUOTA_EXCEEDED: {
     code: 'TOO_MANY_REQUESTS',
     message: 'You can send up to 10 reports a day. Try again tomorrow.',
+  },
+  UPDATE_QUOTA_EXCEEDED: {
+    code: 'TOO_MANY_REQUESTS',
+    message: 'You can post up to 5 updates a day to an activity. Try again tomorrow.',
+  },
+  INVALID_BODY: { code: 'BAD_REQUEST', message: 'Write an update of up to 500 characters.' },
+  UPDATE_NOT_FOUND: { code: 'NOT_FOUND', message: "This update isn't available." },
+  UPDATE_ALREADY_HIDDEN: { code: 'CONFLICT', message: 'This update is already hidden.' },
+  UPDATE_NOT_HIDDEN: { code: 'CONFLICT', message: "This update isn't hidden." },
+  ACTIVITY_HIDDEN: {
+    code: 'CONFLICT',
+    message: "This activity is hidden, so you can't post updates to it.",
   },
   NOT_ATTENDING: {
     code: 'BAD_REQUEST',
