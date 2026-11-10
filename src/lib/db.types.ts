@@ -239,10 +239,11 @@ export type Database = {
       };
       activity_updates: {
         Row: {
-          activity_id: string;
+          activity_id: string | null;
           author_id: string | null;
           body: string;
           created_at: string;
+          group_id: string | null;
           hidden_at: string | null;
           hidden_by: string | null;
           hidden_reason: string | null;
@@ -251,10 +252,11 @@ export type Database = {
         };
         ComputedFields: never;
         Insert: {
-          activity_id: string;
+          activity_id?: string | null;
           author_id?: string | null;
           body: string;
           created_at?: string;
+          group_id?: string | null;
           hidden_at?: string | null;
           hidden_by?: string | null;
           hidden_reason?: string | null;
@@ -262,10 +264,11 @@ export type Database = {
           idempotency_key?: string | null;
         };
         Update: {
-          activity_id?: string;
+          activity_id?: string | null;
           author_id?: string | null;
           body?: string;
           created_at?: string;
+          group_id?: string | null;
           hidden_at?: string | null;
           hidden_by?: string | null;
           hidden_reason?: string | null;
@@ -285,6 +288,13 @@ export type Database = {
             columns: ['author_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'activity_updates_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
             referencedColumns: ['id'];
           },
           {
@@ -886,6 +896,10 @@ export type Database = {
       };
       post_activity_update: {
         Args: { activity_id: string; body: string; idempotency_key?: string };
+        Returns: string;
+      };
+      post_group_update: {
+        Args: { body: string; group_id: string; idempotency_key?: string };
         Returns: string;
       };
       record_visit: { Args: Record<PropertyKey, never>; Returns: string };

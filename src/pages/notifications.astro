@@ -45,15 +45,15 @@ if (cursor.after_id) {
 }
 const { data, error } = await query;
 const shown = data?.slice(0, PAGE) ?? [];
-// Organizer updates hold the update's id, and its text is read here, so one a moderator hides is
-// gone from the center too (NOTIF-04). Its author and moderators can read a hidden one, so it's
+// Organizer and group updates hold the update's id, and its text is read here, so one a moderator
+// hides is gone from the center too (NOTIF-04, GRP-04). Its author and moderators can read a hidden one, so it's
 // left out here.
 const updateIdOf = (payload: unknown) => {
   const id = (payload as { update_id?: unknown } | null)?.update_id;
   return typeof id === 'string' ? id : '';
 };
 const updateIds = shown
-  .filter(({ type }) => type === 'organizer_update')
+  .filter(({ type }) => type === 'organizer_update' || type === 'group_update')
   .map(({ payload }) => updateIdOf(payload))
   .filter(Boolean);
 const { data: updates } = updateIds.length
@@ -101,7 +101,7 @@ const unread = groups[0]?.name === 'New';
             const { icon, summary } = describe(
               notification.type,
               notification.payload,
-              notification.type === 'organizer_update'
+              notification.type === 'organizer_update' || notification.type === 'group_update'
                 ? (posted.get(updateIdOf(notification.payload)) ?? null)
                 : undefined,
               now
