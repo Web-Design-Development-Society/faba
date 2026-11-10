@@ -82,6 +82,10 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
     code: 'TOO_MANY_REQUESTS',
     message: 'You can send up to 10 reports a day. Try again tomorrow.',
   },
+  NOT_ATTENDING: {
+    code: 'BAD_REQUEST',
+    message: "You can mute an activity once you're going or a maybe.",
+  },
 };
 
 /**

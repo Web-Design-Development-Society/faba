@@ -19,6 +19,8 @@ export const FLASH_MESSAGES = {
   reinstated: 'Member reinstated.',
   transferred: 'New host set.',
   read: 'All caught up.',
+  muted: "Muted. You'll still hear if it's cancelled.",
+  unmuted: 'Unmuted.',
 };
 
 export type Flash = keyof typeof FLASH_MESSAGES;
