@@ -22,6 +22,8 @@ export const FLASH_MESSAGES = {
   muted: "Muted. You'll still hear if it's cancelled.",
   unmuted: 'Unmuted.',
   update_posted: 'Update posted.',
+  update_hidden: 'Update hidden.',
+  update_unhidden: 'Update unhidden.',
 };
 
 export type Flash = keyof typeof FLASH_MESSAGES;

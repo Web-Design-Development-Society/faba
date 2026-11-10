@@ -1,14 +1,16 @@
 ---
 // The reports queue (MOD-02, design document section 7.11): open reports, oldest first, each with
 // what was reported, the reason and note, who reported it, and when. Only moderators and admins
-// can open it, and the database checks again. Dismiss, Hide content for an activity (MOD-03) and
-// Suspend member for a member (MOD-04) ask for a reason in a sheet, which goes to the audit log.
+// can open it, and the database checks again. Dismiss, Hide content for an activity (MOD-03), Hide
+// update for an organizer's update (NOTIF-04) and Suspend member for a member (MOD-04) ask for a
+// reason in a sheet, which goes to the audit log.
 // Below them, upcoming activities whose organizer is no longer eligible, for a moderator to give to
 // a new host or cancel on their pages (AUTH-05).
 import { actions, isInputError } from 'astro:actions';
 import ModerationAction from '../components/ModerationAction.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
+import { excerpt } from '../lib/notifications';
 import { FLASH_MESSAGES, setFlash, takeFlash } from '../lib/server/flash';
 import { formatAgo, formatRange } from '../lib/time';
 import { REASONS } from '../lib/validation/report';
@@ -29,6 +31,11 @@ if (hide && !hide.error) {
   setFlash(Astro.cookies, Astro.url, 'hidden');
   return Astro.redirect('/mod', 303);
 }
+const hideUpdate = Astro.getActionResult(actions.moderation.hideUpdate);
+if (hideUpdate && !hideUpdate.error) {
+  setFlash(Astro.cookies, Astro.url, 'update_hidden');
+  return Astro.redirect('/mod', 303);
+}
 const suspend = Astro.getActionResult(actions.moderation.suspend);
 if (suspend && !suspend.error) {
   setFlash(Astro.cookies, Astro.url, 'suspended');
@@ -36,7 +43,7 @@ if (suspend && !suspend.error) {
 }
 const flash = takeFlash(Astro.cookies);
 // The reason's error shows at the top, since its sheet has closed.
-const failed = dismiss?.error ?? hide?.error ?? suspend?.error;
+const failed = dismiss?.error ?? hide?.error ?? hideUpdate?.error ?? suspend?.error;
 const failure = isInputError(failed) ? failed.fields.reason?.[0] : failed?.message;
 
 const moderator =
@@ -57,26 +64,32 @@ const { data: reports, error } = moderator
       .limit(LIMIT)
   : { data: [], error: null };
 
-// What was reported. Moderators read every activity and profile, so only a deleted one is
-// missing. Hide content and Suspend member need it there, and not hidden or suspended already.
+// What was reported. Moderators read every activity, profile and update, so only a deleted one is
+// missing. Hide content, Hide update and Suspend member need it there, and not hidden or suspended
+// already.
 const targets = (type: string) =>
   reports?.filter(({ target_type }) => target_type === type).map(({ target_id }) => target_id) ??
   [];
 const now = new Date();
-const [{ data: activities }, { data: profiles }, { data: handovers }] = await Promise.all([
-  supabase.from('activities').select('id, title, hidden_at').in('id', targets('activity')),
-  supabase.from('profiles').select('id, display_name, status').in('id', targets('profile')),
-  moderator
-    ? supabase
-        .from('activities')
-        .select('id, title, starts_at, organizer:profiles!activities_organizer_id_fkey!inner()')
-        .eq('organizer.status', 'ineligible')
-        .eq('status', 'published')
-        .gt('starts_at', now.toISOString())
-        .order('starts_at')
-        .limit(LIMIT)
-    : { data: [] },
-]);
+const [{ data: activities }, { data: profiles }, { data: updates }, { data: handovers }] =
+  await Promise.all([
+    supabase.from('activities').select('id, title, hidden_at').in('id', targets('activity')),
+    supabase.from('profiles').select('id, display_name, status').in('id', targets('profile')),
+    supabase
+      .from('activity_updates')
+      .select('id, body, hidden_at, activity:activities!inner(id, title)')
+      .in('id', targets('activity_update')),
+    moderator
+      ? supabase
+          .from('activities')
+          .select('id, title, starts_at, organizer:profiles!activities_organizer_id_fkey!inner()')
+          .eq('organizer.status', 'ineligible')
+          .eq('status', 'published')
+          .gt('starts_at', now.toISOString())
+          .order('starts_at')
+          .limit(LIMIT)
+      : { data: [] },
+  ]);
 const preview = (type: string, id: string) => {
   if (type === 'activity') {
     const activity = activities?.find((a) => a.id === id);
@@ -85,6 +98,15 @@ const preview = (type: string, id: string) => {
       href: `/activities/${id}`,
       name: activity?.title,
       actionable: !!activity && !activity.hidden_at,
+    };
+  }
+  if (type === 'activity_update') {
+    const update = updates?.find((u) => u.id === id);
+    return {
+      kind: update ? `Update to ${update.activity.title}` : 'Update',
+      href: `/activities/${update?.activity.id}#updates`,
+      name: update && excerpt(update.body),
+      actionable: !!update && !update.hidden_at,
     };
   }
   const profile = profiles?.find((p) => p.id === id);
@@ -152,6 +174,22 @@ const preview = (type: string, id: string) => {
                     <p>
                       Members won't see it. Its organizer sees your reason, and can edit it. Its
                       other open reports are dealt with too.
+                    </p>
+                  </ModerationAction>
+                )}
+                {report.target_type === 'activity_update' && target.actionable && (
+                  <ModerationAction
+                    id={`hide-update-${report.id}`}
+                    label="Hide update"
+                    title="Hide this update?"
+                    action={actions.moderation.hideUpdate.queryString}
+                    fields={{ update_id: report.target_id }}
+                    confirm="Hide update"
+                    cancel="Keep it visible"
+                  >
+                    <p>
+                      Members won't see it on the activity or in Alerts. Its author sees your
+                      reason. Its other open reports are dealt with too.
                     </p>
                   </ModerationAction>
                 )}

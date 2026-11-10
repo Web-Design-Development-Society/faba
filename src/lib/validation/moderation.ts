@@ -21,5 +21,8 @@ export const activityTransfer = activityModeration.extend({
   to_user: z.uuid({ error: 'Pick the new host.' }),
 });
 
+/** Hiding an organizer's update, or unhiding it (NOTIF-04). */
+export const updateModeration = z.object({ update_id: z.uuid(), reason });
+
 /** Suspending a member, or reinstating them (MOD-04). */
 export const memberModeration = z.object({ user_id: z.uuid(), reason });
