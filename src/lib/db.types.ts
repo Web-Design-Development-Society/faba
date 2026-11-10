@@ -16,6 +16,7 @@ export type Database = {
           description: string | null;
           ends_at: string | null;
           going_count: number;
+          group_id: string | null;
           guest_total: number;
           guests_allowed: boolean;
           has_private_details: boolean;
@@ -37,6 +38,7 @@ export type Database = {
           title: string;
           updated_at: string;
           version: number;
+          visibility: string;
           my_rsvp: string | null;
         };
         ComputedFields: 'my_rsvp';
@@ -52,6 +54,7 @@ export type Database = {
           description?: string | null;
           ends_at?: string | null;
           going_count?: number;
+          group_id?: string | null;
           guest_total?: number;
           guests_allowed?: boolean;
           has_private_details?: boolean;
@@ -73,6 +76,7 @@ export type Database = {
           title: string;
           updated_at?: string;
           version?: number;
+          visibility?: string;
         };
         Update: {
           announced_at?: string | null;
@@ -86,6 +90,7 @@ export type Database = {
           description?: string | null;
           ends_at?: string | null;
           going_count?: number;
+          group_id?: string | null;
           guest_total?: number;
           guests_allowed?: boolean;
           has_private_details?: boolean;
@@ -107,6 +112,7 @@ export type Database = {
           title?: string;
           updated_at?: string;
           version?: number;
+          visibility?: string;
         };
         Relationships: [
           {
@@ -121,6 +127,13 @@ export type Database = {
             columns: ['copied_from_id'];
             isOneToOne: false;
             referencedRelation: 'activities';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'activities_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
             referencedColumns: ['id'];
           },
           {
@@ -737,6 +750,7 @@ export type Database = {
           cost_note?: string;
           description?: string;
           ends_at?: string;
+          group_id?: string;
           guests_allowed?: boolean;
           idempotency_key?: string;
           location_name: string;
@@ -744,6 +758,7 @@ export type Database = {
           private_details?: string;
           starts_at: string;
           title: string;
+          visibility?: string;
         };
         Returns: string;
       };
@@ -782,6 +797,7 @@ export type Database = {
           description: string | null;
           ends_at: string | null;
           going_count: number;
+          group_id: string | null;
           guest_total: number;
           guests_allowed: boolean;
           has_private_details: boolean;
@@ -803,6 +819,7 @@ export type Database = {
           title: string;
           updated_at: string;
           version: number;
+          visibility: string;
         }[];
         SetofOptions: {
           from: '*';
@@ -904,6 +921,7 @@ export type Database = {
           description: string | null;
           ends_at: string | null;
           going_count: number;
+          group_id: string | null;
           guest_total: number;
           guests_allowed: boolean;
           has_private_details: boolean;
@@ -925,6 +943,7 @@ export type Database = {
           title: string;
           updated_at: string;
           version: number;
+          visibility: string;
         }[];
         SetofOptions: {
           from: '*';

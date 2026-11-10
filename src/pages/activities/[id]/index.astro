@@ -6,7 +6,8 @@
 // (ACT-07). Moderators unhide a hidden one here (MOD-03), and give an ineligible organizer's
 // upcoming one to a new host or cancel it (AUTH-05). Its details for attendees show only to those
 // who can read them (ACT-09). Add to calendar sits beside the time (ACT-08). A board activity has a
-// badge, and an admin who organizes one marks it and announces it from the menu (MOD-07).
+// badge, and an admin who organizes one marks it and announces it from the menu (MOD-07). One
+// posted under a group names it, and says when it's for the group's members only (GRP-03).
 import { actions, isInputError } from 'astro:actions';
 import Avatar from '../../../components/Avatar.astro';
 import BoardContact from '../../../components/BoardContact.astro';
@@ -97,6 +98,7 @@ const [{ data: activity }, { data: me }] = await Promise.all([
       hidden_at, hidden_reason, going_count, maybe_count, guest_total, capacity, guests_allowed,
       max_guests_per_rsvp, organizer_id,
       time_or_place_changed_at, category_id, has_private_details, is_board_activity, announced_at,
+      visibility, group:groups(name, slug),
       private:activity_private_details(details),
       category:categories(name),
       tags:activity_tags(tag:tags(name, sort_order)),
@@ -297,6 +299,12 @@ const email = activity
         <p class="banner">{withReason('Cancelled', activity.cancel_reason)}</p>
       )}
       {activity.category && <p class="category">{activity.category.name}</p>}
+      {activity.group && (
+        <p class="group">
+          <a href={`/groups/${activity.group.slug}`}>{activity.group.name}</a>
+          {activity.visibility === 'group' && ' · Group members only'}
+        </p>
+      )}
       {activity.is_board_activity && <p class="board">FABA board activity</p>}
       {boardAdmin && activity.announced_at && (
         <p class="updated">
@@ -655,6 +663,10 @@ const email = activity
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+  }
+  .group {
+    margin: 0;
+    font-size: 0.875rem;
   }
   .board {
     display: inline-block;
