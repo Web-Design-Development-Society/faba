@@ -101,6 +101,19 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
     message: 'Use 1,000 characters or fewer for the description.',
   },
   INVALID_JOIN_POLICY: { code: 'BAD_REQUEST', message: 'Choose who can join.' },
+  GROUP_NOT_FOUND: {
+    code: 'NOT_FOUND',
+    message: "This group isn't available. It may have been removed.",
+  },
+  GROUP_ARCHIVED: {
+    code: 'CONFLICT',
+    message: "This group is archived, so it isn't taking members.",
+  },
+  OWNER_CANNOT_LEAVE: {
+    code: 'CONFLICT',
+    message:
+      "You own this group, so you can't leave it yet. Hand it on to another organizer first.",
+  },
   GROUP_QUOTA_EXCEEDED: {
     code: 'TOO_MANY_REQUESTS',
     message: 'You can start up to 3 groups a month. Try again later.',

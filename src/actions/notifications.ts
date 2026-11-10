@@ -5,7 +5,10 @@ import { z } from 'astro/zod';
 import { actionErrorFor } from '../lib/server/errors';
 
 export const notifications = {
-  /** Opening a notification marks it read. Returns where it goes: its activity, if it has one. */
+  /**
+   * Opening a notification marks it read. Returns where it goes: its activity, or its group for a
+   * join request (GRP-02), if it has one.
+   */
   open: defineAction({
     accept: 'form',
     input: z.object({ id: z.uuid() }),
@@ -16,10 +19,16 @@ export const notifications = {
       if (error) throw new ActionError(actionErrorFor(error));
       const { data } = await locals.supabase
         .from('notifications')
-        .select('activity_id')
+        .select('activity_id, group:groups(slug)')
         .eq('id', id)
         .maybeSingle();
-      return { href: data?.activity_id ? `/activities/${data.activity_id}` : '/notifications' };
+      return {
+        href: data?.activity_id
+          ? `/activities/${data.activity_id}`
+          : data?.group
+            ? `/groups/${data.group.slug}`
+            : '/notifications',
+      };
     },
   }),
 

@@ -1,37 +1,57 @@
 ---
-// A group's page (GRP-01): its name, category, who started it, who can join and what it's about.
-// Members can't read a hidden group (RLS), so it's not available to them. Joining and leaving come
-// with GRP-02, and its activities with GRP-03.
+// A group's page (GRP-01): its name, category, who started it, who can join, how many members it
+// has and what it's about. Members can't read a hidden group (RLS), so it's not available to them.
+// Join, Request to join, Withdraw request and Leave group (GRP-02) work without JavaScript. Its
+// activities come with GRP-03.
+import { actions } from 'astro:actions';
 import Status from '../../components/Status.astro';
 import Layout from '../../layouts/Layout.astro';
 import { linkify } from '../../lib/links';
-import { FLASH_MESSAGES, takeFlash } from '../../lib/server/flash';
+import { FLASH_MESSAGES, setFlash, takeFlash } from '../../lib/server/flash';
 
 const { supabase, user } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
+
+const join = Astro.getActionResult(actions.groups.join);
+if (join && !join.error) {
+  setFlash(Astro.cookies, Astro.url, join.data.status === 'active' ? 'joined' : 'requested');
+  return Astro.redirect(Astro.url.pathname, 303);
+}
+const leave = Astro.getActionResult(actions.groups.leave);
+if (leave && !leave.error) {
+  setFlash(Astro.cookies, Astro.url, leave.data.pending ? 'withdrawn' : 'left');
+  return Astro.redirect(Astro.url.pathname, 303);
+}
+const failure = (join?.error ?? leave?.error)?.message;
 const flash = takeFlash(Astro.cookies);
 
 const { data: group } = await supabase
   .from('groups')
   .select(
-    'id, slug, name, description, join_policy, owner_id, archived_at, hidden_at, category:categories(name), owner:profiles!groups_owner_id_fkey(id, display_name)'
+    'id, slug, name, description, join_policy, owner_id, archived_at, hidden_at, member_count, my_membership, category:categories(name), owner:profiles!groups_owner_id_fkey(id, display_name)'
   )
   .eq('slug', Astro.params.slug!)
   .maybeSingle();
 if (!group) Astro.response.status = 404;
 const mine = group?.owner_id === user.id;
+const membership = group?.my_membership ?? null;
+const members = group?.member_count ?? 0;
 ---
 
 <Layout title={group?.name ?? 'Not available'} tab="discover">
   <a href="/groups">Back to Groups</a>
   <Status message={flash && FLASH_MESSAGES[flash]} />
+  {failure && <p role="alert">{failure}</p>}
   {group ? (
     <>
       {group.hidden_at && <p class="banner">Hidden by a moderator</p>}
       {group.archived_at && <p class="banner">This group is archived.</p>}
       {group.category && <p class="category">{group.category.name}</p>}
       <h1>{group.name}</h1>
-      <p>{group.join_policy === 'open' ? 'Anyone can join' : 'Ask to join'}</p>
+      <p>
+        {members} {members === 1 ? 'member' : 'members'} ·{' '}
+        {group.join_policy === 'open' ? 'Anyone can join' : 'Ask to join'}
+      </p>
       <p>
         {mine ? (
           'You started this group'
@@ -43,6 +63,35 @@ const mine = group?.owner_id === user.id;
           'Its owner left FABA'
         )}
       </p>
+      {!mine && (
+        <div class="membership">
+          {membership === 'active' ? (
+            <>
+              <p>✓ You're a member</p>
+              <form method="post" action={actions.groups.leave.queryString}>
+                <input type="hidden" name="group_id" value={group.id} />
+                <button>Leave group</button>
+              </form>
+            </>
+          ) : membership === 'pending' ? (
+            <>
+              <p>Requested. You're in once an organizer approves it.</p>
+              <form method="post" action={actions.groups.leave.queryString}>
+                <input type="hidden" name="group_id" value={group.id} />
+                <input type="hidden" name="pending" value="true" />
+                <button>Withdraw request</button>
+              </form>
+            </>
+          ) : group.archived_at ? null : (
+            <form method="post" action={actions.groups.join.queryString}>
+              <input type="hidden" name="group_id" value={group.id} />
+              <button class="primary">
+                {group.join_policy === 'open' ? 'Join' : 'Request to join'}
+              </button>
+            </form>
+          )}
+        </div>
+      )}
       {group.description && (
         <p class="description">
           {linkify(group.description).map(({ text, href }) =>
@@ -74,6 +123,22 @@ const mine = group?.owner_id === user.id;
   }
   .description {
     white-space: pre-line;
+  }
+  .membership {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+  }
+  .membership p {
+    margin: 0;
+  }
+  .membership button {
+    min-width: 8rem;
+    min-height: 44px;
+  }
+  .primary {
+    font-weight: 600;
   }
   .banner {
     padding: 0.75rem 1rem;

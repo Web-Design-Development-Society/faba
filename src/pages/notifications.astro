@@ -33,7 +33,7 @@ const now = new Date();
 const cursor = readCursor(Astro.url.searchParams);
 let query = supabase
   .from('notifications')
-  .select('id, type, payload, read_at, created_at, activity:activities(title)')
+  .select('id, type, payload, read_at, created_at, activity:activities(title), group:groups(name)')
   .gte('created_at', new Date(now.getTime() - KEPT_DAYS * 24 * 60 * 60 * 1000).toISOString())
   .order('created_at', { ascending: false })
   .order('id', { ascending: false })
@@ -120,7 +120,9 @@ const unread = groups[0]?.name === 'New';
                         {summary}
                       </span>
                       <span class="title">
-                        {notification.activity?.title ?? 'No longer available'}
+                        {notification.activity?.title ??
+                          notification.group?.name ??
+                          'No longer available'}
                       </span>
                       <time datetime={notification.created_at}>
                         {formatAgo(new Date(notification.created_at), now)}

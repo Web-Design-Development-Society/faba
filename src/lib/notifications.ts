@@ -14,6 +14,7 @@ export const TYPES: Record<string, { icon: string; summary: string }> = {
   new_attendees: { icon: '👋', summary: 'New people going' },
   reminder: { icon: '⏰', summary: 'Reminder' },
   board_announcement: { icon: '📣', summary: 'From the FABA board' },
+  group_join_request: { icon: '🙋', summary: 'Asked to join' },
 };
 
 /** An activity's time and place, as an activity_changed payload has them before and after. */
@@ -67,16 +68,17 @@ export function describe(
   now: Date = new Date()
 ): { icon: string; summary: string } {
   const found = TYPES[type] ?? { icon: '•', summary: 'Update' };
-  const { before, after, count, details_changed, location_name, reason, starts_at } = (payload ??
-    {}) as {
-    before?: Snapshot;
-    after?: Snapshot;
-    count?: number;
-    details_changed?: boolean;
-    location_name?: string;
-    reason?: string | null;
-    starts_at?: string;
-  };
+  const { before, after, count, details_changed, location_name, member, reason, starts_at } =
+    (payload ?? {}) as {
+      before?: Snapshot;
+      after?: Snapshot;
+      count?: number;
+      details_changed?: boolean;
+      location_name?: string;
+      member?: string;
+      reason?: string | null;
+      starts_at?: string;
+    };
   const summary = (() => {
     switch (type) {
       // NOTIF-02, with ACT-09's details for attendees, which it says changed without saying what
@@ -119,6 +121,9 @@ export function describe(
             : formatWhen(start);
         return `Reminder: ${[when, location_name].filter(Boolean).join(', ')}`;
       }
+      // GRP-02: "Dana Smith asked to join", with the group's name under it.
+      case 'group_join_request':
+        return member ? `${member} asked to join` : '';
       default:
         return '';
     }
