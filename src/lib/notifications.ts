@@ -93,6 +93,9 @@ export function describe(
         return reason ? `Cancelled: ${reason}` : '';
       case 'activity_restored':
         return starts_at ? `Back on for ${formatWhen(new Date(starts_at))}` : '';
+      // MOD-07: "From the FABA board: Fri, Dec 4, 7:00 PM".
+      case 'board_announcement':
+        return starts_at ? `From the FABA board: ${formatWhen(new Date(starts_at))}` : '';
       // NOTIF-04: "Dana Smith: Parking is at the trailhead…".
       case 'organizer_update':
         if (update === undefined) return '';

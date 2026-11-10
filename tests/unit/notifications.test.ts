@@ -132,6 +132,15 @@ group('reminders', () => {
   });
 });
 
+group('board announcements', () => {
+  it.each([
+    [{ starts_at: '2026-12-04T19:00:00-07:00' }, 'From the FABA board: Fri, Dec 4, 7:00 PM'],
+    [{}, 'From the FABA board'],
+  ])('says %j as %j', (payload, line) => {
+    expect(describe('board_announcement', payload)).toEqual({ icon: '📣', summary: line });
+  });
+});
+
 group('organizer updates', () => {
   it('says who posted it and what it says', () => {
     const update = { author: 'Dana Smith', body: 'Parking is at the trailhead.' };
