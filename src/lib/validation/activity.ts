@@ -124,6 +124,8 @@ export const newActivity = z
       .array(z.string())
       .max(ACTIVITY.tags.max, `Pick up to ${ACTIVITY.tags.max} tags.`)
       .optional(),
+    // ACT-07. The activity it's a copy of, kept for analytics only.
+    copied_from_id: z.uuid().optional(),
   })
   .superRefine(checkTimes)
   .transform(toInstants);
@@ -131,7 +133,7 @@ export const newActivity = z
 /** The edit form's fields. The output is update_activity()'s patch, the id and the version shown. */
 export const activityChanges = z
   .object(newActivity.in.shape)
-  .omit({ idempotency_key: true })
+  .omit({ idempotency_key: true, copied_from_id: true })
   .extend({ id: z.uuid(), version: z.number().int() })
   .superRefine(checkTimes)
   .transform(toInstants);

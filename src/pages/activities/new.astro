@@ -1,7 +1,9 @@
 ---
 // Posting an activity (ACT-03, design document section 7.7). It works without JavaScript: when a
 // post fails, the form comes back with what was typed and the same idempotency key, so posting
-// again can't make a second activity. src/scripts/activity-form.ts adds the extras.
+// again can't make a second activity. src/scripts/activity-form.ts adds the extras. Post again
+// (ACT-07) opens it with ?from= one of the member's activities, filled in from it but for the date
+// and times.
 import { actions, isInputError } from 'astro:actions';
 import ActivityFields from '../../components/ActivityFields.astro';
 import Layout from '../../layouts/Layout.astro';
@@ -24,20 +26,44 @@ const fields: Record<string, string[] | undefined> = isInputError(result?.error)
   : {};
 const failure = result?.error && !isInputError(result.error) ? result.error.message : null;
 
-const [{ data: categories, error: categoriesError }, { data: tags }] = await Promise.all([
-  Astro.locals.supabase
-    .from('categories')
-    .select('id, name')
-    .eq('is_active', true)
-    .order('sort_order'),
-  Astro.locals.supabase.from('tags').select('id, name').eq('is_active', true).order('sort_order'),
-]);
+// The activity to copy, which must be one of theirs that a moderator hasn't hidden. Only its
+// organizer can read its details for attendees, and they come too.
+const from = Astro.url.searchParams.get('from');
+const [{ data: categories, error: categoriesError }, { data: tags }, { data: original }] =
+  await Promise.all([
+    Astro.locals.supabase
+      .from('categories')
+      .select('id, name')
+      .eq('is_active', true)
+      .order('sort_order'),
+    Astro.locals.supabase.from('tags').select('id, name').eq('is_active', true).order('sort_order'),
+    from && !typed && /^[0-9a-f-]{36}$/i.test(from)
+      ? Astro.locals.supabase
+          .from('activities')
+          .select(
+            'id, title, description, location_name, cost_note, capacity, guests_allowed, max_guests_per_rsvp, category_id, activity_tags(tag_id), private:activity_private_details(details)'
+          )
+          .eq('id', from)
+          .eq('organizer_id', Astro.locals.user?.id ?? '')
+          .is('hidden_at', null)
+          .maybeSingle()
+      : { data: null },
+  ]);
 // The suggested start, and a category that Discover's filter can choose.
 const start = suggestedStart(new Date());
 const suggested: Record<string, string | undefined> = {
   date: rexburgDate(start),
   start_time: rexburgTime(start),
-  category_id: Astro.url.searchParams.get('cat') ?? undefined,
+  category_id: original?.category_id ?? Astro.url.searchParams.get('cat') ?? undefined,
+  title: original?.title,
+  location_name: original?.location_name,
+  description: original?.description ?? undefined,
+  cost_note: original?.cost_note ?? undefined,
+  private_details: original?.private?.details,
+  capacity: original?.capacity?.toString(),
+  guests_allowed: original?.guests_allowed ? 'true' : undefined,
+  max_guests_per_rsvp: original?.max_guests_per_rsvp.toString(),
+  copied_from_id: original?.id,
 };
 const shown = (name: string) => value(name) ?? suggested[name];
 ---
@@ -46,6 +72,7 @@ const shown = (name: string) => value(name) ?? suggested[name];
   <h1>New activity</h1>
   {failure && <p role="alert">{failure}</p>}
   {categoriesError && <p role="alert">The categories couldn't load. Please try again.</p>}
+  {original && <p>Copied from {original.title}. Pick a new date and time.</p>}
   <p data-draft-notice hidden>
     We kept what you typed last time. <button type="button">Start over</button>
   </p>
@@ -54,19 +81,26 @@ const shown = (name: string) => value(name) ?? suggested[name];
     action={actions.activities.create.queryString}
     data-activity-form
     data-draft
-    data-typed={typed ? '' : undefined}
+    data-typed={typed || original ? '' : undefined}
   >
     <input
       type="hidden"
       name="idempotency_key"
       value={value('idempotency_key') ?? crypto.randomUUID()}
     />
+    {shown('copied_from_id') && (
+      <input type="hidden" name="copied_from_id" value={shown('copied_from_id')} />
+    )}
     <ActivityFields
       value={shown}
       errors={fields}
       categories={categories ?? []}
       tags={tags ?? []}
-      chosen={typed?.getAll('tags').map(String) ?? []}
+      chosen={
+        typed?.getAll('tags').map(String) ??
+        original?.activity_tags.map(({ tag_id }) => tag_id) ??
+        []
+      }
     />
     <button type="submit">Post activity</button>
   </form>
