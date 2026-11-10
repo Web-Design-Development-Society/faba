@@ -1,0 +1,127 @@
+---
+// Starting a group (GRP-01): a name, a category, a description and who can join. The member
+// becomes its owner. It works without JavaScript: when it fails, the form comes back with what was
+// typed and the same idempotency key, so starting it again can't make a second group.
+import { actions, isInputError } from 'astro:actions';
+import FieldError from '../../components/FieldError.astro';
+import Layout from '../../layouts/Layout.astro';
+import { setFlash } from '../../lib/server/flash';
+import { GROUP } from '../../lib/validation/group';
+
+const { supabase, user } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+
+const result = Astro.getActionResult(actions.groups.create);
+if (result && !result.error) {
+  setFlash(Astro.cookies, Astro.url, 'group_started');
+  return Astro.redirect(`/groups/${result.data.slug}`, 303);
+}
+
+// What was typed, after a failed try. The Action read a copy of the request.
+const typed = result?.error ? await Astro.request.formData() : undefined;
+const value = (name: string) => typed?.get(name)?.toString() || undefined;
+const errors: Record<string, string[] | undefined> = isInputError(result?.error)
+  ? result.error.fields
+  : {};
+const failure = result?.error && !isInputError(result.error) ? result.error.message : null;
+const invalid = (name: string) =>
+  errors[name] ? { 'aria-invalid': 'true' as const, 'aria-describedby': `${name}-error` } : {};
+const policy = value('join_policy') ?? 'open';
+
+const { data: categories, error: categoriesError } = await supabase
+  .from('categories')
+  .select('id, name')
+  .eq('is_active', true)
+  .order('sort_order');
+---
+
+<Layout title="Start a group">
+  <a href="/groups">Back to Groups</a>
+  <h1>Start a group</h1>
+  <p>A home for people who meet again and again, such as a running club or a book club.</p>
+  {failure && <p role="alert">{failure}</p>}
+  {categoriesError && <p role="alert">The categories couldn't load. Please try again.</p>}
+  <form method="post" action={actions.groups.create.queryString}>
+    <input
+      type="hidden"
+      name="idempotency_key"
+      value={value('idempotency_key') ?? crypto.randomUUID()}
+    />
+    <p>
+      <label for="name">Name</label>
+      <br />
+      <input
+        id="name"
+        name="name"
+        value={value('name')}
+        required
+        minlength={GROUP.name.min}
+        maxlength={GROUP.name.max}
+        {...invalid('name')}
+      />
+      <FieldError name="name" errors={errors.name} />
+    </p>
+    <fieldset {...invalid('category_id')}>
+      <legend>Category</legend>
+      {categories?.map(({ id, name }) => (
+        <label>
+          <input
+            type="radio"
+            name="category_id"
+            value={id}
+            checked={id === value('category_id')}
+            required
+          />
+          {name}
+        </label>
+      ))}
+      <FieldError name="category_id" errors={errors.category_id} />
+    </fieldset>
+    <p>
+      <label for="description">What it's about (optional)</label>
+      <br />
+      <textarea
+        id="description"
+        name="description"
+        rows="4"
+        maxlength={GROUP.description.max}
+        {...invalid('description')}
+      >{value('description')}</textarea>
+      <FieldError name="description" errors={errors.description} />
+    </p>
+    <fieldset {...invalid('join_policy')}>
+      <legend>Who can join?</legend>
+      <label>
+        <input type="radio" name="join_policy" value="open" checked={policy === 'open'} />
+        Anyone, in one tap
+      </label>
+      <label>
+        <input type="radio" name="join_policy" value="approval" checked={policy === 'approval'} />
+        People you approve
+      </label>
+      <FieldError name="join_policy" errors={errors.join_policy} />
+    </fieldset>
+    <p class="hint">You can start up to {GROUP.perMonth} groups a month.</p>
+    <button type="submit">Start group</button>
+  </form>
+</Layout>
+
+<style>
+  fieldset label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+  }
+  input:not([type='radio']),
+  textarea {
+    width: 100%;
+  }
+  .hint {
+    font-size: 0.875rem;
+    color: #595959;
+  }
+  button[type='submit'] {
+    min-height: 44px;
+  }
+</style>

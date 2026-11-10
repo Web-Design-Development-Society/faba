@@ -1,0 +1,45 @@
+---
+// Discover's two halves from Phase 3 (design document section 7.3): Activities and Groups. A pair
+// of links, so each half has its own address and works without JavaScript.
+interface Props {
+  current: 'activities' | 'groups';
+}
+
+const { current } = Astro.props;
+---
+
+<nav class="switch" aria-label="Discover">
+  <a href="/discover" aria-current={current === 'activities' ? 'page' : undefined}>
+    Activities
+  </a>
+  <a href="/groups" aria-current={current === 'groups' ? 'page' : undefined}>
+    Groups
+  </a>
+</nav>
+
+<style>
+  .switch {
+    display: flex;
+    margin: 0.5rem 0;
+    border: 1px solid #767676;
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+  a {
+    display: grid;
+    flex: 1;
+    place-items: center;
+    min-height: 44px;
+    color: inherit;
+    text-decoration: none;
+  }
+  a + a {
+    border-left: 1px solid #767676;
+  }
+  /* The selected half is filled, and bold, so it doesn't rely on color alone. */
+  [aria-current='page'] {
+    font-weight: 700;
+    color: white;
+    background: #222;
+  }
+</style>

@@ -1,0 +1,99 @@
+---
+// Groups (GRP-01, design document section 7.3): Discover's other half. Every group that isn't
+// archived, by name, with its category, its description and whether anyone can join. Members can't
+// read a hidden one (RLS). Start a group is at the top.
+import DiscoverSwitch from '../../components/DiscoverSwitch.astro';
+import Status from '../../components/Status.astro';
+import Layout from '../../layouts/Layout.astro';
+import { excerpt } from '../../lib/notifications';
+import { FLASH_MESSAGES, takeFlash } from '../../lib/server/flash';
+
+const { supabase, user } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+const flash = takeFlash(Astro.cookies);
+
+const { data: groups, error } = await supabase
+  .from('groups')
+  .select('slug, name, description, join_policy, category:categories(name)')
+  .is('archived_at', null)
+  .order('name')
+  .order('slug');
+---
+
+<Layout title="Groups · Discover" tab="discover">
+  <header class="top">
+    <h1>Discover</h1>
+    <a href="/groups/new">Start a group</a>
+  </header>
+  <DiscoverSwitch current="groups" />
+  <Status message={flash && FLASH_MESSAGES[flash]} />
+
+  {error ? (
+    <p role="alert">Groups couldn't load. Please try again.</p>
+  ) : !groups?.length ? (
+    <div class="empty">
+      <p>No groups yet. Start one around something you love.</p>
+      <a href="/groups/new">Start a group</a>
+    </div>
+  ) : (
+    <ul class="groups">
+      {groups.map((group) => (
+        <li>
+          <h2>
+            <a href={`/groups/${group.slug}`}>{group.name}</a>
+          </h2>
+          <p class="meta">
+            {group.category?.name} ·{' '}
+            {group.join_policy === 'open' ? 'Anyone can join' : 'Ask to join'}
+          </p>
+          {group.description && <p>{excerpt(group.description)}</p>}
+        </li>
+      ))}
+    </ul>
+  )}
+</Layout>
+
+<style>
+  .top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .top a,
+  .empty a {
+    display: inline-grid;
+    place-items: center;
+    min-height: 44px;
+  }
+  .groups {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .groups li {
+    position: relative;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #767676;
+  }
+  h2 {
+    margin: 0;
+    font-size: 1rem;
+  }
+  /* The name's link covers the row. */
+  h2 a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+  }
+  p {
+    margin: 0.25rem 0 0;
+  }
+  .meta {
+    font-size: 0.875rem;
+    color: #595959;
+  }
+  .empty {
+    margin-top: 2rem;
+    text-align: center;
+  }
+</style>

@@ -3,10 +3,12 @@
 // for each day in Rexburg time. Chips filter it by date and category, as in
 // /discover?when=weekend&cat=outdoors (ACT-06, SRCH-02), and More filters by custom dates. Search is
 // at the top, and the bottom navigation's Post starts in the chosen category (RSVP-08). Cards
-// others posted since the member's previous visit say New (ACT-11).
+// others posted since the member's previous visit say New (ACT-11). Groups is Discover's other
+// half (GRP-01).
 import { actions } from 'astro:actions';
 import ActivityCard from '../components/ActivityCard.astro';
 import Avatar from '../components/Avatar.astro';
+import DiscoverSwitch from '../components/DiscoverSwitch.astro';
 import FilterChips from '../components/FilterChips.astro';
 import MoreFilters from '../components/MoreFilters.astro';
 import Status from '../components/Status.astro';
@@ -124,6 +126,7 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
     <h1>Discover</h1>
     <a href="/search">Search</a>
   </header>
+  <DiscoverSwitch current="activities" />
   <p data-zone-note hidden>
     Times are in Rexburg time.
   </p>

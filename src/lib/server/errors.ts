@@ -95,6 +95,16 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
   UPDATE_NOT_FOUND: { code: 'NOT_FOUND', message: "This update isn't available." },
   UPDATE_ALREADY_HIDDEN: { code: 'CONFLICT', message: 'This update is already hidden.' },
   UPDATE_NOT_HIDDEN: { code: 'CONFLICT', message: "This update isn't hidden." },
+  INVALID_GROUP_NAME: { code: 'BAD_REQUEST', message: 'Use 3 to 60 characters for the name.' },
+  INVALID_GROUP_DESCRIPTION: {
+    code: 'BAD_REQUEST',
+    message: 'Use 1,000 characters or fewer for the description.',
+  },
+  INVALID_JOIN_POLICY: { code: 'BAD_REQUEST', message: 'Choose who can join.' },
+  GROUP_QUOTA_EXCEEDED: {
+    code: 'TOO_MANY_REQUESTS',
+    message: 'You can start up to 3 groups a month. Try again later.',
+  },
   NOT_ADMIN: { code: 'FORBIDDEN', message: 'Only board admins can do that.' },
   NOT_BOARD_ACTIVITY: {
     code: 'BAD_REQUEST',

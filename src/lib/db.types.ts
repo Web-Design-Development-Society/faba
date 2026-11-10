@@ -317,6 +317,110 @@ export type Database = {
         };
         Relationships: [];
       };
+      group_members: {
+        Row: {
+          group_id: string;
+          joined_at: string;
+          role: string;
+          status: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          group_id: string;
+          joined_at?: string;
+          role?: string;
+          status?: string;
+          user_id: string;
+        };
+        Update: {
+          group_id?: string;
+          joined_at?: string;
+          role?: string;
+          status?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'group_members_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'group_members_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      groups: {
+        Row: {
+          archived_at: string | null;
+          category_id: string;
+          created_at: string;
+          description: string | null;
+          hidden_at: string | null;
+          id: string;
+          idempotency_key: string | null;
+          join_policy: string;
+          kind: string;
+          name: string;
+          owner_id: string | null;
+          slug: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          archived_at?: string | null;
+          category_id: string;
+          created_at?: string;
+          description?: string | null;
+          hidden_at?: string | null;
+          id?: string;
+          idempotency_key?: string | null;
+          join_policy?: string;
+          kind?: string;
+          name: string;
+          owner_id?: string | null;
+          slug: string;
+          updated_at?: string;
+        };
+        Update: {
+          archived_at?: string | null;
+          category_id?: string;
+          created_at?: string;
+          description?: string | null;
+          hidden_at?: string | null;
+          id?: string;
+          idempotency_key?: string | null;
+          join_policy?: string;
+          kind?: string;
+          name?: string;
+          owner_id?: string | null;
+          slug?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'groups_category_id_fkey';
+            columns: ['category_id'];
+            isOneToOne: false;
+            referencedRelation: 'categories';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'groups_owner_id_fkey';
+            columns: ['owner_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       notifications: {
         Row: {
           activity_id: string | null;
@@ -628,6 +732,16 @@ export type Database = {
           private_details?: string;
           starts_at: string;
           title: string;
+        };
+        Returns: string;
+      };
+      create_group: {
+        Args: {
+          category_id: string;
+          description?: string;
+          idempotency_key?: string;
+          join_policy?: string;
+          name: string;
         };
         Returns: string;
       };
