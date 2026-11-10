@@ -3269,7 +3269,7 @@ flowchart LR
 | Database (local Supabase, migrations from zero, `seed.sql`, pgTAP, lint, generated-types drift check) | PR                                                             | ✅                | 3 to 4 min   |
 | Build                                                                                                 | PR                                                             | ✅                | about 1 min  |
 | End-to-end and accessibility at one size (Playwright: Pixel 7; axe)                                   | PR                                                             | ✅                | about 3 min  |
-| End-to-end and accessibility at every size (Playwright: iPhone SE, Pixel 7, desktop; axe)             | Merge to `main`                                                | —                 | about 5 min  |
+| End-to-end and accessibility at every size (Playwright: iPhone SE, Pixel 7, desktop; axe)             | Merge to `main`                                                | —                 | 5 to 7 min   |
 | Lighthouse CI budgets                                                                                 | PR (label `perf`) and nightly                                  | Advisory          | about 2 min  |
 | Preview deploy                                                                                        | PR (same-repository branches only, since forks get no secrets) | —                 | about 1 min  |
 | OWASP ZAP baseline scan against staging                                                               | Nightly                                                        | Advisory          | about 5 min  |
