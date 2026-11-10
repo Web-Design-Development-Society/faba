@@ -372,8 +372,10 @@ export type Database = {
           owner_id: string | null;
           slug: string;
           updated_at: string;
+          member_count: number | null;
+          my_membership: string | null;
         };
-        ComputedFields: never;
+        ComputedFields: 'member_count' | 'my_membership';
         Insert: {
           archived_at?: string | null;
           category_id: string;
@@ -427,6 +429,7 @@ export type Database = {
           actor_id: string | null;
           created_at: string;
           dedupe_key: string | null;
+          group_id: string | null;
           id: string;
           payload: NonNullable<Json>;
           read_at: string | null;
@@ -439,6 +442,7 @@ export type Database = {
           actor_id?: string | null;
           created_at?: string;
           dedupe_key?: string | null;
+          group_id?: string | null;
           id?: string;
           payload?: NonNullable<Json>;
           read_at?: string | null;
@@ -450,6 +454,7 @@ export type Database = {
           actor_id?: string | null;
           created_at?: string;
           dedupe_key?: string | null;
+          group_id?: string | null;
           id?: string;
           payload?: NonNullable<Json>;
           read_at?: string | null;
@@ -469,6 +474,13 @@ export type Database = {
             columns: ['actor_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'notifications_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
             referencedColumns: ['id'];
           },
           {
@@ -811,7 +823,18 @@ export type Database = {
           use_initials: boolean;
         }[];
       };
+      join_group: { Args: { group_id: string }; Returns: string };
+      leave_group: { Args: { group_id: string }; Returns: undefined };
       mark_notifications_read: { Args: { ids?: string[] }; Returns: number };
+      member_count: {
+        Args: {
+          g: Omit<
+            Database['public']['Tables']['groups']['Row'],
+            Database['public']['Tables']['groups']['ComputedFields']
+          >;
+        };
+        Returns: number;
+      };
       member_email: { Args: { member_id: string }; Returns: string };
       moderate_cancel_activity: {
         Args: { activity_id: string; reason: string };
@@ -826,6 +849,15 @@ export type Database = {
       moderate_unhide: { Args: { activity_id: string; reason: string }; Returns: undefined };
       moderate_unhide_update: { Args: { reason: string; update_id: string }; Returns: undefined };
       mute_activity: { Args: { activity_id: string; muted: boolean }; Returns: undefined };
+      my_membership: {
+        Args: {
+          g: Omit<
+            Database['public']['Tables']['groups']['Row'],
+            Database['public']['Tables']['groups']['ComputedFields']
+          >;
+        };
+        Returns: string;
+      };
       my_rsvp: {
         Args: {
           activity: Omit<

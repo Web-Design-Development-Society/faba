@@ -2030,7 +2030,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 - The **Alerts** badge shows the unread count (displayed as "9+" above 9).
 - The top app bar is minimal: the FABA wordmark (which returns to Home) and a **search** icon. Detail pages show **Back** and an overflow (⋯) menu.
 - Moderators get a **Moderation** entry inside **Me**, not in the bottom bar.
-- **Groups** (Phase 3, GRP-01): a list of groups that aren't archived, by name, each with its category, whether anyone can join, and the start of its description. **Start a group** at the top opens a form with the name, category, description and who can join (anyone, or people the organizers approve). The new group's page is at `/groups/<slug>`, an address made from its name, and says "You started this group". A member can start 3 groups in any 30 days.
+- **Groups** (Phase 3, GRP-01): a list of groups that aren't archived, by name, each with its category, whether anyone can join, and the start of its description. **Start a group** at the top opens a form with the name, category, description and who can join (anyone, or people the organizers approve). The new group's page is at `/groups/<slug>`, an address made from its name, and says "You started this group". A member can start 3 groups in any 30 days. Each group shows how many active members it has (GRP-02). Its page has **Join** for an open group, or **Request to join** for an approval group, which tells its organizers in Alerts ("Dana Smith asked to join") and leaves the member waiting until an organizer approves them (GRP-05). **Withdraw request** takes the request back, and **Leave group** is there for every member but the owner, who hands the group on first.
 
 ### 7.4 Home (Discover)
 

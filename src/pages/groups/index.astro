@@ -1,6 +1,7 @@
 ---
 // Groups (GRP-01, design document section 7.3): Discover's other half. Every group that isn't
-// archived, by name, with its category, its description and whether anyone can join. Members can't
+// archived, by name, with its category, how many members it has (GRP-02), whether anyone can join,
+// and its description. Members can't
 // read a hidden one (RLS). Start a group is at the top.
 import DiscoverSwitch from '../../components/DiscoverSwitch.astro';
 import Status from '../../components/Status.astro';
@@ -14,7 +15,7 @@ const flash = takeFlash(Astro.cookies);
 
 const { data: groups, error } = await supabase
   .from('groups')
-  .select('slug, name, description, join_policy, category:categories(name)')
+  .select('slug, name, description, join_policy, member_count, category:categories(name)')
   .is('archived_at', null)
   .order('name')
   .order('slug');
@@ -43,7 +44,8 @@ const { data: groups, error } = await supabase
             <a href={`/groups/${group.slug}`}>{group.name}</a>
           </h2>
           <p class="meta">
-            {group.category?.name} ·{' '}
+            {group.category?.name} · {group.member_count}{' '}
+            {group.member_count === 1 ? 'member' : 'members'} ·{' '}
             {group.join_policy === 'open' ? 'Anyone can join' : 'Ask to join'}
           </p>
           {group.description && <p>{excerpt(group.description)}</p>}

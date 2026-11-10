@@ -12,6 +12,7 @@ group('describe', () => {
       'new_attendees',
       'reminder',
       'board_announcement',
+      'group_join_request',
     ]);
     expect(describe('activity_cancelled')).toEqual({ icon: '✕', summary: 'Cancelled' });
   });
@@ -138,6 +139,15 @@ group('board announcements', () => {
     [{}, 'From the FABA board'],
   ])('says %j as %j', (payload, line) => {
     expect(describe('board_announcement', payload)).toEqual({ icon: '📣', summary: line });
+  });
+});
+
+group('join requests', () => {
+  it.each([
+    [{ name: 'Quilters', member: 'Dana Smith' }, 'Dana Smith asked to join'],
+    [{}, 'Asked to join'],
+  ])('says %j as %j', (payload, line) => {
+    expect(describe('group_join_request', payload)).toEqual({ icon: '🙋', summary: line });
   });
 });
 

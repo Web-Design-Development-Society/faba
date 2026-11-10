@@ -28,6 +28,10 @@ export const FLASH_MESSAGES = {
   not_board: 'No longer a board activity.',
   announced: 'Announced to every member.',
   group_started: 'Group started!',
+  joined: "You're in the group.",
+  requested: "Request sent. You're in once an organizer approves it.",
+  left: 'You left the group.',
+  withdrawn: 'Request withdrawn.',
 };
 
 export type Flash = keyof typeof FLASH_MESSAGES;
