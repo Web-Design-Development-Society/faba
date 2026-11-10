@@ -256,7 +256,7 @@ RESET role;
 SELECT ok(
   NOT has_function_privilege(
     'anon',
-    'public.create_activity(text, text, timestamptz, text, text, timestamptz, text, uuid, integer, boolean, integer)',
+    'public.create_activity(text, text, timestamptz, text, text, timestamptz, text, uuid, integer, boolean, integer, text)',
     'execute'
   ),
   'signed-out visitors can''t post'
@@ -265,7 +265,7 @@ SELECT ok(
 SELECT ok(
   has_function_privilege(
     'authenticated',
-    'public.create_activity(text, text, timestamptz, text, text, timestamptz, text, uuid, integer, boolean, integer)',
+    'public.create_activity(text, text, timestamptz, text, text, timestamptz, text, uuid, integer, boolean, integer, text)',
     'execute'
   ),
   'signed-in users can call create_activity'
