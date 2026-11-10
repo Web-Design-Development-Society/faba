@@ -44,7 +44,28 @@ describe('newActivity', () => {
       cost_note: 'Free',
       starts_at: '2026-11-07T14:00:00.000Z',
       ends_at: '2026-11-07T16:30:00.000Z',
+      visibility: 'members',
     });
+  });
+
+  // GRP-03.
+  it('is for everyone unless it says otherwise, and members only needs a group', () => {
+    expect(newActivity.parse(valid).visibility).toBe('members');
+    expect(errors({ visibility: 'group' })).toEqual({
+      visibility: 'Choose a group, or make it for everyone.',
+    });
+    expect(
+      newActivity.parse({
+        ...valid,
+        visibility: 'group',
+        group_id: 'b0000000-0000-4000-8000-000000000001',
+      })
+    ).toEqual(
+      expect.objectContaining({
+        visibility: 'group',
+        group_id: 'b0000000-0000-4000-8000-000000000001',
+      })
+    );
   });
 
   it('leaves out an end time that is empty', () => {

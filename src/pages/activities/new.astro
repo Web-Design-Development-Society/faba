@@ -3,9 +3,11 @@
 // post fails, the form comes back with what was typed and the same idempotency key, so posting
 // again can't make a second activity. src/scripts/activity-form.ts adds the extras. Post again
 // (ACT-07) opens it with ?from= one of the member's activities, filled in from it but for the date
-// and times.
+// and times. Organizers of a group choose it, and whether the activity is for its members only
+// (GRP-03). A group's Post an activity opens it with ?group= that group.
 import { actions, isInputError } from 'astro:actions';
 import ActivityFields from '../../components/ActivityFields.astro';
+import FieldError from '../../components/FieldError.astro';
 import Layout from '../../layouts/Layout.astro';
 import { setFlash } from '../../lib/server/flash';
 import { rexburgDate, rexburgTime } from '../../lib/time';
@@ -29,26 +31,42 @@ const failure = result?.error && !isInputError(result.error) ? result.error.mess
 // The activity to copy, which must be one of theirs that a moderator hasn't hidden. Only its
 // organizer can read its details for attendees, and they come too.
 const from = Astro.url.searchParams.get('from');
-const [{ data: categories, error: categoriesError }, { data: tags }, { data: original }] =
-  await Promise.all([
-    Astro.locals.supabase
-      .from('categories')
-      .select('id, name')
-      .eq('is_active', true)
-      .order('sort_order'),
-    Astro.locals.supabase.from('tags').select('id, name').eq('is_active', true).order('sort_order'),
-    from && !typed && /^[0-9a-f-]{36}$/i.test(from)
-      ? Astro.locals.supabase
-          .from('activities')
-          .select(
-            'id, title, description, location_name, cost_note, capacity, guests_allowed, max_guests_per_rsvp, category_id, activity_tags(tag_id), private:activity_private_details(details)'
-          )
-          .eq('id', from)
-          .eq('organizer_id', Astro.locals.user?.id ?? '')
-          .is('hidden_at', null)
-          .maybeSingle()
-      : { data: null },
-  ]);
+const [
+  { data: categories, error: categoriesError },
+  { data: tags },
+  { data: original },
+  { data: organizing },
+] = await Promise.all([
+  Astro.locals.supabase
+    .from('categories')
+    .select('id, name')
+    .eq('is_active', true)
+    .order('sort_order'),
+  Astro.locals.supabase.from('tags').select('id, name').eq('is_active', true).order('sort_order'),
+  from && !typed && /^[0-9a-f-]{36}$/i.test(from)
+    ? Astro.locals.supabase
+        .from('activities')
+        .select(
+          'id, title, description, location_name, cost_note, capacity, guests_allowed, max_guests_per_rsvp, category_id, group_id, visibility, activity_tags(tag_id), private:activity_private_details(details)'
+        )
+        .eq('id', from)
+        .eq('organizer_id', Astro.locals.user?.id ?? '')
+        .is('hidden_at', null)
+        .maybeSingle()
+    : { data: null },
+  // The groups they organize that take activities (GRP-03).
+  Astro.locals.supabase
+    .from('group_members')
+    .select('group:groups!inner(id, name)')
+    .eq('user_id', Astro.locals.user?.id ?? '')
+    .eq('status', 'active')
+    .in('role', ['owner', 'organizer'])
+    .is('group.archived_at', null)
+    .is('group.hidden_at', null),
+]);
+const groups = (organizing ?? [])
+  .map(({ group }) => group)
+  .toSorted((a, b) => a.name.localeCompare(b.name));
 // The suggested start, and a category that Discover's filter can choose.
 const start = suggestedStart(new Date());
 const suggested: Record<string, string | undefined> = {
@@ -64,6 +82,8 @@ const suggested: Record<string, string | undefined> = {
   guests_allowed: original?.guests_allowed ? 'true' : undefined,
   max_guests_per_rsvp: original?.max_guests_per_rsvp.toString(),
   copied_from_id: original?.id,
+  group_id: original?.group_id ?? Astro.url.searchParams.get('group') ?? undefined,
+  visibility: original?.visibility ?? 'members',
 };
 const shown = (name: string) => value(name) ?? suggested[name];
 ---
@@ -81,7 +101,7 @@ const shown = (name: string) => value(name) ?? suggested[name];
     action={actions.activities.create.queryString}
     data-activity-form
     data-draft
-    data-typed={typed || original ? '' : undefined}
+    data-typed={typed || original || suggested.group_id ? '' : undefined}
   >
     <input
       type="hidden"
@@ -102,6 +122,49 @@ const shown = (name: string) => value(name) ?? suggested[name];
         []
       }
     />
+    {groups.length > 0 && (
+      <fieldset class="group">
+        <legend>Group</legend>
+        <p>
+          <label for="group_id">Post under a group you organize (optional)</label>
+          <br />
+          <select id="group_id" name="group_id">
+            <option value="">No group</option>
+            {groups.map(({ id, name }) => (
+              <option value={id} selected={id === shown('group_id')}>
+                {name}
+              </option>
+            ))}
+          </select>
+        </p>
+        <fieldset
+          {...(fields.visibility
+            ? { 'aria-invalid': 'true', 'aria-describedby': 'visibility-error' }
+            : {})}
+        >
+          <legend>Who can see it?</legend>
+          <label>
+            <input
+              type="radio"
+              name="visibility"
+              value="members"
+              checked={shown('visibility') !== 'group'}
+            />
+            Everyone
+          </label>
+          <label>
+            <input
+              type="radio"
+              name="visibility"
+              value="group"
+              checked={shown('visibility') === 'group'}
+            />
+            Group members only
+          </label>
+          <FieldError name="visibility" errors={fields.visibility} />
+        </fieldset>
+      </fieldset>
+    )}
     <button type="submit">Post activity</button>
   </form>
 </Layout>
@@ -109,3 +172,15 @@ const shown = (name: string) => value(name) ?? suggested[name];
 <script>
   import '../../scripts/activity-form';
 </script>
+
+<style>
+  .group label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+  }
+  .group select {
+    min-height: 44px;
+  }
+</style>

@@ -43,6 +43,20 @@ const isTime = (value: string) => z.iso.time().safeParse(value).success;
 
 type Times = { date: string; start_time: string; end_time?: string };
 
+/** An activity for a group's members only needs its group (GRP-03). */
+function checkGroup(
+  { group_id, visibility }: { group_id?: string; visibility: string },
+  ctx: z.RefinementCtx
+) {
+  if (visibility === 'group' && !group_id) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['visibility'],
+      message: 'Choose a group, or make it for everyone.',
+    });
+  }
+}
+
 /** The start is in the future and in the next 12 months, and the end is after it. */
 function checkTimes({ date, start_time, end_time }: Times, ctx: z.RefinementCtx) {
   // A malformed date or time has its own message.
@@ -126,14 +140,20 @@ export const newActivity = z
       .optional(),
     // ACT-07. The activity it's a copy of, kept for analytics only.
     copied_from_id: z.uuid().optional(),
+    // GRP-03. A group the member organizes, and who sees it. create_activity() checks the group.
+    group_id: z.uuid().optional(),
+    visibility: z
+      .enum(['members', 'group'], { error: 'Choose who can see it.' })
+      .default('members'),
   })
   .superRefine(checkTimes)
+  .superRefine(checkGroup)
   .transform(toInstants);
 
 /** The edit form's fields. The output is update_activity()'s patch, the id and the version shown. */
 export const activityChanges = z
   .object(newActivity.in.shape)
-  .omit({ idempotency_key: true, copied_from_id: true })
+  .omit({ idempotency_key: true, copied_from_id: true, group_id: true, visibility: true })
   .extend({ id: z.uuid(), version: z.number().int() })
   .superRefine(checkTimes)
   .transform(toInstants);

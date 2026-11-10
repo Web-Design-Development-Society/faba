@@ -101,6 +101,14 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
     message: 'Use 1,000 characters or fewer for the description.',
   },
   INVALID_JOIN_POLICY: { code: 'BAD_REQUEST', message: 'Choose who can join.' },
+  INVALID_VISIBILITY: {
+    code: 'BAD_REQUEST',
+    message: 'Choose a group, or make it for everyone.',
+  },
+  NOT_GROUP_ORGANIZER: {
+    code: 'FORBIDDEN',
+    message: "You can post under a group only when you're one of its organizers.",
+  },
   GROUP_NOT_FOUND: {
     code: 'NOT_FOUND',
     message: "This group isn't available. It may have been removed.",

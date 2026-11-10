@@ -2,10 +2,13 @@
 // A group's page (GRP-01): its name, category, who started it, who can join, how many members it
 // has and what it's about. Members can't read a hidden group (RLS), so it's not available to them.
 // Join, Request to join, Withdraw request and Leave group (GRP-02) work without JavaScript. Its
-// activities come with GRP-03.
+// upcoming activities follow, and its organizers have Post an activity (GRP-03). RLS leaves out the
+// members-only ones for anyone outside the group.
 import { actions } from 'astro:actions';
+import ActivityCard from '../../components/ActivityCard.astro';
 import Status from '../../components/Status.astro';
 import Layout from '../../layouts/Layout.astro';
+import { CARD, FACES } from '../../lib/cards';
 import { linkify } from '../../lib/links';
 import { FLASH_MESSAGES, setFlash, takeFlash } from '../../lib/server/flash';
 
@@ -33,6 +36,34 @@ const { data: group } = await supabase
   .eq('slug', Astro.params.slug!)
   .maybeSingle();
 if (!group) Astro.response.status = 404;
+const now = new Date();
+// Its activities that are coming up or underway, as in the feed, and whether the member organizes
+// the group.
+const [{ data: activities }, { data: me }] = group
+  ? await Promise.all([
+      supabase
+        .from('activities')
+        .select(CARD)
+        .eq('group_id', group.id)
+        .eq('status', 'published')
+        .is('hidden_at', null)
+        .gte('starts_at', new Date(now.getTime() - 3 * 60 * 60 * 1000).toISOString())
+        .eq('going.status', 'going')
+        .order('starts_at')
+        .order('id')
+        .order('created_at', { referencedTable: 'going' })
+        .limit(FACES, { referencedTable: 'going' })
+        .limit(20),
+      supabase
+        .from('group_members')
+        .select('role')
+        .eq('group_id', group.id)
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle(),
+    ])
+  : [{ data: null }, { data: null }];
+const organizer = me?.role === 'owner' || me?.role === 'organizer';
 const mine = group?.owner_id === user.id;
 const membership = group?.my_membership ?? null;
 const members = group?.member_count ?? 0;
@@ -105,6 +136,25 @@ const members = group?.member_count ?? 0;
           )}
         </p>
       )}
+      <section aria-labelledby="activities" class="activities">
+        <header>
+          <h2 id="activities">Coming up</h2>
+          {organizer && !group.archived_at && !group.hidden_at && (
+            <a href={`/activities/new?group=${group.id}`}>Post an activity</a>
+          )}
+        </header>
+        {activities?.length ? (
+          <ul>
+            {activities.map((activity) => (
+              <li>
+                <ActivityCard activity={activity} viewer={user.id} now={now} faces={FACES} />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>Nothing planned yet.</p>
+        )}
+      </section>
     </>
   ) : (
     <>
@@ -123,6 +173,26 @@ const members = group?.member_count ?? 0;
   }
   .description {
     white-space: pre-line;
+  }
+  .activities header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .activities h2 {
+    font-size: 1rem;
+  }
+  .activities header a {
+    display: inline-grid;
+    place-items: center;
+    min-height: 44px;
+  }
+  .activities ul {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
   .membership {
     display: flex;
