@@ -3268,10 +3268,13 @@ flowchart LR
 | Unit (Vitest)                                                                                         | PR                                                             | ✅                | about 1 min  |
 | Database (local Supabase, migrations from zero, `seed.sql`, pgTAP, lint, generated-types drift check) | PR                                                             | ✅                | 3 to 4 min   |
 | Build                                                                                                 | PR                                                             | ✅                | about 1 min  |
-| End-to-end and accessibility (Playwright: iPhone SE, Pixel 7, desktop; axe)                           | PR                                                             | ✅                | 4 to 6 min   |
+| End-to-end and accessibility at one size (Playwright: Pixel 7; axe)                                   | PR                                                             | ✅                | about 3 min  |
+| End-to-end and accessibility at every size (Playwright: iPhone SE, Pixel 7, desktop; axe)             | Merge to `main`                                                | —                 | 5 to 7 min   |
 | Lighthouse CI budgets                                                                                 | PR (label `perf`) and nightly                                  | Advisory          | about 2 min  |
 | Preview deploy                                                                                        | PR (same-repository branches only, since forks get no secrets) | —                 | about 1 min  |
 | OWASP ZAP baseline scan against staging                                                               | Nightly                                                        | Advisory          | about 5 min  |
+
+A pull request runs every end-to-end test at one size, Pixel 7, since FABA is for phones first. That catches a change that breaks another feature before it merges, in about half the time. After a merge, `main` runs them at all three sizes, which is where WebKit (standing in for Safari) and the desktop layout are checked. A newer merge cancels a run that's still going, so merging several pull requests in a row runs them once. A failure there shows on the commit in `main`, and by default GitHub emails whoever merged.
 
 ### 11.6 Preview deployments
 

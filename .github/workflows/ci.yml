@@ -1,6 +1,6 @@
 # Checks every pull request and every push to main (FND-07, design document section 11.5).
 # The jobs run in parallel. E2E runs the end-to-end and accessibility tests (Playwright with axe)
-# against local Supabase.
+# against local Supabase: at one size on pull requests, and at all three on main.
 # preview.yml deploys each pull request, and deploy-staging.yml deploys main.
 name: CI
 
@@ -66,6 +66,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      # Supabase listens on ports 54330 to 54339, which Linux also hands out to outgoing
+      # connections. Once, an outgoing connection held 54332, so the database couldn't start.
+      - name: Keep Supabase's ports free
+        run: sudo sysctl -w net.ipv4.ip_local_reserved_ports=54330-54339
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
@@ -105,7 +109,16 @@ jobs:
     name: E2E
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    # A pull request runs every test at one size, Pixel 7 in Chromium, since FABA is for phones
+    # first. After a merge, main runs them at all three sizes. A newer merge cancels a run that's
+    # still going, so merging several pull requests in a row runs them once.
+    env:
+      BROWSERS: ${{ github.event_name == 'pull_request' && 'chromium' || 'chromium webkit' }}
+      PROJECTS: ${{ github.event_name == 'pull_request' && '--project=mobile' || '' }}
     steps:
+      # As in the Database job.
+      - name: Keep Supabase's ports free
+        run: sudo sysctl -w net.ipv4.ip_local_reserved_ports=54330-54339
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
@@ -121,10 +134,10 @@ jobs:
           SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: e2e-placeholder
       - name: Write .dev.vars with the local Supabase secret key
         run: npm run setup:dev-vars
-      # The browsers need about 185 Ubuntu packages (139 MB), and the mirrors are slow: about 75
-      # seconds, and once 7 minutes, which ran out the job's time. apt keeps what it downloads in a
-      # cached folder, so a run only downloads packages that changed. The browsers themselves come
-      # from a fast CDN in a few seconds.
+      # Chromium and WebKit need about 185 Ubuntu packages (139 MB), and the mirrors can be slow:
+      # 12 seconds to 75, and once 7 minutes, which ran out the job's time. apt keeps what it
+      # downloads in a cached folder, so a run only downloads packages that changed. Pull requests
+      # can read main's cache. The browsers themselves come from a fast CDN in a few seconds.
       - name: Find the runner image and the Playwright version
         id: playwright
         run: |
@@ -143,10 +156,10 @@ jobs:
         run: |
           mkdir -p "$HOME/.cache/apt-archives/partial"
           echo "Dir::Cache::Archives \"$HOME/.cache/apt-archives\";" | sudo tee /etc/apt/apt.conf.d/99cache-archives
-      - name: Install Chromium and WebKit
-        run: npx playwright install --with-deps --only-shell chromium webkit
+      - name: Install the browsers
+        run: npx playwright install --with-deps --only-shell $BROWSERS
       - name: Run end-to-end and accessibility tests
-        run: npm run test:e2e
+        run: npm run test:e2e -- $PROJECTS
       - name: Upload the Playwright report
         if: failure()
         uses: actions/upload-artifact@v7
