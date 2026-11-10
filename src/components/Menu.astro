@@ -1,6 +1,6 @@
 ---
 // The ⋯ menu at the top of a page, for what's needed less often, such as Share and Report (ACT-02,
-// PROF-03). Each item is an li with a link.
+// PROF-03). Each item is an li with a link, or with a form for an action such as Mute updates.
 ---
 
 <details class="menu">
@@ -38,5 +38,18 @@
   ul :global(a) {
     display: block;
     padding: 0.5rem 0;
+  }
+  /* An action, such as Mute updates, looks like the links around it. */
+  ul :global(button) {
+    display: block;
+    padding: 0.5rem 0;
+    font: inherit;
+    color: LinkText;
+    text-align: start;
+    text-decoration: underline;
+    white-space: nowrap;
+    cursor: pointer;
+    background: none;
+    border: 0;
   }
 </style>

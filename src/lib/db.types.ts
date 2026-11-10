@@ -120,6 +120,33 @@ export type Database = {
           },
         ];
       };
+      activity_mutes: {
+        Row: {
+          activity_id: string;
+          muted_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          activity_id: string;
+          muted_at?: string;
+          user_id: string;
+        };
+        Update: {
+          activity_id?: string;
+          muted_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'activity_mutes_activity_id_user_id_fkey';
+            columns: ['activity_id', 'user_id'];
+            isOneToOne: true;
+            referencedRelation: 'rsvps';
+            referencedColumns: ['activity_id', 'user_id'];
+          },
+        ];
+      };
       activity_tags: {
         Row: {
           activity_id: string;
@@ -613,6 +640,7 @@ export type Database = {
         Returns: undefined;
       };
       moderate_unhide: { Args: { activity_id: string; reason: string }; Returns: undefined };
+      mute_activity: { Args: { activity_id: string; muted: boolean }; Returns: undefined };
       my_rsvp: {
         Args: {
           activity: Omit<
