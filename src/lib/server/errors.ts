@@ -82,6 +82,15 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
     code: 'TOO_MANY_REQUESTS',
     message: 'You can send up to 10 reports a day. Try again tomorrow.',
   },
+  UPDATE_QUOTA_EXCEEDED: {
+    code: 'TOO_MANY_REQUESTS',
+    message: 'You can post up to 5 updates a day to an activity. Try again tomorrow.',
+  },
+  INVALID_BODY: { code: 'BAD_REQUEST', message: 'Write an update of up to 500 characters.' },
+  ACTIVITY_HIDDEN: {
+    code: 'CONFLICT',
+    message: "This activity is hidden, so you can't post updates to it.",
+  },
   NOT_ATTENDING: {
     code: 'BAD_REQUEST',
     message: "You can mute an activity once you're going or a maybe.",

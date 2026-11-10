@@ -1,5 +1,5 @@
 import { describe as group, expect, it } from 'vitest';
-import { badge, changeLine, describe, TYPES } from '../../src/lib/notifications';
+import { badge, changeLine, describe, excerpt, TYPES } from '../../src/lib/notifications';
 
 group('describe', () => {
   it('has an icon and a line for each Phase 2 type', () => {
@@ -78,5 +78,43 @@ group('cancelled and back on', () => {
     ['activity_restored', {}, 'Back on'],
   ])('says %s with %j as %j', (type, payload, line) => {
     expect(describe(type, payload).summary).toBe(line);
+  });
+});
+
+group('organizer updates', () => {
+  it('says who posted it and what it says', () => {
+    const update = { author: 'Dana Smith', body: 'Parking is at the trailhead.' };
+    expect(describe('organizer_update', {}, update).summary).toBe(
+      'Dana Smith: Parking is at the trailhead.'
+    );
+    expect(describe('organizer_update', {}, { ...update, author: null }).summary).toBe(
+      'The organizer: Parking is at the trailhead.'
+    );
+  });
+
+  it('says when it was hidden or is gone', () => {
+    expect(describe('organizer_update', {}, null).summary).toBe(
+      'This update is no longer available'
+    );
+  });
+
+  it('has its plain line before it has been read', () => {
+    expect(describe('organizer_update', {}).summary).toBe('Update from the organizer');
+  });
+});
+
+group('excerpt', () => {
+  it('keeps a short update, on one line', () => {
+    expect(excerpt('Bring water.\n\nAnd a headlamp.')).toBe('Bring water. And a headlamp.');
+  });
+
+  it('cuts a long one at a word, with an ellipsis', () => {
+    const line = excerpt(`${'word '.repeat(40)}end`, 20);
+    expect(line).toBe('word word word word…');
+    expect(line.length).toBeLessThanOrEqual(20);
+  });
+
+  it('cuts one long word where it must', () => {
+    expect(excerpt('x'.repeat(30), 10)).toBe(`${'x'.repeat(9)}…`);
   });
 });

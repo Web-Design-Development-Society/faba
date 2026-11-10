@@ -205,7 +205,7 @@ FROM generate_series(3, 5) AS n;
 SELECT throws_ok(
   $$select public.post_activity_update('f0000000-0000-4000-8000-000000000311', 'One more')$$,
   'P0001',
-  'QUOTA_EXCEEDED',
+  'UPDATE_QUOTA_EXCEEDED',
   'an activity gets at most 5 updates in 24 hours'
 );
 

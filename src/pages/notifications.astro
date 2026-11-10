@@ -9,7 +9,7 @@ import { actions } from 'astro:actions';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
 import { nextPage, readCursor } from '../lib/feed';
-import { describe } from '../lib/notifications';
+import { describe, type PostedUpdate } from '../lib/notifications';
 import { FLASH_MESSAGES, setFlash, takeFlash } from '../lib/server/flash';
 import { formatAgo } from '../lib/time';
 
@@ -45,6 +45,25 @@ if (cursor.after_id) {
 }
 const { data, error } = await query;
 const shown = data?.slice(0, PAGE) ?? [];
+// Organizer updates hold the update's id, and its text is read here, so one a moderator hides is
+// gone from the center too (NOTIF-04). RLS leaves out hidden ones.
+const updateIdOf = (payload: unknown) => {
+  const id = (payload as { update_id?: unknown } | null)?.update_id;
+  return typeof id === 'string' ? id : '';
+};
+const updateIds = shown
+  .filter(({ type }) => type === 'organizer_update')
+  .map(({ payload }) => updateIdOf(payload))
+  .filter(Boolean);
+const { data: updates } = updateIds.length
+  ? await supabase
+      .from('activity_updates')
+      .select('id, body, author:profiles(display_name)')
+      .in('id', updateIds)
+  : { data: [] };
+const posted = new Map<string, PostedUpdate>(
+  updates?.map(({ id, body, author }) => [id, { author: author?.display_name ?? null, body }])
+);
 const last = shown.at(-1);
 const more =
   last && data!.length > PAGE ? nextPage({ starts_at: last.created_at, id: last.id }) : null;
@@ -77,7 +96,13 @@ const unread = groups[0]?.name === 'New';
         <h2 id={`alerts-${name}`}>{name}</h2>
         <ul>
           {items.map((notification) => {
-            const { icon, summary } = describe(notification.type, notification.payload);
+            const { icon, summary } = describe(
+              notification.type,
+              notification.payload,
+              notification.type === 'organizer_update'
+                ? (posted.get(updateIdOf(notification.payload)) ?? null)
+                : undefined
+            );
             return (
               <li class:list={{ unread: !notification.read_at }}>
                 <form method="post" action={actions.notifications.open.queryString}>
