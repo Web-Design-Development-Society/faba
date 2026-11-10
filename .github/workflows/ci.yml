@@ -137,8 +137,11 @@ jobs:
           key: apt-playwright-${{ steps.playwright.outputs.image }}-${{ steps.playwright.outputs.version }}
           restore-keys: apt-playwright-${{ steps.playwright.outputs.image }}-
       - name: Keep apt's downloads in the cached folder
+        # Not with sudo, which would make ~/.cache root's, and Playwright puts the browsers there.
+        # apt's download user can't write in the runner's home folder, so apt warns that it
+        # downloads as root.
         run: |
-          sudo mkdir -p "$HOME/.cache/apt-archives/partial"
+          mkdir -p "$HOME/.cache/apt-archives/partial"
           echo "Dir::Cache::Archives \"$HOME/.cache/apt-archives\";" | sudo tee /etc/apt/apt.conf.d/99cache-archives
       - name: Install Chromium and WebKit
         run: npx playwright install --with-deps --only-shell chromium webkit
