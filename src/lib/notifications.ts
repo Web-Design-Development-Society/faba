@@ -66,36 +66,47 @@ export function describe(
   update?: PostedUpdate | null
 ): { icon: string; summary: string } {
   const found = TYPES[type] ?? { icon: '•', summary: 'Update' };
-  const { before, after, details_changed, reason, starts_at } = (payload ?? {}) as {
+  const { before, after, count, details_changed, reason, starts_at } = (payload ?? {}) as {
     before?: Snapshot;
     after?: Snapshot;
+    count?: number;
     details_changed?: boolean;
     reason?: string | null;
     starts_at?: string;
   };
-  // NOTIF-02, with ACT-09's details for attendees, which it says changed without saying what they
-  // are. NOTIF-03: "Cancelled: Snowed in", and "Back on for Fri, Dec 4, 7:00 PM".
-  const summary =
-    type === 'activity_changed'
-      ? [
+  const summary = (() => {
+    switch (type) {
+      // NOTIF-02, with ACT-09's details for attendees, which it says changed without saying what
+      // they are.
+      case 'activity_changed':
+        return [
           before && after ? changeLine(before, after) : '',
           details_changed ? 'Details for attendees changed' : '',
         ]
           .filter(Boolean)
-          .join('. ')
-      : type === 'activity_cancelled' && reason
-        ? `Cancelled: ${reason}`
-        : type === 'activity_restored' && starts_at
-          ? `Back on for ${formatWhen(new Date(starts_at))}`
-          : // NOTIF-05: "You're going on Fri, Dec 4, 7:00 PM".
-            type === 'rsvp_confirmed' && starts_at
-            ? `You're going on ${formatWhen(new Date(starts_at))}`
-            : // NOTIF-04: "Dana Smith: Parking is at the trailhead…".
-              type === 'organizer_update' && update !== undefined
-              ? update
-                ? `${update.author ?? 'The organizer'}: ${excerpt(update.body)}`
-                : 'This update is no longer available'
-              : '';
+          .join('. ');
+      // NOTIF-03: "Cancelled: Snowed in", and "Back on for Fri, Dec 4, 7:00 PM".
+      case 'activity_cancelled':
+        return reason ? `Cancelled: ${reason}` : '';
+      case 'activity_restored':
+        return starts_at ? `Back on for ${formatWhen(new Date(starts_at))}` : '';
+      // NOTIF-04: "Dana Smith: Parking is at the trailhead…".
+      case 'organizer_update':
+        if (update === undefined) return '';
+        return update
+          ? `${update.author ?? 'The organizer'}: ${excerpt(update.body)}`
+          : 'This update is no longer available';
+      // NOTIF-05: "You're going on Fri, Dec 4, 7:00 PM".
+      case 'rsvp_confirmed':
+        return starts_at ? `You're going on ${formatWhen(new Date(starts_at))}` : '';
+      // NOTIF-06: "3 new people are going", for the organizer.
+      case 'new_attendees':
+        if (typeof count !== 'number' || count < 1) return '';
+        return count === 1 ? '1 new person is going' : `${count} new people are going`;
+      default:
+        return '';
+    }
+  })();
   return summary ? { ...found, summary } : found;
 }
 

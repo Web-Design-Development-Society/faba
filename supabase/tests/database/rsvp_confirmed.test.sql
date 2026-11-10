@@ -129,14 +129,17 @@ SELECT results_eq(
   'going again makes one, still read, even when muted'
 );
 
--- Oda isn't told about Max's RSVP.
+-- Oda gets no confirmation for Max's RSVP.
 SELECT set_config(
   'request.jwt.claims',
   '{"sub": "c0000000-0000-4000-8000-000000000361", "email": "oda@byui.edu"}',
   TRUE
 );
 
-SELECT is_empty($$select from public.notifications$$, 'the organizer gets no confirmation');
+SELECT is_empty(
+  $$select from public.notifications where type = 'rsvp_confirmed'$$,
+  'the organizer gets no confirmation'
+);
 
 SELECT throws_ok(
   $$select public.rsvp('f0000000-0000-4000-8000-000000000361', 'going')$$,

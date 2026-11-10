@@ -2179,6 +2179,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
   - "**Sunrise hike** was cancelled: _weather_"
   - "**Dana** posted an update in **Sunrise hike**"
   - "**Board game night**: details for attendees changed", which never shows the details
+  - "3 new people are going" to **Pickleball**, for its organizer
   - "You're going on Fri, Dec 4, 7:00 PM" for **Board game night**, which is already read, under **Earlier**
   - "Reminder: **Lunch pickleball** today at 12:10 PM, Hart courts"
 - **Empty state:** "You're all caught up. We'll let you know when plans change."
@@ -2372,7 +2373,7 @@ Requirements use "must" for required behavior. **P** is the phase in which a req
 | `activity_restored`                       | Restore                                            | Previously going and maybe            | Yes                   | None                 | No           | Yes                              | No                 | 2   |
 | `organizer_update`                        | Update posted                                      | Going and maybe                       | Yes                   | None                 | Yes          | Opt-in                           | No                 | 2   |
 | `rsvp_confirmed`                          | Own RSVP to going. Deleted on leaving or maybe     | Self                                  | **No** (created read) | 1 per activity       | No           | Opt-in                           | No                 | 2   |
-| `new_attendees`                           | Others RSVP                                        | Organizers                            | Yes                   | 1 hour per activity  | Yes          | Opt-in (digest)                  | No                 | 2   |
+| `new_attendees`                           | Others say I'm in. Counts who's new since read     | Organizers                            | Yes                   | 1 hour per activity  | Yes          | Opt-in (digest)                  | No                 | 2   |
 | `reminder`                                | `pg_cron` schedule                                 | Going                                 | Yes                   | 1 per activity       | Yes          | Opt-in                           | No                 | 2   |
 | `board_announcement`                      | Admin announces                                    | All active members                    | Yes                   | 1 per activity       | No           | Opt-in                           | No                 | 2   |
 | `report_received`                         | New report                                         | Moderators                            | Yes                   | 1 per target per day | No           | Opt-in                           | No                 | 3   |

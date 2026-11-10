@@ -104,6 +104,16 @@ group('RSVP confirmation', () => {
   });
 });
 
+group('new attendees', () => {
+  it.each([
+    [{ count: 1 }, '1 new person is going'],
+    [{ count: 3 }, '3 new people are going'],
+    [{}, 'New people going'],
+  ])('says %j as %j', (payload, line) => {
+    expect(describe('new_attendees', payload)).toEqual({ icon: '👋', summary: line });
+  });
+});
+
 group('organizer updates', () => {
   it('says who posted it and what it says', () => {
     const update = { author: 'Dana Smith', body: 'Parking is at the trailhead.' };
