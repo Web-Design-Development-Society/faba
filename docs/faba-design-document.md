@@ -2063,7 +2063,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 
 - **Your next plan** appears only when the member is going to something in the next 7 days. It doubles as an always-on reminder.
 - Day headers ("Today", "Tomorrow", "Sat, Oct 25") make scanning fast.
-- **NEW** marks activities created since the member's previous visit (Phase 2). This replaces notifying everyone about every new activity.
+- **NEW** marks activities created since the member's previous visit (Phase 2). This replaces notifying everyone about every new activity. A visit ends after 30 minutes away from Home, so the markers stay while the member browses and are gone when they come back later. A first visit marks nothing, and neither do the member's own activities. It's the last of a card's statuses, after Cancelled, Full and Board activity.
 - **Show more** is a button, not infinite scroll. It keeps the footer reachable and works better with screen readers.
 - Members based "Elsewhere / online" see **Online** chips first, and online activities are ordered first within each day.
 
@@ -3044,7 +3044,7 @@ erDiagram
   - `user_id` (PK, FK to `profiles`, cascade).
   - `email citext`, `email_visible bool`.
   - `based_in` (`rexburg_area` | `elsewhere` | null), `faculty_type` (`full_time` | `part_time` | `prefer_not` | null).
-  - `last_seen_at` (for the "New since your last visit" marker).
+  - `last_seen_at` and `previous_visit_at` (for the "New since your last visit" marker). `record_visit()` sets them when Home loads, writing at most every 5 minutes within a visit.
   - **Phase 5b:** `phone_e164`, `phone_verified_at`, `sms_opt_in_at`.
 - **Ownership rules:** self (for the granted columns) and moderators. Email is written only by `sync_my_identity()`.
 - **Indexing:** the primary key. A unique index on `email` helps support runbooks.

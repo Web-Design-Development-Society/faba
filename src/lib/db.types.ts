@@ -373,6 +373,7 @@ export type Database = {
           email_visible: boolean;
           faculty_type: string | null;
           last_seen_at: string | null;
+          previous_visit_at: string | null;
           updated_at: string;
           user_id: string;
         };
@@ -383,6 +384,7 @@ export type Database = {
           email_visible?: boolean;
           faculty_type?: string | null;
           last_seen_at?: string | null;
+          previous_visit_at?: string | null;
           updated_at?: string;
           user_id: string;
         };
@@ -392,6 +394,7 @@ export type Database = {
           email_visible?: boolean;
           faculty_type?: string | null;
           last_seen_at?: string | null;
+          previous_visit_at?: string | null;
           updated_at?: string;
           user_id?: string;
         };
@@ -710,6 +713,7 @@ export type Database = {
         Args: { activity_id: string; body: string; idempotency_key?: string };
         Returns: string;
       };
+      record_visit: { Args: Record<PropertyKey, never>; Returns: string };
       reinstate_member: { Args: { reason: string; user_id: string }; Returns: undefined };
       report_content: {
         Args: { note?: string; reason: string; target_id: string; target_type: string };
