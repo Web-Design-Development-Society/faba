@@ -2098,8 +2098,8 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 | trip. Bring water and a headlamp.  |
 |                                    |
 | FOR ATTENDEES                      |
-| [lock] Exact meeting spot is       |
-| shared after you RSVP.             |
+| [lock] Exact location shared with  |
+| attendees after you RSVP.          |
 |                                    |
 | UPDATES                            |
 | Dana, 2h ago: Parking is at the... |
@@ -2111,6 +2111,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 - The order of information follows the questions people ask: **what → when → where → who → details**.
 - **Maps >** opens the platform maps app with the place text as the query. There is no embedded map, which saves JavaScript, data, and privacy.
 - **Organizer view:** the sticky bar shows **Edit** and **Post update** instead of RSVP. Their own RSVP state shows as "You're hosting".
+- **For attendees** (ACT-09): shown only when the organizer added details. The organizer, members going and moderators see the details, and everyone else sees the note. After **I'm in**, the details replace the note without reloading, and the note comes back after **Maybe** or **Can't make it**.
 - **Cancelled:** a full-width banner at the top ("Cancelled: _reason_"). RSVP is disabled. **Add to calendar** is hidden.
 
 ### 7.7 Create-activity flow
@@ -2152,7 +2153,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
   - The Online toggle swaps the place field for a link field.
 - **Inputs:** native `<input type="date">` and `<input type="time">`. They are fast, accessible, and familiar on mobile.
 - **After posting:** redirect to the activity with a "Posted!" toast and a **Share** prompt. The organizer is automatically going.
-- **Local draft:** text typed into the form is kept in browser storage until it is posted or discarded.
+- **Local draft:** text typed into the form is kept in browser storage until it is posted or discarded. Details for attendees are left out, since they're often a home address and the computer may be shared.
 
 ### 7.8 RSVP interaction
 
@@ -2177,6 +2178,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
   - "**Board game night** moved to **7:30 PM**, Fri (was 7:00)"
   - "**Sunrise hike** was cancelled: _weather_"
   - "**Dana** posted an update in **Sunrise hike**"
+  - "**Board game night**: details for attendees changed", which never shows the details
   - "Reminder: **Lunch pickleball** today at 12:10 PM, Hart courts"
 - **Empty state:** "You're all caught up. We'll let you know when plans change."
 

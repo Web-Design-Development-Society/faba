@@ -1,0 +1,35 @@
+---
+// Details for attendees only (ACT-09): free text, such as an exact address, that only the
+// organizer, members going and moderators can read. The activity form's More options has it, and
+// so does the edit form once the activity has started.
+import { ACTIVITY } from '../lib/validation/activity';
+import FieldError from './FieldError.astro';
+
+interface Props {
+  value?: string;
+  errors?: string[];
+}
+
+const { value, errors } = Astro.props;
+---
+
+<p>
+  <label for="private_details">Details for attendees only</label>
+  <br />
+  <span id="private_details-hint">
+    Such as an exact address, a gate code or a meeting link. Only the people going, and moderators,
+    can see them.
+  </span>
+  <br />
+  <textarea
+    id="private_details"
+    name="private_details"
+    rows="3"
+    maxlength={ACTIVITY.privateDetails.max}
+    aria-describedby={
+      errors ? 'private_details-hint private_details-error' : 'private_details-hint'
+    }
+    aria-invalid={errors ? 'true' : undefined}
+  >{value}</textarea>
+  <FieldError name="private_details" errors={errors} />
+</p>

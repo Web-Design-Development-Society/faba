@@ -2,12 +2,13 @@
 // Editing an activity (ACT-04, journey J5): the create form, filled in, with the same rules. Only
 // the organizer can. It works without JavaScript: when a save fails, the form comes back with what
 // was typed and the version it showed, so a save from an older page keeps failing. Once the
-// activity has started, only its description can change (FR-ACT-4). Cancel activity is at the
-// bottom, away from Save, and asks first in a sheet. Restore takes its place until the start
-// (ACT-05).
+// activity has started, only its description and details for attendees can change (FR-ACT-4,
+// ACT-09). Cancel activity is at the bottom, away from Save, and asks first in a sheet. Restore
+// takes its place until the start (ACT-05).
 import { actions, isInputError } from 'astro:actions';
 import ActivityFields from '../../../components/ActivityFields.astro';
 import FieldError from '../../../components/FieldError.astro';
+import PrivateDetailsField from '../../../components/PrivateDetailsField.astro';
 import Sheet from '../../../components/Sheet.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { setFlash } from '../../../lib/server/flash';
@@ -35,12 +36,13 @@ if (restore && !restore.error) {
   return Astro.redirect(`/activities/${restore.data.id}`, 303);
 }
 
-// Every category, so an activity keeps one that's no longer offered.
+// Every category, so an activity keeps one that's no longer offered. Only its organizer, members
+// going and moderators can read its details for attendees (ACT-09).
 const [{ data: activity }, { data: categories }, { data: tags }] = await Promise.all([
   supabase
     .from('activities')
     .select(
-      'id, title, description, starts_at, ends_at, location_name, cost_note, capacity, guests_allowed, max_guests_per_rsvp, category_id, organizer_id, version, status, activity_tags(tag_id)'
+      'id, title, description, starts_at, ends_at, location_name, cost_note, capacity, guests_allowed, max_guests_per_rsvp, category_id, organizer_id, version, status, activity_tags(tag_id), private:activity_private_details(details)'
     )
     .eq('id', Astro.params.id!)
     .maybeSingle(),
@@ -63,6 +65,7 @@ const saved: Record<string, string | undefined> = {
   category_id: activity?.category_id,
   description: activity?.description ?? undefined,
   cost_note: activity?.cost_note ?? undefined,
+  private_details: activity?.private?.details,
   capacity: activity?.capacity?.toString(),
   guests_allowed: activity?.guests_allowed ? 'true' : undefined,
   max_guests_per_rsvp: activity?.max_guests_per_rsvp.toString(),
@@ -117,7 +120,10 @@ const back = `/activities/${Astro.params.id}`;
         <input type="hidden" name="version" value={value('version')} />
         {started ? (
           <>
-            <p>This activity has started, so only its description can change.</p>
+            <p>
+              This activity has started, so only its description and details for attendees can
+              change.
+            </p>
             <p>
               <label for="description">Details (optional)</label>
               <br />
@@ -131,6 +137,7 @@ const back = `/activities/${Astro.params.id}`;
               >{value('description')}</textarea>
               <FieldError name="description" errors={fields.description} />
             </p>
+            <PrivateDetailsField value={value('private_details')} errors={fields.private_details} />
           </>
         ) : (
           <ActivityFields

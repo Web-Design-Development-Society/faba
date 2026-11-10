@@ -71,6 +71,7 @@ describe('newActivity', () => {
     ['location_name', 'a'.repeat(121), 'Use 120 characters or fewer.'],
     ['description', 'a'.repeat(2001), 'Use 2000 characters or fewer.'],
     ['cost_note', 'a'.repeat(61), 'Use 60 characters or fewer.'],
+    ['private_details', 'a'.repeat(501), 'Use 500 characters or fewer.'],
     ['date', '2026-02-30', 'Choose a date.'],
   ])('rejects %s %j', (field, value, message) => {
     expect(errors({ [field]: value })).toEqual({ [field]: message });
@@ -122,6 +123,13 @@ describe('newActivity', () => {
     expect(errors({ tags: ['a', 'b', 'c', 'd'] })).toEqual({ tags: 'Pick up to 3 tags.' });
   });
 
+  it('takes details for attendees, trimmed', () => {
+    expect(
+      newActivity.parse({ ...valid, private_details: ' 412 S 2nd W, gate code 4521 ' })
+        .private_details
+    ).toBe('412 S 2nd W, gate code 4521');
+  });
+
   it('takes a number of spots, or none', () => {
     expect(newActivity.parse({ ...valid, capacity: 12 }).capacity).toBe(12);
     expect(newActivity.parse(valid).capacity).toBeUndefined();
@@ -168,19 +176,24 @@ describe('activityChanges', () => {
 describe('descriptionChange', () => {
   const id = 'f0000000-0000-4000-8000-000000000001';
 
-  it('takes only the description', () => {
-    expect(descriptionChange.parse({ ...valid, id, version: 2, description: ' Thanks! ' })).toEqual(
-      {
+  it('takes only the description and the details for attendees', () => {
+    expect(
+      descriptionChange.parse({
+        ...valid,
         id,
         version: 2,
-        description: 'Thanks!',
-      }
-    );
+        description: ' Thanks! ',
+        private_details: ' Gate code 4521 ',
+      })
+    ).toEqual({ id, version: 2, description: 'Thanks!', private_details: 'Gate code 4521' });
   });
 
-  it("has the create form's limit", () => {
+  it("has the create form's limits", () => {
     expect(
       descriptionChange.safeParse({ id, version: 2, description: 'a'.repeat(2001) }).success
+    ).toBe(false);
+    expect(
+      descriptionChange.safeParse({ id, version: 2, private_details: 'a'.repeat(501) }).success
     ).toBe(false);
   });
 });

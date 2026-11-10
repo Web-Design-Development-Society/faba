@@ -4,6 +4,7 @@
 import { quickDates, rexburgDate } from '../lib/time';
 import { ACTIVITY, latestStart } from '../lib/validation/activity';
 import FieldError from './FieldError.astro';
+import PrivateDetailsField from './PrivateDetailsField.astro';
 
 interface Props {
   /** A field's value, or nothing for an empty field. */
@@ -24,9 +25,15 @@ const now = new Date();
 const { today, tomorrow, saturday } = quickDates(now);
 const moreOptions =
   chosen.length > 0 ||
-  ['end_time', 'cost_note', 'capacity', 'tags', 'guests_allowed', 'max_guests_per_rsvp'].some(
-    (name) => value(name) || errors[name]
-  );
+  [
+    'end_time',
+    'cost_note',
+    'private_details',
+    'capacity',
+    'tags',
+    'guests_allowed',
+    'max_guests_per_rsvp',
+  ].some((name) => value(name) || errors[name]);
 ---
 
 <p>
@@ -147,6 +154,7 @@ const moreOptions =
     />
     <FieldError name="cost_note" errors={errors.cost_note} />
   </p>
+  <PrivateDetailsField value={value('private_details')} errors={errors.private_details} />
   <p>
     <label for="capacity">Spots</label>
     <br />

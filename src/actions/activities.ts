@@ -1,5 +1,6 @@
 // Activity Actions. Each checks who's signed in, and Postgres checks every rule again (ADR-004).
 import { ActionError, defineAction } from 'astro:actions';
+import { z } from 'astro/zod';
 import type { Json } from '../lib/db.types';
 import { actionErrorFor } from '../lib/server/errors';
 import {
@@ -62,6 +63,7 @@ export const activities = {
         description: activity.description ?? null,
         ends_at: activity.ends_at ?? null,
         cost_note: activity.cost_note ?? null,
+        private_details: activity.private_details ?? null,
         capacity: activity.capacity ?? null,
         guests_allowed: activity.guests_allowed ?? false,
         max_guests_per_rsvp: activity.max_guests_per_rsvp ?? ACTIVITY.guests.max,
@@ -70,12 +72,37 @@ export const activities = {
     },
   }),
 
-  /** Editing an activity that has started, when only its description can change (ACT-04). */
+  /**
+   * Editing an activity that has started, when only its description (ACT-04) and its details for
+   * attendees (ACT-09) can change.
+   */
   updateDescription: defineAction({
     accept: 'form',
     input: descriptionChange,
-    handler: ({ id, version, description }, { locals }) =>
-      update(locals, id, version, { description: description ?? null }),
+    handler: ({ id, version, description, private_details }, { locals }) =>
+      update(locals, id, version, {
+        description: description ?? null,
+        private_details: private_details ?? null,
+      }),
+  }),
+
+  /**
+   * An activity's details for attendees (ACT-09), or null for anyone RLS doesn't let read them.
+   * The activity page asks again when the member's answer changes, to show or hide them.
+   */
+  privateDetails: defineAction({
+    input: z.object({ activity_id: z.uuid() }),
+    handler: async ({ activity_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { data, error } = await locals.supabase
+        .from('activity_private_details')
+        .select('details')
+        .eq('activity_id', activity_id)
+        .maybeSingle();
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { details: data?.details ?? null };
+    },
   }),
 
   /** Cancelling an activity (ACT-05). It stays, marked cancelled. Returns its id. */

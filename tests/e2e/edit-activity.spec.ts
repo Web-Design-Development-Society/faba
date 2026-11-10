@@ -75,7 +75,10 @@ test('a change to the description alone leaves out "Updated"', async ({ page, po
   await expect(page.getByText(/^Updated/)).toBeHidden();
 });
 
-test('once it has started, only the description can change', async ({ page, poster }) => {
+test('once it has started, only the description and details for attendees can change', async ({
+  page,
+  poster,
+}) => {
   const id = await post(
     poster.admin,
     poster.id,
@@ -83,15 +86,19 @@ test('once it has started, only the description can change', async ({ page, post
   );
   await page.goto(`/activities/${id}/edit`);
   await expect(
-    page.getByText('This activity has started, so only its description can change.')
+    page.getByText(
+      'This activity has started, so only its description and details for attendees can change.'
+    )
   ).toBeVisible();
   await expect(page.getByLabel('What are you doing?')).toHaveCount(0);
   await expectAccessible(page);
 
   await page.getByLabel('Details (optional)').fill('Thanks for coming!');
+  await page.getByLabel('Details for attendees only').fill('Ring the bell, gate code 4521.');
   await page.getByRole('button', { name: 'Save' }).click();
   await expect(page.getByRole('status')).toHaveText('Saved.');
   await expect(page.getByText('Thanks for coming!')).toBeVisible();
+  await expect(page.getByText('Ring the bell, gate code 4521.')).toBeVisible();
 });
 
 test('a save from an older page is told to open Edit again', async ({ page, poster }) => {

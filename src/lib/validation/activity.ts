@@ -9,6 +9,7 @@ export const ACTIVITY = {
   place: { max: 120 },
   description: { max: 2000 },
   costNote: { max: 60 },
+  privateDetails: { max: 500 },
   cancelReason: { max: 200 },
   capacity: { min: 1, max: 500 },
   tags: { max: 3 },
@@ -112,6 +113,12 @@ export const newActivity = z
       .min(1, 'Allow at least 1 guest each.')
       .max(ACTIVITY.guests.max, `Allow ${ACTIVITY.guests.max} guests each or fewer.`)
       .optional(),
+    // ACT-09. Only the organizer, members going and moderators can read them.
+    private_details: z
+      .string()
+      .trim()
+      .max(ACTIVITY.privateDetails.max, `Use ${ACTIVITY.privateDetails.max} characters or fewer.`)
+      .optional(),
     // SRCH-03. set_activity_tags() checks they're offered.
     tags: z
       .array(z.string())
@@ -129,11 +136,15 @@ export const activityChanges = z
   .superRefine(checkTimes)
   .transform(toInstants);
 
-/** The edit form's fields once an activity has started: only the description (FR-ACT-4). */
+/**
+ * The edit form's fields once an activity has started: only the description (FR-ACT-4), and the
+ * details for attendees (ACT-09), such as a gate code that changed.
+ */
 export const descriptionChange = z.object({
   id: z.uuid(),
   version: z.number().int(),
   description: newActivity.in.shape.description,
+  private_details: newActivity.in.shape.private_details,
 });
 
 /** Cancelling an activity (ACT-05), with an optional reason for its banner. */

@@ -10,6 +10,9 @@ const FAILED = "Your RSVP couldn't be saved. Please try again.";
 
 type Status = 'going' | 'maybe' | 'not_going';
 
+/** A member's saved answer to activity `id`, sent on the document as `rsvp-change`. */
+export type RsvpChange = { id: string; status: Status };
+
 const SAVED: Record<Status, string> = {
   going: "You're going.",
   maybe: "You're a maybe.",
@@ -107,6 +110,12 @@ async function save(id: string, status: Status, guests?: number) {
     // is its going count. The maybe count after it changes only as the member does.
     for (const row of document.querySelectorAll(`[data-going="${id}"]`)) {
       row.querySelector('[data-count]')!.textContent = String(data.going_count);
+    }
+    // For src/scripts/private-details.ts, which shows or hides the details for attendees.
+    if (status !== was) {
+      document.dispatchEvent(
+        new CustomEvent<RsvpChange>('rsvp-change', { detail: { id, status } })
+      );
     }
     return true;
   }
