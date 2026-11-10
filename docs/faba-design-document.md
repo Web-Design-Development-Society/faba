@@ -227,7 +227,7 @@ Tap counts assume the user is signed in and starts on the Home (Discover) screen
 - **End time before start time:** inline error.
 - **Connection drops:** the form keeps the entered values (a local draft in browser storage) and retries.
 - **Daily limit:** creating more than 10 activities in a day gets a friendly limit message.
-- **Copy a past activity** (Phase 2): from **My plans → Organized**, pick a past activity and choose **Post again**. Everything except the date is prefilled.
+- **Copy a past activity** (Phase 2): on the page of an activity they organized that's over or cancelled, the organizer chooses **Post again**, beside **Edit**. Create opens with everything prefilled except the date and times, including the tags and the details for attendees, and says "Copied from Board game night. Pick a new date and time." A moderator-hidden activity can't be copied. The new activity keeps only `copied_from_id`, for analytics.
 
 ### J5. Editing or cancelling an activity
 

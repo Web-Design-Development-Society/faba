@@ -2,8 +2,9 @@
 // An activity's page (ACT-02, design document section 7.6), in the order people ask: what, when,
 // where, who, then the details. Report opens the Report form (MOD-01), and those going or maybe can
 // Mute updates from the same menu (NOTIF-08). Its organizer's updates come last, newest first, and
-// Post update sits beside Edit (NOTIF-04). Moderators unhide a hidden one here (MOD-03), and give
-// an ineligible organizer's upcoming one to a new host or cancel it (AUTH-05). Its details for
+// Post update sits beside Edit (NOTIF-04). Post again joins them once it's over or cancelled
+// (ACT-07). Moderators unhide a hidden one here (MOD-03), and give an ineligible organizer's
+// upcoming one to a new host or cancel it (AUTH-05). Its details for
 // attendees show only to those who can read them (ACT-09).
 import { actions, isInputError } from 'astro:actions';
 import Avatar from '../../../components/Avatar.astro';
@@ -434,6 +435,9 @@ const email = activity
             <span class="hosting">
               {!activity.hidden_at && <a href={`/activities/${activity.id}/update`}>Post update</a>}
               <a href={`/activities/${activity.id}/edit`}>Edit</a>
+              {!open && !activity.hidden_at && (
+                <a href={`/activities/new?from=${activity.id}`}>Post again</a>
+              )}
             </span>
           </>
         ) : !open || full ? (
@@ -568,7 +572,7 @@ const email = activity
     min-width: 8rem;
     min-height: 44px;
   }
-  /* Post update and Edit side by side, which fit beside "You're hosting" at 320 px. */
+  /* Post update, Edit and Post again side by side, which fit beside "You're hosting" at 320 px. */
   .hosting {
     display: flex;
     gap: 1rem;

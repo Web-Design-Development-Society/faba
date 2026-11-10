@@ -9,6 +9,7 @@ export type Database = {
           cancelled_at: string | null;
           capacity: number | null;
           category_id: string;
+          copied_from_id: string | null;
           cost_note: string | null;
           created_at: string;
           description: string | null;
@@ -42,6 +43,7 @@ export type Database = {
           cancelled_at?: string | null;
           capacity?: number | null;
           category_id: string;
+          copied_from_id?: string | null;
           cost_note?: string | null;
           created_at?: string;
           description?: string | null;
@@ -73,6 +75,7 @@ export type Database = {
           cancelled_at?: string | null;
           capacity?: number | null;
           category_id?: string;
+          copied_from_id?: string | null;
           cost_note?: string | null;
           created_at?: string;
           description?: string | null;
@@ -105,6 +108,13 @@ export type Database = {
             columns: ['category_id'];
             isOneToOne: false;
             referencedRelation: 'categories';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'activities_copied_from_id_fkey';
+            columns: ['copied_from_id'];
+            isOneToOne: false;
+            referencedRelation: 'activities';
             referencedColumns: ['id'];
           },
           {
@@ -597,6 +607,7 @@ export type Database = {
         Args: {
           capacity?: number;
           category_id: string;
+          copied_from_id?: string;
           cost_note?: string;
           description?: string;
           ends_at?: string;
@@ -628,6 +639,7 @@ export type Database = {
           cancelled_at: string | null;
           capacity: number | null;
           category_id: string;
+          copied_from_id: string | null;
           cost_note: string | null;
           created_at: string;
           description: string | null;
@@ -726,6 +738,7 @@ export type Database = {
           cancelled_at: string | null;
           capacity: number | null;
           category_id: string;
+          copied_from_id: string | null;
           cost_note: string | null;
           created_at: string;
           description: string | null;
