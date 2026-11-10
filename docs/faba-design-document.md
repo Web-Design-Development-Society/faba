@@ -2063,7 +2063,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 
 - **Your next plan** appears only when the member is going to something in the next 7 days. It doubles as an always-on reminder.
 - Day headers ("Today", "Tomorrow", "Sat, Oct 25") make scanning fast.
-- **NEW** marks activities created since the member's previous visit (Phase 2). This replaces notifying everyone about every new activity.
+- **NEW** marks activities created since the member's previous visit (Phase 2). This replaces notifying everyone about every new activity. A visit ends after 30 minutes away from Home, so the markers stay while the member browses and are gone when they come back later. A first visit marks nothing, and neither do the member's own activities. It's the last of a card's statuses, after Cancelled, Full and Board activity.
 - **Show more** is a button, not infinite scroll. It keeps the footer reachable and works better with screen readers.
 - Members based "Elsewhere / online" see **Online** chips first, and online activities are ordered first within each day.
 
@@ -2114,6 +2114,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 - **Organizer view:** the sticky bar shows **Edit** and **Post update** instead of RSVP. Their own RSVP state shows as "You're hosting".
 - **For attendees** (ACT-09): shown only when the organizer added details. The organizer, members going and moderators see the details, and everyone else sees the note. After **I'm in**, the details replace the note without reloading, and the note comes back after **Maybe** or **Can't make it**.
 - **Cancelled:** a full-width banner at the top ("Cancelled: _reason_"). RSVP is disabled. **Add to calendar** is hidden.
+- **Board activity** (MOD-07): a "FABA board activity" badge under the category, and "Board activity" on its cards unless they say Cancelled or Full. An admin who organizes the activity has **Mark as board activity** (or **Not a board activity**) in the ⋯ menu. While a board activity is coming up and not yet announced, the menu also has **Announce to every member**, which asks first in a sheet. The sheet says it can't be taken back, and warns when the board has already sent 2 or more announcements in the last 30 days. Afterwards the admin sees "Announced 2h ago".
 
 ### 7.7 Create-activity flow
 
@@ -3044,7 +3045,7 @@ erDiagram
   - `user_id` (PK, FK to `profiles`, cascade).
   - `email citext`, `email_visible bool`.
   - `based_in` (`rexburg_area` | `elsewhere` | null), `faculty_type` (`full_time` | `part_time` | `prefer_not` | null).
-  - `last_seen_at` (for the "New since your last visit" marker).
+  - `last_seen_at` and `previous_visit_at` (for the "New since your last visit" marker). `record_visit()` sets them when Home loads, writing at most every 5 minutes within a visit.
   - **Phase 5b:** `phone_e164`, `phone_verified_at`, `sms_opt_in_at`.
 - **Ownership rules:** self (for the granted columns) and moderators. Email is written only by `sync_my_identity()`.
 - **Indexing:** the primary key. A unique index on `email` helps support runbooks.

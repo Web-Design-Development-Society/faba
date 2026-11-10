@@ -95,6 +95,20 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
   UPDATE_NOT_FOUND: { code: 'NOT_FOUND', message: "This update isn't available." },
   UPDATE_ALREADY_HIDDEN: { code: 'CONFLICT', message: 'This update is already hidden.' },
   UPDATE_NOT_HIDDEN: { code: 'CONFLICT', message: "This update isn't hidden." },
+  NOT_ADMIN: { code: 'FORBIDDEN', message: 'Only board admins can do that.' },
+  NOT_BOARD_ACTIVITY: {
+    code: 'BAD_REQUEST',
+    message: 'Mark it as a board activity before announcing it.',
+  },
+  ALREADY_ANNOUNCED: { code: 'CONFLICT', message: 'This activity has already been announced.' },
+  ANNOUNCE_TOO_LATE: {
+    code: 'CONFLICT',
+    message: "This activity has started, so it can't be announced.",
+  },
+  ANNOUNCE_UNAVAILABLE: {
+    code: 'CONFLICT',
+    message: "This activity is cancelled or hidden, so it can't be announced.",
+  },
   ACTIVITY_HIDDEN: {
     code: 'CONFLICT',
     message: "This activity is hidden, so you can't post updates to it.",

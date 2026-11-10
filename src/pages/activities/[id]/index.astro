@@ -5,7 +5,8 @@
 // Post update sits beside Edit (NOTIF-04). Moderators unhide a hidden one here (MOD-03), and give
 // an ineligible organizer's upcoming one to a new host or cancel it (AUTH-05). Its details for
 // attendees show only to those who can read them (ACT-09). Add to calendar sits beside the time
-// (ACT-08).
+// (ACT-08). A board activity has a badge, and an admin who organizes one marks it and announces it
+// from the menu (MOD-07).
 import { actions, isInputError } from 'astro:actions';
 import Avatar from '../../../components/Avatar.astro';
 import BoardContact from '../../../components/BoardContact.astro';
@@ -57,6 +58,16 @@ if (mute && !mute.error) {
   setFlash(Astro.cookies, Astro.url, mute.data.muted ? 'muted' : 'unmuted');
   return Astro.redirect(postedFrom(Astro.url), 303);
 }
+const board = Astro.getActionResult(actions.activities.setBoard);
+if (board && !board.error) {
+  setFlash(Astro.cookies, Astro.url, board.data.board ? 'board' : 'not_board');
+  return Astro.redirect(postedFrom(Astro.url), 303);
+}
+const announce = Astro.getActionResult(actions.activities.announce);
+if (announce && !announce.error) {
+  setFlash(Astro.cookies, Astro.url, 'announced');
+  return Astro.redirect(postedFrom(Astro.url), 303);
+}
 const unhideUpdate = Astro.getActionResult(actions.moderation.unhideUpdate);
 if (unhideUpdate && !unhideUpdate.error) {
   setFlash(Astro.cookies, Astro.url, 'update_unhidden');
@@ -64,7 +75,13 @@ if (unhideUpdate && !unhideUpdate.error) {
 }
 // The error shows at the top, since its sheet has closed.
 const failed =
-  unhide?.error ?? transfer?.error ?? cancel?.error ?? mute?.error ?? unhideUpdate?.error;
+  unhide?.error ??
+  transfer?.error ??
+  cancel?.error ??
+  mute?.error ??
+  board?.error ??
+  announce?.error ??
+  unhideUpdate?.error;
 const failure = isInputError(failed) ? Object.values(failed.fields).flat()[0] : failed?.message;
 
 // Only its organizer and moderators can read a hidden activity (RLS), so it's not available to
@@ -79,7 +96,7 @@ const [{ data: activity }, { data: me }] = await Promise.all([
       `id, title, description, starts_at, ends_at, location_name, cost_note, status, cancel_reason,
       hidden_at, hidden_reason, going_count, maybe_count, guest_total, capacity, guests_allowed,
       max_guests_per_rsvp, organizer_id,
-      time_or_place_changed_at, category_id, has_private_details,
+      time_or_place_changed_at, category_id, has_private_details, is_board_activity, announced_at,
       private:activity_private_details(details),
       category:categories(name),
       tags:activity_tags(tag:tags(name, sort_order)),
@@ -140,6 +157,23 @@ const handover =
   host?.status === 'ineligible' &&
   activity?.status === 'published' &&
   new Date(activity.starts_at) > new Date();
+// An admin marks the activities they organize as board activities, and announces one once, while
+// it's coming up (MOD-07). The sheet warns once 2 or more went out in the last 30 days.
+const admin = member?.status === 'active' && member.role === 'admin';
+const boardAdmin = admin && hosting;
+const announceable =
+  boardAdmin &&
+  activity.is_board_activity &&
+  !activity.announced_at &&
+  activity.status === 'published' &&
+  !activity.hidden_at &&
+  new Date(activity.starts_at) > new Date();
+const { count: announcedLately } = announceable
+  ? await supabase
+      .from('activities')
+      .select('id', { count: 'exact', head: true })
+      .gt('announced_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
+  : { count: 0 };
 const people = activity?.going.map(({ member }) => member) ?? [];
 const department = host?.department ? `· ${host.department}` : '';
 const url = new URL(Astro.url.pathname, Astro.url.origin).href;
@@ -182,12 +216,51 @@ const email = activity
             </form>
           </li>
         )}
+        {boardAdmin && (
+          <li>
+            <form method="post" action={actions.activities.setBoard.queryString}>
+              <input type="hidden" name="id" value={activity.id} />
+              <input type="hidden" name="board" value={String(!activity.is_board_activity)} />
+              <button>
+                {activity.is_board_activity ? 'Not a board activity' : 'Mark as board activity'}
+              </button>
+            </form>
+          </li>
+        )}
+        {announceable && (
+          <li>
+            <button type="button" commandfor="announce" command="show-modal">
+              Announce to every member
+            </button>
+          </li>
+        )}
         <li>
           <a href={`/activities/${activity.id}/report`}>Report</a>
         </li>
       </Menu>
     )}
   </header>
+  {activity && announceable && (
+    <Sheet id="announce" title="Announce to every member?">
+      <p>
+        Every active member gets it in Alerts. An activity can be announced only once, and it can't
+        be taken back.
+      </p>
+      {(announcedLately ?? 0) >= 2 && (
+        <p class="warning">
+          The board has sent {announcedLately} announcements in the last 30 days. The guidance is 2
+          or fewer a month, so members don't tune them out.
+        </p>
+      )}
+      <form method="post" action={actions.activities.announce.queryString}>
+        <input type="hidden" name="id" value={activity.id} />
+        <button type="submit">Yes, announce it</button>
+      </form>
+      <form method="dialog">
+        <button>Not now</button>
+      </form>
+    </Sheet>
+  )}
   <Status
     message={flash && FLASH_MESSAGES[flash]}
     data-posted={flash === 'posted' ? '' : undefined}
@@ -224,6 +297,15 @@ const email = activity
         <p class="banner">{withReason('Cancelled', activity.cancel_reason)}</p>
       )}
       {activity.category && <p class="category">{activity.category.name}</p>}
+      {activity.is_board_activity && <p class="board">FABA board activity</p>}
+      {boardAdmin && activity.announced_at && (
+        <p class="updated">
+          Announced{' '}
+          <time datetime={activity.announced_at}>
+            {formatAgo(new Date(activity.announced_at), new Date())}
+          </time>
+        </p>
+      )}
       <h1>{activity.title}</h1>
       <p>
         <time datetime={activity.starts_at}>
@@ -570,6 +652,20 @@ const email = activity
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
+  }
+  .board {
+    display: inline-block;
+    margin: 0.5rem 0 0;
+    padding: 0 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border: 1px solid #767676;
+    border-radius: 999px;
+  }
+  .warning {
+    padding: 0.5rem 0.75rem;
+    border-left: 0.25rem solid #b54708;
+    background: #fffaeb;
   }
   .category {
     margin-bottom: 0;
