@@ -64,6 +64,20 @@ group('changeLine', () => {
     expect(describe('activity_changed', payload).summary).toBe('Now at Hart courts (was Library)');
     expect(describe('activity_changed', {}).summary).toBe('Time or place changed');
   });
+
+  it('says the details for attendees changed, but not what they are (ACT-09)', () => {
+    expect(
+      describe('activity_changed', { before: at, after: at, details_changed: true }).summary
+    ).toBe('Details for attendees changed');
+    const both = {
+      before: at,
+      after: { ...at, location_name: 'Hart courts' },
+      details_changed: true,
+    };
+    expect(describe('activity_changed', both).summary).toBe(
+      'Now at Hart courts (was Library). Details for attendees changed'
+    );
+  });
 });
 
 group('cancelled and back on', () => {

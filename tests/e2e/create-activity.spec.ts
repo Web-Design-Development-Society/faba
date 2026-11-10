@@ -135,7 +135,11 @@ test('the draft survives a failed post, and goes once posted', async ({ page, po
     .eq('organizer_id', poster.id);
   expect(count).toBe(1);
 
-  // Posted, so the next form starts empty.
+  // Posted, so the next form starts empty. "Posted!" comes with the page, and its script clears
+  // the draft just after.
+  await expect
+    .poll(() => page.evaluate(() => localStorage.getItem('faba-new-activity')))
+    .toBeNull();
   await page.goto('/activities/new');
   await expect(page.getByLabel('What are you doing?')).toHaveValue('');
   await expect(page.getByText('We kept what you typed last time.')).toBeHidden();

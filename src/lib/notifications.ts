@@ -66,16 +66,23 @@ export function describe(
   update?: PostedUpdate | null
 ): { icon: string; summary: string } {
   const found = TYPES[type] ?? { icon: '•', summary: 'Update' };
-  const { before, after, reason, starts_at } = (payload ?? {}) as {
+  const { before, after, details_changed, reason, starts_at } = (payload ?? {}) as {
     before?: Snapshot;
     after?: Snapshot;
+    details_changed?: boolean;
     reason?: string | null;
     starts_at?: string;
   };
-  // NOTIF-03: "Cancelled: Snowed in", and "Back on for Fri, Dec 4, 7:00 PM".
+  // NOTIF-02, with ACT-09's details for attendees, which it says changed without saying what they
+  // are. NOTIF-03: "Cancelled: Snowed in", and "Back on for Fri, Dec 4, 7:00 PM".
   const summary =
-    type === 'activity_changed' && before && after
-      ? changeLine(before, after)
+    type === 'activity_changed'
+      ? [
+          before && after ? changeLine(before, after) : '',
+          details_changed ? 'Details for attendees changed' : '',
+        ]
+          .filter(Boolean)
+          .join('. ')
       : type === 'activity_cancelled' && reason
         ? `Cancelled: ${reason}`
         : type === 'activity_restored' && starts_at

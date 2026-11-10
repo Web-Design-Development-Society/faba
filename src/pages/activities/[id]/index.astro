@@ -3,7 +3,8 @@
 // where, who, then the details. Report opens the Report form (MOD-01), and those going or maybe can
 // Mute updates from the same menu (NOTIF-08). Its organizer's updates come last, newest first, and
 // Post update sits beside Edit (NOTIF-04). Moderators unhide a hidden one here (MOD-03), and give
-// an ineligible organizer's upcoming one to a new host or cancel it (AUTH-05).
+// an ineligible organizer's upcoming one to a new host or cancel it (AUTH-05). Its details for
+// attendees show only to those who can read them (ACT-09).
 import { actions, isInputError } from 'astro:actions';
 import Avatar from '../../../components/Avatar.astro';
 import BoardContact from '../../../components/BoardContact.astro';
@@ -67,7 +68,8 @@ const failure = isInputError(failed) ? Object.values(failed.fields).flat()[0] : 
 // Only its organizer and moderators can read a hidden activity (RLS), so it's not available to
 // anyone else. Nor is an id that isn't a UUID, which is an error. Only active members are going, in
 // the faces and the list (RSVP-03). Members can't read suspended members' profiles (RLS), and the
-// filter keeps those out for moderators too, who'll be able to.
+// filter keeps those out for moderators too, who'll be able to. Only its organizer, members going
+// and moderators can read its details for attendees (RLS), so nobody else's page has them.
 const [{ data: activity }, { data: me }] = await Promise.all([
   supabase
     .from('activities')
@@ -75,7 +77,8 @@ const [{ data: activity }, { data: me }] = await Promise.all([
       `id, title, description, starts_at, ends_at, location_name, cost_note, status, cancel_reason,
       hidden_at, hidden_reason, going_count, maybe_count, guest_total, capacity, guests_allowed,
       max_guests_per_rsvp, organizer_id,
-      time_or_place_changed_at, category_id,
+      time_or_place_changed_at, category_id, has_private_details,
+      private:activity_private_details(details),
       category:categories(name),
       tags:activity_tags(tag:tags(name, sort_order)),
       organizer:profiles!activities_organizer_id_fkey(id, display_name, avatar_url, use_initials, department, status),
@@ -350,6 +353,28 @@ const email = activity
           )}
         </p>
       )}
+      {activity.has_private_details && (
+        // After the member's answer changes, src/scripts/private-details.ts shows the details or
+        // the note.
+        <section aria-labelledby="for-attendees" data-private-details={activity.id}>
+          <h2 id="for-attendees">For attendees</h2>
+          <p class="description" data-details hidden={!activity.private}>
+            {activity.private &&
+              linkify(activity.private.details).map(({ text, href }) =>
+                href ? (
+                  <a href={href} rel="nofollow ugc noopener">
+                    {text}
+                  </a>
+                ) : (
+                  text
+                )
+              )}
+          </p>
+          <p data-note hidden={!!activity.private}>
+            <span aria-hidden="true">🔒</span> Exact location shared with attendees after you RSVP.
+          </p>
+        </section>
+      )}
       {PHYSICAL_CATEGORIES.includes(activity.category_id) && <ParticipationDisclaimer />}
       {activity.updates.length > 0 && (
         <section class="updates" aria-labelledby="updates">
@@ -454,6 +479,7 @@ const email = activity
 
 <script>
   import { clearDraft } from '../../../scripts/activity-draft';
+  import '../../../scripts/private-details';
   import '../../../scripts/rsvp';
   import '../../../scripts/share';
   import '../../../scripts/sheets';

@@ -40,7 +40,12 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
   },
   ACTIVITY_STARTED: {
     code: 'CONFLICT',
-    message: 'This activity has started, so only its description can change.',
+    message:
+      'This activity has started, so only its description and details for attendees can change.',
+  },
+  INVALID_PRIVATE_DETAILS: {
+    code: 'BAD_REQUEST',
+    message: 'Use 500 characters or fewer for the details for attendees.',
   },
   RESTORE_TOO_LATE: {
     code: 'CONFLICT',
