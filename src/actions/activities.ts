@@ -132,6 +132,35 @@ export const activities = {
   }),
 
   /**
+   * Marking an activity as a FABA board activity, or not (MOD-07). Only an admin who organizes it
+   * can. Returns its id and whether it is one.
+   */
+  setBoard: defineAction({
+    accept: 'form',
+    input: z.object({ id: z.uuid(), board: z.boolean() }),
+    handler: async ({ id, board }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('set_board_activity', { activity_id: id, board });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { id, board };
+    },
+  }),
+
+  /** Announcing a board activity to every member, once (MOD-07). Returns its id. */
+  announce: defineAction({
+    accept: 'form',
+    input: z.object({ id: z.uuid() }),
+    handler: async ({ id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('announce_activity', { activity_id: id });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { id };
+    },
+  }),
+
+  /**
    * Posting an update to everyone going or maybe (NOTIF-04). Posting again with the same
    * idempotency key returns the update already posted. Returns the activity's id.
    */

@@ -5,6 +5,7 @@ export type Database = {
     Tables: {
       activities: {
         Row: {
+          announced_at: string | null;
           cancel_reason: string | null;
           cancelled_at: string | null;
           capacity: number | null;
@@ -22,6 +23,7 @@ export type Database = {
           hidden_reason: string | null;
           id: string;
           idempotency_key: string | null;
+          is_board_activity: boolean;
           location_name: string;
           max_guests_per_rsvp: number;
           maybe_count: number;
@@ -38,6 +40,7 @@ export type Database = {
         };
         ComputedFields: 'my_rsvp';
         Insert: {
+          announced_at?: string | null;
           cancel_reason?: string | null;
           cancelled_at?: string | null;
           capacity?: number | null;
@@ -55,6 +58,7 @@ export type Database = {
           hidden_reason?: string | null;
           id?: string;
           idempotency_key?: string | null;
+          is_board_activity?: boolean;
           location_name: string;
           max_guests_per_rsvp?: number;
           maybe_count?: number;
@@ -69,6 +73,7 @@ export type Database = {
           version?: number;
         };
         Update: {
+          announced_at?: string | null;
           cancel_reason?: string | null;
           cancelled_at?: string | null;
           capacity?: number | null;
@@ -86,6 +91,7 @@ export type Database = {
           hidden_reason?: string | null;
           id?: string;
           idempotency_key?: string | null;
+          is_board_activity?: boolean;
           location_name?: string;
           max_guests_per_rsvp?: number;
           maybe_count?: number;
@@ -592,6 +598,7 @@ export type Database = {
         Args: { display_name: string; use_initials: boolean; version: number };
         Returns: undefined;
       };
+      announce_activity: { Args: { activity_id: string }; Returns: number };
       cancel_activity: { Args: { activity_id: string; reason?: string }; Returns: undefined };
       create_activity: {
         Args: {
@@ -624,6 +631,7 @@ export type Database = {
           tag_ids?: string[];
         };
         Returns: {
+          announced_at: string | null;
           cancel_reason: string | null;
           cancelled_at: string | null;
           capacity: number | null;
@@ -641,6 +649,7 @@ export type Database = {
           hidden_reason: string | null;
           id: string;
           idempotency_key: string | null;
+          is_board_activity: boolean;
           location_name: string;
           max_guests_per_rsvp: number;
           maybe_count: number;
@@ -722,6 +731,7 @@ export type Database = {
           tag_ids?: string[];
         };
         Returns: {
+          announced_at: string | null;
           cancel_reason: string | null;
           cancelled_at: string | null;
           capacity: number | null;
@@ -739,6 +749,7 @@ export type Database = {
           hidden_reason: string | null;
           id: string;
           idempotency_key: string | null;
+          is_board_activity: boolean;
           location_name: string;
           max_guests_per_rsvp: number;
           maybe_count: number;
@@ -760,6 +771,7 @@ export type Database = {
         };
       };
       set_activity_tags: { Args: { activity_id: string; tag_ids: string[] }; Returns: undefined };
+      set_board_activity: { Args: { activity_id: string; board: boolean }; Returns: undefined };
       set_email_visibility: { Args: { visible: boolean }; Returns: undefined };
       suspend_member: { Args: { reason: string; user_id: string }; Returns: undefined };
       sync_my_identity: { Args: Record<PropertyKey, never>; Returns: string };

@@ -2113,6 +2113,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 - **Organizer view:** the sticky bar shows **Edit** and **Post update** instead of RSVP. Their own RSVP state shows as "You're hosting".
 - **For attendees** (ACT-09): shown only when the organizer added details. The organizer, members going and moderators see the details, and everyone else sees the note. After **I'm in**, the details replace the note without reloading, and the note comes back after **Maybe** or **Can't make it**.
 - **Cancelled:** a full-width banner at the top ("Cancelled: _reason_"). RSVP is disabled. **Add to calendar** is hidden.
+- **Board activity** (MOD-07): a "FABA board activity" badge under the category, and "Board activity" on its cards unless they say Cancelled or Full. An admin who organizes the activity has **Mark as board activity** (or **Not a board activity**) in the ⋯ menu. While a board activity is coming up and not yet announced, the menu also has **Announce to every member**, which asks first in a sheet. The sheet says it can't be taken back, and warns when the board has already sent 2 or more announcements in the last 30 days. Afterwards the admin sees "Announced 2h ago".
 
 ### 7.7 Create-activity flow
 

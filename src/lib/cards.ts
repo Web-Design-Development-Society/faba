@@ -3,7 +3,7 @@
 // the faces.
 export const CARD = `id, title, starts_at, ends_at, location_name, going_count, guest_total, capacity,
   organizer_id, my_rsvp, hidden_at, time_or_place_changed_at,
-  status, category:categories(name, icon, color_token),
+  status, is_board_activity, category:categories(name, icon, color_token),
   going:rsvps(member:profiles!inner(id, display_name, avatar_url, use_initials))`;
 
 /** The most faces on a card. */

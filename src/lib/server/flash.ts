@@ -24,6 +24,9 @@ export const FLASH_MESSAGES = {
   update_posted: 'Update posted.',
   update_hidden: 'Update hidden.',
   update_unhidden: 'Update unhidden.',
+  board: 'Marked as a board activity.',
+  not_board: 'No longer a board activity.',
+  announced: 'Announced to every member.',
 };
 
 export type Flash = keyof typeof FLASH_MESSAGES;
