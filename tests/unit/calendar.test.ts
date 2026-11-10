@@ -122,6 +122,7 @@ describe('googleCalendarUrl', () => {
   });
 
   it('leaves out the details for attendees', () => {
-    expect(googleCalendarUrl({ ...hike, privateDetails: 'Gate code 4521' })).not.toContain('4521');
+    const going: CalendarEvent = { ...hike, privateDetails: 'Gate code 4521' };
+    expect(googleCalendarUrl(going)).not.toContain('4521');
   });
 });
