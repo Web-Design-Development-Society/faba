@@ -151,7 +151,11 @@ SELECT throws_ok(
 RESET ROLE;
 
 SELECT results_eq(
-  $$select count(*)::integer from public.notifications where type = 'rsvp_confirmed'$$,
+  $$
+    select count(*)::integer
+    from public.notifications
+    where type = 'rsvp_confirmed' and recipient_id = 'c0000000-0000-4000-8000-000000000362'
+  $$,
   $$values (1)$$,
   'Max has one confirmation in all'
 );

@@ -114,6 +114,24 @@ group('new attendees', () => {
   });
 });
 
+group('reminders', () => {
+  const payload = { starts_at: '2026-12-04T12:10:00-07:00', location_name: 'Hart courts' };
+
+  it.each([
+    ['the same day', '2026-12-04T07:00:00-07:00', 'Reminder: today at 12:10 PM, Hart courts'],
+    ['a later day', '2026-12-05T09:00:00-07:00', 'Reminder: Fri, Dec 4, 12:10 PM, Hart courts'],
+  ])('says it on %s', (_, now, line) => {
+    expect(describe('reminder', payload, undefined, new Date(now))).toEqual({
+      icon: '⏰',
+      summary: line,
+    });
+  });
+
+  it("says just Reminder when it doesn't know when", () => {
+    expect(describe('reminder', {}).summary).toBe('Reminder');
+  });
+});
+
 group('organizer updates', () => {
   it('says who posted it and what it says', () => {
     const update = { author: 'Dana Smith', body: 'Parking is at the trailhead.' };

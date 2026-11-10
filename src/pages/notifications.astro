@@ -103,7 +103,8 @@ const unread = groups[0]?.name === 'New';
               notification.payload,
               notification.type === 'organizer_update'
                 ? (posted.get(updateIdOf(notification.payload)) ?? null)
-                : undefined
+                : undefined,
+              now
             );
             return (
               <li class:list={{ unread: !notification.read_at }}>
