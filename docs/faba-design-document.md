@@ -227,7 +227,7 @@ Tap counts assume the user is signed in and starts on the Home (Discover) screen
 - **End time before start time:** inline error.
 - **Connection drops:** the form keeps the entered values (a local draft in browser storage) and retries.
 - **Daily limit:** creating more than 10 activities in a day gets a friendly limit message.
-- **Copy a past activity** (Phase 2): from **My plans → Organized**, pick a past activity and choose **Post again**. Everything except the date is prefilled.
+- **Copy a past activity** (Phase 2): on the page of an activity they organized that's over or cancelled, the organizer chooses **Post again**, beside **Edit**. Create opens with everything prefilled except the date and times, including the tags and the details for attendees, and says "Copied from Board game night. Pick a new date and time." A moderator-hidden activity can't be copied. The new activity keeps only `copied_from_id`, for analytics.
 
 ### J5. Editing or cancelling an activity
 
@@ -1414,7 +1414,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 - **Role:** Member (attendee) · **Priority:** Should · **Phase:** 2
 - **Story:** As an attendee, I want a reminder before an activity, so that I don't forget.
 - **Acceptance criteria**
-  1. A `pg_cron` job every 15 minutes creates `reminder` notifications for going attendees. Activities starting before 1 PM get the reminder at 7 AM the same day. Later activities get it 2 hours before. Times are in the activity's time zone.
+  1. A `pg_cron` job every 15 minutes creates `reminder` notifications for going attendees. Activities starting before 1 PM get the reminder at 7 AM the same day. Later activities get it 2 hours before. Times are in the activity's time zone. An activity starting at 7 AM or earlier gets it 2 hours before, so it comes before the start. A run sends every reminder that's due for an activity that hasn't started, so a late run still sends them. Someone who said I'm in after their reminder time doesn't get one.
   2. Each attendee gets at most one reminder per activity (`dedupe_key`).
   3. Reminders are not created for cancelled or muted activities.
 - **Dependencies:** NOTIF-01; `pg_cron` enabled.

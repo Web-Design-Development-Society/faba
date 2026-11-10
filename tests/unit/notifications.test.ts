@@ -114,6 +114,24 @@ group('new attendees', () => {
   });
 });
 
+group('reminders', () => {
+  const payload = { starts_at: '2026-12-04T12:10:00-07:00', location_name: 'Hart courts' };
+
+  it.each([
+    ['the same day', '2026-12-04T07:00:00-07:00', 'Reminder: today at 12:10 PM, Hart courts'],
+    ['a later day', '2026-12-05T09:00:00-07:00', 'Reminder: Fri, Dec 4, 12:10 PM, Hart courts'],
+  ])('says it on %s', (_, now, line) => {
+    expect(describe('reminder', payload, undefined, new Date(now))).toEqual({
+      icon: '⏰',
+      summary: line,
+    });
+  });
+
+  it("says just Reminder when it doesn't know when", () => {
+    expect(describe('reminder', {}).summary).toBe('Reminder');
+  });
+});
+
 group('board announcements', () => {
   it.each([
     [{ starts_at: '2026-12-04T19:00:00-07:00' }, 'From the FABA board: Fri, Dec 4, 7:00 PM'],
