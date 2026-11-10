@@ -151,6 +151,52 @@ export type Database = {
           },
         ];
       };
+      activity_updates: {
+        Row: {
+          activity_id: string;
+          author_id: string | null;
+          body: string;
+          created_at: string;
+          hidden_at: string | null;
+          id: string;
+          idempotency_key: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          activity_id: string;
+          author_id?: string | null;
+          body: string;
+          created_at?: string;
+          hidden_at?: string | null;
+          id?: string;
+          idempotency_key?: string | null;
+        };
+        Update: {
+          activity_id?: string;
+          author_id?: string | null;
+          body?: string;
+          created_at?: string;
+          hidden_at?: string | null;
+          id?: string;
+          idempotency_key?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'activity_updates_activity_id_fkey';
+            columns: ['activity_id'];
+            isOneToOne: false;
+            referencedRelation: 'activities';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'activity_updates_author_id_fkey';
+            columns: ['author_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       categories: {
         Row: {
           color_token: string;
@@ -574,6 +620,10 @@ export type Database = {
             Database['public']['Tables']['activities']['ComputedFields']
           >;
         };
+        Returns: string;
+      };
+      post_activity_update: {
+        Args: { activity_id: string; body: string; idempotency_key?: string };
         Returns: string;
       };
       reinstate_member: { Args: { reason: string; user_id: string }; Returns: undefined };
