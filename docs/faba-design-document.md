@@ -2430,6 +2430,8 @@ FABA does not write to anyone's calendar. Members pull FABA activities into thei
 | FR-CAL-2 | The system must provide a personal, revocable iCal subscription feed of going activities, using a hashed token                       | 3   | CAL-01 |
 | FR-CAL-3 | Writing to members' Google calendars through OAuth is **not** planned, because it requires broader scopes and more trust             | —   | —      |
 
+**The `.ics` file** (`/activities/<id>.ics`, ACT-08) holds the title, the place, the description, the FABA link and the time in UTC, which every calendar shows in its own time zone. An activity without an end time lasts an hour in a calendar. Its `UID` is the activity's id and its `SEQUENCE` is the edit version, so downloading it again after an edit updates the event the calendar already has. A cancelled activity's file says `STATUS:CANCELLED`. The file is read with the member's session, so an activity they can't see isn't found, and its details for attendees go in only when the member's answer is going. The Google Calendar link leaves the details out, since a link's text reaches Google and stays in the browser's history.
+
 ---
 
 ## 9. Technical architecture
