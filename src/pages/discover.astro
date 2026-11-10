@@ -2,7 +2,8 @@
 // Home (ACT-01, design document section 7.4): what's coming up, soonest first, under a heading
 // for each day in Rexburg time. Chips filter it by date and category, as in
 // /discover?when=weekend&cat=outdoors (ACT-06, SRCH-02), and More filters by custom dates. Search is
-// at the top, and the bottom navigation's Post starts in the chosen category (RSVP-08).
+// at the top, and the bottom navigation's Post starts in the chosen category (RSVP-08). Cards
+// others posted since the member's previous visit say New (ACT-11).
 import { actions } from 'astro:actions';
 import ActivityCard from '../components/ActivityCard.astro';
 import Avatar from '../components/Avatar.astro';
@@ -37,7 +38,7 @@ const cat = Astro.url.searchParams.get('cat') || undefined;
 const dates = readDates(Astro.url.searchParams, now);
 const moreFilters = readMore(Astro.url.searchParams);
 
-const [feed, plan, categories, tags] = await Promise.all([
+const [feed, plan, categories, tags, visit] = await Promise.all([
   // One more than a page says whether there's another.
   supabase
     .rpc('get_feed', {
@@ -76,7 +77,10 @@ const [feed, plan, categories, tags] = await Promise.all([
     : { data: null },
   supabase.from('categories').select('id, name').eq('is_active', true).order('sort_order'),
   supabase.from('tags').select('id, name').eq('is_active', true).order('sort_order'),
+  // When the member's previous visit ended, which is null on their first.
+  supabase.rpc('record_visit'),
 ]);
+const newSince = visit.data ? new Date(visit.data) : null;
 
 // A link to a category that isn't offered shows them all. Members who aren't active can't read the
 // categories, so they get no chips.
@@ -170,7 +174,13 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
           <ul>
             {group.map((activity) => (
               <li id={`activity-${activity.id}`}>
-                <ActivityCard activity={activity} viewer={user.id} now={now} faces={FACES} />
+                <ActivityCard
+                  activity={activity}
+                  viewer={user.id}
+                  now={now}
+                  faces={FACES}
+                  newSince={newSince}
+                />
               </li>
             ))}
           </ul>
