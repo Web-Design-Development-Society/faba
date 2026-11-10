@@ -1,14 +1,14 @@
 ---
-// The Report form (MOD-01): a reason and an optional note about an activity or a member. Only
-// moderators see who sent it (FR-REP-1). It works without JavaScript. Once it's sent, the page goes
-// back to what was reported, which says thanks. Each member reports each thing once, and never
-// their own.
+// The Report form (MOD-01): a reason and an optional note about an activity, a member or an
+// organizer's update (NOTIF-04). Only moderators see who sent it (FR-REP-1). It works without
+// JavaScript. Once it's sent, the page goes back to what was reported, which says thanks. Each
+// member reports each thing once, and never their own.
 import { actions, isInputError } from 'astro:actions';
 import { NOTE_MAX, REASONS } from '../lib/validation/report';
 import FieldError from './FieldError.astro';
 
 interface Props {
-  type: 'activity' | 'profile';
+  type: 'activity' | 'profile' | 'activity_update';
   id: string;
   /** Whether it's the signed-in member's own. */
   mine: boolean;
@@ -17,6 +17,7 @@ interface Props {
 }
 
 const { type, id, mine, reported } = Astro.props;
+const NAMES = { activity: 'activity', profile: 'profile', activity_update: 'update' };
 const result = Astro.getActionResult(actions.reports.create);
 // What was typed, after a failed send. The Action read a copy of the request.
 const typed = result?.error ? await Astro.request.formData() : undefined;
@@ -27,7 +28,7 @@ const failure = result?.error && !isInputError(result.error) ? result.error.mess
 ---
 
 {mine ? (
-  <p>You can't report your own {type}.</p>
+  <p>You can't report your own {NAMES[type]}.</p>
 ) : reported ? (
   <p>You've already reported this. A moderator will review it.</p>
 ) : (

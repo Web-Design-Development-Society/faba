@@ -46,7 +46,8 @@ if (cursor.after_id) {
 const { data, error } = await query;
 const shown = data?.slice(0, PAGE) ?? [];
 // Organizer updates hold the update's id, and its text is read here, so one a moderator hides is
-// gone from the center too (NOTIF-04). RLS leaves out hidden ones.
+// gone from the center too (NOTIF-04). Its author and moderators can read a hidden one, so it's
+// left out here.
 const updateIdOf = (payload: unknown) => {
   const id = (payload as { update_id?: unknown } | null)?.update_id;
   return typeof id === 'string' ? id : '';
@@ -58,8 +59,9 @@ const updateIds = shown
 const { data: updates } = updateIds.length
   ? await supabase
       .from('activity_updates')
-      .select('id, body, author:profiles(display_name)')
+      .select('id, body, author:profiles!activity_updates_author_id_fkey(display_name)')
       .in('id', updateIds)
+      .is('hidden_at', null)
   : { data: [] };
 const posted = new Map<string, PostedUpdate>(
   updates?.map(({ id, body, author }) => [id, { author: author?.display_name ?? null, body }])
