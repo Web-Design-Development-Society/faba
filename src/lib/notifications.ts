@@ -63,14 +63,17 @@ export function excerpt(text: string, max = EXCERPT_MAX): string {
 export function describe(
   type: string,
   payload?: unknown,
-  update?: PostedUpdate | null
+  update?: PostedUpdate | null,
+  now: Date = new Date()
 ): { icon: string; summary: string } {
   const found = TYPES[type] ?? { icon: '•', summary: 'Update' };
-  const { before, after, count, details_changed, reason, starts_at } = (payload ?? {}) as {
+  const { before, after, count, details_changed, location_name, reason, starts_at } = (payload ??
+    {}) as {
     before?: Snapshot;
     after?: Snapshot;
     count?: number;
     details_changed?: boolean;
+    location_name?: string;
     reason?: string | null;
     starts_at?: string;
   };
@@ -106,6 +109,16 @@ export function describe(
       case 'new_attendees':
         if (typeof count !== 'number' || count < 1) return '';
         return count === 1 ? '1 new person is going' : `${count} new people are going`;
+      // NOTIF-07: "Reminder: today at 12:10 PM, Hart courts", with the date once it isn't today.
+      case 'reminder': {
+        if (!starts_at) return '';
+        const start = new Date(starts_at);
+        const when =
+          rexburgDate(start) === rexburgDate(now)
+            ? `today at ${formatClock(start)}`
+            : formatWhen(start);
+        return `Reminder: ${[when, location_name].filter(Boolean).join(', ')}`;
+      }
       default:
         return '';
     }
