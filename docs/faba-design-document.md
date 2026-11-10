@@ -2757,6 +2757,8 @@ sequenceDiagram
 | `private.audit_log`             | Not exposed. Read through an admin-only RPC (Phase 3)                                               | Insert only from inside definer functions                                                                                               |
 | Phase 3 and 4 tables            | Membership-based (for example, `group_members` visible to members of that group)                    | Through RPCs                                                                                                                            |
 
+**Attendance history:** other members' `rsvps` rows are readable only until the activity is over (when it ends, or 3 hours after it starts without an end time, as `rsvp()` uses). After that, each member reads only their own, the organizer included, so nobody can list where a colleague has been (FR-PROF-5, FR-HIST-3). Counts stay on `activities`.
+
 **Testing:** a pgTAP **RLS matrix** in `supabase/tests/` impersonates each persona (anon, ineligible-email JWT, suspended member, member, organizer, attendee, moderator, admin) and asserts the allowed and denied result for every table and operation. Policy changes cannot merge without this matrix passing (Section 12.9).
 
 ### 9.9 Validation and error handling
