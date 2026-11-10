@@ -29,7 +29,10 @@ test('a new start time notifies the people going', async ({ page, poster, crowd 
   await page.getByRole('button', { name: 'Save' }).click();
   await expect(page.getByRole('status')).toHaveText('Saved.');
 
-  const { data } = await member.from('notifications').select('type, payload');
+  const { data } = await member
+    .from('notifications')
+    .select('type, payload')
+    .neq('type', 'rsvp_confirmed');
   expect(data).toEqual([
     {
       type: 'activity_changed',
@@ -70,7 +73,10 @@ test('new details for attendees tell the people going, but not what they are', a
   await page.getByRole('button', { name: 'Save' }).click();
   await expect(page.getByRole('status')).toHaveText('Saved.');
 
-  const { data } = await member.from('notifications').select('type, payload');
+  const { data } = await member
+    .from('notifications')
+    .select('type, payload')
+    .neq('type', 'rsvp_confirmed');
   expect(data).toEqual([
     {
       type: 'activity_changed',

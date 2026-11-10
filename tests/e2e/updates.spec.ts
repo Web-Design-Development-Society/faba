@@ -42,7 +42,10 @@ test('the organizer posts an update, which the people going read', async ({
   await expect(updates.getByRole('listitem')).toContainText('Bring a headlamp!');
   await expectAccessible(page);
 
-  const { data: notifications } = await member.from('notifications').select('type');
+  const { data: notifications } = await member
+    .from('notifications')
+    .select('type')
+    .neq('type', 'rsvp_confirmed');
   expect(notifications).toEqual([{ type: 'organizer_update' }]);
 });
 

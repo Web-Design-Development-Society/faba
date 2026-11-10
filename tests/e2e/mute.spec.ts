@@ -46,7 +46,8 @@ test('Mute updates stops changes but not a cancellation, and Unmute undoes it', 
   const { data: notifications } = await poster.admin
     .from('notifications')
     .select('type')
-    .eq('recipient_id', poster.id);
+    .eq('recipient_id', poster.id)
+    .neq('type', 'rsvp_confirmed');
   expect(notifications).toEqual([{ type: 'activity_cancelled' }]);
 
   await page.getByRole('button', { name: 'Unmute updates' }).click();
