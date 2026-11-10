@@ -2,7 +2,9 @@
 // An activity in the feed (ACT-01, design document section 7.5) and in Plans (RSVP-08). The whole
 // card opens the activity, except I'm in and ✓ Going (RSVP-01, RSVP-02). A cancelled activity says
 // so in their place (ACT-05), and a full one says Full to anyone not going (RSVP-04). In Plans,
-// badges say when an upcoming one has changed time or place, is full, or is hidden.
+// badges say when an upcoming one has changed time or place, is full, or is hidden. Every card
+// says when it's a FABA board activity (MOD-07), unless it's cancelled or full, which say so in
+// its place: a card has one status at most (design document section 7.5).
 import { categoryLook } from '../lib/categories';
 import { isFull } from '../lib/cards';
 import { formatSoon, isOver } from '../lib/time';
@@ -23,6 +25,7 @@ interface Props {
     capacity: number | null;
     organizer_id: string | null;
     status: string;
+    is_board_activity: boolean;
     category: { name: string; icon: string; color_token: string } | null;
     going: {
       member: {
@@ -55,13 +58,17 @@ const open =
   !cancelled &&
   !isOver(new Date(activity.starts_at), activity.ends_at ? new Date(activity.ends_at) : null, now);
 const full = isFull(activity);
-const shown = badges
-  ? [
-      open && activity.time_or_place_changed_at && 'Changed',
-      open && full && 'Full',
-      activity.hidden_at && 'Hidden',
-    ].filter((badge) => !!badge)
-  : [];
+const board = activity.is_board_activity && !cancelled && !(open && full) && 'Board activity';
+const shown = (
+  badges
+    ? [
+        open && activity.time_or_place_changed_at && 'Changed',
+        open && full && 'Full',
+        board,
+        activity.hidden_at && 'Hidden',
+      ]
+    : [board]
+).filter((badge) => !!badge);
 ---
 
 <article class="card" style={look ? `--stripe: ${look.color}` : undefined}>
