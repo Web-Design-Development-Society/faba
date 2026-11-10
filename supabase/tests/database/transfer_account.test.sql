@@ -134,7 +134,7 @@ SELECT results_eq(
     'data_fix'::text,
     'c0000000-0000-4000-8000-0000000000e1'::uuid,
     'New Google account after a name change'::text,
-    '{"transferred_to": "c0000000-0000-4000-8000-0000000000e2", "activities": 1, "rsvps_moved": 2, "rsvps_dropped": 1}'::jsonb
+    '{"transferred_to": "c0000000-0000-4000-8000-0000000000e2", "activities": 1, "rsvps_moved": 2, "rsvps_dropped": 1, "groups_owned": 0, "group_memberships_moved": 0}'::jsonb
   )$$,
   'the transfer writes a data_fix audit row with both IDs and the counts'
 );

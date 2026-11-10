@@ -27,6 +27,7 @@ export const FLASH_MESSAGES = {
   board: 'Marked as a board activity.',
   not_board: 'No longer a board activity.',
   announced: 'Announced to every member.',
+  group_started: 'Group started!',
 };
 
 export type Flash = keyof typeof FLASH_MESSAGES;
