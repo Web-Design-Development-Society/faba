@@ -87,12 +87,15 @@ export function describe(
         ? `Cancelled: ${reason}`
         : type === 'activity_restored' && starts_at
           ? `Back on for ${formatWhen(new Date(starts_at))}`
-          : // NOTIF-04: "Dana Smith: Parking is at the trailhead…".
-            type === 'organizer_update' && update !== undefined
-            ? update
-              ? `${update.author ?? 'The organizer'}: ${excerpt(update.body)}`
-              : 'This update is no longer available'
-            : '';
+          : // NOTIF-05: "You're going on Fri, Dec 4, 7:00 PM".
+            type === 'rsvp_confirmed' && starts_at
+            ? `You're going on ${formatWhen(new Date(starts_at))}`
+            : // NOTIF-04: "Dana Smith: Parking is at the trailhead…".
+              type === 'organizer_update' && update !== undefined
+              ? update
+                ? `${update.author ?? 'The organizer'}: ${excerpt(update.body)}`
+                : 'This update is no longer available'
+              : '';
   return summary ? { ...found, summary } : found;
 }
 

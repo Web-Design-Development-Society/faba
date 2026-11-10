@@ -34,6 +34,7 @@ test('cancelling and restoring notify the people going', async ({ page, poster, 
   const { data } = await member
     .from('notifications')
     .select('type, payload')
+    .neq('type', 'rsvp_confirmed')
     .order('created_at')
     .order('type');
   expect(data).toEqual([
