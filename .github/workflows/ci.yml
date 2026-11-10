@@ -121,6 +121,28 @@ jobs:
           SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET: e2e-placeholder
       - name: Write .dev.vars with the local Supabase secret key
         run: npm run setup:dev-vars
+      # The browsers need about 185 Ubuntu packages (139 MB), and the mirrors are slow: about 75
+      # seconds, and once 7 minutes, which ran out the job's time. apt keeps what it downloads in a
+      # cached folder, so a run only downloads packages that changed. The browsers themselves come
+      # from a fast CDN in a few seconds.
+      - name: Find the runner image and the Playwright version
+        id: playwright
+        run: |
+          echo "image=$ImageOS" >> "$GITHUB_OUTPUT"
+          echo "version=$(npx playwright --version | cut -d' ' -f2)" >> "$GITHUB_OUTPUT"
+      - name: Restore apt's downloads
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/apt-archives/*.deb
+          key: apt-playwright-${{ steps.playwright.outputs.image }}-${{ steps.playwright.outputs.version }}
+          restore-keys: apt-playwright-${{ steps.playwright.outputs.image }}-
+      - name: Keep apt's downloads in the cached folder
+        # Not with sudo, which would make ~/.cache root's, and Playwright puts the browsers there.
+        # apt's download user can't write in the runner's home folder, so apt warns that it
+        # downloads as root.
+        run: |
+          mkdir -p "$HOME/.cache/apt-archives/partial"
+          echo "Dir::Cache::Archives \"$HOME/.cache/apt-archives\";" | sudo tee /etc/apt/apt.conf.d/99cache-archives
       - name: Install Chromium and WebKit
         run: npx playwright install --with-deps --only-shell chromium webkit
       - name: Run end-to-end and accessibility tests

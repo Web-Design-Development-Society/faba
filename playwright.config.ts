@@ -11,6 +11,8 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 1 : 0,
+  // GitHub's runners have 4 CPUs, and the tests mostly wait on the server and the database.
+  workers: process.env.CI ? 4 : undefined,
   reporter: [[process.env.CI ? 'github' : 'list'], ['html', { open: 'never' }]],
   use: {
     baseURL: `http://localhost:${port}`,

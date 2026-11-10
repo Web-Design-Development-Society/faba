@@ -18,8 +18,11 @@ test('Mute updates stops changes but not a cancellation, and Unmute undoes it', 
   await page.goto(`/activities/${id}`);
   await page.getByLabel('More actions').click();
   await expect(page.getByRole('button', { name: 'Mute updates' })).toHaveCount(0);
+  // ✓ Going shows before the RSVP is saved, so the reload waits for it.
+  const saved = page.waitForResponse((response) => response.url().includes('/_actions/rsvps.set'));
   await page.getByRole('button', { name: "I'm in" }).click();
   await expect(page.getByRole('button', { name: '✓ Going' })).toBeVisible();
+  expect((await saved).ok()).toBe(true);
   await page.reload();
 
   await page.getByLabel('More actions').click();
