@@ -16,6 +16,7 @@ export type Database = {
           going_count: number;
           guest_total: number;
           guests_allowed: boolean;
+          has_private_details: boolean;
           hidden_at: string | null;
           hidden_by: string | null;
           hidden_reason: string | null;
@@ -48,6 +49,7 @@ export type Database = {
           going_count?: number;
           guest_total?: number;
           guests_allowed?: boolean;
+          has_private_details?: boolean;
           hidden_at?: string | null;
           hidden_by?: string | null;
           hidden_reason?: string | null;
@@ -78,6 +80,7 @@ export type Database = {
           going_count?: number;
           guest_total?: number;
           guests_allowed?: boolean;
+          has_private_details?: boolean;
           hidden_at?: string | null;
           hidden_by?: string | null;
           hidden_reason?: string | null;
@@ -144,6 +147,33 @@ export type Database = {
             isOneToOne: true;
             referencedRelation: 'rsvps';
             referencedColumns: ['activity_id', 'user_id'];
+          },
+        ];
+      };
+      activity_private_details: {
+        Row: {
+          activity_id: string;
+          details: string;
+          updated_at: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          activity_id: string;
+          details: string;
+          updated_at?: string;
+        };
+        Update: {
+          activity_id?: string;
+          details?: string;
+          updated_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'activity_private_details_activity_id_fkey';
+            columns: ['activity_id'];
+            isOneToOne: true;
+            referencedRelation: 'activities';
+            referencedColumns: ['id'];
           },
         ];
       };
@@ -574,6 +604,7 @@ export type Database = {
           idempotency_key?: string;
           location_name: string;
           max_guests_per_rsvp?: number;
+          private_details?: string;
           starts_at: string;
           title: string;
         };
@@ -604,6 +635,7 @@ export type Database = {
           going_count: number;
           guest_total: number;
           guests_allowed: boolean;
+          has_private_details: boolean;
           hidden_at: string | null;
           hidden_by: string | null;
           hidden_reason: string | null;
@@ -701,6 +733,7 @@ export type Database = {
           going_count: number;
           guest_total: number;
           guests_allowed: boolean;
+          has_private_details: boolean;
           hidden_at: string | null;
           hidden_by: string | null;
           hidden_reason: string | null;
