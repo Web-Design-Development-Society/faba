@@ -4,7 +4,8 @@
 // Mute updates from the same menu (NOTIF-08). Its organizer's updates come last, newest first, and
 // Post update sits beside Edit (NOTIF-04). Moderators unhide a hidden one here (MOD-03), and give
 // an ineligible organizer's upcoming one to a new host or cancel it (AUTH-05). Its details for
-// attendees show only to those who can read them (ACT-09).
+// attendees show only to those who can read them (ACT-09). Add to calendar sits beside the time
+// (ACT-08).
 import { actions, isInputError } from 'astro:actions';
 import Avatar from '../../../components/Avatar.astro';
 import BoardContact from '../../../components/BoardContact.astro';
@@ -16,6 +17,7 @@ import RsvpForm from '../../../components/RsvpForm.astro';
 import Sheet from '../../../components/Sheet.astro';
 import Status from '../../../components/Status.astro';
 import Layout from '../../../layouts/Layout.astro';
+import { googleCalendarUrl } from '../../../lib/calendar';
 import { isFull } from '../../../lib/cards';
 import { PHYSICAL_CATEGORIES } from '../../../lib/contact';
 import { linkify, mapsUrl } from '../../../lib/links';
@@ -117,15 +119,15 @@ const mutable = going || answer === 'maybe';
 const muted = !!activity?.mine[0]?.mute;
 const moderator =
   member?.status === 'active' && (member.role === 'moderator' || member.role === 'admin');
-// A hidden one takes no RSVPs, as rsvp() says.
-const open =
-  activity?.status === 'published' &&
-  !activity.hidden_at &&
-  !isOver(
+const over =
+  !!activity &&
+  isOver(
     new Date(activity.starts_at),
     activity.ends_at ? new Date(activity.ends_at) : null,
     new Date()
   );
+// A hidden one takes no RSVPs, as rsvp() says.
+const open = activity?.status === 'published' && !activity.hidden_at && !over;
 const host = activity?.organizer;
 // Full to anyone not going or maybe (RSVP-04). A maybe can still change their answer.
 const full = !!activity && !going && answer !== 'maybe' && isFull(activity);
@@ -141,6 +143,19 @@ const handover =
 const people = activity?.going.map(({ member }) => member) ?? [];
 const department = host?.department ? `· ${host.department}` : '';
 const url = new URL(Astro.url.pathname, Astro.url.origin).href;
+// Add to calendar (ACT-08), until it's cancelled or over. The .ics has the details for attendees
+// for a member going, and the Google Calendar link never has them.
+const google =
+  activity?.status === 'published' && !over
+    ? googleCalendarUrl({
+        title: activity.title,
+        startsAt: new Date(activity.starts_at),
+        endsAt: activity.ends_at ? new Date(activity.ends_at) : null,
+        place: activity.location_name,
+        description: activity.description,
+        url,
+      })
+    : null;
 const withReason = (label: string, reason: string | null) =>
   reason ? `${label}: ${reason}` : label;
 const email = activity
@@ -217,7 +232,30 @@ const email = activity
             activity.ends_at ? new Date(activity.ends_at) : null
           )}
         </time>
+        {google && (
+          <>
+            {' · '}
+            <button type="button" class="link" commandfor="calendar" command="show-modal">
+              Add to calendar
+            </button>
+          </>
+        )}
       </p>
+      {google && (
+        <Sheet id="calendar" title="Add to calendar">
+          <ul class="calendars">
+            <li>
+              <a href={`/activities/${activity.id}.ics`}>Download for Apple Calendar or Outlook</a>
+            </li>
+            <li>
+              <a href={google} target="_blank" rel="noopener">
+                Open in Google Calendar
+              </a>
+            </li>
+          </ul>
+          <p>Your calendar's copy won't change if the activity does.</p>
+        </Sheet>
+      )}
       <p>
         {activity.location_name} ·{' '}
         <a href={mapsUrl(activity.location_name, Astro.request.headers.get('user-agent') ?? '')}>
@@ -506,6 +544,27 @@ const email = activity
   }
   .banner > :first-child {
     font-weight: 600;
+  }
+  /* Add to calendar reads as a link beside the time, as Open in Maps does beside the place. It's
+     at least 24 px tall (WCAG 2.2 target size). */
+  .link {
+    padding: 0.25rem 0;
+    font: inherit;
+    color: LinkText;
+    text-decoration: underline;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+  .calendars {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .calendars a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
   }
   .handover {
     display: flex;

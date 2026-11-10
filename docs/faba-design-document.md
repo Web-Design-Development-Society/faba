@@ -2087,7 +2087,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 +------------------------------------+
 | OUTDOORS                           |
 | Sunrise hike up the R              |
-| Sat, Oct 25 . 7:00-9:30 AM         |
+| Sat, Oct 25 . 7:00-9:30 AM  Cal >  |
 | [pin] R Mountain trailhead  Maps > |
 | Free . Guests welcome              |
 |                                    |
@@ -2104,12 +2104,13 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 | UPDATES                            |
 | Dana, 2h ago: Parking is at the... |
 +------------------------------------+
-| [Add to calendar]    [  I'm in  ]  |  <- sticky action bar
+|                      [  I'm in  ]  |  <- sticky action bar
 +------------------------------------+
 ```
 
 - The order of information follows the questions people ask: **what → when → where → who → details**.
 - **Maps >** opens the platform maps app with the place text as the query. There is no embedded map, which saves JavaScript, data, and privacy.
+- **Cal >** is **Add to calendar** (ACT-08), beside the time as **Maps** is beside the place, so it's there for organizers too, whose sticky bar is full. It opens a sheet with **Download for Apple Calendar or Outlook** (the `.ics` in section 8.13) and **Open in Google Calendar**, and says the calendar's copy won't change if the activity does. It's hidden once the activity is over.
 - **Organizer view:** the sticky bar shows **Edit** and **Post update** instead of RSVP. Their own RSVP state shows as "You're hosting".
 - **For attendees** (ACT-09): shown only when the organizer added details. The organizer, members going and moderators see the details, and everyone else sees the note. After **I'm in**, the details replace the note without reloading, and the note comes back after **Maybe** or **Can't make it**.
 - **Cancelled:** a full-width banner at the top ("Cancelled: _reason_"). RSVP is disabled. **Add to calendar** is hidden.

@@ -19,6 +19,12 @@ export interface CalendarEvent {
   privateDetails?: string | null;
 }
 
+/** What a Google Calendar link holds, which never includes the details for attendees. */
+export type LinkedEvent = Pick<
+  CalendarEvent,
+  'title' | 'startsAt' | 'endsAt' | 'place' | 'description' | 'url'
+>;
+
 /** How long an event lasts in a calendar when the organizer gave no end time. */
 export const DEFAULT_LENGTH = 60 * 60 * 1000;
 
@@ -28,7 +34,7 @@ const LINE_OCTETS = 75;
 const encoder = new TextEncoder();
 
 /** When `event` ends in a calendar. */
-function endOf(event: CalendarEvent): Date {
+function endOf(event: LinkedEvent): Date {
   return event.endsAt ?? new Date(event.startsAt.getTime() + DEFAULT_LENGTH);
 }
 
@@ -65,7 +71,7 @@ export function fold(line: string): string {
 }
 
 /** The event's notes: its description, its details for attendees if given, and its link. */
-function notes(event: CalendarEvent, privateDetails: string | null | undefined): string {
+function notes(event: LinkedEvent, privateDetails: string | null | undefined): string {
   return [event.description, privateDetails && `For attendees: ${privateDetails}`, event.url]
     .filter(Boolean)
     .join('\n\n');
@@ -117,7 +123,7 @@ export function icsFilename(title: string): string {
  * attendees, since a link's text reaches Google and stays in the browser's history. Its notes
  * link to FABA, where a member going can read them.
  */
-export function googleCalendarUrl(event: CalendarEvent): string {
+export function googleCalendarUrl(event: LinkedEvent): string {
   const url = new URL('https://calendar.google.com/calendar/render');
   url.searchParams.set('action', 'TEMPLATE');
   url.searchParams.set('text', event.title);
