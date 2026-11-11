@@ -15,6 +15,7 @@ interface Team {
 interface Game {
   id: string;
   round: number;
+  stage?: string;
   home_team_id: string;
   away_team_id: string | null;
   status: string;
@@ -93,7 +94,9 @@ const myTeamOf = (game: Game) =>
     : captains(game.away_team_id)
       ? game.away_team_id
       : null;
-const rounds = [...new Set(games.map((game) => game.round))].sort((a, b) => a - b);
+// Playoff games are shown by LeaguePlayoffs, so the regular rounds are only the regular games.
+const regularGames = games.filter((game) => game.stage !== 'playoff');
+const rounds = [...new Set(regularGames.map((game) => game.round))].sort((a, b) => a - b);
 const weekdays = [
   [1, 'Monday'],
   [2, 'Tuesday'],
@@ -150,14 +153,14 @@ const locked = (game: Game) => game.status === 'confirmed' || game.status === 'f
 
 <section aria-labelledby="schedule">
   <h2 id="schedule">Schedule</h2>
-  {games.length === 0 ? (
+  {regularGames.length === 0 ? (
     <p>No games are scheduled yet.</p>
   ) : (
     rounds.map((round) => (
       <section aria-labelledby={`round-${round}`}>
         <h3 id={`round-${round}`}>Round {round}</h3>
         <ul class="games">
-          {games
+          {regularGames
             .filter((game) => game.round === round)
             .map((game) => {
               if (!game.activity || !game.away_team_id) {
@@ -343,7 +346,7 @@ const locked = (game: Game) => game.status === 'confirmed' || game.status === 'f
     ))
   )}
 
-  {organizer && games.length === 0 && (
+  {organizer && regularGames.length === 0 && (
     <section aria-labelledby="make-schedule">
       <h3 id="make-schedule">Make the round robin</h3>
       <p>

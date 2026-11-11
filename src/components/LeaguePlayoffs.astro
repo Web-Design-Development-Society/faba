@@ -1,0 +1,223 @@
+---
+// A season's playoff bracket (LEAG-09). When the regular season is finished, an organizer seeds a
+// bracket of 2, 4 or 8 teams from the standings, and starts each next round once the last is done.
+// Each bracket game is an activity, and is scored like a regular game: a captain reports it, the
+// other captain or an organizer confirms it, and an organizer can set a score. Works without JS.
+import { actions } from 'astro:actions';
+
+interface Team {
+  id: string;
+  name: string;
+}
+
+interface Game {
+  id: string;
+  bracket_round: number | null;
+  home_team_id: string;
+  away_team_id: string | null;
+  status: string;
+  home_score: number | null;
+  away_score: number | null;
+  activity: { id: string; starts_at: string; location_name: string } | null;
+}
+
+interface Props {
+  seasonId: string;
+  organizer: boolean;
+  regularDone: boolean;
+  teams: Team[];
+  games: Game[];
+  captainTeamIds: string[];
+}
+
+const { seasonId, organizer, regularDone, teams, games, captainTeamIds } = Astro.props;
+const nameOf = (id: string | null) => teams.find((team) => team.id === id)?.name ?? 'A team';
+const rounds = [...new Set(games.map((game) => game.bracket_round ?? 0))].sort((a, b) => a - b);
+const label = (count: number) =>
+  count === 1 ? 'Final' : count === 2 ? 'Semifinals' : count === 4 ? 'Quarterfinals' : 'Round';
+const when = (iso: string) =>
+  new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/Boise',
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+  }).format(new Date(iso));
+const finished = (game: Game) => game.status === 'confirmed' || game.status === 'forfeit';
+---
+
+<section aria-labelledby="playoffs">
+  <h2 id="playoffs">Playoffs</h2>
+  {games.length === 0 ? (
+    organizer && regularDone ? (
+      <section aria-labelledby="start-bracket">
+        <h3 id="start-bracket">Start the bracket</h3>
+        <p>Seeds come from the final standings: the first team plays the last, and so on.</p>
+        <form method="post" action={actions.leagues.createPlayoffs.queryString} class="stack">
+          <input type="hidden" name="season_id" value={seasonId} />
+          <label>
+            Teams in the bracket
+            <select name="size">
+              <option value="2">2</option>
+              <option value="4" selected>
+                4
+              </option>
+              <option value="8">8</option>
+            </select>
+          </label>
+          <label>
+            First game day
+            <input type="date" name="first_day" required />
+          </label>
+          <label>
+            Time
+            <input type="time" name="starts_time" value="18:00" required />
+          </label>
+          <label>
+            Place
+            <input type="text" name="place" maxlength={120} required />
+          </label>
+          <button>Start the bracket</button>
+        </form>
+      </section>
+    ) : (
+      <p>The bracket starts once every regular-season game is finished.</p>
+    )
+  ) : (
+    <>
+      {rounds.map((round) => {
+        const roundGames = games.filter((game) => (game.bracket_round ?? 0) === round);
+        return (
+          <section aria-labelledby={`bracket-${round}`}>
+            <h3 id={`bracket-${round}`}>{label(roundGames.length)}</h3>
+            <ul class="games">
+              {roundGames.map((game) => {
+                const home = nameOf(game.home_team_id);
+                const away = nameOf(game.away_team_id);
+                const mine = captainTeamIds.includes(game.home_team_id)
+                  ? game.home_team_id
+                  : captainTeamIds.includes(game.away_team_id ?? '')
+                    ? game.away_team_id
+                    : null;
+                return (
+                  <li>
+                    {game.activity ? (
+                      <a href={`/activities/${game.activity.id}`}>
+                        {home} vs {away}
+                      </a>
+                    ) : (
+                      <>
+                        {home} vs {away}
+                      </>
+                    )}
+                    {game.activity && (
+                      <>
+                        {' '}
+                        · {when(game.activity.starts_at)} · {game.activity.location_name}
+                      </>
+                    )}
+                    {finished(game) && (
+                      <p class="score">
+                        {game.status === 'forfeit'
+                          ? 'Forfeit recorded.'
+                          : `Final: ${home} ${game.home_score}, ${away} ${game.away_score}.`}
+                      </p>
+                    )}
+                    {mine && game.status === 'scheduled' && (
+                      <form
+                        method="post"
+                        action={actions.leagues.reportScore.queryString}
+                        class="row"
+                      >
+                        <input type="hidden" name="game_id" value={game.id} />
+                        <label>
+                          {home} score
+                          <input type="number" name="home_score" min={0} max={999} required />
+                        </label>
+                        <label>
+                          {away} score
+                          <input type="number" name="away_score" min={0} max={999} required />
+                        </label>
+                        <button>Send score</button>
+                      </form>
+                    )}
+                    {organizer && !finished(game) && (
+                      <details>
+                        <summary>Set a score</summary>
+                        <form
+                          method="post"
+                          action={actions.leagues.overrideScore.queryString}
+                          class="row"
+                        >
+                          <input type="hidden" name="game_id" value={game.id} />
+                          <label>
+                            {home} score
+                            <input type="number" name="home_score" min={0} max={999} required />
+                          </label>
+                          <label>
+                            {away} score
+                            <input type="number" name="away_score" min={0} max={999} required />
+                          </label>
+                          <label>
+                            Reason, for the audit log
+                            <input type="text" name="reason" maxlength={500} required />
+                          </label>
+                          <button>Set score</button>
+                        </form>
+                      </details>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        );
+      })}
+      {organizer && (
+        <form method="post" action={actions.leagues.advancePlayoffs.queryString} class="row">
+          <input type="hidden" name="season_id" value={seasonId} />
+          <button>Start the next round</button>
+        </form>
+      )}
+    </>
+  )}
+</section>
+
+<style>
+  .games {
+    padding-left: 1.25rem;
+  }
+  .games li {
+    margin-bottom: 1rem;
+  }
+  .score {
+    margin: 0.25rem 0;
+    font-weight: 600;
+  }
+  .row,
+  .stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: end;
+    margin: 0.5rem 0;
+  }
+  .stack {
+    flex-direction: column;
+    align-items: stretch;
+    max-width: 24rem;
+  }
+  .row label,
+  .stack label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  button,
+  input,
+  select,
+  summary {
+    min-height: 44px;
+  }
+</style>

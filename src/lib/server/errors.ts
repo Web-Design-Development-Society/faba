@@ -116,6 +116,25 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
     code: 'BAD_REQUEST',
     message: "This season isn't an individual ladder, so its players don't become teams.",
   },
+  INVALID_BRACKET_SIZE: { code: 'BAD_REQUEST', message: 'Pick 2, 4 or 8 teams for the bracket.' },
+  PLAYOFFS_EXIST: { code: 'CONFLICT', message: 'This season already has a bracket.' },
+  REGULAR_UNFINISHED: {
+    code: 'CONFLICT',
+    message: 'Finish or forfeit every regular-season game before the playoffs start.',
+  },
+  NOT_ENOUGH_FOR_BRACKET: {
+    code: 'BAD_REQUEST',
+    message: 'The bracket needs at least as many teams as its size.',
+  },
+  ROUND_UNFINISHED: {
+    code: 'CONFLICT',
+    message: 'Finish every game in this round before the next one starts.',
+  },
+  NO_PLAYOFFS: { code: 'CONFLICT', message: 'This season has no bracket yet.' },
+  PLAYOFF_TIE: {
+    code: 'CONFLICT',
+    message: 'A playoff game needs a winner. Change the score so one team wins.',
+  },
   SEASON_ALREADY_ACTIVE: {
     code: 'BAD_REQUEST',
     message: 'This league already has an active season. End it before starting another.',

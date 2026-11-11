@@ -11,6 +11,7 @@ import Status from '../../../components/Status.astro';
 import LeagueRoster from '../../../components/LeagueRoster.astro';
 import LeagueSchedule from '../../../components/LeagueSchedule.astro';
 import LeagueStandings from '../../../components/LeagueStandings.astro';
+import LeaguePlayoffs from '../../../components/LeaguePlayoffs.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { FLASH_MESSAGES, setFlash, takeFlash } from '../../../lib/server/flash';
 import { formatDate } from '../../../lib/time';
@@ -47,6 +48,8 @@ const subAsked = Astro.getActionResult(actions.leagues.requestSub);
 const subTaken = Astro.getActionResult(actions.leagues.acceptSub);
 const answered = Astro.getActionResult(actions.leagues.setAvailability);
 const entered = Astro.getActionResult(actions.leagues.enterLadder);
+const bracketed = Astro.getActionResult(actions.leagues.createPlayoffs);
+const advanced = Astro.getActionResult(actions.leagues.advancePlayoffs);
 const teamDone = [
   created && !created.error && 'team_created',
   saved && !saved.error && 'team_saved',
@@ -61,6 +64,8 @@ const teamDone = [
   subTaken && !subTaken.error && 'sub_accepted',
   answered && !answered.error && 'availability_saved',
   entered && !entered.error && 'ladder_entered',
+  bracketed && !bracketed.error && 'playoffs_started',
+  advanced && !advanced.error && 'playoffs_advanced',
 ].find(Boolean);
 if (teamDone) {
   setFlash(Astro.cookies, Astro.url, teamDone as Parameters<typeof setFlash>[2]);
@@ -81,7 +86,9 @@ const teamError =
   subAsked?.error ??
   subTaken?.error ??
   answered?.error ??
-  entered?.error;
+  entered?.error ??
+  bracketed?.error ??
+  advanced?.error;
 // What was typed, after a failed start or sign-up. The Action read a copy of the request.
 const typed = started?.error || signupError ? await Astro.request.formData() : undefined;
 const value = (name: string) => typed?.get(name)?.toString() ?? '';
@@ -150,7 +157,7 @@ const [{ data: signup }, { data: signups }, { data: teams }, { data: games }, { 
         supabase
           .from('league_games')
           .select(
-            'id, round, home_team_id, away_team_id, status, home_score, away_score, reporting_team_id, forfeit_team_id, activity:activities(id, starts_at, location_name)'
+            'id, round, stage, bracket_round, home_team_id, away_team_id, status, home_score, away_score, reporting_team_id, forfeit_team_id, activity:activities(id, starts_at, location_name)'
           )
           .eq('season_id', active.id)
           .order('round'),
@@ -191,6 +198,16 @@ const playerTeams: Record<string, string | null> = Object.fromEntries(
 const names: Record<string, string> = Object.fromEntries(
   (signups ?? []).map((entry) => [entry.user_id, entry.profiles?.display_name ?? 'A member'])
 );
+// The playoff bracket (LEAG-09): the regular season is done once every regular game is confirmed or
+// forfeited, and the teams the viewer captains decide which scores they can send.
+const regularGames = (games ?? []).filter((game) => game.stage === 'regular' && game.away_team_id);
+const regularDone = regularGames.every(
+  (game) => game.status === 'confirmed' || game.status === 'forfeit'
+);
+const playoffGames = (games ?? []).filter((game) => game.stage === 'playoff');
+const captainTeamIds = (teams ?? [])
+  .filter((team) => team.captain_id === user.id)
+  .map((team) => team.id);
 const format = { teams: 'Teams', ladder: 'Individual ladder' } as const;
 const dates = (season: { starts_on: string; ends_on: string }) =>
   `${formatDate(season.starts_on)} to ${formatDate(season.ends_on)}`;
@@ -310,6 +327,14 @@ const sizes = (season: { format: string; team_min: number; team_max: number }) =
             playerTeams={playerTeams}
           />
           <LeagueStandings rows={standings ?? []} />
+          <LeaguePlayoffs
+            seasonId={active.id}
+            organizer={organizer}
+            regularDone={regularDone}
+            teams={teams ?? []}
+            games={playoffGames}
+            captainTeamIds={captainTeamIds}
+          />
         </>
       )}
 

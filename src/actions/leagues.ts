@@ -5,7 +5,9 @@ import { actionErrorFor } from '../lib/server/errors';
 import {
   assignment,
   availability,
+  bracketAdvance,
   ladderEntry,
+  newBracket,
   forfeit,
   gameEdit,
   newLeague,
@@ -291,6 +293,38 @@ export const leagues = {
       const { data, error } = await locals.supabase.rpc('enter_ladder', { season_id });
       if (error) throw new ActionError(actionErrorFor(error));
       return { players: data };
+    },
+  }),
+
+  /** Starting a playoff bracket from the final standings (LEAG-09). */
+  createPlayoffs: defineAction({
+    accept: 'form',
+    input: newBracket,
+    handler: async ({ season_id, size, first_day, starts_time, place }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { data, error } = await locals.supabase.rpc('create_playoffs', {
+        season_id,
+        size,
+        first_day,
+        starts_time,
+        place,
+      });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { games: data };
+    },
+  }),
+
+  /** Starting the next playoff round (LEAG-09). */
+  advancePlayoffs: defineAction({
+    accept: 'form',
+    input: bracketAdvance,
+    handler: async ({ season_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { data, error } = await locals.supabase.rpc('advance_playoffs', { season_id });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { games: data };
     },
   }),
 };

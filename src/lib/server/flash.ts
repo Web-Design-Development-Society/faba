@@ -50,6 +50,8 @@ export const FLASH_MESSAGES = {
   sub_accepted: "You're in as the sub for that game.",
   availability_saved: 'Saved. Your answer is in your Plans.',
   ladder_entered: 'Players entered. Schedule the games next.',
+  playoffs_started: 'Playoffs started.',
+  playoffs_advanced: 'Next round started.',
   joined: "You're in the group.",
   requested: "Request sent. You're in once an organizer approves it.",
   left: 'You left the group.',
