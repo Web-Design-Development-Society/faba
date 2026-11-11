@@ -112,8 +112,9 @@ test('an organizer makes the round robin for a season', async ({ page, poster })
   await expectAccessible(page);
 });
 
-test('an organizer sets a game score, and the standings show it', async ({ page, signInAs }) => {
-  await signInAs('member');
+test('an organizer sets a game score, and the standings show it', async ({ page, poster }) => {
+  // The poster fixture signs in a fresh account, with its own group quota.
+  void poster;
   await page.goto('/leagues/new');
   await page.getByLabel('League name').fill(`Cornhole ${crypto.randomUUID().slice(0, 6)}`);
   await page.getByLabel('Category').selectOption('sports');
