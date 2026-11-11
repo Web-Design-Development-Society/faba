@@ -224,8 +224,8 @@ $$;
 REVOKE EXECUTE ON FUNCTION public.accept_sub(uuid) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.accept_sub(uuid) TO authenticated;
 
--- The notification type for a sub request. The list is every type this migration sees, so the
--- stacked branches that add types must list theirs too.
+-- The notification type for a sub request. The list is the types on main at the time (including
+-- new_activity from NOTIF-09), so later branches that add types must list theirs too.
 ALTER TABLE public.notifications
 DROP CONSTRAINT notifications_type_check;
 
@@ -247,6 +247,7 @@ ADD CONSTRAINT notifications_type_check
       'group_owner',
       'rsvp_promoted',
       'rsvp_removed',
+      'new_activity',
       'sub_needed'
     )
   );
