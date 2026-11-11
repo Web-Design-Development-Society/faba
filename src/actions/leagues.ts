@@ -2,7 +2,17 @@
 // and every rule again (ADR-004).
 import { ActionError, defineAction } from 'astro:actions';
 import { actionErrorFor } from '../lib/server/errors';
-import { newLeague, newSeason } from '../lib/validation/league';
+import {
+  assignment,
+  gameEdit,
+  newLeague,
+  newSchedule,
+  newRegistration,
+  newSeason,
+  newTeam,
+  teamEdit,
+  withdrawal,
+} from '../lib/validation/league';
 
 export const leagues = {
   /** Starting a league, which returns its slug (LEAG-01). */
@@ -46,6 +56,117 @@ export const leagues = {
       });
       if (error) throw new ActionError(actionErrorFor(error));
       return { season_id: data };
+    },
+  }),
+
+  /** Signing up for a season as a player or a free agent (LEAG-02). */
+  register: defineAction({
+    accept: 'form',
+    input: newRegistration,
+    handler: async ({ season_id, kind, note }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('join_season', { season_id, kind, note });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { season_id };
+    },
+  }),
+
+  /** Withdrawing from a season, until its teams are set (LEAG-02). */
+  withdraw: defineAction({
+    accept: 'form',
+    input: withdrawal,
+    handler: async ({ season_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('withdraw_from_season', { season_id });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { season_id };
+    },
+  }),
+
+  /** Making a team in a season (LEAG-03). */
+  createTeam: defineAction({
+    accept: 'form',
+    input: newTeam,
+    handler: async ({ season_id, name, color }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { data, error } = await locals.supabase.rpc('create_team', { season_id, name, color });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { team_id: data };
+    },
+  }),
+
+  /** Renaming a team, changing its colour, or naming its captain (LEAG-03). */
+  updateTeam: defineAction({
+    accept: 'form',
+    input: teamEdit,
+    handler: async ({ team_id, name, color, captain_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('update_team', {
+        team_id,
+        name,
+        color,
+        captain_id: captain_id ?? undefined,
+      });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { team_id };
+    },
+  }),
+
+  /** Putting a player on a team, moving them, or taking them off (LEAG-03). */
+  assignPlayer: defineAction({
+    accept: 'form',
+    input: assignment,
+    handler: async ({ season_id, user_id, team_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('assign_player', {
+        season_id,
+        user_id,
+        team_id: team_id ?? undefined,
+      });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { user_id };
+    },
+  }),
+
+  /** Making a season's round robin, one game a week for each pair of teams (LEAG-04). */
+  generateSchedule: defineAction({
+    accept: 'form',
+    input: newSchedule,
+    handler: async ({ season_id, first_day, weekday, starts_time, place }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { data, error } = await locals.supabase.rpc('schedule_round_robin', {
+        season_id,
+        first_day,
+        weekday,
+        starts_time,
+        place,
+      });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { games: data };
+    },
+  }),
+
+  /** Changing one game's day, time or place (LEAG-04). */
+  editGame: defineAction({
+    accept: 'form',
+    input: gameEdit,
+    handler: async ({ game_id, day, starts_time, place }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('update_game', {
+        game_id,
+        day,
+        starts_time,
+        place,
+      });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { game_id };
     },
   }),
 };
