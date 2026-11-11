@@ -354,7 +354,23 @@ SELECT results_eq(
     from public.activity_series as s
     where s.id = (select series_id from pg_temp.dates limit 1)
   $$,
-  $$values ('Thursday pickleball'::text, 12, '{}'::text[], '1 hour'::interval, null::date, 2, true)$$,
+  -- The series moves by the days its 2nd date moved. The 30 minutes can cross midnight, so it's 2 or 3.
+  $$
+    select
+      'Thursday pickleball'::text,
+      12,
+      '{}'::text[],
+      '1 hour'::interval,
+      null::date,
+      (
+        select (a.starts_at at time zone sr.timezone)::date - (x.starts_at at time zone sr.timezone)::date
+        from public.activities as a
+        join public.activity_series as sr on sr.id = a.series_id
+        join pg_temp.dates as x on x.id = a.id
+        where x.n = 2
+      ),
+      true
+  $$,
   'the series has the changes, still rolls on, and moved with its dates'
 );
 
