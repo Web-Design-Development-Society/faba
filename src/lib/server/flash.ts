@@ -17,6 +17,7 @@ export const FLASH_MESSAGES = {
   left_series: 'You left the series.',
   co_organizer_added: 'Co-organizer added.',
   co_organizer_removed: 'Co-organizer removed.',
+  attendee_removed: 'Taken off the list.',
   reported: 'Thanks, a moderator will review this.',
   dismissed: 'Report dismissed.',
   hidden: 'Activity hidden.',

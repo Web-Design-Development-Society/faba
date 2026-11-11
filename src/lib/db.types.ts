@@ -945,6 +945,7 @@ export type Database = {
       add_co_organizer: { Args: { activity_id: string; user_id: string }; Returns: undefined };
       announce_activity: { Args: { activity_id: string }; Returns: number };
       approve_group_member: { Args: { group_id: string; user_id: string }; Returns: undefined };
+      attendee_names: { Args: { activity_id: string }; Returns: string[] };
       cancel_activity: { Args: { activity_id: string; reason?: string }; Returns: undefined };
       create_activity: {
         Args: {
@@ -1072,6 +1073,7 @@ export type Database = {
       join_series: { Args: { activity_id: string }; Returns: number };
       leave_group: { Args: { group_id: string }; Returns: undefined };
       leave_series: { Args: { activity_id: string }; Returns: number };
+      manages_attendees: { Args: { activity_id: string }; Returns: boolean };
       mark_notifications_read: { Args: { ids?: string[] }; Returns: number };
       member_count: {
         Args: {
@@ -1124,6 +1126,7 @@ export type Database = {
       };
       record_visit: { Args: Record<PropertyKey, never>; Returns: string };
       reinstate_member: { Args: { reason: string; user_id: string }; Returns: undefined };
+      remove_attendee: { Args: { activity_id: string; user_id: string }; Returns: undefined };
       remove_co_organizer: { Args: { activity_id: string; user_id: string }; Returns: undefined };
       remove_group_member: { Args: { group_id: string; user_id: string }; Returns: undefined };
       report_content: {

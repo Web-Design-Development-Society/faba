@@ -65,6 +65,12 @@ if (removeCoOrganizer && !removeCoOrganizer.error) {
   setFlash(Astro.cookies, Astro.url, 'co_organizer_removed');
   return Astro.redirect(postedFrom(Astro.url), 303);
 }
+// Taking an attendee off the list (RSVP-09).
+const removeAttendee = Astro.getActionResult(actions.rsvps.removeAttendee);
+if (removeAttendee && !removeAttendee.error) {
+  setFlash(Astro.cookies, Astro.url, 'attendee_removed');
+  return Astro.redirect(postedFrom(Astro.url), 303);
+}
 const unhide = Astro.getActionResult(actions.moderation.unhide);
 if (unhide && !unhide.error) {
   setFlash(Astro.cookies, Astro.url, 'unhidden');
@@ -112,6 +118,7 @@ const failed =
   leaveSeries?.error ??
   addCoOrganizer?.error ??
   removeCoOrganizer?.error ??
+  removeAttendee?.error ??
   unhide?.error ??
   transfer?.error ??
   cancel?.error ??
@@ -213,6 +220,11 @@ const handover =
 // it's coming up (MOD-07). The sheet warns once 2 or more went out in the last 30 days.
 const admin = member?.status === 'active' && member.role === 'admin';
 const boardAdmin = admin && hosting;
+// Whether the member can manage the attendee list: the organizer, a co-organizer, a moderator or a
+// group organizer (RSVP-09). The database checks it again on every change.
+const { data: canManage } = activity
+  ? await supabase.rpc('manages_attendees', { activity_id: activity.id })
+  : { data: false };
 const announceable =
   !!activity &&
   boardAdmin &&
@@ -471,6 +483,10 @@ const email = activity
         </button>
       </p>
       <Sheet id="going" title="Who's going">
+        <p>
+          {activity.going_count} going · {activity.guest_total}{' '}
+          {activity.guest_total === 1 ? 'guest' : 'guests'}
+        </p>
         <GoingList
           activityId={activity.id}
           organizerId={activity.organizer_id}
@@ -481,6 +497,35 @@ const email = activity
           <a class="all" href={`/activities/${activity.id}/going`}>
             Show all
           </a>
+        )}
+        {canManage && activity.status === 'published' && (
+          <section class="manage-attendees">
+            <h3>Manage attendees</h3>
+            <p>
+              <a href={`/activities/${activity.id}/attendees.csv`} download>
+                Export CSV
+              </a>{' '}
+              (names only)
+            </p>
+            {people.some(({ id }) => id !== activity.organizer_id) ? (
+              <ul>
+                {people
+                  .filter(({ id }) => id !== activity.organizer_id)
+                  .map((member) => (
+                    <li>
+                      {member.display_name}{' '}
+                      <form method="post" action={actions.rsvps.removeAttendee.queryString}>
+                        <input type="hidden" name="activity_id" value={activity.id} />
+                        <input type="hidden" name="user_id" value={member.id} />
+                        <button>Take {member.display_name} off the list</button>
+                      </form>
+                    </li>
+                  ))}
+              </ul>
+            ) : (
+              <p>No one else is going yet.</p>
+            )}
+          </section>
         )}
         {maybes.length > 0 && (
           <>

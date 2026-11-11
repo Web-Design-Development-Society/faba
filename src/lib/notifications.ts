@@ -19,6 +19,7 @@ export const TYPES: Record<string, { icon: string; summary: string }> = {
   group_join_approved: { icon: '✓', summary: "You're in the group" },
   group_owner: { icon: '🔑', summary: 'You own this group now' },
   rsvp_promoted: { icon: '🎉', summary: "A spot opened, and you're going" },
+  rsvp_removed: { icon: '↩', summary: 'Taken off the list' },
 };
 
 /** An activity's time and place, as an activity_changed payload has them before and after. */
@@ -125,6 +126,9 @@ export function describe(
       // RSVP-07: "A spot opened. You're going on Fri, Dec 4, 7:00 PM".
       case 'rsvp_promoted':
         return starts_at ? `A spot opened. You're going on ${formatWhen(new Date(starts_at))}` : '';
+      // RSVP-09: the organizer took them off the list. They can say "I'm in" again.
+      case 'rsvp_removed':
+        return "The organizer took you off the list. You can say I'm in again.";
       // NOTIF-06: "3 new people are going", for the organizer.
       case 'new_attendees':
         if (typeof count !== 'number' || count < 1) return '';
