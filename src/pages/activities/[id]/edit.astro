@@ -44,14 +44,17 @@ const [{ data: activity }, { data: categories }, { data: tags }] = await Promise
   supabase
     .from('activities')
     .select(
-      'id, title, description, starts_at, ends_at, location_name, cost_note, capacity, guests_allowed, max_guests_per_rsvp, category_id, organizer_id, version, status, series_id, series_detached, activity_tags(tag_id), private:activity_private_details(details)'
+      'id, title, description, starts_at, ends_at, location_name, cost_note, capacity, guests_allowed, max_guests_per_rsvp, category_id, organizer_id, version, status, series_id, series_detached, activity_tags(tag_id), private:activity_private_details(details), co_organizers:activity_co_organizers(user_id)'
     )
     .eq('id', Astro.params.id!)
     .maybeSingle(),
   supabase.from('categories').select('id, name, is_active').order('sort_order'),
   supabase.from('tags').select('id, name, is_active').order('sort_order'),
 ]);
-const mine = activity?.organizer_id === user.id;
+// The organizer and co-organizers can edit (ACT-10).
+const mine =
+  activity?.organizer_id === user.id ||
+  !!activity?.co_organizers.some(({ user_id }) => user_id === user.id);
 if (!activity) Astro.response.status = 404;
 else if (!mine) Astro.response.status = 403;
 

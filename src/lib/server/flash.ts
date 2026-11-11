@@ -15,6 +15,8 @@ export const FLASH_MESSAGES = {
   waitlisted: "You're on the waitlist.",
   joined_series: "You're in for all upcoming dates.",
   left_series: 'You left the series.',
+  co_organizer_added: 'Co-organizer added.',
+  co_organizer_removed: 'Co-organizer removed.',
   reported: 'Thanks, a moderator will review this.',
   dismissed: 'Report dismissed.',
   hidden: 'Activity hidden.',

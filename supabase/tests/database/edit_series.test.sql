@@ -321,9 +321,10 @@ SELECT results_eq(
   $$
     select public.update_series(
       monthly,
+      -- A minute later on the same day, so the series keeps its day even just before midnight.
       jsonb_build_object(
-        'starts_at', now() + interval '1 day 1 minute',
-        'ends_at', now() + interval '1 day 1 hour'
+        'starts_at', (SELECT a.starts_at FROM public.activities AS a WHERE a.id = monthly) + interval '1 minute',
+        'ends_at', (SELECT a.ends_at FROM public.activities AS a WHERE a.id = monthly) + interval '1 minute'
       ),
       1,
       '{free}'
@@ -353,7 +354,23 @@ SELECT results_eq(
     from public.activity_series as s
     where s.id = (select series_id from pg_temp.dates limit 1)
   $$,
-  $$values ('Thursday pickleball'::text, 12, '{}'::text[], '1 hour'::interval, null::date, 2, true)$$,
+  -- The series moves by the days its 2nd date moved. The 30 minutes can cross midnight, so it's 2 or 3.
+  $$
+    select
+      'Thursday pickleball'::text,
+      12,
+      '{}'::text[],
+      '1 hour'::interval,
+      null::date,
+      (
+        select (a.starts_at at time zone sr.timezone)::date - (x.starts_at at time zone sr.timezone)::date
+        from public.activities as a
+        join public.activity_series as sr on sr.id = a.series_id
+        join pg_temp.dates as x on x.id = a.id
+        where x.n = 2
+      ),
+      true
+  $$,
   'the series has the changes, still rolls on, and moved with its dates'
 );
 
