@@ -46,6 +46,7 @@ const forfeited = Astro.getActionResult(actions.leagues.forfeitGame);
 const subAsked = Astro.getActionResult(actions.leagues.requestSub);
 const subTaken = Astro.getActionResult(actions.leagues.acceptSub);
 const answered = Astro.getActionResult(actions.leagues.setAvailability);
+const entered = Astro.getActionResult(actions.leagues.enterLadder);
 const teamDone = [
   created && !created.error && 'team_created',
   saved && !saved.error && 'team_saved',
@@ -59,6 +60,7 @@ const teamDone = [
   subAsked && !subAsked.error && 'sub_requested',
   subTaken && !subTaken.error && 'sub_accepted',
   answered && !answered.error && 'availability_saved',
+  entered && !entered.error && 'ladder_entered',
 ].find(Boolean);
 if (teamDone) {
   setFlash(Astro.cookies, Astro.url, teamDone as Parameters<typeof setFlash>[2]);
@@ -78,7 +80,8 @@ const teamError =
   forfeited?.error ??
   subAsked?.error ??
   subTaken?.error ??
-  answered?.error;
+  answered?.error ??
+  entered?.error;
 // What was typed, after a failed start or sign-up. The Action read a copy of the request.
 const typed = started?.error || signupError ? await Astro.request.formData() : undefined;
 const value = (name: string) => typed?.get(name)?.toString() ?? '';
@@ -275,6 +278,13 @@ const sizes = (season: { format: string; team_min: number; team_max: number }) =
         </section>
       )}
 
+      {organizer && active?.format === 'ladder' && (
+        <form method="post" action={actions.leagues.enterLadder.queryString}>
+          <input type="hidden" name="season_id" value={active.id} />
+          <p>Each player who signed up becomes a team of one. Enter them once, before the games.</p>
+          <button type="submit">Enter the players</button>
+        </form>
+      )}
       {active && league && (
         <>
           {teamFailure && <p role="alert">{teamFailure}</p>}

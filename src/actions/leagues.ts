@@ -5,6 +5,7 @@ import { actionErrorFor } from '../lib/server/errors';
 import {
   assignment,
   availability,
+  ladderEntry,
   forfeit,
   gameEdit,
   newLeague,
@@ -277,6 +278,19 @@ export const leagues = {
       const { error } = await locals.supabase.rpc('set_game_availability', { game_id, can_play });
       if (error) throw new ActionError(actionErrorFor(error));
       return { game_id };
+    },
+  }),
+
+  /** Entering a ladder's players, so each is a team of one (LEAG-08). */
+  enterLadder: defineAction({
+    accept: 'form',
+    input: ladderEntry,
+    handler: async ({ season_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { data, error } = await locals.supabase.rpc('enter_ladder', { season_id });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { players: data };
     },
   }),
 };

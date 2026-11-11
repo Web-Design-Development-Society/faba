@@ -1519,6 +1519,7 @@ export type Database = {
       create_team: { Args: { color: string; name: string; season_id: string }; Returns: string };
       delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
       dismiss_report: { Args: { reason: string; report_id: string }; Returns: undefined };
+      enter_ladder: { Args: { season_id: string }; Returns: number };
       forfeit_game: { Args: { forfeit_team_id: string; game_id: string }; Returns: undefined };
       get_feed: {
         Args: {
