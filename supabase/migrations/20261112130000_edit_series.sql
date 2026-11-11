@@ -446,10 +446,11 @@ begin
     start_time = new_time,
     duration = new_duration,
     start_date = x.start_date + shift,
-    until_date = least(
-      x.until_date + shift,
-      (x.start_date + shift + interval '12 months')::date
-    ),
+    -- A series that rolls on still does. least() would skip the null and give it a last date.
+    until_date = case
+      when x.until_date is not null
+      then least(x.until_date + shift, (x.start_date + shift + interval '12 months')::date)
+    end,
     generated_through = x.generated_through + shift
   where x.id = s.id;
 

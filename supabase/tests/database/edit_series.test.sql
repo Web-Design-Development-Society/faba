@@ -343,6 +343,7 @@ SELECT results_eq(
       s.capacity,
       s.tag_ids,
       s.duration,
+      s.until_date,
       s.start_date - (select (x.starts_at at time zone s.timezone)::date from pg_temp.dates as x where x.n = 1),
       s.generated_through >= (
         select max((a.starts_at at time zone s.timezone)::date)
@@ -352,8 +353,8 @@ SELECT results_eq(
     from public.activity_series as s
     where s.id = (select series_id from pg_temp.dates limit 1)
   $$,
-  $$values ('Thursday pickleball'::text, 12, '{}'::text[], '1 hour'::interval, 2, true)$$,
-  'the series has the changes, and moved with its dates'
+  $$values ('Thursday pickleball'::text, 12, '{}'::text[], '1 hour'::interval, null::date, 2, true)$$,
+  'the series has the changes, still rolls on, and moved with its dates'
 );
 
 SELECT results_eq(
