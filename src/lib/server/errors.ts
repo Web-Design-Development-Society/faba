@@ -109,6 +109,10 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
     code: 'FORBIDDEN',
     message: "You can post under a group only when you're one of its organizers.",
   },
+  GROUP_UPDATE_QUOTA_EXCEEDED: {
+    code: 'TOO_MANY_REQUESTS',
+    message: 'A group can have 3 updates a day. Try again tomorrow.',
+  },
   GROUP_NOT_FOUND: {
     code: 'NOT_FOUND',
     message: "This group isn't available. It may have been removed.",

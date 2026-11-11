@@ -3,14 +3,16 @@
 // has and what it's about. Members can't read a hidden group (RLS), so it's not available to them.
 // Join, Request to join, Withdraw request and Leave group (GRP-02) work without JavaScript. Its
 // upcoming activities follow, and its organizers have Post an activity (GRP-03). RLS leaves out the
-// members-only ones for anyone outside the group.
+// members-only ones for anyone outside the group. Its updates come last, newest first, for its
+// members, and its organizers have Post update (GRP-04). Each can be reported.
 import { actions } from 'astro:actions';
-import ActivityCard from '../../components/ActivityCard.astro';
-import Status from '../../components/Status.astro';
-import Layout from '../../layouts/Layout.astro';
-import { CARD, FACES } from '../../lib/cards';
-import { linkify } from '../../lib/links';
-import { FLASH_MESSAGES, setFlash, takeFlash } from '../../lib/server/flash';
+import ActivityCard from '../../../components/ActivityCard.astro';
+import Status from '../../../components/Status.astro';
+import Layout from '../../../layouts/Layout.astro';
+import { CARD, FACES } from '../../../lib/cards';
+import { linkify } from '../../../lib/links';
+import { FLASH_MESSAGES, setFlash, takeFlash } from '../../../lib/server/flash';
+import { formatAgo } from '../../../lib/time';
 
 const { supabase, user } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
@@ -39,7 +41,7 @@ if (!group) Astro.response.status = 404;
 const now = new Date();
 // Its activities that are coming up or underway, as in the feed, and whether the member organizes
 // the group.
-const [{ data: activities }, { data: me }] = group
+const [{ data: activities }, { data: me }, { data: updates }] = group
   ? await Promise.all([
       supabase
         .from('activities')
@@ -61,8 +63,17 @@ const [{ data: activities }, { data: me }] = group
         .eq('user_id', user.id)
         .eq('status', 'active')
         .maybeSingle(),
+      // Only its members, its authors and moderators read them (RLS).
+      supabase
+        .from('activity_updates')
+        .select(
+          'id, body, created_at, author_id, hidden_at, hidden_reason, author:profiles!activity_updates_author_id_fkey(display_name)'
+        )
+        .eq('group_id', group.id)
+        .order('created_at', { ascending: false })
+        .limit(20),
     ])
-  : [{ data: null }, { data: null }];
+  : [{ data: null }, { data: null }, { data: null }];
 const organizer = me?.role === 'owner' || me?.role === 'organizer';
 const mine = group?.owner_id === user.id;
 const membership = group?.my_membership ?? null;
@@ -155,6 +166,56 @@ const members = group?.member_count ?? 0;
           <p>Nothing planned yet.</p>
         )}
       </section>
+      {(organizer || (updates?.length ?? 0) > 0) && (
+        <section id="updates" aria-labelledby="updates-title" class="updates">
+          <header>
+            <h2 id="updates-title">Updates</h2>
+            {organizer && !group.archived_at && !group.hidden_at && (
+              <a href={`/groups/${group.slug}/update`}>Post update</a>
+            )}
+          </header>
+          {updates?.length ? (
+            <ul>
+              {updates.map((update) => (
+                <li>
+                  {update.hidden_at && (
+                    <p class="hidden">
+                      {update.hidden_reason
+                        ? `Hidden by a moderator: ${update.hidden_reason}`
+                        : 'Hidden by a moderator'}
+                    </p>
+                  )}
+                  <p class="description">
+                    {linkify(update.body).map(({ text, href }) =>
+                      href ? (
+                        <a href={href} rel="nofollow ugc noopener">
+                          {text}
+                        </a>
+                      ) : (
+                        text
+                      )
+                    )}
+                  </p>
+                  <p class="byline">
+                    {update.author?.display_name ?? 'A former member'} ·{' '}
+                    <time datetime={update.created_at}>
+                      {formatAgo(new Date(update.created_at), now)}
+                    </time>
+                    {update.author_id !== user.id && !update.hidden_at && (
+                      <>
+                        {' · '}
+                        <a href={`/groups/${group.slug}/updates/${update.id}/report`}>Report</a>
+                      </>
+                    )}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>No updates yet.</p>
+          )}
+        </section>
+      )}
     </>
   ) : (
     <>
@@ -193,6 +254,43 @@ const members = group?.member_count ?? 0;
     margin: 0;
     padding: 0;
     list-style: none;
+  }
+  .updates header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .updates h2 {
+    font-size: 1rem;
+  }
+  .updates header a {
+    display: inline-grid;
+    place-items: center;
+    min-height: 44px;
+  }
+  .updates ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .updates li + li {
+    border-top: 1px solid #767676;
+  }
+  .byline {
+    font-size: 0.875rem;
+    color: #595959;
+  }
+  /* Report, at least 24 px tall (WCAG 2.2 target size). */
+  .byline a {
+    display: inline-block;
+    padding: 0.25rem 0;
+  }
+  .hidden {
+    margin-bottom: 0;
+    padding: 0.25rem 0.75rem;
+    font-weight: 600;
+    border-left: 0.25rem solid #b42318;
+    background: #fef3f2;
   }
   .membership {
     display: flex;

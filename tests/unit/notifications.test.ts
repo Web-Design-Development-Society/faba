@@ -13,6 +13,7 @@ group('describe', () => {
       'reminder',
       'board_announcement',
       'group_join_request',
+      'group_update',
     ]);
     expect(describe('activity_cancelled')).toEqual({ icon: '✕', summary: 'Cancelled' });
   });
@@ -170,6 +171,15 @@ group('organizer updates', () => {
 
   it('has its plain line before it has been read', () => {
     expect(describe('organizer_update', {}).summary).toBe('Update from the organizer');
+  });
+
+  // GRP-04.
+  it("says a group's the same way", () => {
+    expect(describe('group_update', {}, { author: 'Uma Lee', body: 'Bring boots.' })).toEqual({
+      icon: '💬',
+      summary: 'Uma Lee: Bring boots.',
+    });
+    expect(describe('group_update', {}).summary).toBe('Update from the group');
   });
 });
 

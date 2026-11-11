@@ -15,6 +15,7 @@ export const TYPES: Record<string, { icon: string; summary: string }> = {
   reminder: { icon: '⏰', summary: 'Reminder' },
   board_announcement: { icon: '📣', summary: 'From the FABA board' },
   group_join_request: { icon: '🙋', summary: 'Asked to join' },
+  group_update: { icon: '💬', summary: 'Update from the group' },
 };
 
 /** An activity's time and place, as an activity_changed payload has them before and after. */
@@ -98,8 +99,9 @@ export function describe(
       // MOD-07: "From the FABA board: Fri, Dec 4, 7:00 PM".
       case 'board_announcement':
         return starts_at ? `From the FABA board: ${formatWhen(new Date(starts_at))}` : '';
-      // NOTIF-04: "Dana Smith: Parking is at the trailhead…".
+      // NOTIF-04: "Dana Smith: Parking is at the trailhead…", and the same for a group (GRP-04).
       case 'organizer_update':
+      case 'group_update':
         if (update === undefined) return '';
         return update
           ? `${update.author ?? 'The organizer'}: ${excerpt(update.body)}`
