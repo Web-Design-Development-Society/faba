@@ -36,6 +36,24 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
     code: 'CONFLICT',
     message: 'The teams are set, so ask an organizer to change your sign-up.',
   },
+  INVALID_TEAM: {
+    code: 'BAD_REQUEST',
+    message: 'Use a name of up to 40 characters and a colour.',
+  },
+  TEAM_NAME_TAKEN: { code: 'CONFLICT', message: 'A team in this season already has that name.' },
+  TEAM_NOT_FOUND: { code: 'NOT_FOUND', message: "This team isn't available." },
+  NOT_A_PLAYER: {
+    code: 'BAD_REQUEST',
+    message: "Only players can be on a team. Free agents aren't put on teams.",
+  },
+  REGISTRATION_NOT_FOUND: {
+    code: 'NOT_FOUND',
+    message: "This player hasn't signed up for the season.",
+  },
+  CAPTAIN_NOT_ON_TEAM: {
+    code: 'BAD_REQUEST',
+    message: 'The captain has to be a player on the team. Put them on it first.',
+  },
   SEASON_ALREADY_ACTIVE: {
     code: 'BAD_REQUEST',
     message: 'This league already has an active season. End it before starting another.',

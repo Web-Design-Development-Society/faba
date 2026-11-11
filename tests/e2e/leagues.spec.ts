@@ -49,3 +49,31 @@ test('a member signs up for a season, and withdraws', async ({ page, signInAs })
   await expect(page.getByRole('status')).toHaveText("You've withdrawn from this season.");
   await expect(page.getByRole('button', { name: 'Join season' })).toBeVisible();
 });
+
+test('an organizer makes a team and moves a player onto it', async ({ page, signInAs }) => {
+  await signInAs('member');
+  await page.goto('/leagues/new');
+  await page.getByLabel('League name').fill(`Trivia Night ${crypto.randomUUID().slice(0, 6)}`);
+  await page.getByLabel('Category').selectOption('games');
+  await page.getByRole('button', { name: 'Start league' }).click();
+  await expect(page).toHaveURL(/\/groups\/.+\/seasons$/);
+
+  await page.getByLabel('Season name').fill('Spring 2027');
+  await page.getByLabel('First day').fill('2027-03-01');
+  await page.getByLabel('Last day').fill('2027-05-31');
+  await page.getByRole('button', { name: 'Start season' }).click();
+  await expect(page.getByRole('status')).toHaveText('Season started.');
+
+  await page.getByRole('button', { name: 'Join season' }).click();
+  await expect(page.getByRole('status')).toHaveText("You're signed up for this season.");
+
+  await page.getByLabel('Team name').fill('Reds');
+  await page.getByRole('button', { name: 'Add team' }).click();
+  await expect(page.getByRole('status')).toHaveText('Team added.');
+  await expect(page.getByRole('heading', { name: 'Reds' })).toBeVisible();
+
+  await page.getByLabel('Team for').first().selectOption({ label: 'Reds' });
+  await page.getByRole('button', { name: 'Move' }).first().click();
+  await expect(page.getByRole('status')).toHaveText('Player moved.');
+  await expectAccessible(page);
+});
