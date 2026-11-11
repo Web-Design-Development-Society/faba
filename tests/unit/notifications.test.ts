@@ -25,6 +25,7 @@ group('describe', () => {
       'group_owner',
       'rsvp_promoted',
       'rsvp_removed',
+      'new_activity',
     ]);
     expect(describe('activity_cancelled')).toEqual({ icon: '✕', summary: 'Cancelled' });
   });
@@ -226,6 +227,19 @@ group('excerpt', () => {
 
   it('cuts one long word where it must', () => {
     expect(excerpt('x'.repeat(30), 10)).toBe(`${'x'.repeat(9)}…`);
+  });
+});
+
+group('new activities I follow', () => {
+  it('says how many new activities a follow has, by name', () => {
+    expect(describe('new_activity', { name: 'Outdoors', count: 2 })).toEqual({
+      icon: '✨',
+      summary: '2 new Outdoors activities',
+    });
+    expect(describe('new_activity', { name: 'Hikers', count: 1 }).summary).toBe(
+      'A new Hikers activity'
+    );
+    expect(describe('new_activity', { count: 2 }).summary).toBe('New activities I follow');
   });
 });
 

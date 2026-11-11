@@ -549,6 +549,36 @@ export type Database = {
         };
         Relationships: [];
       };
+      follows: {
+        Row: {
+          created_at: string;
+          target_id: string;
+          target_type: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          target_id: string;
+          target_type: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          target_id?: string;
+          target_type?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'follows_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       group_members: {
         Row: {
           group_id: string;
@@ -1297,6 +1327,7 @@ export type Database = {
       set_activity_tags: { Args: { activity_id: string; tag_ids: string[] }; Returns: undefined };
       set_board_activity: { Args: { activity_id: string; board: boolean }; Returns: undefined };
       set_email_visibility: { Args: { visible: boolean }; Returns: undefined };
+      set_follow: { Args: { follow: boolean; kind: string; target: string }; Returns: boolean };
       set_group_role: {
         Args: { group_id: string; role: string; user_id: string };
         Returns: undefined;
