@@ -685,6 +685,42 @@ export type Database = {
           },
         ];
       };
+      moderator_notes: {
+        Row: {
+          author_id: string | null;
+          body: string;
+          created_at: string;
+          id: string;
+          target_id: string;
+          target_type: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          author_id?: string | null;
+          body: string;
+          created_at?: string;
+          id?: string;
+          target_id: string;
+          target_type: string;
+        };
+        Update: {
+          author_id?: string | null;
+          body?: string;
+          created_at?: string;
+          id?: string;
+          target_id?: string;
+          target_type?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'moderator_notes_author_id_fkey';
+            columns: ['author_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       notification_preferences: {
         Row: {
           channel: string;
@@ -1060,6 +1096,34 @@ export type Database = {
         Returns: undefined;
       };
       add_co_organizer: { Args: { activity_id: string; user_id: string }; Returns: undefined };
+      add_moderator_note: {
+        Args: { body: string; target_id: string; target_type: string };
+        Returns: string;
+      };
+      admin_audit_log: {
+        Args: { actor?: string; lim?: number; target?: string };
+        Returns: {
+          action: string;
+          actor_name: string;
+          created_at: string;
+          id: number;
+          reason: string;
+          target_id: string;
+          target_type: string;
+        }[];
+      };
+      admin_save_category: {
+        Args: { id: string; is_active: boolean; name: string };
+        Returns: undefined;
+      };
+      admin_save_tag: {
+        Args: { id: string; is_active: boolean; name: string; sort_order: number };
+        Returns: undefined;
+      };
+      admin_set_role: {
+        Args: { reason: string; role: string; user_id: string };
+        Returns: undefined;
+      };
       announce_activity: { Args: { activity_id: string }; Returns: number };
       approve_group_member: { Args: { group_id: string; user_id: string }; Returns: undefined };
       attendee_names: { Args: { activity_id: string }; Returns: string[] };

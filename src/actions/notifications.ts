@@ -23,8 +23,12 @@ export const notifications = {
         .select('type, activity_id, payload, group:groups(slug)')
         .eq('id', id)
         .maybeSingle();
-      // A batched follow notice opens its category or group, which its payload names.
-      const link = data?.type === 'new_activity' ? (data.payload as { href?: string }).href : null;
+      // A batched follow notice opens its category or group, and a new report opens the queue. Each
+      // names where in its payload.
+      const link =
+        data?.type === 'new_activity' || data?.type === 'report_received'
+          ? (data.payload as { href?: string }).href
+          : null;
       return {
         href:
           link ??
