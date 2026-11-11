@@ -34,6 +34,10 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
   },
   ORGANIZER_GOING: { code: 'BAD_REQUEST', message: "You're hosting, so you're already going." },
   NOT_ORGANIZER: { code: 'FORBIDDEN', message: 'Only the organizer can edit this activity.' },
+  TOO_MANY_CO_ORGANIZERS: {
+    code: 'BAD_REQUEST',
+    message: 'An activity can have up to 3 co-organizers. Remove one to add another.',
+  },
   STALE_EDIT: {
     code: 'CONFLICT',
     message: 'This activity changed after you opened it. Open Edit again to see the changes.',

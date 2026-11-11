@@ -213,4 +213,33 @@ export const activities = {
       return { id: activity_id };
     },
   }),
+
+  /**
+   * Makes `user_id`, a member, a co-organizer of `activity_id` (ACT-10), who can edit and cancel
+   * it. Up to 3. Returns the activity's id.
+   */
+  addCoOrganizer: defineAction({
+    accept: 'form',
+    input: z.object({ activity_id: z.uuid(), user_id: z.uuid() }),
+    handler: async ({ activity_id, user_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('add_co_organizer', { activity_id, user_id });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { id: activity_id };
+    },
+  }),
+
+  /** Removes co-organizer `user_id` from `activity_id` (ACT-10). Returns the activity's id. */
+  removeCoOrganizer: defineAction({
+    accept: 'form',
+    input: z.object({ activity_id: z.uuid(), user_id: z.uuid() }),
+    handler: async ({ activity_id, user_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('remove_co_organizer', { activity_id, user_id });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { id: activity_id };
+    },
+  }),
 };
