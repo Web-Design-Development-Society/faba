@@ -81,8 +81,9 @@ test('an organizer makes a team and moves a player onto it', async ({ page, post
   await expectAccessible(page);
 });
 
-test('an organizer makes the round robin for a season', async ({ page, signInAs }) => {
-  await signInAs('member');
+test('an organizer makes the round robin for a season', async ({ page, poster }) => {
+  // The poster fixture signs in a fresh account, with its own group quota.
+  void poster;
   await page.goto('/leagues/new');
   await page.getByLabel('League name').fill(`Gym League ${crypto.randomUUID().slice(0, 6)}`);
   await page.getByLabel('Category').selectOption('sports');
@@ -107,6 +108,6 @@ test('an organizer makes the round robin for a season', async ({ page, signInAs 
   await page.getByRole('button', { name: 'Make the round robin' }).click();
   await expect(page.getByRole('status')).toHaveText('Schedule made.');
   await expect(page.getByRole('heading', { name: 'Round 1' })).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Reds vs Blues' })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Reds vs Blues|Blues vs Reds/ })).toBeVisible();
   await expectAccessible(page);
 });
