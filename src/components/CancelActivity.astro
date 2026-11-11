@@ -1,0 +1,52 @@
+---
+// Cancel activity (ACT-05): a button that opens a sheet, which asks first and takes an optional
+// reason. It works without JavaScript. For a date in a series it's Cancel this date, which leaves
+// the rest of the series as it is (REC-03). The page it's on handles the Action's result.
+import { actions } from 'astro:actions';
+import { ACTIVITY } from '../lib/validation/activity';
+import Sheet from './Sheet.astro';
+
+interface Props {
+  activityId: string;
+  /** Whether it's a date in a series. */
+  inSeries: boolean;
+}
+
+const { activityId, inSeries } = Astro.props;
+---
+
+<button type="button" class="destructive" commandfor="cancel" command="show-modal">
+  {inSeries ? 'Cancel this date' : 'Cancel activity'}
+</button>
+<Sheet id="cancel" title={inSeries ? 'Cancel this date?' : 'Cancel this activity?'}>
+  {inSeries && <p>Only this date is cancelled. The series continues.</p>}
+  <p>It stays here, marked cancelled, so people who are going can see. It leaves Discover.</p>
+  <form method="post" action={actions.activities.cancel.queryString}>
+    <input type="hidden" name="id" value={activityId} />
+    <p>
+      <label for="reason">Reason (optional)</label>
+      <br />
+      <textarea id="reason" name="reason" rows="2" maxlength={ACTIVITY.cancelReason.max}></textarea>
+    </p>
+    <button type="submit" class="destructive">
+      Yes, cancel it
+    </button>
+  </form>
+  <form method="dialog">
+    <button>No, keep it</button>
+  </form>
+</Sheet>
+
+<style>
+  button {
+    min-height: 44px;
+    padding: 0 1rem;
+  }
+  /* No background, since the red is too dark on WebKit's grey buttons. */
+  .destructive {
+    color: #b42318;
+    background: none;
+    border: 1px solid currentColor;
+    border-radius: 0.5rem;
+  }
+</style>

@@ -5,12 +5,12 @@
 // activity has started, only its description and details for attendees can change (FR-ACT-4,
 // ACT-09). Cancel activity is at the bottom, away from Save, and asks first in a sheet. Restore
 // takes its place until the start (ACT-05). A date in a series asks Just this date or This and
-// future dates (REC-02).
+// future dates (REC-02), and cancels just that date (REC-03).
 import { actions, isInputError } from 'astro:actions';
 import ActivityFields from '../../../components/ActivityFields.astro';
+import CancelActivity from '../../../components/CancelActivity.astro';
 import FieldError from '../../../components/FieldError.astro';
 import PrivateDetailsField from '../../../components/PrivateDetailsField.astro';
-import Sheet from '../../../components/Sheet.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { setFlash } from '../../../lib/server/flash';
 import { rexburgDate, rexburgTime } from '../../../lib/time';
@@ -181,36 +181,7 @@ const back = `/activities/${Astro.params.id}`;
       </form>
       <div class="activity-status">
         {activity.status === 'published' ? (
-          <>
-            <button type="button" class="destructive" commandfor="cancel" command="show-modal">
-              Cancel activity
-            </button>
-            <Sheet id="cancel" title="Cancel this activity?">
-              <p>
-                It stays here, marked cancelled, so people who are going can see. It leaves
-                Discover.
-              </p>
-              <form method="post" action={actions.activities.cancel.queryString}>
-                <input type="hidden" name="id" value={activity.id} />
-                <p>
-                  <label for="reason">Reason (optional)</label>
-                  <br />
-                  <textarea
-                    id="reason"
-                    name="reason"
-                    rows="2"
-                    maxlength={ACTIVITY.cancelReason.max}
-                  />
-                </p>
-                <button type="submit" class="destructive">
-                  Yes, cancel it
-                </button>
-              </form>
-              <form method="dialog">
-                <button>No, keep it</button>
-              </form>
-            </Sheet>
-          </>
+          <CancelActivity activityId={activity.id} inSeries={!!activity.series_id} />
         ) : started ? (
           <p>This activity is cancelled. It has started, so it can't be restored.</p>
         ) : (
@@ -250,12 +221,5 @@ const back = `/activities/${Astro.params.id}`;
   .activity-status button {
     min-height: 44px;
     padding: 0 1rem;
-  }
-  /* No background, since the red is too dark on WebKit's grey buttons. */
-  .destructive {
-    color: #b42318;
-    background: none;
-    border: 1px solid currentColor;
-    border-radius: 0.5rem;
   }
 </style>
