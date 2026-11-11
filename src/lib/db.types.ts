@@ -549,6 +549,36 @@ export type Database = {
         };
         Relationships: [];
       };
+      follows: {
+        Row: {
+          created_at: string;
+          target_id: string;
+          target_type: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          target_id: string;
+          target_type: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          target_id?: string;
+          target_type?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'follows_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       group_members: {
         Row: {
           group_id: string;
@@ -1084,6 +1114,75 @@ export type Database = {
           },
         ];
       };
+      moderator_notes: {
+        Row: {
+          author_id: string | null;
+          body: string;
+          created_at: string;
+          id: string;
+          target_id: string;
+          target_type: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          author_id?: string | null;
+          body: string;
+          created_at?: string;
+          id?: string;
+          target_id: string;
+          target_type: string;
+        };
+        Update: {
+          author_id?: string | null;
+          body?: string;
+          created_at?: string;
+          id?: string;
+          target_id?: string;
+          target_type?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'moderator_notes_author_id_fkey';
+            columns: ['author_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      notification_preferences: {
+        Row: {
+          channel: string;
+          enabled: boolean;
+          type: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          channel?: string;
+          enabled?: boolean;
+          type: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          channel?: string;
+          enabled?: boolean;
+          type?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notification_preferences_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       notifications: {
         Row: {
           activity_id: string | null;
@@ -1427,6 +1526,34 @@ export type Database = {
       };
       accept_sub: { Args: { request_id: string }; Returns: undefined };
       add_co_organizer: { Args: { activity_id: string; user_id: string }; Returns: undefined };
+      add_moderator_note: {
+        Args: { body: string; target_id: string; target_type: string };
+        Returns: string;
+      };
+      admin_audit_log: {
+        Args: { actor?: string; lim?: number; target?: string };
+        Returns: {
+          action: string;
+          actor_name: string;
+          created_at: string;
+          id: number;
+          reason: string;
+          target_id: string;
+          target_type: string;
+        }[];
+      };
+      admin_save_category: {
+        Args: { id: string; is_active: boolean; name: string };
+        Returns: undefined;
+      };
+      admin_save_tag: {
+        Args: { id: string; is_active: boolean; name: string; sort_order: number };
+        Returns: undefined;
+      };
+      admin_set_role: {
+        Args: { reason: string; role: string; user_id: string };
+        Returns: undefined;
+      };
       advance_playoffs: { Args: { season_id: string }; Returns: number };
       announce_activity: { Args: { activity_id: string }; Returns: number };
       approve_group_member: { Args: { group_id: string; user_id: string }; Returns: undefined };
@@ -1767,11 +1894,13 @@ export type Database = {
       set_activity_tags: { Args: { activity_id: string; tag_ids: string[] }; Returns: undefined };
       set_board_activity: { Args: { activity_id: string; board: boolean }; Returns: undefined };
       set_email_visibility: { Args: { visible: boolean }; Returns: undefined };
+      set_follow: { Args: { follow: boolean; kind: string; target: string }; Returns: boolean };
       set_game_availability: { Args: { can_play: boolean; game_id: string }; Returns: undefined };
       set_group_role: {
         Args: { group_id: string; role: string; user_id: string };
         Returns: undefined;
       };
+      set_notification_preferences: { Args: { off: string[] }; Returns: undefined };
       suspend_member: { Args: { reason: string; user_id: string }; Returns: undefined };
       sync_my_identity: { Args: Record<PropertyKey, never>; Returns: string };
       transfer_group: {
