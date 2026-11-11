@@ -512,7 +512,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** leagues, teams, scores; comments (re-evaluate at the end of the phase); image uploads; email and SMS.
 
-**User stories:** `GRP-01` to `GRP-05`, `REC-01` to `REC-04`, `RSVP-07`, `RSVP-09`, `ACT-10`, `NOTIF-09`, `NOTIF-10`, `MOD-08`, `HIST-01`, `CAL-01`, `PWA-01`.
+**User stories:** `GRP-01` to `GRP-05`, `REC-01` to `REC-04`, `RSVP-07`, `RSVP-09`, `ACT-10`, `NOTIF-09`, `NOTIF-10`, `MOD-08`, `HIST-01`, `CAL-01`, `PWA-01`, `UI-01`.
 
 **Acceptance criteria**
 
@@ -699,7 +699,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |                      |                          |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |                      | LEAG-09                  |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01              |                          |
-| App and media          |                  |                    |                             | PWA-01                             |                    |                      | MEDIA-01                 |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |                      | MEDIA-01                 |
 | Privacy                |                  |                    |                             |                                    |                    |                      | PRIV-01, PRIV-02         |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |                      | OPS-02, PERF-01, A11Y-01 |
 
@@ -1677,6 +1677,23 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - The offline state follows Section 7.13.
 - **Dependencies:** none.
 - **Notes / edge cases:** Native apps stay out of scope (WH-04). An installed PWA is also what makes Web Push possible later (NOTIF-20).
+
+#### UI-01 · Style FABA to match the My events design
+
+- **Role:** Member · **Priority:** Should · **Phase:** 3
+- **Story:** As a member, I want FABA to look and feel like the My events design, with the FABA logo as its main mark, so that it feels clear, polished, and easy to scan on my phone and my computer.
+- **Acceptance criteria:**
+  - The header shows the FABA logo (`mockups/faba_logo.png`, or a web-optimized version of it) at the top left, with the main tabs beside it and the primary action and the member's avatar at the right. The logo's alt text is "FABA".
+  - The main pages (Discover, Plans, activity pages, and My events) use the mockup's look: a large heading with a lighter subtitle, underlined active tabs with count badges, primary blue buttons, and soft-bordered cards.
+  - Activity cards show a date badge over the image area, the title, a date and time row, a place row, and a status pill. The pill reads "✓ Going" for an RSVP, using FABA's wording.
+  - Each category has its color and icon. Color is never the only signal, and each category's name is in its label.
+  - Text meets 4.5:1 contrast and UI components meet 3:1, in both light and dark themes. Status is never conveyed by color alone.
+  - On a 375 px phone, the layout works with a 16 px side gutter, no horizontal scroll, and the bottom tab bar stays.
+  - Copy stays in FABA's voice: "I'm in", "✓ Going", and "Can't make it", not the mockup's "Cancel sign-up" or "Browse events" where they differ. The mockup's "Faculty Together" name isn't used.
+  - Every interactive element keeps an accessible name, and the axe checks pass on the restyled pages.
+  - Existing behavior, RSVP flows, and E2E tests don't change.
+- **Dependencies:** the design tokens and component specs from Phase 0 (UX-4 to UX-6), if they exist. Otherwise, this story defines the tokens it needs.
+- **Notes / edge cases:** The mockup's photos and sports illustration are out of scope; cards use category color and icon until MEDIA-01 adds images. The logo is FABA's own and doesn't use a university logo, so the "unofficial" footer disclaimer stays (risk R-POL-1). PWA-01's icons should be regenerated from the same logo so the home-screen icon matches the header.
 
 ### 6.7 Phase 4 stories
 
