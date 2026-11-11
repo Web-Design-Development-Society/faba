@@ -34,7 +34,8 @@ CREATE TABLE public.notification_channel_choices (
       'rsvp_promoted',
       'rsvp_removed',
       'new_activity',
-      'sub_needed'
+      'sub_needed',
+      'report_received'
     )
   ),
   channel text NOT NULL CHECK (channel IN ('in_app', 'email')),
