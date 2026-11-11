@@ -5,7 +5,29 @@ import {
   ordinalDay,
   repeatsBadge,
   repeatsSentence,
+  weekdayName,
+  weekdayWarning,
 } from '../../src/lib/series';
+
+describe('weekdayName', () => {
+  it('names the weekday a date falls on', () => {
+    expect(weekdayName('2027-01-12')).toBe('Tuesday');
+    expect(weekdayName('2027-03-14')).toBe('Sunday');
+  });
+});
+
+describe('weekdayWarning', () => {
+  it('warns when this and future dates move to another weekday (REC-02)', () => {
+    expect(weekdayWarning('2027-01-12', '2027-01-14')).toBe(
+      "Future dates move from Tuesdays to Thursdays. People going stay going, and they're told."
+    );
+  });
+
+  it('says nothing for the same weekday, a week on or not', () => {
+    expect(weekdayWarning('2027-01-12', '2027-01-12')).toBe('');
+    expect(weekdayWarning('2027-01-12', '2027-01-19')).toBe('');
+  });
+});
 
 describe('ordinalDay', () => {
   it.each([

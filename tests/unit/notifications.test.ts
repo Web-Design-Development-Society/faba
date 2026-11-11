@@ -82,6 +82,16 @@ group('changeLine', () => {
       'Now at Hart courts (was Library). Details for attendees changed'
     );
   });
+
+  it('says a change to a series changed its future dates too (REC-02)', () => {
+    const moved = { before: at, after: { ...at, location_name: 'Hart courts' }, series: true };
+    expect(describe('activity_changed', moved).summary).toBe(
+      'Now at Hart courts (was Library). Future dates changed too'
+    );
+    expect(describe('activity_changed', { before: at, after: at, series: true }).summary).toBe(
+      'Time or place changed'
+    );
+  });
 });
 
 group('cancelled and back on', () => {

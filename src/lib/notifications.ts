@@ -71,28 +71,38 @@ export function describe(
   now: Date = new Date()
 ): { icon: string; summary: string } {
   const found = TYPES[type] ?? { icon: '•', summary: 'Update' };
-  const { before, after, count, details_changed, location_name, member, reason, starts_at } =
-    (payload ?? {}) as {
-      before?: Snapshot;
-      after?: Snapshot;
-      count?: number;
-      details_changed?: boolean;
-      location_name?: string;
-      member?: string;
-      reason?: string | null;
-      starts_at?: string;
-    };
+  const {
+    before,
+    after,
+    count,
+    details_changed,
+    location_name,
+    member,
+    reason,
+    series,
+    starts_at,
+  } = (payload ?? {}) as {
+    before?: Snapshot;
+    after?: Snapshot;
+    count?: number;
+    details_changed?: boolean;
+    location_name?: string;
+    member?: string;
+    reason?: string | null;
+    series?: boolean;
+    starts_at?: string;
+  };
   const summary = (() => {
     switch (type) {
       // NOTIF-02, with ACT-09's details for attendees, which it says changed without saying what
-      // they are.
-      case 'activity_changed':
-        return [
+      // they are. A change to a series is told once, on its first date (REC-02).
+      case 'activity_changed': {
+        const lines = [
           before && after ? changeLine(before, after) : '',
           details_changed ? 'Details for attendees changed' : '',
-        ]
-          .filter(Boolean)
-          .join('. ');
+        ].filter(Boolean);
+        return (lines.length && series ? [...lines, 'Future dates changed too'] : lines).join('. ');
+      }
       // NOTIF-03: "Cancelled: Snowed in", and "Back on for Fri, Dec 4, 7:00 PM".
       case 'activity_cancelled':
         return reason ? `Cancelled: ${reason}` : '';

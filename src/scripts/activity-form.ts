@@ -1,7 +1,7 @@
 // The activity form's extras with JavaScript (ACT-03, ACT-04): quick date picks, checking the time
 // rules before posting, naming the date's day and weekday in Repeats (REC-01), and restoring the
 // create form's draft. The form works without them, and the server checks everything again.
-import { monthlyLabels, type Freq } from '../lib/series';
+import { monthlyLabels, weekdayWarning, type Freq } from '../lib/series';
 import { rexburgInstant } from '../lib/time';
 import { clearDraft, loadDraft, saveDraft } from './activity-draft';
 
@@ -34,6 +34,20 @@ function enhance(form: HTMLFormElement) {
     if (until) until.min = date.value;
   };
   date.addEventListener('input', relabel);
+
+  // Editing a date in a series: This and future dates warns when the weekday changes (REC-02).
+  const scope = form.querySelector<HTMLElement>('[data-series-date]');
+  if (scope) {
+    const warning = scope.querySelector<HTMLElement>('[data-weekday-warning]')!;
+    const warn = () => {
+      const future = (form.elements.namedItem('scope') as RadioNodeList).value === 'future';
+      warning.textContent =
+        future && date.value ? weekdayWarning(scope.dataset.seriesDate!, date.value) : '';
+    };
+    date.addEventListener('input', warn);
+    scope.addEventListener('change', warn);
+    warn();
+  }
 
   // "In the future" depends on when Post is pressed, so the check runs then.
   form.querySelector('button[type="submit"]')!.addEventListener('click', () => {

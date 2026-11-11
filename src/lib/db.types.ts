@@ -31,6 +31,7 @@ export type Database = {
           maybe_count: number;
           organizer_id: string | null;
           search_doc: unknown;
+          series_detached: boolean;
           series_id: string | null;
           starts_at: string;
           status: string;
@@ -70,6 +71,7 @@ export type Database = {
           maybe_count?: number;
           organizer_id?: string | null;
           search_doc?: never;
+          series_detached?: boolean;
           series_id?: string | null;
           starts_at: string;
           status?: string;
@@ -107,6 +109,7 @@ export type Database = {
           maybe_count?: number;
           organizer_id?: string | null;
           search_doc?: never;
+          series_detached?: boolean;
           series_id?: string | null;
           starts_at?: string;
           status?: string;
@@ -953,6 +956,7 @@ export type Database = {
           maybe_count: number;
           organizer_id: string | null;
           search_doc: unknown;
+          series_detached: boolean;
           series_id: string | null;
           starts_at: string;
           status: string;
@@ -1083,6 +1087,7 @@ export type Database = {
           maybe_count: number;
           organizer_id: string | null;
           search_doc: unknown;
+          series_detached: boolean;
           series_id: string | null;
           starts_at: string;
           status: string;
@@ -1116,6 +1121,10 @@ export type Database = {
       update_activity: {
         Args: { activity_id: string; expected_version: number; patch: Json };
         Returns: undefined;
+      };
+      update_series: {
+        Args: { activity_id: string; expected_version: number; patch: Json; tag_ids?: string[] };
+        Returns: number;
       };
     };
     Enums: {
