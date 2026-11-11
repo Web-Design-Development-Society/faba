@@ -74,7 +74,10 @@ test('the monthly choices name the chosen date', async ({ page, signInAs }) => {
 test.describe('without JavaScript', () => {
   test.use({ javaScriptEnabled: false });
 
-  test('a last date before the first comes back with a message', async ({ page, signInAs }) => {
+  test('a last date before the first is stopped before posting, with a message', async ({
+    page,
+    signInAs,
+  }) => {
     await signInAs('member');
     await page.goto('/activities/new');
     await page.getByLabel('What are you doing?').fill('Sunrise hike up the R');
@@ -82,12 +85,18 @@ test.describe('without JavaScript', () => {
     await page.getByLabel('Where?').fill('R Mountain trailhead');
     await page.getByRole('radio', { name: 'Outdoors' }).check();
     const first = await page.getByLabel('Date', { exact: true }).inputValue();
+    await page.getByText('More options').click();
     await page.getByLabel('How often').selectOption('monthly_nth');
     await page.getByLabel('Last date').fill(addDays(first, -1));
     await page.getByRole('button', { name: 'Post activity' }).click();
 
-    await expect(page.getByText('Pick a last date on or after the first.')).toBeVisible();
-    await expect(page.getByLabel('Last date')).toHaveAttribute('aria-invalid', 'true');
+    // The browser stops a last date before the first (its min), as it does a start time at midnight,
+    // so the post doesn't go out and the message is the browser's own.
+    await expect(page).toHaveURL('/activities/new');
+    const message = await page
+      .getByLabel('Last date')
+      .evaluate((input: HTMLInputElement) => input.validationMessage);
+    expect(message).not.toBe('');
     await expect(page.getByLabel('How often')).toHaveValue('monthly_nth');
   });
 });
