@@ -28,7 +28,7 @@ const signed = (n: number | null) => (n == null ? '0' : n > 0 ? `+${n}` : `${n}`
   ) : !played ? (
     <p>No results are confirmed yet.</p>
   ) : (
-    <div class="scroll">
+    <div class="scroll" role="region" aria-label="Standings table" tabindex="0">
       <table>
         <caption>Confirmed results and forfeits only</caption>
         <thead>
