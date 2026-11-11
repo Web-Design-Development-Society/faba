@@ -2,8 +2,9 @@
 // at a time, and ladders being one person.
 import { expect, expectAccessible, test } from './fixtures';
 
-test('a member starts a league, and starts its first season', async ({ page, signInAs }) => {
-  await signInAs('member');
+test('a member starts a league, and starts its first season', async ({ page, poster }) => {
+  // The poster fixture signs in a fresh account, with its own group quota.
+  void poster;
   await page.goto('/leagues/new');
   const name = `Pickle Ladder ${crypto.randomUUID().slice(0, 6)}`;
   await page.getByLabel('League name').fill(name);
@@ -20,12 +21,13 @@ test('a member starts a league, and starts its first season', async ({ page, sig
   await page.getByLabel('Last day').fill('2026-08-31');
   await page.getByRole('button', { name: 'Start season' }).click();
   await expect(page.getByRole('status')).toHaveText('Season started.');
-  await expect(page.getByRole('heading', { name: 'Summer 2026' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Summer 2026', exact: true })).toBeVisible();
   await expectAccessible(page);
 });
 
-test('a member signs up for a season, and withdraws', async ({ page, signInAs }) => {
-  await signInAs('member');
+test('a member signs up for a season, and withdraws', async ({ page, poster }) => {
+  // The poster fixture signs in a fresh account, with its own group quota.
+  void poster;
   await page.goto('/leagues/new');
   await page.getByLabel('League name').fill(`Chess Club ${crypto.randomUUID().slice(0, 6)}`);
   await page.getByLabel('Category').selectOption('games');
@@ -50,8 +52,9 @@ test('a member signs up for a season, and withdraws', async ({ page, signInAs })
   await expect(page.getByRole('button', { name: 'Join season' })).toBeVisible();
 });
 
-test('an organizer makes a team and moves a player onto it', async ({ page, signInAs }) => {
-  await signInAs('member');
+test('an organizer makes a team and moves a player onto it', async ({ page, poster }) => {
+  // The poster fixture signs in a fresh account, with its own group quota.
+  void poster;
   await page.goto('/leagues/new');
   await page.getByLabel('League name').fill(`Trivia Night ${crypto.randomUUID().slice(0, 6)}`);
   await page.getByLabel('Category').selectOption('games');
