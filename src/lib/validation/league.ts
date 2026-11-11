@@ -48,14 +48,9 @@ export const newSeason = z
     path: ['ends_on'],
     message: 'The season ends on or after its first day.',
   })
-  .refine((season) => season.team_min <= season.team_max, {
+  .refine((season) => season.format === 'ladder' || season.team_min <= season.team_max, {
     path: ['team_max'],
     message: 'The largest team is at least the smallest.',
-  })
-  .refine(
-    (season) => season.format !== 'ladder' || (season.team_min === 1 && season.team_max === 1),
-    {
-      path: ['team_max'],
-      message: 'A ladder is for one person at a time, so its team size is 1.',
-    }
-  );
+  });
+// A ladder is for one person at a time, so the action sets its team sizes to 1, whatever the form
+// held. The sizes don't matter to a ladder, so the form doesn't ask it to be exact.
