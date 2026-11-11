@@ -23,7 +23,7 @@ test('an organizer starts a playoff bracket from the standings', async ({ page, 
     await expect(page.getByRole('status')).toHaveText('Team added.');
   }
 
-  await page.getByLabel('First game day').fill('2030-10-05');
+  await page.getByLabel('First playoff day').fill('2030-10-05');
   await page.getByLabel('Place').fill('Gym');
   await page.getByRole('button', { name: 'Make the round robin' }).click();
   await expect(page.getByRole('status')).toHaveText('Schedule made.');
