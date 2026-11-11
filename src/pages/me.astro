@@ -42,6 +42,11 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
   <p>
     <a href="/me/edit">Edit profile</a>
   </p>
+  <p>
+    <a href="/me/data.json" download="faba-my-data.json">
+      Download my data
+    </a>
+  </p>
   {typeof open?.count === 'number' && (
     <p>
       <a href="/mod">Open reports: {open.count}</a>

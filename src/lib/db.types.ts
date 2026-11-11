@@ -549,6 +549,33 @@ export type Database = {
         };
         Relationships: [];
       };
+      data_exports: {
+        Row: {
+          created_at: string;
+          id: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          id?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'data_exports_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       group_members: {
         Row: {
           group_id: string;
@@ -1537,6 +1564,7 @@ export type Database = {
       delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
       dismiss_report: { Args: { reason: string; report_id: string }; Returns: undefined };
       enter_ladder: { Args: { season_id: string }; Returns: number };
+      export_my_data: { Args: Record<PropertyKey, never>; Returns: Json };
       forfeit_game: { Args: { forfeit_team_id: string; game_id: string }; Returns: undefined };
       get_feed: {
         Args: {
