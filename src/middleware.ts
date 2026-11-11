@@ -21,6 +21,11 @@ const PUBLIC_PATHS = new Set([
   '/api/health',
 ]);
 
+// A member's calendar feed (CAL-01) is read by calendar apps, which don't sign in. Its token is the
+// credential, and the page checks it.
+const isPublicPath = (pathname: string) =>
+  PUBLIC_PATHS.has(pathname) || (pathname.startsWith('/calendar/') && pathname.endsWith('.ics'));
+
 export const onRequest = defineMiddleware(async (context, next) => {
   // Prerendered pages are built once for everyone, so there's no session to read.
   if (context.isPrerendered) return next();
@@ -44,13 +49,13 @@ export const onRequest = defineMiddleware(async (context, next) => {
   }
 
   const back = encodeURIComponent(context.url.pathname + context.url.search);
-  if (!context.locals.user && !PUBLIC_PATHS.has(context.url.pathname)) {
+  if (!context.locals.user && !isPublicPath(context.url.pathname)) {
     return noStore(context.redirect(`/auth/login?next=${back}`));
   }
 
   // The signed-in member's status and display details, for the pages that need sign-in.
   context.locals.member = null;
-  if (context.locals.user && !PUBLIC_PATHS.has(context.url.pathname)) {
+  if (context.locals.user && !isPublicPath(context.url.pathname)) {
     const { data: member } = await supabase.rpc('get_session_context').maybeSingle();
     context.locals.member = member;
     // A suspended member sees only Access paused (MOD-04). Row Level Security gives them nothing

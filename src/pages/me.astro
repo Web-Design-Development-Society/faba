@@ -3,6 +3,7 @@
 // replaced Phase 1's My activities here (HIST-02). Edit profile opens the profile form (PROF-02),
 // which comes back here. Moderators see how many reports are open, which opens the queue (MOD-02).
 // Delete account is at the bottom, away from everything else (PROF-05).
+import { actions, isInputError } from 'astro:actions';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
 import { FLASH_MESSAGES, takeFlash } from '../lib/server/flash';
@@ -12,14 +13,22 @@ if (!user) return Astro.redirect('/auth/login');
 
 const flash = takeFlash(Astro.cookies);
 
+// The calendar link is shown once, straight from this request, so it isn't kept anywhere (CAL-01).
+const feed = Astro.getActionResult(actions.calendar.resetFeed);
+const feedError = feed?.error && !isInputError(feed.error) ? feed.error.message : null;
+
 const moderator =
   member?.status === 'active' && (member.role === 'moderator' || member.role === 'admin');
-const [{ data: profile }, { data: categories }, open] = await Promise.all([
+const [{ data: profile }, { data: categories }, open, { count: hasFeed }] = await Promise.all([
   supabase.from('profiles').select('department, bio, interests').eq('id', user.id).single(),
   supabase.from('categories').select('id, name').order('sort_order'),
   moderator
     ? supabase.from('reports').select('id', { count: 'exact', head: true }).eq('status', 'open')
     : null,
+  supabase
+    .from('calendar_feeds')
+    .select('user_id', { count: 'exact', head: true })
+    .eq('user_id', user.id),
 ]);
 const interests = categories?.filter(({ id }) => profile?.interests.includes(id)) ?? [];
 ---
@@ -40,6 +49,27 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
   )}
   <Status message={flash && FLASH_MESSAGES[flash]} />
 
+  <section aria-labelledby="calendar-feed">
+    <h2 id="calendar-feed">Calendar feed</h2>
+    <p>
+      Your going activities, in your phone or computer calendar. Anyone with the link can read them,
+      so keep it private.
+    </p>
+    {feedError && <p role="alert">{feedError}</p>}
+    {feed && !feed.error && (
+      <>
+        <p>Copy this link now. It won't be shown again.</p>
+        <p class="link">
+          <code>{feed.data.url}</code>
+        </p>
+      </>
+    )}
+    <form method="post" action={actions.calendar.resetFeed.queryString}>
+      <button>{hasFeed ? 'Reset link' : 'Get calendar link'}</button>
+    </form>
+    {hasFeed && !feed && <p>Resetting makes a new link, and the old one stops working.</p>}
+  </section>
+
   <form method="post" action="/auth/logout">
     <button type="submit">Sign out</button>
   </form>
@@ -54,5 +84,8 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
   }
   .bio {
     white-space: pre-line;
+  }
+  .link code {
+    overflow-wrap: anywhere;
   }
 </style>
