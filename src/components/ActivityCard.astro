@@ -5,9 +5,11 @@
 // badges say when an upcoming one has changed time or place, is full, or is hidden. Every card
 // says when it's a FABA board activity (MOD-07), unless it's cancelled or full, which say so in
 // its place: a card has one status at most (design document section 7.5). On Home, one that someone
-// else posted since the member's previous visit says New, after all those (ACT-11).
+// else posted since the member's previous visit says New, after all those (ACT-11). A date in a
+// series says how often it repeats, beside its time (REC-01).
 import { categoryLook } from '../lib/categories';
 import { isFull } from '../lib/cards';
+import { repeatsBadge } from '../lib/series';
 import { formatSoon, isOver } from '../lib/time';
 import Avatar from './Avatar.astro';
 import RsvpForm from './RsvpForm.astro';
@@ -29,6 +31,8 @@ interface Props {
     is_board_activity: boolean;
     created_at: string;
     category: { name: string; icon: string; color_token: string } | null;
+    /** The series it's a date in (REC-01). */
+    series: { freq: string } | null;
     going: {
       member: {
         id: string;
@@ -94,6 +98,7 @@ const shown = (
     </h3>
     <p>
       <time datetime={activity.starts_at}>{formatSoon(new Date(activity.starts_at), now)}</time>
+      {activity.series && ` · ${repeatsBadge(activity.series.freq)}`}
     </p>
     <p class="place">{activity.location_name}</p>
     {shown.length > 0 && (

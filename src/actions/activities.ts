@@ -39,13 +39,27 @@ async function update(locals: App.Locals, id: string, version: number, patch: Js
 export const activities = {
   /**
    * Posting an activity (ACT-03), then its tags (SRCH-03). If the tags fail, posting again finds
-   * the activity by its idempotency key and sets them. Returns its id.
+   * the activity by its idempotency key and sets them. Returns its id. One that repeats is a
+   * series, posted with its tags at once, and the id is its first date's (REC-01).
    */
   create: defineAction({
     accept: 'form',
     input: newActivity,
-    handler: async ({ tags, ...activity }, { locals }) => {
+    handler: async ({ tags, repeats, until_date, ...activity }, { locals }) => {
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      if (repeats !== 'none') {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars -- A series isn't a copy.
+        const { copied_from_id, ...series } = activity;
+        const { data: id, error } = await locals.supabase.rpc('create_series', {
+          ...series,
+          freq: repeats,
+          until_date,
+          tag_ids: tags ?? [],
+        });
+        if (error) throw new ActionError(actionErrorFor(error));
+        return { id };
+      }
 
       const { data: id, error } = await locals.supabase.rpc('create_activity', activity);
       if (error) throw new ActionError(actionErrorFor(error));

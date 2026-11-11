@@ -2,6 +2,7 @@
 // (ACT-05). The limits match the activities table's CHECK constraints, and create_activity() and
 // update_activity() check the time rules again.
 import { z } from 'astro/zod';
+import { REPEATS, type Repeats } from '../series';
 import { rexburgInstant } from '../time';
 
 export const ACTIVITY = {
@@ -78,6 +79,34 @@ function checkTimes({ date, start_time, end_time }: Times, ctx: z.RefinementCtx)
   }
 }
 
+/** `date` a year on, as `2027-11-07` for `2026-11-07`, the most a series can run (REC-01). */
+function yearAfter(date: string): string {
+  const later = new Date(`${date}T12:00:00Z`);
+  later.setUTCFullYear(later.getUTCFullYear() + 1);
+  return later.toISOString().slice(0, 10);
+}
+
+type Series = { date: string; repeats: string; until_date?: string };
+
+/** A series' last date is on or after its first, and within 12 months of it (REC-01). */
+function checkRepeats({ date, repeats, until_date }: Series, ctx: z.RefinementCtx) {
+  if (repeats === 'none' || !until_date || !isDate(date) || !isDate(until_date)) return;
+
+  if (until_date < date) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['until_date'],
+      message: 'Pick a last date on or after the first.',
+    });
+  } else if (until_date > yearAfter(date)) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['until_date'],
+      message: `Pick a last date in the ${ACTIVITY.monthsAhead} months after the first.`,
+    });
+  }
+}
+
 /** The date and times as the instants the database functions take. */
 function toInstants<T extends Times>({ date, start_time, end_time, ...activity }: T) {
   const { startsAt, endsAt } = activityTimes(date, start_time, end_time);
@@ -145,15 +174,28 @@ export const newActivity = z
     visibility: z
       .enum(['members', 'group'], { error: 'Choose who can see it.' })
       .default('members'),
+    // REC-01. How often it repeats, and the last date it can fall on, or empty to roll on.
+    repeats: z
+      .enum(Object.keys(REPEATS) as Repeats[], { error: 'Choose how often it repeats.' })
+      .default('none'),
+    until_date: z.iso.date({ error: 'Choose a last date, or leave it empty.' }).optional(),
   })
   .superRefine(checkTimes)
   .superRefine(checkGroup)
+  .superRefine(checkRepeats)
   .transform(toInstants);
 
 /** The edit form's fields. The output is update_activity()'s patch, the id and the version shown. */
 export const activityChanges = z
   .object(newActivity.in.shape)
-  .omit({ idempotency_key: true, copied_from_id: true, group_id: true, visibility: true })
+  .omit({
+    idempotency_key: true,
+    copied_from_id: true,
+    group_id: true,
+    visibility: true,
+    repeats: true,
+    until_date: true,
+  })
   .extend({ id: z.uuid(), version: z.number().int() })
   .superRefine(checkTimes)
   .transform(toInstants);

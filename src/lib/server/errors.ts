@@ -160,6 +160,15 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
     code: 'BAD_REQUEST',
     message: "You can mute an activity once you're going or a maybe.",
   },
+  INVALID_REPEATS: { code: 'BAD_REQUEST', message: 'Choose how often it repeats.' },
+  UNTIL_BEFORE_START: {
+    code: 'BAD_REQUEST',
+    message: 'Pick a last date on or after the first.',
+  },
+  SERIES_TOO_LONG: {
+    code: 'BAD_REQUEST',
+    message: 'Pick a last date in the 12 months after the first.',
+  },
 };
 
 /**

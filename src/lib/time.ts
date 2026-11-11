@@ -93,6 +93,18 @@ function daysFrom(now: Date, date: string): number {
   return (Date.parse(date) - Date.parse(rexburgDate(now))) / 86_400_000;
 }
 
+const fullDate = new Intl.DateTimeFormat('en-US', {
+  month: 'short',
+  day: 'numeric',
+  year: 'numeric',
+  timeZone: 'UTC',
+});
+
+/** A date such as `2027-11-07` for people, with its year: `Nov 7, 2027`. */
+export function formatDate(date: string): string {
+  return fullDate.format(new Date(`${date}T12:00:00Z`));
+}
+
 /** A day's heading in the feed, such as `Today`, `Tomorrow` or `Sat, Nov 7`. */
 export function formatDay(date: string, now: Date): string {
   return NEARBY[daysFrom(now, date)] ?? day.format(new Date(`${date}T12:00:00Z`));

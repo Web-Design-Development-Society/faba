@@ -45,6 +45,7 @@ describe('newActivity', () => {
       starts_at: '2026-11-07T14:00:00.000Z',
       ends_at: '2026-11-07T16:30:00.000Z',
       visibility: 'members',
+      repeats: 'none',
     });
   });
 
@@ -264,5 +265,44 @@ describe('actionErrorFor', () => {
     expect(reference).toBeDefined();
     expect(JSON.parse(log.mock.calls[0][0])).toEqual({ reference, code: 'XX000', message: 'boom' });
     log.mockRestore();
+  });
+});
+
+// REC-01.
+describe('newActivity repeats', () => {
+  it("doesn't repeat unless it says so, and passes how it repeats through", () => {
+    expect(newActivity.parse(valid).repeats).toBe('none');
+    expect(newActivity.parse(valid).until_date).toBeUndefined();
+    expect(
+      newActivity.parse({ ...valid, repeats: 'monthly_nth', until_date: '2027-05-07' })
+    ).toMatchObject({ repeats: 'monthly_nth', until_date: '2027-05-07' });
+  });
+
+  it('wants a known pattern and a last date on or after the first, within 12 months', () => {
+    expect(errors({ repeats: 'daily' })).toEqual({ repeats: 'Choose how often it repeats.' });
+    expect(errors({ repeats: 'weekly', until_date: 'soon' })).toEqual({
+      until_date: 'Choose a last date, or leave it empty.',
+    });
+    expect(errors({ repeats: 'weekly', until_date: '2026-11-06' })).toEqual({
+      until_date: 'Pick a last date on or after the first.',
+    });
+    expect(errors({ repeats: 'weekly', until_date: '2026-11-07' })).toEqual({});
+    expect(errors({ repeats: 'weekly', until_date: '2027-11-07' })).toEqual({});
+    expect(errors({ repeats: 'weekly', until_date: '2027-11-08' })).toEqual({
+      until_date: 'Pick a last date in the 12 months after the first.',
+    });
+    // A last date means nothing without a pattern.
+    expect(errors({ until_date: '2026-11-06' })).toEqual({});
+  });
+
+  it('is left out of edits', () => {
+    expect(
+      activityChanges.parse({
+        ...valid,
+        id: '7c9e6679-7425-40de-944b-e07fc1f90ae7',
+        version: 1,
+        repeats: 'weekly',
+      })
+    ).not.toHaveProperty('repeats');
   });
 });

@@ -4,11 +4,14 @@
 // again can't make a second activity. src/scripts/activity-form.ts adds the extras. Post again
 // (ACT-07) opens it with ?from= one of the member's activities, filled in from it but for the date
 // and times. Organizers of a group choose it, and whether the activity is for its members only
-// (GRP-03). A group's Post an activity opens it with ?group= that group.
+// (GRP-03). A group's Post an activity opens it with ?group= that group. Under More options,
+// Repeats makes it a series: weekly, every 2 weeks or monthly, through a last date or rolling on
+// (REC-01).
 import { actions, isInputError } from 'astro:actions';
 import ActivityFields from '../../components/ActivityFields.astro';
 import FieldError from '../../components/FieldError.astro';
 import Layout from '../../layouts/Layout.astro';
+import { monthlyLabels, REPEATS } from '../../lib/series';
 import { setFlash } from '../../lib/server/flash';
 import { rexburgDate, rexburgTime } from '../../lib/time';
 import { suggestedStart } from '../../lib/validation/activity';
@@ -121,7 +124,51 @@ const shown = (name: string) => value(name) ?? suggested[name];
         original?.activity_tags.map(({ tag_id }) => tag_id) ??
         []
       }
-    />
+    >
+      <fieldset slot="more" class="repeats">
+        <legend>Repeats</legend>
+        <p>
+          <label for="repeats">How often</label>
+          <br />
+          <select
+            id="repeats"
+            name="repeats"
+            data-repeats
+            aria-invalid={fields.repeats ? 'true' : undefined}
+            aria-describedby={fields.repeats ? 'repeats-error' : undefined}
+          >
+            {Object.entries({ none: REPEATS.none, ...monthlyLabels(shown('date')) }).map(
+              ([freq, label]) => (
+                <option value={freq} selected={(shown('repeats') ?? 'none') === freq}>
+                  {label}
+                </option>
+              )
+            )}
+          </select>
+          <FieldError name="repeats" errors={fields.repeats} />
+        </p>
+        <p>
+          <label for="until_date">Last date</label>
+          <br />
+          <span id="until_date-hint">
+            Leave empty to keep it going. A series can run up to 12 months.
+          </span>
+          <br />
+          <input
+            type="date"
+            id="until_date"
+            name="until_date"
+            value={shown('until_date')}
+            min={shown('date')}
+            aria-describedby={
+              fields.until_date ? 'until_date-hint until_date-error' : 'until_date-hint'
+            }
+            aria-invalid={fields.until_date ? 'true' : undefined}
+          />
+          <FieldError name="until_date" errors={fields.until_date} />
+        </p>
+      </fieldset>
+    </ActivityFields>
     {groups.length > 0 && (
       <fieldset class="group">
         <legend>Group</legend>
@@ -180,7 +227,8 @@ const shown = (name: string) => value(name) ?? suggested[name];
     gap: 0.5rem;
     min-height: 44px;
   }
-  .group select {
+  .group select,
+  .repeats select {
     min-height: 44px;
   }
 </style>

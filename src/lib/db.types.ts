@@ -31,6 +31,7 @@ export type Database = {
           maybe_count: number;
           organizer_id: string | null;
           search_doc: unknown;
+          series_id: string | null;
           starts_at: string;
           status: string;
           time_or_place_changed_at: string | null;
@@ -69,6 +70,7 @@ export type Database = {
           maybe_count?: number;
           organizer_id?: string | null;
           search_doc?: never;
+          series_id?: string | null;
           starts_at: string;
           status?: string;
           time_or_place_changed_at?: string | null;
@@ -105,6 +107,7 @@ export type Database = {
           maybe_count?: number;
           organizer_id?: string | null;
           search_doc?: never;
+          series_id?: string | null;
           starts_at?: string;
           status?: string;
           time_or_place_changed_at?: string | null;
@@ -148,6 +151,13 @@ export type Database = {
             columns: ['organizer_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'activities_series_id_fkey';
+            columns: ['series_id'];
+            isOneToOne: false;
+            referencedRelation: 'activity_series';
             referencedColumns: ['id'];
           },
         ];
@@ -202,6 +212,104 @@ export type Database = {
             columns: ['activity_id'];
             isOneToOne: true;
             referencedRelation: 'activities';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      activity_series: {
+        Row: {
+          capacity: number | null;
+          category_id: string;
+          cost_note: string | null;
+          created_at: string;
+          description: string | null;
+          duration: string | null;
+          freq: string;
+          generated_through: string;
+          group_id: string | null;
+          guests_allowed: boolean;
+          id: string;
+          idempotency_key: string | null;
+          location_name: string;
+          max_guests_per_rsvp: number;
+          organizer_id: string | null;
+          start_date: string;
+          start_time: string;
+          tag_ids: string[];
+          timezone: string;
+          title: string;
+          until_date: string | null;
+          visibility: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          capacity?: number | null;
+          category_id: string;
+          cost_note?: string | null;
+          created_at?: string;
+          description?: string | null;
+          duration?: string | null;
+          freq: string;
+          generated_through: string;
+          group_id?: string | null;
+          guests_allowed?: boolean;
+          id?: string;
+          idempotency_key?: string | null;
+          location_name: string;
+          max_guests_per_rsvp?: number;
+          organizer_id?: string | null;
+          start_date: string;
+          start_time: string;
+          tag_ids?: string[];
+          timezone?: string;
+          title: string;
+          until_date?: string | null;
+          visibility?: string;
+        };
+        Update: {
+          capacity?: number | null;
+          category_id?: string;
+          cost_note?: string | null;
+          created_at?: string;
+          description?: string | null;
+          duration?: string | null;
+          freq?: string;
+          generated_through?: string;
+          group_id?: string | null;
+          guests_allowed?: boolean;
+          id?: string;
+          idempotency_key?: string | null;
+          location_name?: string;
+          max_guests_per_rsvp?: number;
+          organizer_id?: string | null;
+          start_date?: string;
+          start_time?: string;
+          tag_ids?: string[];
+          timezone?: string;
+          title?: string;
+          until_date?: string | null;
+          visibility?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'activity_series_category_id_fkey';
+            columns: ['category_id'];
+            isOneToOne: false;
+            referencedRelation: 'categories';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'activity_series_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'activity_series_organizer_id_fkey';
+            columns: ['organizer_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
             referencedColumns: ['id'];
           },
         ];
@@ -783,6 +891,28 @@ export type Database = {
         };
         Returns: string;
       };
+      create_series: {
+        Args: {
+          capacity?: number;
+          category_id: string;
+          cost_note?: string;
+          description?: string;
+          ends_at?: string;
+          freq: string;
+          group_id?: string;
+          guests_allowed?: boolean;
+          idempotency_key?: string;
+          location_name: string;
+          max_guests_per_rsvp?: number;
+          private_details?: string;
+          starts_at: string;
+          tag_ids?: string[];
+          title: string;
+          until_date?: string;
+          visibility?: string;
+        };
+        Returns: string;
+      };
       delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
       dismiss_report: { Args: { reason: string; report_id: string }; Returns: undefined };
       get_feed: {
@@ -823,6 +953,7 @@ export type Database = {
           maybe_count: number;
           organizer_id: string | null;
           search_doc: unknown;
+          series_id: string | null;
           starts_at: string;
           status: string;
           time_or_place_changed_at: string | null;
@@ -952,6 +1083,7 @@ export type Database = {
           maybe_count: number;
           organizer_id: string | null;
           search_doc: unknown;
+          series_id: string | null;
           starts_at: string;
           status: string;
           time_or_place_changed_at: string | null;
