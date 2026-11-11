@@ -10,7 +10,7 @@ import ActivityCard from '../components/ActivityCard.astro';
 import Avatar from '../components/Avatar.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
-import { CARD, FACES } from '../lib/cards';
+import { CARD, FACES, historySince } from '../lib/cards';
 import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../lib/server/flash';
 
 // The most activities in a segment.
@@ -56,6 +56,7 @@ const { data, error } = await (segment === 'going'
     : cards
         .or(`organizer_id.eq.${user.id},my_rsvp.eq.going`)
         .lt('starts_at', since)
+        .gte('starts_at', historySince(now))
         .order('starts_at', { ascending: false })
         .order('id', { ascending: false }));
 const activities = data ?? [];
@@ -98,7 +99,14 @@ const activities = data ?? [];
     <ul>
       {activities.map((activity) => (
         <li id={`activity-${activity.id}`}>
-          <ActivityCard activity={activity} viewer={user.id} now={now} faces={FACES} badges />
+          <ActivityCard
+            activity={activity}
+            viewer={user.id}
+            now={now}
+            faces={FACES}
+            badges={segment !== 'past'}
+            history={segment === 'past'}
+          />
         </li>
       ))}
     </ul>

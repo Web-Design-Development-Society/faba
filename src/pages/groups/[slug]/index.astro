@@ -11,7 +11,7 @@ import { actions } from 'astro:actions';
 import ActivityCard from '../../../components/ActivityCard.astro';
 import Status from '../../../components/Status.astro';
 import Layout from '../../../layouts/Layout.astro';
-import { CARD, FACES } from '../../../lib/cards';
+import { CARD, FACES, historySince } from '../../../lib/cards';
 import { linkify } from '../../../lib/links';
 import { FLASH_MESSAGES, setFlash, takeFlash } from '../../../lib/server/flash';
 import { formatAgo } from '../../../lib/time';
@@ -76,6 +76,24 @@ const [{ data: activities }, { data: me }, { data: updates }] = group
         .limit(20),
     ])
   : [{ data: null }, { data: null }, { data: null }];
+// Its past activities, from the last 24 months, newest first, each saying whether the member went
+// or organized it (HIST-01). Only the member's own RSVPs show, as RLS allows.
+const { data: past } = group
+  ? await supabase
+      .from('activities')
+      .select(CARD)
+      .eq('group_id', group.id)
+      .in('status', ['published', 'cancelled'])
+      .is('hidden_at', null)
+      .lt('starts_at', new Date(now.getTime() - 3 * 60 * 60 * 1000).toISOString())
+      .gte('starts_at', historySince(now))
+      .eq('going.status', 'going')
+      .order('starts_at', { ascending: false })
+      .order('id', { ascending: false })
+      .order('created_at', { referencedTable: 'going' })
+      .limit(FACES, { referencedTable: 'going' })
+      .limit(20)
+  : { data: null };
 const organizer = me?.role === 'owner' || me?.role === 'organizer';
 const moderator =
   member?.status === 'active' && (member.role === 'moderator' || member.role === 'admin');
@@ -192,6 +210,26 @@ const members = group?.member_count ?? 0;
           <p>Nothing planned yet.</p>
         )}
       </section>
+      {past?.length ? (
+        <section aria-labelledby="past" class="activities past">
+          <header>
+            <h2 id="past">Past</h2>
+          </header>
+          <ul>
+            {past.map((activity) => (
+              <li>
+                <ActivityCard
+                  activity={activity}
+                  viewer={user.id}
+                  now={now}
+                  faces={FACES}
+                  history
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
       {(organizer || (updates?.length ?? 0) > 0) && (
         <section id="updates" aria-labelledby="updates-title" class="updates">
           <header>
