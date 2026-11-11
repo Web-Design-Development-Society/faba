@@ -3,7 +3,7 @@ BEGIN;
 
 CREATE EXTENSION IF NOT EXISTS pgtap WITH SCHEMA extensions;
 
-SELECT plan(24);
+SELECT plan(25);
 
 -- Rae organizes, and Gid, Mel and Sue come along.
 INSERT INTO auth.users
@@ -184,6 +184,17 @@ SELECT results_eq(
   'someone who joins a series that''s full isn''t going yet'
 );
 
+SELECT results_eq(
+  $$
+    select count(*)::integer
+    from public.rsvps as r
+    join pg_temp.dates as x on x.id = r.activity_id
+    where r.user_id = auth.uid() and r.status = 'waitlisted'
+  $$,
+  $$values (8)$$,
+  'they wait for each full date (RSVP-07)'
+);
+
 -- Sue joined after Gid.
 RESET ROLE;
 
@@ -249,8 +260,8 @@ SELECT pg_temp.as_member(2);
 
 SELECT results_eq(
   $$select public.leave_series(pg_temp.d(2))$$,
-  $$values (9)$$,
-  'Leave series takes them out of every upcoming date'
+  $$values (10)$$,
+  'Leave series takes them out of every upcoming date, and off the full date''s waitlist'
 );
 
 SELECT results_eq(
@@ -263,10 +274,10 @@ SELECT results_eq(
   $$
     select distinct a.going_count
     from public.activities as a
-    where a.series_id = (select series_id from pg_temp.dates limit 1) and a.id != pg_temp.d(3)
+    where a.series_id = (select series_id from pg_temp.dates limit 1)
   $$,
-  $$values (1)$$,
-  'each date has its spot back'
+  $$values (2)$$,
+  'each spot goes to whoever was waiting for it (RSVP-07)'
 );
 
 SELECT results_eq(
@@ -299,7 +310,7 @@ SELECT results_eq(
 
 SELECT results_eq(
   $$select pg_temp.going(2), pg_temp.going(4)$$,
-  $$values (null::text, 'new'::text)$$,
+  $$values (null::text, '1 2 4 5 6 7 8 new new new'::text)$$,
   'has whoever is still in the series going, and not who left'
 );
 

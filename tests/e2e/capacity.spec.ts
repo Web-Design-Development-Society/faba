@@ -35,7 +35,8 @@ test('a full activity says Full to members who are not going', async ({ page, si
   await expect(card.getByRole('button', { name: "I'm in" })).toHaveCount(0);
 
   await page.goto(`/activities/${id}`);
-  await expect(page.getByRole('button', { name: 'Full' })).toBeDisabled();
+  // The waitlist takes it from here (RSVP-07, waitlist.spec.ts).
+  await expect(page.getByRole('button', { name: 'Join waitlist' })).toBeEnabled();
   await expect(page.getByText('Every spot is taken.')).toBeVisible();
   await expectAccessible(page);
 });

@@ -175,8 +175,15 @@ const over =
 // A hidden one takes no RSVPs, as rsvp() says.
 const open = activity?.status === 'published' && !activity.hidden_at && !over;
 const host = activity?.organizer;
-// Full to anyone not going or maybe (RSVP-04). A maybe can still change their answer.
+// Full to anyone not going or maybe (RSVP-04), who can join its waitlist (RSVP-07). A maybe can
+// still change their answer.
 const full = !!activity && !going && answer !== 'maybe' && isFull(activity);
+// On the waitlist, and their place in it (RSVP-07). Members can't read who else is waiting.
+const waitlisted = answer === 'waitlisted';
+const { data: position } =
+  activity && waitlisted && full
+    ? await supabase.rpc('waitlist_position', { activity_id: activity.id })
+    : { data: null };
 // Who's maybe, which only the organizer can read (RSVP-05).
 const maybes = activity?.maybe.map(({ member }) => member) ?? [];
 // An ineligible organizer's upcoming activity, which moderators can give to someone going or
@@ -620,25 +627,39 @@ const email = activity
               )}
             </span>
           </>
-        ) : !open || full ? (
+        ) : open && full ? (
+          // Join waitlist, and a member's place on it with Leave waitlist (RSVP-07).
+          <>
+            <p id="rsvp-note">
+              {waitlisted
+                ? `You're #${position ?? 1} on the waitlist. You're in if a spot opens.`
+                : 'Every spot is taken.'}
+            </p>
+            <form method="post" action={actions.rsvps.set.queryString}>
+              <input type="hidden" name="activity_id" value={activity.id} />
+              <input type="hidden" name="status" value={waitlisted ? 'not_going' : 'waitlisted'} />
+              <button aria-describedby="rsvp-note">
+                {waitlisted ? 'Leave waitlist' : 'Join waitlist'}
+              </button>
+            </form>
+          </>
+        ) : !open ? (
           <>
             <p id="rsvp-note">
               {activity.status === 'cancelled'
                 ? 'This activity is cancelled.'
                 : activity.hidden_at
                   ? 'This activity is hidden.'
-                  : open
-                    ? 'Every spot is taken.'
-                    : 'This activity is over.'}
+                  : 'This activity is over.'}
             </p>
             <button type="button" disabled aria-describedby="rsvp-note">
-              {going ? '✓ Going' : open ? 'Full' : "I'm in"}
+              {going ? '✓ Going' : "I'm in"}
             </button>
           </>
         ) : (
           <RsvpForm
             activityId={activity.id}
-            status={answer}
+            status={waitlisted ? null : answer}
             guests={
               activity.guests_allowed
                 ? { most: activity.max_guests_per_rsvp, mine: activity.mine[0]?.guest_count ?? 0 }

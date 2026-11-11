@@ -789,6 +789,7 @@ export type Database = {
           status: string;
           updated_at: string;
           user_id: string;
+          waitlisted_at: string | null;
         };
         ComputedFields: never;
         Insert: {
@@ -798,6 +799,7 @@ export type Database = {
           status: string;
           updated_at?: string;
           user_id: string;
+          waitlisted_at?: string | null;
         };
         Update: {
           activity_id?: string;
@@ -806,6 +808,7 @@ export type Database = {
           status?: string;
           updated_at?: string;
           user_id?: string;
+          waitlisted_at?: string | null;
         };
         Relationships: [
           {
@@ -1162,6 +1165,7 @@ export type Database = {
         Args: { activity_id: string; expected_version: number; patch: Json; tag_ids?: string[] };
         Returns: number;
       };
+      waitlist_position: { Args: { activity_id: string }; Returns: number };
     };
     Enums: {
       [_ in never]: never;

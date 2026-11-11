@@ -12,6 +12,7 @@ export const FLASH_MESSAGES = {
   going: "You're going.",
   maybe: "You're a maybe.",
   not_going: "You're not going.",
+  waitlisted: "You're on the waitlist.",
   joined_series: "You're in for all upcoming dates.",
   left_series: 'You left the series.',
   reported: 'Thanks, a moderator will review this.',

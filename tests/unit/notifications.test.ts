@@ -16,6 +16,7 @@ group('describe', () => {
       'group_update',
       'group_join_approved',
       'group_owner',
+      'rsvp_promoted',
     ]);
     expect(describe('activity_cancelled')).toEqual({ icon: '✕', summary: 'Cancelled' });
   });
@@ -91,6 +92,15 @@ group('changeLine', () => {
     expect(describe('activity_changed', { before: at, after: at, series: true }).summary).toBe(
       'Time or place changed'
     );
+  });
+});
+
+group('promoted from the waitlist (RSVP-07)', () => {
+  it('says a spot opened, and when', () => {
+    const { icon, summary } = describe('rsvp_promoted', { starts_at: '2026-12-05T02:00:00Z' });
+    expect(icon).toBe('🎉');
+    expect(summary).toMatch(/^A spot opened\. You're going on Fri, Dec 4, 7:00\sPM$/);
+    expect(describe('rsvp_promoted', {}).summary).toBe("A spot opened, and you're going");
   });
 });
 

@@ -5,14 +5,15 @@ import { actionErrorFor } from '../lib/server/errors';
 
 export const rsvps = {
   /**
-   * I'm in (RSVP-01), its Undo, Can't make it (RSVP-02), Maybe (RSVP-05) and guests (RSVP-06).
+   * I'm in (RSVP-01), its Undo, Can't make it (RSVP-02), Maybe (RSVP-05), guests (RSVP-06) and
+   * Join waitlist (RSVP-07).
    * Without a number of guests, a member going keeps theirs. Returns the RSVP and the going count.
    */
   set: defineAction({
     accept: 'form',
     input: z.object({
       activity_id: z.uuid(),
-      status: z.enum(['going', 'maybe', 'not_going']),
+      status: z.enum(['going', 'maybe', 'not_going', 'waitlisted']),
       guests: z.number({ error: 'Enter a number of guests.' }).int().min(0).max(5).optional(),
     }),
     handler: async ({ activity_id, status, guests }, { locals }) => {
@@ -24,7 +25,20 @@ export const rsvps = {
         guests,
       });
       if (error) throw new ActionError(actionErrorFor(error));
-      return { activity_id, status, going_count };
+      if (status !== 'waitlisted') return { activity_id, status, going_count };
+
+      // Join waitlist is going when a spot opened meanwhile (RSVP-07).
+      const { data: saved } = await locals.supabase
+        .from('rsvps')
+        .select('status')
+        .eq('activity_id', activity_id)
+        .eq('user_id', locals.user.id)
+        .maybeSingle();
+      return {
+        activity_id,
+        status: saved?.status === 'going' ? ('going' as const) : status,
+        going_count,
+      };
     },
   }),
 
