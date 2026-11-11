@@ -36,6 +36,43 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
     code: 'CONFLICT',
     message: 'The teams are set, so ask an organizer to change your sign-up.',
   },
+  INVALID_TEAM: {
+    code: 'BAD_REQUEST',
+    message: 'Use a name of up to 40 characters and a colour.',
+  },
+  TEAM_NAME_TAKEN: { code: 'CONFLICT', message: 'A team in this season already has that name.' },
+  TEAM_NOT_FOUND: { code: 'NOT_FOUND', message: "This team isn't available." },
+  NOT_A_PLAYER: {
+    code: 'BAD_REQUEST',
+    message: "Only players can be on a team. Free agents aren't put on teams.",
+  },
+  REGISTRATION_NOT_FOUND: {
+    code: 'NOT_FOUND',
+    message: "This player hasn't signed up for the season.",
+  },
+  CAPTAIN_NOT_ON_TEAM: {
+    code: 'BAD_REQUEST',
+    message: 'The captain has to be a player on the team. Put them on it first.',
+  },
+  NOT_ENOUGH_TEAMS: {
+    code: 'BAD_REQUEST',
+    message: 'Make at least two teams before scheduling games.',
+  },
+  SCHEDULE_EXISTS: {
+    code: 'CONFLICT',
+    message: 'This season is already scheduled. Change its games one at a time.',
+  },
+  SCHEDULE_PAST_SEASON: {
+    code: 'BAD_REQUEST',
+    message: 'The games run past the end of the season. Start earlier or end the season later.',
+  },
+  INVALID_PLACE: { code: 'BAD_REQUEST', message: 'Give a place of up to 120 characters.' },
+  INVALID_WEEKDAY: { code: 'BAD_REQUEST', message: 'Pick a day of the week.' },
+  GAME_NOT_FOUND: { code: 'NOT_FOUND', message: "This game isn't available." },
+  NOT_A_GAME: {
+    code: 'BAD_REQUEST',
+    message: "This team has a bye, so there's no game to change.",
+  },
   SEASON_ALREADY_ACTIVE: {
     code: 'BAD_REQUEST',
     message: 'This league already has an active season. End it before starting another.',

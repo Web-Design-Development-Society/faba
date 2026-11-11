@@ -655,12 +655,73 @@ export type Database = {
           },
         ];
       };
+      league_games: {
+        Row: {
+          activity_id: string | null;
+          away_team_id: string | null;
+          created_at: string;
+          home_team_id: string;
+          id: string;
+          round: number;
+          season_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          activity_id?: string | null;
+          away_team_id?: string | null;
+          created_at?: string;
+          home_team_id: string;
+          id?: string;
+          round: number;
+          season_id: string;
+        };
+        Update: {
+          activity_id?: string | null;
+          away_team_id?: string | null;
+          created_at?: string;
+          home_team_id?: string;
+          id?: string;
+          round?: number;
+          season_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'league_games_activity_id_fkey';
+            columns: ['activity_id'];
+            isOneToOne: true;
+            referencedRelation: 'activities';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_games_away_team_id_fkey';
+            columns: ['away_team_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_teams';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_games_home_team_id_fkey';
+            columns: ['home_team_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_teams';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_games_season_id_fkey';
+            columns: ['season_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_seasons';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       league_registrations: {
         Row: {
           created_at: string;
           kind: string;
           note: string | null;
           season_id: string;
+          team_id: string | null;
           user_id: string;
         };
         ComputedFields: never;
@@ -669,6 +730,7 @@ export type Database = {
           kind: string;
           note?: string | null;
           season_id: string;
+          team_id?: string | null;
           user_id: string;
         };
         Update: {
@@ -676,6 +738,7 @@ export type Database = {
           kind?: string;
           note?: string | null;
           season_id?: string;
+          team_id?: string | null;
           user_id?: string;
         };
         Relationships: [
@@ -684,6 +747,13 @@ export type Database = {
             columns: ['season_id'];
             isOneToOne: false;
             referencedRelation: 'league_seasons';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_registrations_team_id_fkey';
+            columns: ['team_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_teams';
             referencedColumns: ['id'];
           },
           {
@@ -1142,6 +1212,10 @@ export type Database = {
       add_co_organizer: { Args: { activity_id: string; user_id: string }; Returns: undefined };
       announce_activity: { Args: { activity_id: string }; Returns: number };
       approve_group_member: { Args: { group_id: string; user_id: string }; Returns: undefined };
+      assign_player: {
+        Args: { season_id: string; team_id?: string; user_id: string };
+        Returns: undefined;
+      };
       attendee_names: { Args: { activity_id: string }; Returns: string[] };
       calendar_feed_events: {
         Args: { token_hash: string };
@@ -1230,6 +1304,7 @@ export type Database = {
         };
         Returns: string;
       };
+      create_team: { Args: { color: string; name: string; season_id: string }; Returns: string };
       delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
       dismiss_report: { Args: { reason: string; report_id: string }; Returns: undefined };
       get_feed: {
@@ -1368,6 +1443,16 @@ export type Database = {
       reset_calendar_feed: { Args: { token_hash: string }; Returns: undefined };
       restore_activity: { Args: { activity_id: string }; Returns: undefined };
       rsvp: { Args: { activity_id: string; guests?: number; status: string }; Returns: number };
+      schedule_round_robin: {
+        Args: {
+          first_day: string;
+          place: string;
+          season_id: string;
+          starts_time: string;
+          weekday: number;
+        };
+        Returns: number;
+      };
       search_activities: {
         Args: {
           after_id?: string;
@@ -1443,9 +1528,17 @@ export type Database = {
         Args: { activity_id: string; expected_version: number; patch: Json };
         Returns: undefined;
       };
+      update_game: {
+        Args: { day: string; game_id: string; place: string; starts_time: string };
+        Returns: undefined;
+      };
       update_series: {
         Args: { activity_id: string; expected_version: number; patch: Json; tag_ids?: string[] };
         Returns: number;
+      };
+      update_team: {
+        Args: { captain_id?: string; color: string; name: string; team_id: string };
+        Returns: undefined;
       };
       waitlist_position: { Args: { activity_id: string }; Returns: number };
       withdraw_from_season: { Args: { season_id: string }; Returns: undefined };

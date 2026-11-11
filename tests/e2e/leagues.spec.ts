@@ -51,3 +51,63 @@ test('a member signs up for a season, and withdraws', async ({ page, poster }) =
   await expect(page.getByRole('status')).toHaveText("You've withdrawn from this season.");
   await expect(page.getByRole('button', { name: 'Join season' })).toBeVisible();
 });
+
+test('an organizer makes a team and moves a player onto it', async ({ page, poster }) => {
+  // The poster fixture signs in a fresh account, with its own group quota.
+  void poster;
+  await page.goto('/leagues/new');
+  await page.getByLabel('League name').fill(`Trivia Night ${crypto.randomUUID().slice(0, 6)}`);
+  await page.getByLabel('Category').selectOption('games');
+  await page.getByRole('button', { name: 'Start league' }).click();
+  await expect(page).toHaveURL(/\/groups\/.+\/seasons$/);
+
+  await page.getByLabel('Season name').fill('Spring 2027');
+  await page.getByLabel('First day').fill('2027-03-01');
+  await page.getByLabel('Last day').fill('2027-05-31');
+  await page.getByRole('button', { name: 'Start season' }).click();
+  await expect(page.getByRole('status')).toHaveText('Season started.');
+
+  await page.getByRole('button', { name: 'Join season' }).click();
+  await expect(page.getByRole('status')).toHaveText("You're signed up for this season.");
+
+  await page.getByLabel('Team name').fill('Reds');
+  await page.getByRole('button', { name: 'Add team' }).click();
+  await expect(page.getByRole('status')).toHaveText('Team added.');
+  await expect(page.getByRole('heading', { name: 'Reds' })).toBeVisible();
+
+  await page.getByLabel('Team for').first().selectOption({ label: 'Reds' });
+  await page.getByRole('button', { name: 'Move' }).first().click();
+  await expect(page.getByRole('status')).toHaveText('Player moved.');
+  await expectAccessible(page);
+});
+
+test('an organizer makes the round robin for a season', async ({ page, poster }) => {
+  // The poster fixture signs in a fresh account, with its own group quota.
+  void poster;
+  await page.goto('/leagues/new');
+  await page.getByLabel('League name').fill(`Gym League ${crypto.randomUUID().slice(0, 6)}`);
+  await page.getByLabel('Category').selectOption('sports');
+  await page.getByRole('button', { name: 'Start league' }).click();
+  await expect(page).toHaveURL(/\/groups\/.+\/seasons$/);
+
+  await page.getByLabel('Season name').fill('Autumn 2027');
+  await page.getByLabel('First day').fill('2027-09-01');
+  await page.getByLabel('Last day').fill('2027-11-30');
+  await page.getByRole('button', { name: 'Start season' }).click();
+  await expect(page.getByRole('status')).toHaveText('Season started.');
+
+  await page.getByLabel('Team name').last().fill('Reds');
+  await page.getByRole('button', { name: 'Add team' }).click();
+  await expect(page.getByRole('status')).toHaveText('Team added.');
+  await page.getByLabel('Team name').last().fill('Blues');
+  await page.getByRole('button', { name: 'Add team' }).click();
+  await expect(page.getByRole('status')).toHaveText('Team added.');
+
+  await page.getByLabel('First game day').fill('2027-09-07');
+  await page.getByLabel('Place').fill('Main gym');
+  await page.getByRole('button', { name: 'Make the round robin' }).click();
+  await expect(page.getByRole('status')).toHaveText('Schedule made.');
+  await expect(page.getByRole('heading', { name: 'Round 1' })).toBeVisible();
+  await expect(page.getByRole('link', { name: /Reds vs Blues|Blues vs Reds/ })).toBeVisible();
+  await expectAccessible(page);
+});
