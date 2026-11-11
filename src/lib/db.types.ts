@@ -824,6 +824,40 @@ export type Database = {
           },
         ];
       };
+      series_subscriptions: {
+        Row: {
+          created_at: string;
+          series_id: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          series_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          series_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'series_subscriptions_series_id_fkey';
+            columns: ['series_id'];
+            isOneToOne: false;
+            referencedRelation: 'activity_series';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'series_subscriptions_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       tags: {
         Row: {
           created_at: string;
@@ -987,7 +1021,9 @@ export type Database = {
         }[];
       };
       join_group: { Args: { group_id: string }; Returns: string };
+      join_series: { Args: { activity_id: string }; Returns: number };
       leave_group: { Args: { group_id: string }; Returns: undefined };
+      leave_series: { Args: { activity_id: string }; Returns: number };
       mark_notifications_read: { Args: { ids?: string[] }; Returns: number };
       member_count: {
         Args: {

@@ -27,4 +27,33 @@ export const rsvps = {
       return { activity_id, status, going_count };
     },
   }),
+
+  /**
+   * I'm in for all upcoming (REC-04): going to every upcoming date of the series that activity
+   * `activity_id` is in, and to the dates it makes later. Returns how many dates were added.
+   */
+  joinSeries: defineAction({
+    accept: 'form',
+    input: z.object({ activity_id: z.uuid() }),
+    handler: async ({ activity_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { data: dates, error } = await locals.supabase.rpc('join_series', { activity_id });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { activity_id, dates };
+    },
+  }),
+
+  /** Leave series (REC-04), which takes the member out of its upcoming dates. */
+  leaveSeries: defineAction({
+    accept: 'form',
+    input: z.object({ activity_id: z.uuid() }),
+    handler: async ({ activity_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { data: dates, error } = await locals.supabase.rpc('leave_series', { activity_id });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { activity_id, dates };
+    },
+  }),
 };

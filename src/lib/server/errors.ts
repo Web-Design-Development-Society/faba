@@ -169,6 +169,7 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
     code: 'BAD_REQUEST',
     message: 'Pick a last date in the 12 months after the first.',
   },
+  SERIES_NOT_FOUND: { code: 'NOT_FOUND', message: "This activity isn't part of a series." },
   NOT_IN_SERIES: {
     code: 'CONFLICT',
     message: 'This date changes on its own now. Choose Just this date.',
