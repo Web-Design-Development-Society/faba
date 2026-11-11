@@ -1,5 +1,12 @@
 import { describe as group, expect, it } from 'vitest';
-import { badge, changeLine, describe, excerpt, TYPES } from '../../src/lib/notifications';
+import {
+  badge,
+  changeLine,
+  describe,
+  excerpt,
+  PREFERENCE_TYPES,
+  TYPES,
+} from '../../src/lib/notifications';
 
 group('describe', () => {
   it('has an icon and a line for each Phase 2 type', () => {
@@ -219,5 +226,15 @@ group('excerpt', () => {
 
   it('cuts one long word where it must', () => {
     expect(excerpt('x'.repeat(30), 10)).toBe(`${'x'.repeat(9)}…`);
+  });
+});
+
+group('preferences', () => {
+  it('lets a member turn every type off except cancellations', () => {
+    expect(PREFERENCE_TYPES).toEqual(
+      Object.keys(TYPES).filter((type) => type !== 'activity_cancelled')
+    );
+    expect(PREFERENCE_TYPES).not.toContain('activity_cancelled');
+    expect(PREFERENCE_TYPES).toContain('new_attendees');
   });
 });

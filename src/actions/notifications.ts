@@ -2,6 +2,7 @@
 // member's own notifications read (ADR-004).
 import { ActionError, defineAction } from 'astro:actions';
 import { z } from 'astro/zod';
+import { PREFERENCE_TYPES } from '../lib/notifications';
 import { actionErrorFor } from '../lib/server/errors';
 
 export const notifications = {
@@ -57,6 +58,23 @@ export const notifications = {
       const { data, error } = await locals.supabase.rpc('mark_notifications_read', {});
       if (error) throw new ActionError(actionErrorFor(error));
       return { marked: data };
+    },
+  }),
+
+  /**
+   * Saves which types the member wants (NOTIF-10). `on` lists the ones they keep. The rest are off,
+   * and cancellations are always on. Returns the types that are off.
+   */
+  savePreferences: defineAction({
+    accept: 'form',
+    input: z.object({ on: z.array(z.string()).max(PREFERENCE_TYPES.length).default([]) }),
+    handler: async ({ on }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const off = PREFERENCE_TYPES.filter((type) => !on.includes(type));
+      const { error } = await locals.supabase.rpc('set_notification_preferences', { off });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { off };
     },
   }),
 };
