@@ -165,6 +165,50 @@ export type Database = {
           },
         ];
       };
+      activity_co_organizers: {
+        Row: {
+          activity_id: string;
+          added_at: string;
+          added_by: string | null;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          activity_id: string;
+          added_at?: string;
+          added_by?: string | null;
+          user_id: string;
+        };
+        Update: {
+          activity_id?: string;
+          added_at?: string;
+          added_by?: string | null;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'activity_co_organizers_activity_id_fkey';
+            columns: ['activity_id'];
+            isOneToOne: false;
+            referencedRelation: 'activities';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'activity_co_organizers_added_by_fkey';
+            columns: ['added_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'activity_co_organizers_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       activity_mutes: {
         Row: {
           activity_id: string;
@@ -952,6 +996,7 @@ export type Database = {
         Args: { display_name: string; use_initials: boolean; version: number };
         Returns: undefined;
       };
+      add_co_organizer: { Args: { activity_id: string; user_id: string }; Returns: undefined };
       announce_activity: { Args: { activity_id: string }; Returns: number };
       approve_group_member: { Args: { group_id: string; user_id: string }; Returns: undefined };
       calendar_feed_events: {
@@ -1146,6 +1191,7 @@ export type Database = {
       };
       record_visit: { Args: Record<PropertyKey, never>; Returns: string };
       reinstate_member: { Args: { reason: string; user_id: string }; Returns: undefined };
+      remove_co_organizer: { Args: { activity_id: string; user_id: string }; Returns: undefined };
       remove_group_member: { Args: { group_id: string; user_id: string }; Returns: undefined };
       report_content: {
         Args: { note?: string; reason: string; target_id: string; target_type: string };
