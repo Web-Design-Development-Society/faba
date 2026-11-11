@@ -45,7 +45,7 @@ test('the organizer edits their activity, and its page says the time or place ch
   await page.getByRole('link', { name: 'Edit', exact: true }).click();
   await expect(page).toHaveURL(`/activities/${id}/edit`);
   await expect(page.getByLabel('What are you doing?')).toHaveValue('Sunrise hike up the R');
-  await expect(page.getByLabel('Date')).toHaveValue(tomorrow);
+  await expect(page.getByLabel('Date', { exact: true })).toHaveValue(tomorrow);
   await expect(page.getByLabel('Start time')).toHaveValue('07:00');
   await expect(page.getByLabel('Where?')).toHaveValue('R Mountain trailhead');
   await expect(page.getByRole('radio', { name: 'Outdoors' })).toBeChecked();
@@ -181,7 +181,7 @@ test.describe('without JavaScript', () => {
     await page.goto(`/activities/${id}/edit`);
     // Midnight today has always passed.
     await page.getByLabel('What are you doing?').fill('Sunset hike');
-    await page.getByLabel('Date').fill(rexburgDate(new Date()));
+    await page.getByLabel('Date', { exact: true }).fill(rexburgDate(new Date()));
     await page.getByLabel('Start time').fill('00:00');
     await page.getByRole('button', { name: 'Save' }).click();
 
@@ -189,7 +189,7 @@ test.describe('without JavaScript', () => {
     await expect(page.getByLabel('Start time')).toHaveAttribute('aria-invalid', 'true');
     await expect(page.getByLabel('What are you doing?')).toHaveValue('Sunset hike');
 
-    await page.getByLabel('Date').fill(tomorrow);
+    await page.getByLabel('Date', { exact: true }).fill(tomorrow);
     await page.getByLabel('Start time').fill('07:00');
     await page.getByRole('button', { name: 'Save' }).click();
     await expect(page.getByRole('status')).toHaveText('Saved.');
