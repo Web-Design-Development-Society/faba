@@ -79,8 +79,14 @@ begin
   on conflict on constraint league_game_availability_pkey do update
   set can_play = excluded.can_play, updated_at = excluded.updated_at;
 
-  -- The same answer is the RSVP, so the game is in the player's Plans.
-  perform public.rsvp(g.activity_id, case when set_game_availability.can_play then 'going' else 'not_going' end);
+  -- The same answer is the RSVP, so the game is in the player's Plans. An organizer posted the
+  -- game and is going already (RSVP-02), so rsvp() would refuse; they're left out of it.
+  if not exists (
+    select from public.activities as a
+    where a.id = g.activity_id and a.organizer_id = auth.uid()
+  ) then
+    perform public.rsvp(g.activity_id, case when set_game_availability.can_play then 'going' else 'not_going' end);
+  end if;
 end;
 $$;
 
