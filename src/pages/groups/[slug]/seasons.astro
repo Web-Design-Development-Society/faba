@@ -2,11 +2,13 @@
 // A league's seasons (LEAG-01): the active one, and the ones before. Its owner and organizers start
 // a season with dates, a format (teams or an individual ladder), team sizes, points for a win, tie
 // and loss, and whether registration is open. Only one season is active at a time, and the database
-// checks that. Members sign up for the active season as a player or a free agent (LEAG-02). It works
-// without JavaScript.
+// checks that. Members sign up for the active season as a player or a free agent (LEAG-02). Its
+// organizers make the teams and move players between them, and members see the rosters (LEAG-03).
+// It works without JavaScript.
 import { actions, isInputError } from 'astro:actions';
 import FieldError from '../../../components/FieldError.astro';
 import Status from '../../../components/Status.astro';
+import LeagueRoster from '../../../components/LeagueRoster.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { FLASH_MESSAGES, setFlash, takeFlash } from '../../../lib/server/flash';
 import { formatDate } from '../../../lib/time';
@@ -30,8 +32,21 @@ if (withdrew && !withdrew.error) {
   setFlash(Astro.cookies, Astro.url, 'season_withdrawn');
   return Astro.redirect(`/groups/${slug}/seasons`, 303);
 }
+const created = Astro.getActionResult(actions.leagues.createTeam);
+const saved = Astro.getActionResult(actions.leagues.updateTeam);
+const assigned = Astro.getActionResult(actions.leagues.assignPlayer);
+const teamDone = [
+  created && !created.error && 'team_created',
+  saved && !saved.error && 'team_saved',
+  assigned && !assigned.error && 'player_assigned',
+].find(Boolean);
+if (teamDone) {
+  setFlash(Astro.cookies, Astro.url, teamDone as 'team_created' | 'team_saved' | 'player_assigned');
+  return Astro.redirect(`/groups/${slug}/seasons`, 303);
+}
 const flash = takeFlash(Astro.cookies);
 const signupError = joined?.error ?? withdrew?.error;
+const teamError = created?.error ?? saved?.error ?? assigned?.error;
 // What was typed, after a failed start or sign-up. The Action read a copy of the request.
 const typed = started?.error || signupError ? await Astro.request.formData() : undefined;
 const value = (name: string) => typed?.get(name)?.toString() ?? '';
@@ -39,9 +54,13 @@ const fields: Record<string, string[] | undefined> = isInputError(started?.error
   ? started.error.fields
   : {};
 const failure = started?.error && !isInputError(started.error) ? started.error.message : null;
-const signupFailure = isInputError(signupError)
-  ? (Object.values(signupError.fields).flat().find(Boolean) ?? 'Check the sign-up.')
-  : (signupError?.message ?? null);
+// The first message a failed form gives: a field's, or the Action's.
+const messageFor = (error: typeof signupError) =>
+  isInputError(error)
+    ? (Object.values(error.fields).flat().find(Boolean) ?? 'Check the form.')
+    : (error?.message ?? null);
+const signupFailure = messageFor(signupError);
+const teamFailure = messageFor(teamError);
 
 const { data: group } = await supabase
   .from('groups')
@@ -72,8 +91,9 @@ const [{ data: mine }, { data: seasons }] = league
 const organizer = mine?.role === 'owner' || mine?.role === 'organizer';
 const active = seasons?.find((season) => season.active);
 const past = seasons?.filter((season) => !season.active) ?? [];
-// The member's own sign-up for the active season, and everyone's for organizers (LEAG-02).
-const [{ data: signup }, { data: signups }] =
+// The member's own sign-up for the active season, the season's sign-ups, and its teams (LEAG-02,
+// LEAG-03). The database shows the rosters to the league's members only.
+const [{ data: signup }, { data: signups }, { data: teams }] =
   league && active
     ? await Promise.all([
         supabase
@@ -84,11 +104,16 @@ const [{ data: signup }, { data: signups }] =
           .maybeSingle(),
         supabase
           .from('league_registrations')
-          .select('kind, note, profiles(display_name)')
+          .select('user_id, kind, note, team_id, profiles(display_name)')
+          .eq('season_id', active.id)
+          .order('created_at'),
+        supabase
+          .from('league_teams')
+          .select('id, name, color, captain_id')
           .eq('season_id', active.id)
           .order('created_at'),
       ])
-    : [{ data: null }, { data: [] }];
+    : [{ data: null }, { data: [] }, { data: [] }];
 const format = { teams: 'Teams', ladder: 'Individual ladder' } as const;
 const dates = (season: { starts_on: string; ends_on: string }) =>
   `${formatDate(season.starts_on)} to ${formatDate(season.ends_on)}`;
@@ -176,23 +201,16 @@ const sizes = (season: { format: string; team_min: number; team_max: number }) =
         </section>
       )}
 
-      {organizer && active && (
-        <section aria-labelledby="signed-up">
-          <h2 id="signed-up">Signed up for {active.name}</h2>
-          {signups && signups.length > 0 ? (
-            <ul>
-              {signups.map((entry) => (
-                <li>
-                  {entry.profiles?.display_name ?? 'A member'} ·{' '}
-                  {entry.kind === 'player' ? 'Player' : 'Free agent'}
-                  {entry.note && <> · {entry.note}</>}
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p>No one has signed up yet.</p>
-          )}
-        </section>
+      {active && league && (
+        <>
+          {teamFailure && <p role="alert">{teamFailure}</p>}
+          <LeagueRoster
+            seasonId={active.id}
+            organizer={organizer}
+            teams={teams ?? []}
+            signups={signups ?? []}
+          />
+        </>
       )}
 
       {past.length > 0 && (

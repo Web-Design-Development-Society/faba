@@ -661,6 +661,7 @@ export type Database = {
           kind: string;
           note: string | null;
           season_id: string;
+          team_id: string | null;
           user_id: string;
         };
         ComputedFields: never;
@@ -669,6 +670,7 @@ export type Database = {
           kind: string;
           note?: string | null;
           season_id: string;
+          team_id?: string | null;
           user_id: string;
         };
         Update: {
@@ -676,6 +678,7 @@ export type Database = {
           kind?: string;
           note?: string | null;
           season_id?: string;
+          team_id?: string | null;
           user_id?: string;
         };
         Relationships: [
@@ -684,6 +687,13 @@ export type Database = {
             columns: ['season_id'];
             isOneToOne: false;
             referencedRelation: 'league_seasons';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_registrations_team_id_fkey';
+            columns: ['team_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_teams';
             referencedColumns: ['id'];
           },
           {
@@ -1142,6 +1152,10 @@ export type Database = {
       add_co_organizer: { Args: { activity_id: string; user_id: string }; Returns: undefined };
       announce_activity: { Args: { activity_id: string }; Returns: number };
       approve_group_member: { Args: { group_id: string; user_id: string }; Returns: undefined };
+      assign_player: {
+        Args: { season_id: string; team_id?: string; user_id: string };
+        Returns: undefined;
+      };
       attendee_names: { Args: { activity_id: string }; Returns: string[] };
       calendar_feed_events: {
         Args: { token_hash: string };
@@ -1230,6 +1244,7 @@ export type Database = {
         };
         Returns: string;
       };
+      create_team: { Args: { color: string; name: string; season_id: string }; Returns: string };
       delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
       dismiss_report: { Args: { reason: string; report_id: string }; Returns: undefined };
       get_feed: {
@@ -1446,6 +1461,10 @@ export type Database = {
       update_series: {
         Args: { activity_id: string; expected_version: number; patch: Json; tag_ids?: string[] };
         Returns: number;
+      };
+      update_team: {
+        Args: { captain_id?: string; color: string; name: string; team_id: string };
+        Returns: undefined;
       };
       waitlist_position: { Args: { activity_id: string }; Returns: number };
       withdraw_from_season: { Args: { season_id: string }; Returns: undefined };

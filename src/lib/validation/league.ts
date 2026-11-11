@@ -36,6 +36,43 @@ export const newRegistration = z.object({
 /** Withdrawing from a season (LEAG-02). */
 export const withdrawal = z.object({ season_id: z.uuid({ error: 'Pick a season.' }) });
 
+const teamName = z
+  .string({ error: 'Name the team.' })
+  .trim()
+  .min(1, 'Name the team.')
+  .max(40, 'Use 40 characters or fewer for the name.');
+
+// A colour from a colour input, as #rrggbb.
+const colour = z.string({ error: 'Pick a colour.' }).regex(/^#[0-9a-fA-F]{6}$/, 'Pick a colour.');
+
+// A form leaves "no captain" or "no team" blank, which counts as none.
+const optionalId = z
+  .union([z.literal(''), z.uuid()])
+  .nullish()
+  .transform((id) => id || null);
+
+/** Making a team in a season (LEAG-03). */
+export const newTeam = z.object({
+  season_id: z.uuid({ error: 'Pick a season.' }),
+  name: teamName,
+  color: colour,
+});
+
+/** Renaming a team, changing its colour, or naming its captain (LEAG-03). */
+export const teamEdit = z.object({
+  team_id: z.uuid({ error: 'Pick a team.' }),
+  name: teamName,
+  color: colour,
+  captain_id: optionalId,
+});
+
+/** Putting a player on a team, moving them, or taking them off (LEAG-03). */
+export const assignment = z.object({
+  season_id: z.uuid({ error: 'Pick a season.' }),
+  user_id: z.uuid({ error: 'Pick a player.' }),
+  team_id: optionalId,
+});
+
 // A date from a date input, as YYYY-MM-DD.
 const day = z.iso.date({ error: 'Pick a date.' });
 
