@@ -44,6 +44,8 @@ export const groupTransfer = z.object({
     .string()
     .trim()
     .max(500, 'Use 500 characters or fewer for the reason.')
-    .optional()
+    // A form leaves the field out when the owner (not a moderator) doesn't render it, which
+    // Astro reads as null.
+    .nullish()
     .transform((reason) => reason || undefined),
 });

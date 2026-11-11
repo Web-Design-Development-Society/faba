@@ -153,6 +153,8 @@ document.addEventListener('submit', async (event) => {
     if (status !== was && (await save(id, status))) toast(SAVED[status]);
   } else if (await save(id, 'going')) {
     const button = control.querySelector<HTMLElement>(':scope > form button')!;
+    // Safari doesn't focus a button a tap pressed, so the focus moves to ✓ Going here.
+    button.focus();
     toast(SAVED.going, {
       label: 'Undo',
       run: async () => {

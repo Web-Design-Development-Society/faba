@@ -54,6 +54,17 @@ if (leaveSeries && !leaveSeries.error) {
   setFlash(Astro.cookies, Astro.url, 'left_series');
   return Astro.redirect(postedFrom(Astro.url), 303);
 }
+// Adding or removing a co-organizer, from the attendee list (ACT-10).
+const addCoOrganizer = Astro.getActionResult(actions.activities.addCoOrganizer);
+if (addCoOrganizer && !addCoOrganizer.error) {
+  setFlash(Astro.cookies, Astro.url, 'co_organizer_added');
+  return Astro.redirect(postedFrom(Astro.url), 303);
+}
+const removeCoOrganizer = Astro.getActionResult(actions.activities.removeCoOrganizer);
+if (removeCoOrganizer && !removeCoOrganizer.error) {
+  setFlash(Astro.cookies, Astro.url, 'co_organizer_removed');
+  return Astro.redirect(postedFrom(Astro.url), 303);
+}
 const unhide = Astro.getActionResult(actions.moderation.unhide);
 if (unhide && !unhide.error) {
   setFlash(Astro.cookies, Astro.url, 'unhidden');
@@ -99,6 +110,8 @@ if (unhideUpdate && !unhideUpdate.error) {
 const failed =
   joinSeries?.error ??
   leaveSeries?.error ??
+  addCoOrganizer?.error ??
+  removeCoOrganizer?.error ??
   unhide?.error ??
   transfer?.error ??
   cancel?.error ??
@@ -128,6 +141,7 @@ const [{ data: activity }, { data: me }] = await Promise.all([
       category:categories(name),
       tags:activity_tags(tag:tags(name, sort_order)),
       organizer:profiles!activities_organizer_id_fkey(id, display_name, avatar_url, use_initials, department, status),
+      co_organizers:activity_co_organizers(member:profiles!activity_co_organizers_user_id_fkey!inner(id, display_name, avatar_url, use_initials, department)),
       mine:rsvps(status, guest_count, mute:activity_mutes(muted_at)),
       going:rsvps(member:profiles!inner(id, display_name, avatar_url, use_initials, department)),
       maybe:rsvps(member:profiles!inner(id, display_name, avatar_url, use_initials, department)),
@@ -155,7 +169,9 @@ const [{ data: activity }, { data: me }] = await Promise.all([
 if (!activity) Astro.response.status = 404;
 
 const flash = takeFlash(Astro.cookies);
-const hosting = activity?.organizer_id === user.id;
+// Co-organizers (ACT-10) can edit and cancel too, so they host like the organizer does.
+const coOrganizers = activity?.co_organizers.map(({ member }) => member) ?? [];
+const hosting = activity?.organizer_id === user.id || coOrganizers.some(({ id }) => id === user.id);
 const answer = activity?.mine[0]?.status ?? null;
 const going = answer === 'going';
 // Whether the member joined its series (REC-04). RLS shows them only their own subscription.
@@ -198,6 +214,7 @@ const handover =
 const admin = member?.status === 'active' && member.role === 'admin';
 const boardAdmin = admin && hosting;
 const announceable =
+  !!activity &&
   boardAdmin &&
   activity.is_board_activity &&
   !activity.announced_at &&
@@ -211,6 +228,10 @@ const { count: announcedLately } = announceable
       .gt('announced_at', new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString())
   : { count: 0 };
 const people = activity?.going.map(({ member }) => member) ?? [];
+// Going members who can be made co-organizers (ACT-10): not the organizer, nor one already.
+const addable = people.filter(
+  ({ id }) => id !== activity?.organizer_id && !coOrganizers.some((c) => c.id === id)
+);
 const department = host?.department ? `· ${host.department}` : '';
 const url = new URL(Astro.url.pathname, Astro.url.origin).href;
 // Add to calendar (ACT-08), until it's cancelled or over. The .ics has the details for attendees
@@ -466,6 +487,44 @@ const email = activity
             <h3>Maybe</h3>
             <GoingList activityId={`${activity.id}-maybe`} organizerId={null} people={maybes} />
           </>
+        )}
+        {hosting && activity.status === 'published' && (
+          <section class="co-organizers">
+            <h3>Co-organizers</h3>
+            {coOrganizers.length === 0 ? (
+              <p>No co-organizers yet. Up to 3 can edit and cancel this activity.</p>
+            ) : (
+              <ul>
+                {coOrganizers.map((co) => (
+                  <li>
+                    {co.display_name}{' '}
+                    <form method="post" action={actions.activities.removeCoOrganizer.queryString}>
+                      <input type="hidden" name="activity_id" value={activity.id} />
+                      <input type="hidden" name="user_id" value={co.id} />
+                      <button>Remove {co.display_name}</button>
+                    </form>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {coOrganizers.length < 3 && addable.length > 0 && (
+              <>
+                <h4>Make a co-organizer</h4>
+                <ul>
+                  {addable.map((member) => (
+                    <li>
+                      {member.display_name}{' '}
+                      <form method="post" action={actions.activities.addCoOrganizer.queryString}>
+                        <input type="hidden" name="activity_id" value={activity.id} />
+                        <input type="hidden" name="user_id" value={member.id} />
+                        <button>Make {member.display_name} a co-organizer</button>
+                      </form>
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </section>
         )}
       </Sheet>
       {host?.status === 'active' ? (
