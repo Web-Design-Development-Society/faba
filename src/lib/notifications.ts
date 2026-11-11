@@ -20,6 +20,7 @@ export const TYPES: Record<string, { icon: string; summary: string }> = {
   group_owner: { icon: '🔑', summary: 'You own this group now' },
   rsvp_promoted: { icon: '🎉', summary: "A spot opened, and you're going" },
   rsvp_removed: { icon: '↩', summary: 'Taken off the list' },
+  sub_needed: { icon: '🔁', summary: 'A sub is needed' },
 };
 
 /** An activity's time and place, as an activity_changed payload has them before and after. */
@@ -83,6 +84,7 @@ export function describe(
     reason,
     series,
     starts_at,
+    team,
   } = (payload ?? {}) as {
     before?: Snapshot;
     after?: Snapshot;
@@ -93,6 +95,7 @@ export function describe(
     reason?: string | null;
     series?: boolean;
     starts_at?: string;
+    team?: string;
   };
   const summary = (() => {
     switch (type) {
@@ -129,6 +132,11 @@ export function describe(
       // RSVP-09: the organizer took them off the list. They can say "I'm in" again.
       case 'rsvp_removed':
         return "The organizer took you off the list. You can say I'm in again.";
+      // LEAG-06: a captain needs a sub for a game, and the free agents of the season hear about it.
+      case 'sub_needed':
+        return typeof team === 'string' && team
+          ? `A sub is needed for ${team}. Free agents can accept it.`
+          : 'A team needs a sub for a game. Free agents can accept it.';
       // NOTIF-06: "3 new people are going", for the organizer.
       case 'new_attendees':
         if (typeof count !== 'number' || count < 1) return '';

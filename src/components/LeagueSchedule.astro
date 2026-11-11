@@ -25,19 +25,42 @@ interface Game {
   activity: { id: string; starts_at: string; location_name: string } | null;
 }
 
+interface SubRequest {
+  id: string;
+  game_id: string;
+  team_id: string;
+}
+
+interface Sub {
+  game_id: string;
+  team_id: string;
+  user_id: string;
+}
+
 interface Props {
   seasonId: string;
   organizer: boolean;
   me: string;
+  freeAgent: boolean;
   teams: Team[];
   games: Game[];
+  subRequests: SubRequest[];
+  subs: Sub[];
+  names: Record<string, string>;
 }
 
-const { seasonId, organizer, me, teams, games } = Astro.props;
+const { seasonId, organizer, me, freeAgent, teams, games, subRequests, subs, names } = Astro.props;
 const zone = 'America/Boise';
 const teamOf = (id: string | null) => teams.find((team) => team.id === id);
 const nameOf = (id: string | null) => teamOf(id)?.name ?? 'A team';
 const captains = (teamId: string | null) => teamOf(teamId)?.captain_id === me;
+// The team this member captains in a game, if any.
+const myTeamOf = (game: Game) =>
+  captains(game.home_team_id)
+    ? game.home_team_id
+    : captains(game.away_team_id)
+      ? game.away_team_id
+      : null;
 const rounds = [...new Set(games.map((game) => game.round))].sort((a, b) => a - b);
 const weekdays = [
   [1, 'Monday'],
@@ -127,6 +150,38 @@ const locked = (game: Game) => game.status === 'confirmed' || game.status === 'f
                   {' · '}
                   {when(game.activity.starts_at)} · {game.activity.location_name}
                   {line && <p class="score">{line}</p>}
+                  {game.status === 'scheduled' &&
+                    myTeamOf(game) &&
+                    !subRequests.some(
+                      (request) => request.game_id === game.id && request.team_id === myTeamOf(game)
+                    ) && (
+                      <div class="row">
+                        <form method="post" action={actions.leagues.requestSub.queryString}>
+                          <input type="hidden" name="game_id" value={game.id} />
+                          <button>Need a sub</button>
+                        </form>
+                      </div>
+                    )}
+                  {subRequests
+                    .filter((request) => request.game_id === game.id)
+                    .map((request) => (
+                      <div class="row">
+                        <span>A sub is needed for {nameOf(request.team_id)}.</span>
+                        {freeAgent && (
+                          <form method="post" action={actions.leagues.acceptSub.queryString}>
+                            <input type="hidden" name="request_id" value={request.id} />
+                            <button>Take the spot</button>
+                          </form>
+                        )}
+                      </div>
+                    ))}
+                  {subs
+                    .filter((sub) => sub.game_id === game.id)
+                    .map((sub) => (
+                      <p class="sub">
+                        Sub: {names[sub.user_id] ?? 'A free agent'} for {nameOf(sub.team_id)}
+                      </p>
+                    ))}
                   {playing && !locked(game) && (
                     <form
                       method="post"

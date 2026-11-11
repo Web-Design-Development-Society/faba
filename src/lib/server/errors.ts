@@ -89,6 +89,25 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
   },
   NOT_IN_GAME: { code: 'BAD_REQUEST', message: 'Pick one of the two teams in this game.' },
   REASON_REQUIRED: { code: 'BAD_REQUEST', message: 'Give a reason. It goes to the audit log.' },
+  SUB_RATE_LIMITED: {
+    code: 'TOO_MANY_REQUESTS',
+    message: 'A sub was asked for this game in the last hour. Try again later.',
+  },
+  SUB_ALREADY_REQUESTED: {
+    code: 'CONFLICT',
+    message: 'Your team already has a sub request open for this game.',
+  },
+  GAME_STARTED: { code: 'CONFLICT', message: 'This game has started, so it has no sub spots.' },
+  SUB_FILLED: { code: 'CONFLICT', message: 'Someone has already taken this sub spot.' },
+  SUB_REQUEST_NOT_FOUND: { code: 'NOT_FOUND', message: "This sub request isn't available." },
+  NOT_FREE_AGENT: {
+    code: 'FORBIDDEN',
+    message: 'Only free agents who signed up for this season can take a sub spot.',
+  },
+  ALREADY_PLAYING: {
+    code: 'CONFLICT',
+    message: "You're already playing in this game, so you can't sub in it.",
+  },
   SEASON_ALREADY_ACTIVE: {
     code: 'BAD_REQUEST',
     message: 'This league already has an active season. End it before starting another.',

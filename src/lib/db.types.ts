@@ -655,6 +655,60 @@ export type Database = {
           },
         ];
       };
+      league_game_subs: {
+        Row: {
+          created_at: string;
+          game_id: string;
+          request_id: string | null;
+          team_id: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          game_id: string;
+          request_id?: string | null;
+          team_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          game_id?: string;
+          request_id?: string | null;
+          team_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'league_game_subs_game_id_fkey';
+            columns: ['game_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_games';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_game_subs_request_id_fkey';
+            columns: ['request_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_sub_requests';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_game_subs_team_id_fkey';
+            columns: ['team_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_teams';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_game_subs_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       league_games: {
         Row: {
           activity_id: string | null;
@@ -870,6 +924,76 @@ export type Database = {
             columns: ['group_id'];
             isOneToOne: false;
             referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      league_sub_requests: {
+        Row: {
+          created_at: string;
+          filled_at: string | null;
+          filled_by: string | null;
+          game_id: string;
+          id: string;
+          requested_by: string | null;
+          season_id: string;
+          team_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          filled_at?: string | null;
+          filled_by?: string | null;
+          game_id: string;
+          id?: string;
+          requested_by?: string | null;
+          season_id: string;
+          team_id: string;
+        };
+        Update: {
+          created_at?: string;
+          filled_at?: string | null;
+          filled_by?: string | null;
+          game_id?: string;
+          id?: string;
+          requested_by?: string | null;
+          season_id?: string;
+          team_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'league_sub_requests_filled_by_fkey';
+            columns: ['filled_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_sub_requests_game_id_fkey';
+            columns: ['game_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_games';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_sub_requests_requested_by_fkey';
+            columns: ['requested_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_sub_requests_season_id_fkey';
+            columns: ['season_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_seasons';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_sub_requests_team_id_fkey';
+            columns: ['team_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_teams';
             referencedColumns: ['id'];
           },
         ];
@@ -1258,6 +1382,7 @@ export type Database = {
         Args: { display_name: string; use_initials: boolean; version: number };
         Returns: undefined;
       };
+      accept_sub: { Args: { request_id: string }; Returns: undefined };
       add_co_organizer: { Args: { activity_id: string; user_id: string }; Returns: undefined };
       announce_activity: { Args: { activity_id: string }; Returns: number };
       approve_group_member: { Args: { group_id: string; user_id: string }; Returns: undefined };
@@ -1499,6 +1624,7 @@ export type Database = {
         Args: { away_score: number; game_id: string; home_score: number };
         Returns: undefined;
       };
+      request_sub: { Args: { game_id: string }; Returns: string };
       reset_calendar_feed: { Args: { token_hash: string }; Returns: undefined };
       restore_activity: { Args: { activity_id: string }; Returns: undefined };
       rsvp: { Args: { activity_id: string; guests?: number; status: string }; Returns: number };
