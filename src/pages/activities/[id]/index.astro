@@ -483,10 +483,6 @@ const email = activity
         </button>
       </p>
       <Sheet id="going" title="Who's going">
-        <p>
-          {activity.going_count} going · {activity.guest_total}{' '}
-          {activity.guest_total === 1 ? 'guest' : 'guests'}
-        </p>
         <GoingList
           activityId={activity.id}
           organizerId={activity.organizer_id}
