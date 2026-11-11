@@ -321,9 +321,10 @@ SELECT results_eq(
   $$
     select public.update_series(
       monthly,
+      -- A minute later on the same day, so the series keeps its day even just before midnight.
       jsonb_build_object(
-        'starts_at', now() + interval '1 day 1 minute',
-        'ends_at', now() + interval '1 day 1 hour'
+        'starts_at', (SELECT a.starts_at FROM public.activities AS a WHERE a.id = monthly) + interval '1 minute',
+        'ends_at', (SELECT a.ends_at FROM public.activities AS a WHERE a.id = monthly) + interval '1 minute'
       ),
       1,
       '{free}'
