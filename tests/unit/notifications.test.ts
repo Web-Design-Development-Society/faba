@@ -1,5 +1,12 @@
 import { describe as group, expect, it } from 'vitest';
-import { badge, changeLine, describe, excerpt, TYPES } from '../../src/lib/notifications';
+import {
+  badge,
+  changeLine,
+  describe,
+  excerpt,
+  PREFERENCE_TYPES,
+  TYPES,
+} from '../../src/lib/notifications';
 
 group('describe', () => {
   it('has an icon and a line for each Phase 2 type', () => {
@@ -18,6 +25,8 @@ group('describe', () => {
       'group_owner',
       'rsvp_promoted',
       'rsvp_removed',
+      'new_activity',
+      'report_received',
     ]);
     expect(describe('activity_cancelled')).toEqual({ icon: '✕', summary: 'Cancelled' });
   });
@@ -219,5 +228,36 @@ group('excerpt', () => {
 
   it('cuts one long word where it must', () => {
     expect(excerpt('x'.repeat(30), 10)).toBe(`${'x'.repeat(9)}…`);
+  });
+});
+
+group('reports for moderators', () => {
+  it('says what kind of thing was reported', () => {
+    expect(describe('report_received', { kind: 'group' }).summary).toBe('New report: group');
+    expect(describe('report_received', { kind: 'profile' }).summary).toBe('New report: member');
+    expect(describe('report_received').summary).toBe('New report to review');
+  });
+});
+
+group('new activities I follow', () => {
+  it('says how many new activities a follow has, by name', () => {
+    expect(describe('new_activity', { name: 'Outdoors', count: 2 })).toEqual({
+      icon: '✨',
+      summary: '2 new Outdoors activities',
+    });
+    expect(describe('new_activity', { name: 'Hikers', count: 1 }).summary).toBe(
+      'A new Hikers activity'
+    );
+    expect(describe('new_activity', { count: 2 }).summary).toBe('New activities I follow');
+  });
+});
+
+group('preferences', () => {
+  it('lets a member turn every type off except cancellations', () => {
+    expect(PREFERENCE_TYPES).toEqual(
+      Object.keys(TYPES).filter((type) => type !== 'activity_cancelled')
+    );
+    expect(PREFERENCE_TYPES).not.toContain('activity_cancelled');
+    expect(PREFERENCE_TYPES).toContain('new_attendees');
   });
 });
