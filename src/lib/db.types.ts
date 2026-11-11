@@ -461,6 +461,60 @@ export type Database = {
           },
         ];
       };
+      calendar_feed_requests: {
+        Row: {
+          hour: string;
+          requests: number;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          hour: string;
+          requests?: number;
+          user_id: string;
+        };
+        Update: {
+          hour?: string;
+          requests?: number;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'calendar_feed_requests_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      calendar_feeds: {
+        Row: {
+          created_at: string;
+          token_hash: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          token_hash: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          token_hash?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'calendar_feeds_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       categories: {
         Row: {
           color_token: string;
@@ -945,6 +999,19 @@ export type Database = {
       add_co_organizer: { Args: { activity_id: string; user_id: string }; Returns: undefined };
       announce_activity: { Args: { activity_id: string }; Returns: number };
       approve_group_member: { Args: { group_id: string; user_id: string }; Returns: undefined };
+      calendar_feed_events: {
+        Args: { token_hash: string };
+        Returns: {
+          description: string;
+          ends_at: string;
+          id: string;
+          location_name: string;
+          starts_at: string;
+          status: string;
+          title: string;
+          version: number;
+        }[];
+      };
       cancel_activity: { Args: { activity_id: string; reason?: string }; Returns: undefined };
       create_activity: {
         Args: {
@@ -1130,6 +1197,7 @@ export type Database = {
         Args: { note?: string; reason: string; target_id: string; target_type: string };
         Returns: string;
       };
+      reset_calendar_feed: { Args: { token_hash: string }; Returns: undefined };
       restore_activity: { Args: { activity_id: string }; Returns: undefined };
       rsvp: { Args: { activity_id: string; guests?: number; status: string }; Returns: number };
       search_activities: {
