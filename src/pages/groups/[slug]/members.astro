@@ -1,0 +1,252 @@
+---
+// A group's members (GRP-05), from the member count on its page. Its members and moderators can see
+// who's in it: its owner, then its organizers, then everyone else. Its organizers also see who's
+// asking to join, and approve or decline each, and remove members. Its owner also makes members
+// organizers and back, removes organizers, and hands the group on, as a moderator can. Postgres
+// checks every rule again. It all works without JavaScript.
+import { actions } from 'astro:actions';
+import Status from '../../../components/Status.astro';
+import Layout from '../../../layouts/Layout.astro';
+import { type Flash, FLASH_MESSAGES, setFlash, takeFlash } from '../../../lib/server/flash';
+
+const { supabase, user, member } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+const { slug } = Astro.params;
+const here = `/groups/${slug}/members`;
+
+const approve = Astro.getActionResult(actions.groups.approve);
+const remove = Astro.getActionResult(actions.groups.remove);
+const setRole = Astro.getActionResult(actions.groups.setRole);
+const done: Flash | null =
+  approve && !approve.error
+    ? 'approved'
+    : remove && !remove.error
+      ? remove.data.pending
+        ? 'declined'
+        : 'removed'
+      : setRole && !setRole.error
+        ? setRole.data.role === 'organizer'
+          ? 'made_organizer'
+          : 'made_member'
+        : null;
+if (done) {
+  setFlash(Astro.cookies, Astro.url, done);
+  return Astro.redirect(here, 303);
+}
+const failure = (approve?.error ?? remove?.error ?? setRole?.error)?.message;
+const flash = takeFlash(Astro.cookies);
+
+const { data: group } = await supabase
+  .from('groups')
+  .select('id, slug, name, archived_at, owner_id')
+  .eq('slug', slug!)
+  .maybeSingle();
+if (!group) Astro.response.status = 404;
+
+// RLS lets its active members and moderators read them all, and anyone else only their own.
+const { data: rows } = group
+  ? await supabase
+      .from('group_members')
+      .select(
+        'user_id, role, status, profile:profiles!group_members_user_id_fkey(id, display_name, status)'
+      )
+      .eq('group_id', group.id)
+  : { data: null };
+const people = (rows ?? [])
+  .filter(({ profile }) => profile?.status === 'active')
+  .map(({ user_id, role, status, profile }) => ({
+    id: user_id,
+    name: profile!.display_name,
+    role,
+    status,
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name));
+const mine = people.find(({ id }) => id === user.id);
+const myRole = mine?.status === 'active' ? mine.role : null;
+const moderator =
+  member?.status === 'active' && (member.role === 'moderator' || member.role === 'admin');
+const owner = myRole === 'owner';
+const organizer = owner || myRole === 'organizer';
+const allowed = !!myRole || moderator;
+if (group && !allowed) Astro.response.status = 403;
+
+const requests = people.filter(({ status }) => status === 'pending');
+const active = people.filter(({ status }) => status === 'active');
+const leaders = [
+  ...active.filter(({ role }) => role === 'owner'),
+  ...active.filter(({ role }) => role === 'organizer'),
+];
+const everyone = active.filter(({ role }) => role === 'member');
+---
+
+<Layout title={group ? `Members of ${group.name}` : 'Not available'} tab="discover">
+  {!group ? (
+    <>
+      <h1>Not available</h1>
+      <p>This group isn't available. It may have been removed, or the link may be wrong.</p>
+    </>
+  ) : (
+    <>
+      <a href={`/groups/${group.slug}`}>Back to {group.name}</a>
+      <h1>Members</h1>
+      <Status message={flash && FLASH_MESSAGES[flash]} />
+      {failure && <p role="alert">{failure}</p>}
+      {!allowed ? (
+        <p>Only the group's members can see who's in it.</p>
+      ) : (
+        <>
+          {organizer && requests.length > 0 && (
+            <section aria-labelledby="requests">
+              <h2 id="requests">Asking to join</h2>
+              <ul>
+                {requests.map((person) => (
+                  <li>
+                    <a href={`/people/${person.id}`}>{person.name}</a>
+                    <div class="actions">
+                      {!group.archived_at && (
+                        <form method="post" action={actions.groups.approve.queryString}>
+                          <input type="hidden" name="group_id" value={group.id} />
+                          <input type="hidden" name="user_id" value={person.id} />
+                          <button class="primary" aria-label={`Approve ${person.name}`}>
+                            Approve
+                          </button>
+                        </form>
+                      )}
+                      <form method="post" action={actions.groups.remove.queryString}>
+                        <input type="hidden" name="group_id" value={group.id} />
+                        <input type="hidden" name="user_id" value={person.id} />
+                        <input type="hidden" name="pending" value="true" />
+                        <button aria-label={`Decline ${person.name}`}>Decline</button>
+                      </form>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          <section aria-labelledby="organizers">
+            <h2 id="organizers">Organizers</h2>
+            <ul>
+              {leaders.map((person) => (
+                <li>
+                  <span>
+                    <a href={`/people/${person.id}`}>{person.name}</a>
+                    {person.role === 'owner' && <span class="role"> · Owner</span>}
+                    {person.id === user.id && <span class="role"> · You</span>}
+                  </span>
+                  {owner && person.role === 'organizer' && (
+                    <div class="actions">
+                      <form method="post" action={actions.groups.setRole.queryString}>
+                        <input type="hidden" name="group_id" value={group.id} />
+                        <input type="hidden" name="user_id" value={person.id} />
+                        <input type="hidden" name="role" value="member" />
+                        <button aria-label={`Make ${person.name} a member`}>Make member</button>
+                      </form>
+                      <form method="post" action={actions.groups.remove.queryString}>
+                        <input type="hidden" name="group_id" value={group.id} />
+                        <input type="hidden" name="user_id" value={person.id} />
+                        <button aria-label={`Remove ${person.name}`}>Remove</button>
+                      </form>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+            {leaders.every(({ role }) => role !== 'owner') && (
+              <p>This group has no owner right now. A moderator can hand it on.</p>
+            )}
+          </section>
+          <section aria-labelledby="members">
+            <h2 id="members">Members</h2>
+            {everyone.length === 0 ? (
+              <p>Nobody else has joined yet.</p>
+            ) : (
+              <ul>
+                {everyone.map((person) => (
+                  <li>
+                    <span>
+                      <a href={`/people/${person.id}`}>{person.name}</a>
+                      {person.id === user.id && <span class="role"> · You</span>}
+                    </span>
+                    {organizer && person.id !== user.id && (
+                      <div class="actions">
+                        {owner && (
+                          <form method="post" action={actions.groups.setRole.queryString}>
+                            <input type="hidden" name="group_id" value={group.id} />
+                            <input type="hidden" name="user_id" value={person.id} />
+                            <input type="hidden" name="role" value="organizer" />
+                            <button aria-label={`Make ${person.name} an organizer`}>
+                              Make organizer
+                            </button>
+                          </form>
+                        )}
+                        <form method="post" action={actions.groups.remove.queryString}>
+                          <input type="hidden" name="group_id" value={group.id} />
+                          <input type="hidden" name="user_id" value={person.id} />
+                          <button aria-label={`Remove ${person.name}`}>Remove</button>
+                        </form>
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </section>
+          {(owner || moderator) && (
+            <p>
+              <a class="hand-on" href={`/groups/${group.slug}/owner`}>
+                Hand on this group
+              </a>
+            </p>
+          )}
+        </>
+      )}
+    </>
+  )}
+</Layout>
+
+<style>
+  h2 {
+    font-size: 1rem;
+  }
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid #767676;
+  }
+  li > span > a {
+    display: inline-block;
+    padding: 0.25rem 0;
+  }
+  .role {
+    font-size: 0.875rem;
+    color: #595959;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .actions button {
+    min-height: 44px;
+    padding: 0 0.75rem;
+  }
+  .primary {
+    font-weight: 600;
+  }
+  .hand-on {
+    display: inline-grid;
+    place-items: center;
+    min-height: 44px;
+  }
+</style>

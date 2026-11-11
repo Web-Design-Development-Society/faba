@@ -4,7 +4,9 @@
 // Join, Request to join, Withdraw request and Leave group (GRP-02) work without JavaScript. Its
 // upcoming activities follow, and its organizers have Post an activity (GRP-03). RLS leaves out the
 // members-only ones for anyone outside the group. Its updates come last, newest first, for its
-// members, and its organizers have Post update (GRP-04). Each can be reported.
+// members, and its organizers have Post update (GRP-04). Each can be reported. Its members and
+// moderators open who's in it from the member count, and its organizers see how many are asking to
+// join (GRP-05).
 import { actions } from 'astro:actions';
 import ActivityCard from '../../../components/ActivityCard.astro';
 import Status from '../../../components/Status.astro';
@@ -14,7 +16,7 @@ import { linkify } from '../../../lib/links';
 import { FLASH_MESSAGES, setFlash, takeFlash } from '../../../lib/server/flash';
 import { formatAgo } from '../../../lib/time';
 
-const { supabase, user } = Astro.locals;
+const { supabase, user, member } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
 
 const join = Astro.getActionResult(actions.groups.join);
@@ -75,6 +77,16 @@ const [{ data: activities }, { data: me }, { data: updates }] = group
     ])
   : [{ data: null }, { data: null }, { data: null }];
 const organizer = me?.role === 'owner' || me?.role === 'organizer';
+const moderator =
+  member?.status === 'active' && (member.role === 'moderator' || member.role === 'admin');
+const { count: asking } =
+  group && organizer
+    ? await supabase
+        .from('group_members')
+        .select('user_id', { count: 'exact', head: true })
+        .eq('group_id', group.id)
+        .eq('status', 'pending')
+    : { count: 0 };
 const mine = group?.owner_id === user.id;
 const membership = group?.my_membership ?? null;
 const members = group?.member_count ?? 0;
@@ -91,8 +103,22 @@ const members = group?.member_count ?? 0;
       {group.category && <p class="category">{group.category.name}</p>}
       <h1>{group.name}</h1>
       <p>
-        {members} {members === 1 ? 'member' : 'members'} ·{' '}
-        {group.join_policy === 'open' ? 'Anyone can join' : 'Ask to join'}
+        {me || moderator ? (
+          <a href={`/groups/${group.slug}/members`}>
+            {members} {members === 1 ? 'member' : 'members'}
+          </a>
+        ) : (
+          <>
+            {members} {members === 1 ? 'member' : 'members'}
+          </>
+        )}{' '}
+        · {group.join_policy === 'open' ? 'Anyone can join' : 'Ask to join'}
+        {!!asking && (
+          <>
+            {' · '}
+            <a href={`/groups/${group.slug}/members`}>{asking} asking to join</a>
+          </>
+        )}
       </p>
       <p>
         {mine ? (

@@ -1,9 +1,9 @@
-// Group Actions (GRP-01, GRP-02, GRP-04). Each checks who's signed in, and Postgres checks every rule again
+// Group Actions (GRP-01, GRP-02, GRP-04, GRP-05). Each checks who's signed in, and Postgres checks every rule again
 // (ADR-004).
 import { ActionError, defineAction } from 'astro:actions';
 import { z } from 'astro/zod';
 import { actionErrorFor } from '../lib/server/errors';
-import { newGroup } from '../lib/validation/group';
+import { groupMember, groupRole, groupTransfer, newGroup } from '../lib/validation/group';
 import { newGroupUpdate } from '../lib/validation/update';
 
 export const groups = {
@@ -66,6 +66,64 @@ export const groups = {
       const { error } = await locals.supabase.rpc('leave_group', { group_id });
       if (error) throw new ActionError(actionErrorFor(error));
       return { pending: !!pending };
+    },
+  }),
+
+  /** Approving a request to join (GRP-05). The member hears they're in. */
+  approve: defineAction({
+    accept: 'form',
+    input: groupMember,
+    handler: async (member, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('approve_group_member', member);
+      if (error) throw new ActionError(actionErrorFor(error));
+      return {};
+    },
+  }),
+
+  /**
+   * Removing a member, or declining a request to join, quietly (GRP-05). Returns whether it was a
+   * request.
+   */
+  remove: defineAction({
+    accept: 'form',
+    input: groupMember.extend({ pending: z.boolean().optional() }),
+    handler: async ({ group_id, user_id, pending }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('remove_group_member', { group_id, user_id });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { pending: !!pending };
+    },
+  }),
+
+  /** Making a member an organizer, or a member again, which only the owner can (GRP-05). */
+  setRole: defineAction({
+    accept: 'form',
+    input: groupRole,
+    handler: async (change, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('set_group_role', change);
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { role: change.role };
+    },
+  }),
+
+  /**
+   * Handing a group on to one of its members, by its owner or a moderator (GRP-05). The new owner
+   * hears it's theirs.
+   */
+  transfer: defineAction({
+    accept: 'form',
+    input: groupTransfer,
+    handler: async (transfer, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('transfer_group', transfer);
+      if (error) throw new ActionError(actionErrorFor(error));
+      return {};
     },
   }),
 };

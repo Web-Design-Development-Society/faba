@@ -123,9 +123,17 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
   },
   OWNER_CANNOT_LEAVE: {
     code: 'CONFLICT',
-    message:
-      "You own this group, so you can't leave it yet. Hand it on to another organizer first.",
+    message: "You own this group, so you can't leave it yet. Hand it on to another member first.",
   },
+  NOT_GROUP_OWNER: {
+    code: 'FORBIDDEN',
+    message: "Only the group's owner can do that.",
+  },
+  CANNOT_MANAGE_OWNER: {
+    code: 'CONFLICT',
+    message: "The group's owner stays its owner until they hand it on.",
+  },
+  INVALID_GROUP_ROLE: { code: 'BAD_REQUEST', message: 'Choose a role.' },
   GROUP_QUOTA_EXCEEDED: {
     code: 'TOO_MANY_REQUESTS',
     message: 'You can start up to 3 groups a month. Try again later.',

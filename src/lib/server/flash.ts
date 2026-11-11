@@ -32,6 +32,12 @@ export const FLASH_MESSAGES = {
   requested: "Request sent. You're in once an organizer approves it.",
   left: 'You left the group.',
   withdrawn: 'Request withdrawn.',
+  approved: "Approved. They're in the group.",
+  declined: 'Request declined.',
+  removed: 'Removed from the group.',
+  made_organizer: "They're an organizer now.",
+  made_member: "They're a member now.",
+  group_handed_on: 'New owner set.',
 };
 
 export type Flash = keyof typeof FLASH_MESSAGES;
