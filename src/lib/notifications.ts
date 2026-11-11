@@ -21,6 +21,19 @@ export const TYPES: Record<string, { icon: string; summary: string }> = {
   rsvp_promoted: { icon: '🎉', summary: "A spot opened, and you're going" },
   rsvp_removed: { icon: '↩', summary: 'Taken off the list' },
   sub_needed: { icon: '🔁', summary: 'A sub is needed' },
+  new_activity: { icon: '✨', summary: 'New activities I follow' },
+  report_received: { icon: '🚩', summary: 'New report to review' },
+};
+
+/** The types a member can turn off under Me → Notifications (NOTIF-10). Cancellations always come. */
+export const PREFERENCE_TYPES = Object.keys(TYPES).filter((type) => type !== 'activity_cancelled');
+
+/** What a report is about, as the moderators' line names it (MOD-08). */
+const REPORTED: Record<string, string> = {
+  activity: 'activity',
+  profile: 'member',
+  activity_update: 'update',
+  group: 'group',
 };
 
 /** An activity's time and place, as an activity_changed payload has them before and after. */
@@ -81,6 +94,8 @@ export function describe(
     details_changed,
     location_name,
     member,
+    kind,
+    name,
     reason,
     series,
     starts_at,
@@ -92,6 +107,8 @@ export function describe(
     details_changed?: boolean;
     location_name?: string;
     member?: string;
+    kind?: string;
+    name?: string;
     reason?: string | null;
     series?: boolean;
     starts_at?: string;
@@ -151,6 +168,13 @@ export function describe(
             : formatWhen(start);
         return `Reminder: ${[when, location_name].filter(Boolean).join(', ')}`;
       }
+      // NOTIF-09: "2 new Outdoors activities", once a day for each category or group followed.
+      case 'new_activity':
+        if (typeof count !== 'number' || count < 1 || !name) return '';
+        return count === 1 ? `A new ${name} activity` : `${count} new ${name} activities`;
+      // MOD-08: "New report: activity", for the moderators to review in the queue.
+      case 'report_received':
+        return kind ? `New report: ${REPORTED[kind] ?? 'item'}` : 'New report to review';
       // GRP-02: "Dana Smith asked to join", with the group's name under it.
       case 'group_join_request':
         return member ? `${member} asked to join` : '';
