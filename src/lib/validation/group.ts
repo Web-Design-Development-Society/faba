@@ -24,3 +24,26 @@ export const newGroup = z.object({
     .optional(),
   join_policy: z.enum(['open', 'approval'], { error: 'Choose who can join.' }).default('open'),
 });
+
+/** A member of a group, for an organizer to approve, decline, remove or change the role of (GRP-05). */
+export const groupMember = z.object({ group_id: z.uuid(), user_id: z.uuid() });
+
+/** Making a member an organizer, or a member again (GRP-05). */
+export const groupRole = groupMember.extend({
+  role: z.enum(['organizer', 'member'], { error: 'Choose a role.' }),
+});
+
+/**
+ * Handing a group on to one of its members (GRP-05). A moderator gives a reason, which goes to the
+ * audit log, and transfer_group() checks it.
+ */
+export const groupTransfer = z.object({
+  group_id: z.uuid(),
+  user_id: z.uuid({ error: 'Pick the new owner.' }),
+  reason: z
+    .string()
+    .trim()
+    .max(500, 'Use 500 characters or fewer for the reason.')
+    .optional()
+    .transform((reason) => reason || undefined),
+});

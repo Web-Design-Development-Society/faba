@@ -16,6 +16,8 @@ export const TYPES: Record<string, { icon: string; summary: string }> = {
   board_announcement: { icon: '📣', summary: 'From the FABA board' },
   group_join_request: { icon: '🙋', summary: 'Asked to join' },
   group_update: { icon: '💬', summary: 'Update from the group' },
+  group_join_approved: { icon: '✓', summary: "You're in the group" },
+  group_owner: { icon: '🔑', summary: 'You own this group now' },
 };
 
 /** An activity's time and place, as an activity_changed payload has them before and after. */

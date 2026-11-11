@@ -751,6 +751,7 @@ export type Database = {
         Returns: undefined;
       };
       announce_activity: { Args: { activity_id: string }; Returns: number };
+      approve_group_member: { Args: { group_id: string; user_id: string }; Returns: undefined };
       cancel_activity: { Args: { activity_id: string; reason?: string }; Returns: undefined };
       create_activity: {
         Args: {
@@ -904,6 +905,7 @@ export type Database = {
       };
       record_visit: { Args: Record<PropertyKey, never>; Returns: string };
       reinstate_member: { Args: { reason: string; user_id: string }; Returns: undefined };
+      remove_group_member: { Args: { group_id: string; user_id: string }; Returns: undefined };
       report_content: {
         Args: { note?: string; reason: string; target_id: string; target_type: string };
         Returns: string;
@@ -969,8 +971,16 @@ export type Database = {
       set_activity_tags: { Args: { activity_id: string; tag_ids: string[] }; Returns: undefined };
       set_board_activity: { Args: { activity_id: string; board: boolean }; Returns: undefined };
       set_email_visibility: { Args: { visible: boolean }; Returns: undefined };
+      set_group_role: {
+        Args: { group_id: string; role: string; user_id: string };
+        Returns: undefined;
+      };
       suspend_member: { Args: { reason: string; user_id: string }; Returns: undefined };
       sync_my_identity: { Args: Record<PropertyKey, never>; Returns: string };
+      transfer_group: {
+        Args: { group_id: string; reason?: string; user_id: string };
+        Returns: undefined;
+      };
       update_activity: {
         Args: { activity_id: string; expected_version: number; patch: Json };
         Returns: undefined;

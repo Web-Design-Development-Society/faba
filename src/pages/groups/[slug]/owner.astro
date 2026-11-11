@@ -1,0 +1,153 @@
+---
+// Handing a group on (GRP-05), from its members. Its owner picks one of its members, who becomes the
+// owner, and stays on as an organizer, so they can leave it after. A moderator can do it too, such
+// as for a group whose owner left FABA, with a reason that goes to the audit log. The new owner
+// hears it's theirs. It works without JavaScript.
+import { actions, isInputError } from 'astro:actions';
+import FieldError from '../../../components/FieldError.astro';
+import Layout from '../../../layouts/Layout.astro';
+import { setFlash } from '../../../lib/server/flash';
+
+const { supabase, user, member } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+const { slug } = Astro.params;
+
+const result = Astro.getActionResult(actions.groups.transfer);
+if (result && !result.error) {
+  setFlash(Astro.cookies, Astro.url, 'group_handed_on');
+  return Astro.redirect(`/groups/${slug}/members`, 303);
+}
+
+const { data: group } = await supabase
+  .from('groups')
+  .select('id, slug, name, owner_id')
+  .eq('slug', slug!)
+  .maybeSingle();
+if (!group) Astro.response.status = 404;
+
+const { data: rows } = group
+  ? await supabase
+      .from('group_members')
+      .select('user_id, role, profile:profiles!group_members_user_id_fkey(display_name, status)')
+      .eq('group_id', group.id)
+      .eq('status', 'active')
+  : { data: null };
+const people = (rows ?? []).filter(({ profile }) => profile?.status === 'active');
+const owner = people.some(({ user_id, role }) => user_id === user.id && role === 'owner');
+const moderator =
+  member?.status === 'active' && (member.role === 'moderator' || member.role === 'admin');
+// A moderator handing on someone else's group gives a reason.
+const moderating = !owner && moderator;
+if (group && !owner && !moderator) Astro.response.status = 403;
+const choices = people
+  .filter(({ role }) => role !== 'owner')
+  .map(({ user_id, role, profile }) => ({ id: user_id, role, name: profile!.display_name }))
+  .sort((a, b) =>
+    a.role === b.role ? a.name.localeCompare(b.name) : a.role === 'organizer' ? -1 : 1
+  );
+
+const typed = result?.error ? await Astro.request.formData() : undefined;
+const fields: Record<string, string[] | undefined> = isInputError(result?.error)
+  ? result.error.fields
+  : {};
+const failure = result?.error && !isInputError(result.error) ? result.error.message : null;
+const picked = typed?.get('user_id')?.toString();
+---
+
+<Layout title={group ? `Hand on ${group.name}` : 'Not available'} tab="discover">
+  {!group ? (
+    <>
+      <h1>Not available</h1>
+      <p>This group isn't available. It may have been removed, or the link may be wrong.</p>
+    </>
+  ) : (
+    <>
+      <a href={`/groups/${group.slug}/members`}>Back to members</a>
+      <h1>Hand on {group.name}</h1>
+      {!owner && !moderator ? (
+        <p>Only the group's owner can hand it on.</p>
+      ) : choices.length === 0 ? (
+        <p>Nobody else is in the group yet. Once someone joins, you can hand it on to them.</p>
+      ) : (
+        <form method="post" action={actions.groups.transfer.queryString}>
+          {failure && <p role="alert">{failure}</p>}
+          <input type="hidden" name="group_id" value={group.id} />
+          <p>
+            {moderating
+              ? 'The new owner manages its members and organizers. Its owner now stays on as an organizer.'
+              : "The new owner manages its members and organizers. You'll stay on as an organizer, and can leave the group after."}
+          </p>
+          <fieldset aria-describedby={fields.user_id ? 'user_id-error' : undefined}>
+            <legend>New owner</legend>
+            {choices.map((person) => (
+              <label>
+                <input
+                  type="radio"
+                  name="user_id"
+                  value={person.id}
+                  required
+                  checked={picked === person.id}
+                />
+                {person.name}
+                {person.role === 'organizer' && <span class="role"> · Organizer</span>}
+              </label>
+            ))}
+            <FieldError name="user_id" errors={fields.user_id} />
+          </fieldset>
+          {moderating && (
+            <p>
+              <label for="reason">Reason</label>
+              <br />
+              <textarea
+                id="reason"
+                name="reason"
+                rows="3"
+                maxlength="500"
+                required
+                aria-invalid={fields.reason ? 'true' : undefined}
+                aria-describedby={fields.reason ? 'reason-hint reason-error' : 'reason-hint'}
+              >{typed?.get('reason')?.toString() ?? ''}</textarea>
+              <br />
+              <span id="reason-hint" class="hint">
+                It goes to the audit log.
+              </span>
+              <FieldError name="reason" errors={fields.reason} />
+            </p>
+          )}
+          <button type="submit">Make them the owner</button>
+        </form>
+      )}
+    </>
+  )}
+</Layout>
+
+<style>
+  fieldset {
+    margin: 0 0 1rem;
+    padding: 0;
+    border: 0;
+  }
+  legend {
+    font-weight: 600;
+  }
+  fieldset label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+  }
+  .role,
+  .hint {
+    font-size: 0.875rem;
+    color: #595959;
+  }
+  textarea {
+    box-sizing: border-box;
+    width: 100%;
+    font: inherit;
+  }
+  button {
+    min-height: 44px;
+    padding: 0 1rem;
+  }
+</style>

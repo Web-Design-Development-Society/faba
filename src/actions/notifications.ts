@@ -6,8 +6,8 @@ import { actionErrorFor } from '../lib/server/errors';
 
 export const notifications = {
   /**
-   * Opening a notification marks it read. Returns where it goes: its activity, or its group for a
-   * join request (GRP-02), if it has one.
+   * Opening a notification marks it read. Returns where it goes: its activity, or its group, if it
+   * has one. A join request opens the group's members, to approve it (GRP-02, GRP-05).
    */
   open: defineAction({
     accept: 'form',
@@ -19,14 +19,14 @@ export const notifications = {
       if (error) throw new ActionError(actionErrorFor(error));
       const { data } = await locals.supabase
         .from('notifications')
-        .select('activity_id, group:groups(slug)')
+        .select('type, activity_id, group:groups(slug)')
         .eq('id', id)
         .maybeSingle();
       return {
         href: data?.activity_id
           ? `/activities/${data.activity_id}`
           : data?.group
-            ? `/groups/${data.group.slug}`
+            ? `/groups/${data.group.slug}${data.type === 'group_join_request' ? '/members' : ''}`
             : '/notifications',
       };
     },

@@ -14,6 +14,8 @@ group('describe', () => {
       'board_announcement',
       'group_join_request',
       'group_update',
+      'group_join_approved',
+      'group_owner',
     ]);
     expect(describe('activity_cancelled')).toEqual({ icon: '✕', summary: 'Cancelled' });
   });
