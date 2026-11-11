@@ -35,6 +35,7 @@ export const FLASH_MESSAGES = {
   not_board: 'No longer a board activity.',
   announced: 'Announced to every member.',
   group_started: 'Group started!',
+  season_started: 'Season started.',
   joined: "You're in the group.",
   requested: "Request sent. You're in once an organizer approves it.",
   left: 'You left the group.',

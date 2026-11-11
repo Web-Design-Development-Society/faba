@@ -12,6 +12,18 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
   END_BEFORE_START: { code: 'BAD_REQUEST', message: 'End after the start time.' },
   INVALID_CATEGORY: { code: 'BAD_REQUEST', message: 'Choose one of the categories.' },
   NOT_ACTIVE: { code: 'FORBIDDEN', message: "Your account can't do that right now." },
+  NOT_LEAGUE_ORGANIZER: {
+    code: 'FORBIDDEN',
+    message: 'Only the league organizers can start a season.',
+  },
+  NOT_A_LEAGUE: {
+    code: 'BAD_REQUEST',
+    message: "This group isn't a league, so it has no seasons.",
+  },
+  SEASON_ALREADY_ACTIVE: {
+    code: 'BAD_REQUEST',
+    message: 'This league already has an active season. End it before starting another.',
+  },
   ACTIVITY_NOT_FOUND: {
     code: 'NOT_FOUND',
     message: "This activity isn't available. It may have been removed.",

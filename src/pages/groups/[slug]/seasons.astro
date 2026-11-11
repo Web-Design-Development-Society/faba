@@ -1,0 +1,251 @@
+---
+// A league's seasons (LEAG-01): the active one, and the ones before. Its owner and organizers start
+// a season with dates, a format (teams or an individual ladder), team sizes, points for a win, tie
+// and loss, and whether registration is open. Only one season is active at a time, and the database
+// checks that. It works without JavaScript.
+import { actions, isInputError } from 'astro:actions';
+import FieldError from '../../../components/FieldError.astro';
+import Status from '../../../components/Status.astro';
+import Layout from '../../../layouts/Layout.astro';
+import { FLASH_MESSAGES, setFlash, takeFlash } from '../../../lib/server/flash';
+import { formatDate } from '../../../lib/time';
+
+const { supabase, user } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+const slug = Astro.params.slug!;
+
+const started = Astro.getActionResult(actions.leagues.createSeason);
+if (started && !started.error) {
+  setFlash(Astro.cookies, Astro.url, 'season_started');
+  return Astro.redirect(`/groups/${slug}/seasons`, 303);
+}
+const flash = takeFlash(Astro.cookies);
+// What was typed, after a failed start. The Action read a copy of the request.
+const typed = started?.error ? await Astro.request.formData() : undefined;
+const value = (name: string) => typed?.get(name)?.toString() ?? '';
+const fields: Record<string, string[] | undefined> = isInputError(started?.error)
+  ? started.error.fields
+  : {};
+const failure = started?.error && !isInputError(started.error) ? started.error.message : null;
+
+const { data: group } = await supabase
+  .from('groups')
+  .select('id, slug, name, kind, hidden_at')
+  .eq('slug', slug)
+  .maybeSingle();
+const league = !!group && group.kind === 'league' && !group.hidden_at;
+if (!league) Astro.response.status = 404;
+
+const [{ data: mine }, { data: seasons }] = league
+  ? await Promise.all([
+      supabase
+        .from('group_members')
+        .select('role')
+        .eq('group_id', group.id)
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle(),
+      supabase
+        .from('league_seasons')
+        .select(
+          'id, name, starts_on, ends_on, format, team_min, team_max, points_win, points_tie, points_loss, registration_open, active'
+        )
+        .eq('group_id', group.id)
+        .order('starts_on', { ascending: false }),
+    ])
+  : [{ data: null }, { data: [] }];
+const organizer = mine?.role === 'owner' || mine?.role === 'organizer';
+const active = seasons?.find((season) => season.active);
+const past = seasons?.filter((season) => !season.active) ?? [];
+const format = { teams: 'Teams', ladder: 'Individual ladder' } as const;
+const dates = (season: { starts_on: string; ends_on: string }) =>
+  `${formatDate(season.starts_on)} to ${formatDate(season.ends_on)}`;
+const sizes = (season: { format: string; team_min: number; team_max: number }) =>
+  season.format === 'ladder'
+    ? 'One person'
+    : season.team_min === season.team_max
+      ? `Teams of ${season.team_min}`
+      : `Teams of ${season.team_min} to ${season.team_max}`;
+---
+
+<Layout title={league ? `${group.name} seasons` : 'Not available'} tab="discover">
+  {league ? (
+    <>
+      <a href={`/groups/${group.slug}`}>Back to {group.name}</a>
+      <h1>{group.name}: seasons</h1>
+      <Status message={(flash && FLASH_MESSAGES[flash]) || undefined} />
+      {failure && <p role="alert">{failure}</p>}
+
+      <section aria-labelledby="active">
+        <h2 id="active">This season</h2>
+        {active ? (
+          <article>
+            <h3>{active.name}</h3>
+            <p>{dates(active)}</p>
+            <p>
+              {format[active.format as keyof typeof format]} · {sizes(active)} · Win{' '}
+              {active.points_win}, tie {active.points_tie}, loss {active.points_loss}
+            </p>
+            <p>{active.registration_open ? 'Registration is open.' : 'Registration is closed.'}</p>
+          </article>
+        ) : (
+          <p>No season is running right now.</p>
+        )}
+      </section>
+
+      {past.length > 0 && (
+        <section aria-labelledby="past">
+          <h2 id="past">Past seasons</h2>
+          <ul>
+            {past.map((season) => (
+              <li>
+                {season.name} · {dates(season)}
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {organizer && (
+        <section aria-labelledby="start">
+          <h2 id="start">Start a season</h2>
+          <form method="post" action={actions.leagues.createSeason.queryString}>
+            <input type="hidden" name="group_id" value={group.id} />
+            <p>
+              <label for="name">Season name</label>
+              <br />
+              <input
+                id="name"
+                name="name"
+                value={value('name')}
+                required
+                minlength="3"
+                maxlength="60"
+              />
+              <FieldError name="name" errors={fields.name} />
+            </p>
+            <p>
+              <label for="starts_on">First day</label>
+              <br />
+              <input
+                id="starts_on"
+                name="starts_on"
+                type="date"
+                value={value('starts_on')}
+                required
+              />
+              <FieldError name="starts_on" errors={fields.starts_on} />
+            </p>
+            <p>
+              <label for="ends_on">Last day</label>
+              <br />
+              <input id="ends_on" name="ends_on" type="date" value={value('ends_on')} required />
+              <FieldError name="ends_on" errors={fields.ends_on} />
+            </p>
+            <fieldset>
+              <legend>Format</legend>
+              <label>
+                <input
+                  type="radio"
+                  name="format"
+                  value="teams"
+                  checked={value('format') !== 'ladder'}
+                />
+                Teams
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name="format"
+                  value="ladder"
+                  checked={value('format') === 'ladder'}
+                />
+                Individual ladder
+              </label>
+              <FieldError name="format" errors={fields.format} />
+            </fieldset>
+            <p>
+              <label for="team_min">Smallest team</label>
+              <br />
+              <input
+                id="team_min"
+                name="team_min"
+                type="number"
+                min="1"
+                max="20"
+                value={value('team_min') || '2'}
+                required
+              />
+            </p>
+            <p>
+              <label for="team_max">Largest team</label>
+              <br />
+              <input
+                id="team_max"
+                name="team_max"
+                type="number"
+                min="1"
+                max="20"
+                value={value('team_max') || '4'}
+                required
+              />
+              <FieldError name="team_max" errors={fields.team_max} />
+            </p>
+            <fieldset>
+              <legend>Points</legend>
+              <label>
+                For a win{' '}
+                <input
+                  name="points_win"
+                  type="number"
+                  min="0"
+                  max="10"
+                  value={value('points_win') || '3'}
+                  required
+                />
+              </label>
+              <label>
+                For a tie{' '}
+                <input
+                  name="points_tie"
+                  type="number"
+                  min="0"
+                  max="10"
+                  value={value('points_tie') || '1'}
+                  required
+                />
+              </label>
+              <label>
+                For a loss{' '}
+                <input
+                  name="points_loss"
+                  type="number"
+                  min="0"
+                  max="10"
+                  value={value('points_loss') || '0'}
+                  required
+                />
+              </label>
+            </fieldset>
+            <p>
+              <label>
+                <input type="checkbox" name="registration_open" checked /> Registration is open
+              </label>
+            </p>
+            <p>
+              <label>
+                <input type="checkbox" name="active" checked /> Make this the active season
+              </label>
+            </p>
+            <button type="submit">Start season</button>
+          </form>
+        </section>
+      )}
+    </>
+  ) : (
+    <>
+      <h1>Not available</h1>
+      <p>This league isn't available. It may have been removed, or the link may be wrong.</p>
+    </>
+  )}
+</Layout>

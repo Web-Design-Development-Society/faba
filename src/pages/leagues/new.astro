@@ -1,0 +1,93 @@
+---
+// Starting a league (LEAG-01): a group that runs seasons, with its own standings. The starter is
+// its owner, and can start seasons after. It works without JavaScript, and the page goes to the
+// league's seasons when it's made.
+import { actions, isInputError } from 'astro:actions';
+import FieldError from '../../components/FieldError.astro';
+import Layout from '../../layouts/Layout.astro';
+
+const { supabase, user } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+
+const result = Astro.getActionResult(actions.leagues.create);
+if (result && !result.error) return Astro.redirect(`/groups/${result.data.slug}/seasons`, 303);
+
+// What was typed, after a failed start. The Action read a copy of the request.
+const typed = result?.error ? await Astro.request.formData() : undefined;
+const value = (name: string) => typed?.get(name)?.toString() ?? '';
+const fields: Record<string, string[] | undefined> = isInputError(result?.error)
+  ? result.error.fields
+  : {};
+const failure = result?.error && !isInputError(result.error) ? result.error.message : null;
+
+const { data: categories } = await supabase
+  .from('categories')
+  .select('id, name')
+  .eq('is_active', true)
+  .order('sort_order');
+---
+
+<Layout title="Start a league" tab="discover">
+  <a href="/groups">Back to groups</a>
+  <h1>Start a league</h1>
+  <p>A league runs seasons, with standings. You organize it, and can start seasons after.</p>
+  {failure && <p role="alert">{failure}</p>}
+  <form method="post" action={actions.leagues.create.queryString}>
+    <p>
+      <label for="name">League name</label>
+      <br />
+      <input
+        id="name"
+        name="name"
+        value={value('name')}
+        required
+        minlength="3"
+        maxlength="60"
+        aria-invalid={fields.name ? 'true' : undefined}
+      />
+      <FieldError name="name" errors={fields.name} />
+    </p>
+    <p>
+      <label for="category_id">Category</label>
+      <br />
+      <select id="category_id" name="category_id" required>
+        <option value="">Choose one</option>
+        {categories?.map((category) => (
+          <option value={category.id} selected={value('category_id') === category.id}>
+            {category.name}
+          </option>
+        ))}
+      </select>
+      <FieldError name="category_id" errors={fields.category_id} />
+    </p>
+    <p>
+      <label for="description">About the league (optional)</label>
+      <br />
+      <textarea id="description" name="description" rows="3" maxlength="1000">
+        {value('description')}
+      </textarea>
+    </p>
+    <fieldset>
+      <legend>Who can join</legend>
+      <label>
+        <input
+          type="radio"
+          name="join_policy"
+          value="approval"
+          checked={value('join_policy') !== 'open'}
+        />
+        Ask to join
+      </label>
+      <label>
+        <input
+          type="radio"
+          name="join_policy"
+          value="open"
+          checked={value('join_policy') === 'open'}
+        />
+        Anyone can join
+      </label>
+    </fieldset>
+    <button type="submit">Start league</button>
+  </form>
+</Layout>

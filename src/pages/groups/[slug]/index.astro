@@ -35,7 +35,7 @@ const flash = takeFlash(Astro.cookies);
 const { data: group } = await supabase
   .from('groups')
   .select(
-    'id, slug, name, description, join_policy, owner_id, archived_at, hidden_at, member_count, my_membership, category:categories(name), owner:profiles!groups_owner_id_fkey(id, display_name)'
+    'id, slug, name, description, kind, join_policy, owner_id, archived_at, hidden_at, member_count, my_membership, category:categories(name), owner:profiles!groups_owner_id_fkey(id, display_name)'
   )
   .eq('slug', Astro.params.slug!)
   .maybeSingle();
@@ -189,6 +189,11 @@ const members = group?.member_count ?? 0;
               text
             )
           )}
+        </p>
+      )}
+      {group.kind === 'league' && (
+        <p>
+          <a href={`/groups/${group.slug}/seasons`}>Seasons</a>
         </p>
       )}
       <section aria-labelledby="activities" class="activities">

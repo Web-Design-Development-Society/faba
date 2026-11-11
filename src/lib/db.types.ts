@@ -655,6 +655,66 @@ export type Database = {
           },
         ];
       };
+      league_seasons: {
+        Row: {
+          active: boolean;
+          created_at: string;
+          ends_on: string;
+          format: string;
+          group_id: string;
+          id: string;
+          name: string;
+          points_loss: number;
+          points_tie: number;
+          points_win: number;
+          registration_open: boolean;
+          starts_on: string;
+          team_max: number;
+          team_min: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          active?: boolean;
+          created_at?: string;
+          ends_on: string;
+          format: string;
+          group_id: string;
+          id?: string;
+          name: string;
+          points_loss?: number;
+          points_tie?: number;
+          points_win?: number;
+          registration_open?: boolean;
+          starts_on: string;
+          team_max: number;
+          team_min: number;
+        };
+        Update: {
+          active?: boolean;
+          created_at?: string;
+          ends_on?: string;
+          format?: string;
+          group_id?: string;
+          id?: string;
+          name?: string;
+          points_loss?: number;
+          points_tie?: number;
+          points_win?: number;
+          registration_open?: boolean;
+          starts_on?: string;
+          team_max?: number;
+          team_min?: number;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'league_seasons_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       notifications: {
         Row: {
           activity_id: string | null;
@@ -1041,6 +1101,27 @@ export type Database = {
           idempotency_key?: string;
           join_policy?: string;
           name: string;
+        };
+        Returns: string;
+      };
+      create_league: {
+        Args: { category_id: string; description?: string; join_policy?: string; name: string };
+        Returns: string;
+      };
+      create_season: {
+        Args: {
+          active: boolean;
+          ends_on: string;
+          format: string;
+          group_id: string;
+          name: string;
+          points_loss: number;
+          points_tie: number;
+          points_win: number;
+          registration_open: boolean;
+          starts_on: string;
+          team_max: number;
+          team_min: number;
         };
         Returns: string;
       };
