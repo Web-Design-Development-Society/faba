@@ -1580,7 +1580,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - Creates going RSVPs for all future occurrences, including newly generated ones (a series subscription).
   - **Leave series** reverses it.
 - **Dependencies:** REC-01.
-- **Notes / edge cases:** Capacity applies per occurrence. If one occurrence is full, the member is waitlisted for it.
+- **Notes / edge cases:** Capacity applies per occurrence. If one occurrence is full, the member is waitlisted for it. Until the waitlist (RSVP-07) exists, a full occurrence is left out. Joining makes one confirmation and one new-attendee notification, on the first date joined.
 
 #### RSVP-07 · Waitlist
 

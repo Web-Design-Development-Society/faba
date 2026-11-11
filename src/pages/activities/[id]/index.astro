@@ -9,7 +9,7 @@
 // badge, and an admin who organizes one marks it and announces it from the menu (MOD-07). One
 // posted under a group names it, and says when it's for the group's members only (GRP-03). A date
 // in a series says how often it repeats, and through when (REC-01), and its organizer cancels
-// just that date from here (REC-03).
+// just that date from here (REC-03). Anyone else joins the whole series, or leaves it (REC-04).
 import { actions, isInputError } from 'astro:actions';
 import Avatar from '../../../components/Avatar.astro';
 import BoardContact from '../../../components/BoardContact.astro';
@@ -41,6 +41,17 @@ if (!user) return Astro.redirect('/auth/login');
 const rsvp = Astro.getActionResult(actions.rsvps.set);
 if (rsvp && !rsvp.error) {
   setFlash(Astro.cookies, Astro.url, rsvp.data.status);
+  return Astro.redirect(postedFrom(Astro.url), 303);
+}
+// I'm in for all upcoming, and Leave series, on a date in a series (REC-04).
+const joinSeries = Astro.getActionResult(actions.rsvps.joinSeries);
+if (joinSeries && !joinSeries.error) {
+  setFlash(Astro.cookies, Astro.url, 'joined_series');
+  return Astro.redirect(postedFrom(Astro.url), 303);
+}
+const leaveSeries = Astro.getActionResult(actions.rsvps.leaveSeries);
+if (leaveSeries && !leaveSeries.error) {
+  setFlash(Astro.cookies, Astro.url, 'left_series');
   return Astro.redirect(postedFrom(Astro.url), 303);
 }
 const unhide = Astro.getActionResult(actions.moderation.unhide);
@@ -86,6 +97,8 @@ if (unhideUpdate && !unhideUpdate.error) {
 }
 // The error shows at the top, since its sheet has closed.
 const failed =
+  joinSeries?.error ??
+  leaveSeries?.error ??
   unhide?.error ??
   transfer?.error ??
   cancel?.error ??
@@ -110,7 +123,7 @@ const [{ data: activity }, { data: me }] = await Promise.all([
       max_guests_per_rsvp, organizer_id,
       time_or_place_changed_at, category_id, has_private_details, is_board_activity, announced_at,
       visibility, group:groups(name, slug),
-      series:activity_series(freq, start_date, until_date),
+      series:activity_series(freq, start_date, until_date, subscribed:series_subscriptions(user_id)),
       private:activity_private_details(details),
       category:categories(name),
       tags:activity_tags(tag:tags(name, sort_order)),
@@ -145,6 +158,8 @@ const flash = takeFlash(Astro.cookies);
 const hosting = activity?.organizer_id === user.id;
 const answer = activity?.mine[0]?.status ?? null;
 const going = answer === 'going';
+// Whether the member joined its series (REC-04). RLS shows them only their own subscription.
+const inSeries = !!activity?.series?.subscribed.length;
 // Those going or maybe, the organizer among them, hear about it, so they can mute it (NOTIF-08).
 const mutable = going || answer === 'maybe';
 const muted = !!activity?.mine[0]?.mute;
@@ -348,6 +363,20 @@ const email = activity
           {repeatsSentence(activity.series.freq, activity.series.start_date)}
           {activity.series.until_date && ` through ${formatDate(activity.series.until_date)}`}
         </p>
+      )}
+      {/* A regular joins the whole series once, and leaves it the same way (REC-04). */}
+      {activity.series && !hosting && !activity.hidden_at && (
+        <form
+          method="post"
+          class="series"
+          action={
+            inSeries ? actions.rsvps.leaveSeries.queryString : actions.rsvps.joinSeries.queryString
+          }
+        >
+          <input type="hidden" name="activity_id" value={activity.id} />
+          {inSeries && <span>You're in for all upcoming dates.</span>}
+          <button>{inSeries ? 'Leave series' : "I'm in for all upcoming"}</button>
+        </form>
       )}
       {/* Skipping a week takes 2 taps from here (REC-03). Edit has it too, as for any activity. */}
       {activity.series && hosting && open && (
@@ -739,6 +768,17 @@ const email = activity
   }
   .repeats {
     margin-top: 0;
+  }
+  .series {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    margin-bottom: 1rem;
+  }
+  .series button {
+    min-height: 44px;
+    padding: 0 1rem;
   }
   /* Within thumb reach at the bottom of the screen, even when the page is short, so toasts sit
      above it rather than on ✓ Going. The page leaves room for it. */
