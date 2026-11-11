@@ -248,6 +248,7 @@ ADD CONSTRAINT notifications_type_check
       'rsvp_promoted',
       'rsvp_removed',
       'new_activity',
-      'sub_needed'
+      'sub_needed',
+      'report_received'
     )
   );
