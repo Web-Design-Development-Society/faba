@@ -9,6 +9,7 @@
 // join (GRP-05).
 import { actions } from 'astro:actions';
 import ActivityCard from '../../../components/ActivityCard.astro';
+import FollowButton from '../../../components/FollowButton.astro';
 import Status from '../../../components/Status.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { CARD, FACES, historySince } from '../../../lib/cards';
@@ -107,6 +108,19 @@ const { count: asking } =
     : { count: 0 };
 const mine = group?.owner_id === user.id;
 const membership = group?.my_membership ?? null;
+// Whether the member follows the group (NOTIF-09). Only active members can, so only they see it.
+const { data: following } =
+  group && membership === 'active'
+    ? await supabase
+        .from('follows')
+        .select('target_id')
+        .eq('user_id', user.id)
+        .eq('target_type', 'group')
+        .eq('target_id', group.id)
+        .maybeSingle()
+    : { data: null };
+const followed = Astro.getActionResult(actions.follows.set);
+const followError = followed?.error?.message ?? null;
 const members = group?.member_count ?? 0;
 ---
 
@@ -158,6 +172,13 @@ const members = group?.member_count ?? 0;
                 <input type="hidden" name="group_id" value={group.id} />
                 <button>Leave group</button>
               </form>
+              {followError && <p role="alert">{followError}</p>}
+              <FollowButton
+                kind="group"
+                target={group.id}
+                name={group.name}
+                following={!!following}
+              />
             </>
           ) : membership === 'pending' ? (
             <>
@@ -194,6 +215,11 @@ const members = group?.member_count ?? 0;
       {group.kind === 'league' && (
         <p>
           <a href={`/groups/${group.slug}/seasons`}>Seasons</a>
+        </p>
+      )}
+      {user.id !== group.owner_id && (
+        <p>
+          <a href={`/groups/${group.slug}/report`}>Report group</a>
         </p>
       )}
       <section aria-labelledby="activities" class="activities">
