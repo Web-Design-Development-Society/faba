@@ -36,6 +36,11 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     <p class="offline" data-offline role="status" hidden>
       You're offline. We'll keep what you typed.
     </p>
+    <header class="site">
+      <a href="/discover" class="brand">
+        <img src="/brand/faba-logo.png" alt="FABA" width="44" height="52" />
+      </a>
+    </header>
     <main>
       <slot />
     </main>
@@ -82,12 +87,60 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
 </script>
 
 <style is:global>
+  /* The look from the My events design (UI-01). Colors are tokens, so they change in one place. */
+  :root {
+    --blue: #0b5bd3; /* white text on it is 6.4:1 */
+    --blue-dark: #0a4fb8;
+    --blue-soft: #e8f1fd;
+    --navy: #0f1f3d;
+    --ink: #171717;
+    --muted: #4b5563; /* 7.5:1 on white */
+    --line: #c9d3e0;
+    --radius: 0.625rem;
+  }
   body {
     max-width: 40rem;
     margin: 0 auto;
     padding: 1rem;
+    color: var(--ink);
     font-family: system-ui, sans-serif;
     line-height: 1.5;
+  }
+  .site {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+  .site img {
+    display: block;
+    height: 3rem;
+    width: auto;
+  }
+  h1 {
+    color: var(--navy);
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  h2,
+  h3 {
+    color: var(--navy);
+  }
+  a {
+    color: var(--blue);
+  }
+  button {
+    min-height: 44px;
+    padding: 0 1rem;
+    color: white;
+    font: inherit;
+    font-weight: 600;
+    background: var(--blue);
+    border: 0;
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+  button:hover {
+    background: var(--blue-dark);
   }
   footer {
     margin-top: 3rem;
@@ -129,7 +182,9 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   }
   .tabs [aria-current] {
     font-weight: 600;
+    color: var(--blue);
     text-decoration: underline;
+    text-decoration-thickness: 2px;
     text-underline-offset: 0.25rem;
   }
   .tabs .badge {
