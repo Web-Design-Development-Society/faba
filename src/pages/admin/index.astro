@@ -1,0 +1,210 @@
+---
+// Admin (MOD-08): categories, tags and moderators. Only admins open it, and the database checks each
+// change. Renaming and switching categories and tags on or off works without JavaScript, as does
+// changing a member's role, which needs a reason for the audit log. The audit log has its own page.
+import { actions, isInputError } from 'astro:actions';
+import Status from '../../components/Status.astro';
+import Layout from '../../layouts/Layout.astro';
+import { FLASH_MESSAGES, setFlash, takeFlash } from '../../lib/server/flash';
+
+const { supabase, user, member } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+
+const savedCategory = Astro.getActionResult(actions.admin.saveCategory);
+if (savedCategory && !savedCategory.error) {
+  setFlash(Astro.cookies, Astro.url, 'category_saved');
+  return Astro.redirect('/admin', 303);
+}
+const savedTag = Astro.getActionResult(actions.admin.saveTag);
+if (savedTag && !savedTag.error) {
+  setFlash(Astro.cookies, Astro.url, 'tag_saved');
+  return Astro.redirect('/admin', 303);
+}
+const savedRole = Astro.getActionResult(actions.admin.setRole);
+if (savedRole && !savedRole.error) {
+  setFlash(Astro.cookies, Astro.url, 'role_saved');
+  return Astro.redirect('/admin', 303);
+}
+const flash = takeFlash(Astro.cookies);
+const failed = savedCategory?.error ?? savedTag?.error ?? savedRole?.error;
+const failure = failed
+  ? (isInputError(failed) && Object.values(failed.fields).flat().find(Boolean)) || failed.message
+  : null;
+
+const admin = member?.status === 'active' && member.role === 'admin';
+if (!admin) Astro.response.status = 403;
+
+// The member search: a name, with % and _ read as themselves.
+const query = (Astro.url.searchParams.get('q') ?? '').trim().slice(0, 60);
+const pattern = `%${query.replace(/[%_\\]/g, (c) => `\\${c}`)}%`;
+const [{ data: categories }, { data: tags }, { data: staff }, { data: found }] = admin
+  ? await Promise.all([
+      supabase.from('categories').select('id, name, is_active').order('sort_order'),
+      supabase.from('tags').select('id, name, is_active, sort_order').order('sort_order'),
+      supabase
+        .from('profiles')
+        .select('id, display_name, role')
+        .in('role', ['moderator', 'admin'])
+        .order('display_name'),
+      query
+        ? supabase
+            .from('profiles')
+            .select('id, display_name, role')
+            .ilike('display_name', pattern)
+            .eq('status', 'active')
+            .order('display_name')
+            .limit(20)
+        : { data: [] },
+    ])
+  : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }];
+---
+
+<Layout title="Admin">
+  <a href="/mod">Back to Reports</a>
+  <h1>Admin</h1>
+  <p>
+    <a href="/admin/audit">Audit log</a>
+  </p>
+  {!admin ? (
+    <p>Only admins can open this.</p>
+  ) : (
+    <>
+      <Status message={flash && FLASH_MESSAGES[flash]} />
+      {failure && <p role="alert">{failure}</p>}
+
+      <section aria-labelledby="categories">
+        <h2 id="categories">Categories</h2>
+        <p>Turn a category off to stop offering it. Activities already in it stay.</p>
+        {categories?.map((category) => (
+          <form method="post" action={actions.admin.saveCategory.queryString} class="row">
+            <input type="hidden" name="id" value={category.id} />
+            <label>
+              Name for {category.id}
+              <input type="text" name="name" value={category.name} maxlength={40} required />
+            </label>
+            <label class="check">
+              <input type="checkbox" name="is_active" checked={category.is_active} /> Offered
+            </label>
+            <button>Save</button>
+          </form>
+        ))}
+      </section>
+
+      <section aria-labelledby="tags">
+        <h2 id="tags">Tags</h2>
+        {tags?.map((tag) => (
+          <form method="post" action={actions.admin.saveTag.queryString} class="row">
+            <input type="hidden" name="id" value={tag.id} />
+            <label>
+              Name for {tag.id}
+              <input type="text" name="name" value={tag.name} maxlength={40} required />
+            </label>
+            <label>
+              Order
+              <input type="number" name="sort_order" value={tag.sort_order} min={0} max={999} />
+            </label>
+            <label class="check">
+              <input type="checkbox" name="is_active" checked={tag.is_active} /> Offered
+            </label>
+            <button>Save</button>
+          </form>
+        ))}
+        <h3>Add a tag</h3>
+        <form method="post" action={actions.admin.saveTag.queryString} class="row">
+          <label>
+            Id, such as <code>quiet</code>
+            <input type="text" name="id" pattern="[a-z0-9-]{2,40}" required />
+          </label>
+          <label>
+            Name
+            <input type="text" name="name" maxlength={40} required />
+          </label>
+          <label>
+            Order
+            <input type="number" name="sort_order" value={99} min={0} max={999} />
+          </label>
+          <label class="check">
+            <input type="checkbox" name="is_active" checked /> Offered
+          </label>
+          <button>Add tag</button>
+        </form>
+      </section>
+
+      <section aria-labelledby="moderators">
+        <h2 id="moderators">Moderators and admins</h2>
+        <ul>
+          {staff?.map((person) => (
+            <li>
+              {person.display_name} · {person.role}
+            </li>
+          ))}
+        </ul>
+        <form method="get">
+          <label>
+            Find a member by name
+            <input type="search" name="q" value={query} maxlength={60} />
+          </label>
+          <button>Search</button>
+        </form>
+        {query && !found?.length && <p>No members match "{query}".</p>}
+        {found?.map((person) => (
+          <form method="post" action={actions.admin.setRole.queryString} class="row">
+            <input type="hidden" name="user_id" value={person.id} />
+            <p>
+              {person.display_name} · now {person.role}
+            </p>
+            <label>
+              Role
+              <select name="role">
+                <option value="member" selected={person.role === 'member'}>
+                  Member
+                </option>
+                <option value="moderator" selected={person.role === 'moderator'}>
+                  Moderator
+                </option>
+                <option value="admin" selected={person.role === 'admin'}>
+                  Admin
+                </option>
+              </select>
+            </label>
+            <label>
+              Reason, for the audit log
+              <input type="text" name="reason" maxlength={500} required />
+            </label>
+            <button>Change role</button>
+          </form>
+        ))}
+      </section>
+    </>
+  )}
+</Layout>
+
+<style>
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: end;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #ccc;
+  }
+  .row label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .row .check {
+    flex-direction: row;
+    align-items: center;
+    min-height: 44px;
+  }
+  button,
+  input,
+  select {
+    min-height: 44px;
+  }
+  button {
+    padding: 0 1rem;
+  }
+</style>
