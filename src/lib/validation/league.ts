@@ -21,6 +21,21 @@ export const newLeague = z.object({
   join_policy: z.enum(['open', 'approval'], { error: 'Choose how people join.' }),
 });
 
+/** Signing up for a season (LEAG-02). A form leaves an empty note out as null, so it's nullish. */
+export const newRegistration = z.object({
+  season_id: z.uuid({ error: 'Pick a season.' }),
+  kind: z.enum(['player', 'free_agent'], { error: 'Sign up as a player or a free agent.' }),
+  note: z
+    .string()
+    .trim()
+    .max(280, 'Use 280 characters or fewer for the note.')
+    .nullish()
+    .transform((note) => note || undefined),
+});
+
+/** Withdrawing from a season (LEAG-02). */
+export const withdrawal = z.object({ season_id: z.uuid({ error: 'Pick a season.' }) });
+
 // A date from a date input, as YYYY-MM-DD.
 const day = z.iso.date({ error: 'Pick a date.' });
 

@@ -2,7 +2,7 @@
 // and every rule again (ADR-004).
 import { ActionError, defineAction } from 'astro:actions';
 import { actionErrorFor } from '../lib/server/errors';
-import { newLeague, newSeason } from '../lib/validation/league';
+import { newLeague, newRegistration, newSeason, withdrawal } from '../lib/validation/league';
 
 export const leagues = {
   /** Starting a league, which returns its slug (LEAG-01). */
@@ -46,6 +46,32 @@ export const leagues = {
       });
       if (error) throw new ActionError(actionErrorFor(error));
       return { season_id: data };
+    },
+  }),
+
+  /** Signing up for a season as a player or a free agent (LEAG-02). */
+  register: defineAction({
+    accept: 'form',
+    input: newRegistration,
+    handler: async ({ season_id, kind, note }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('join_season', { season_id, kind, note });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { season_id };
+    },
+  }),
+
+  /** Withdrawing from a season, until its teams are set (LEAG-02). */
+  withdraw: defineAction({
+    accept: 'form',
+    input: withdrawal,
+    handler: async ({ season_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('withdraw_from_season', { season_id });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { season_id };
     },
   }),
 };

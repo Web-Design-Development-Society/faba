@@ -36,6 +36,8 @@ export const FLASH_MESSAGES = {
   announced: 'Announced to every member.',
   group_started: 'Group started!',
   season_started: 'Season started.',
+  season_joined: "You're signed up for this season.",
+  season_withdrawn: "You've withdrawn from this season.",
   joined: "You're in the group.",
   requested: "Request sent. You're in once an organizer approves it.",
   left: 'You left the group.',

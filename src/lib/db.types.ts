@@ -655,6 +655,46 @@ export type Database = {
           },
         ];
       };
+      league_registrations: {
+        Row: {
+          created_at: string;
+          kind: string;
+          note: string | null;
+          season_id: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          kind: string;
+          note?: string | null;
+          season_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          kind?: string;
+          note?: string | null;
+          season_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'league_registrations_season_id_fkey';
+            columns: ['season_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_seasons';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_registrations_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       league_seasons: {
         Row: {
           active: boolean;
@@ -711,6 +751,49 @@ export type Database = {
             columns: ['group_id'];
             isOneToOne: false;
             referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      league_teams: {
+        Row: {
+          captain_id: string | null;
+          color: string;
+          created_at: string;
+          id: string;
+          name: string;
+          season_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          captain_id?: string | null;
+          color: string;
+          created_at?: string;
+          id?: string;
+          name: string;
+          season_id: string;
+        };
+        Update: {
+          captain_id?: string | null;
+          color?: string;
+          created_at?: string;
+          id?: string;
+          name?: string;
+          season_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'league_teams_captain_id_fkey';
+            columns: ['captain_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_teams_season_id_fkey';
+            columns: ['season_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_seasons';
             referencedColumns: ['id'];
           },
         ];
@@ -1218,6 +1301,7 @@ export type Database = {
         }[];
       };
       join_group: { Args: { group_id: string }; Returns: string };
+      join_season: { Args: { kind: string; note?: string; season_id: string }; Returns: undefined };
       join_series: { Args: { activity_id: string }; Returns: number };
       leave_group: { Args: { group_id: string }; Returns: undefined };
       leave_series: { Args: { activity_id: string }; Returns: number };
@@ -1364,6 +1448,7 @@ export type Database = {
         Returns: number;
       };
       waitlist_position: { Args: { activity_id: string }; Returns: number };
+      withdraw_from_season: { Args: { season_id: string }; Returns: undefined };
     };
     Enums: {
       [_ in never]: never;
