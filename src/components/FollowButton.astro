@@ -1,0 +1,41 @@
+---
+// Follow or unfollow a category or group (NOTIF-09). The button says what it does now, and names
+// what it's for, so a screen reader hears "Follow Outdoors". It works without JavaScript: the form
+// posts to follows.set, and the page comes back showing the new state.
+import { actions } from 'astro:actions';
+
+interface Props {
+  kind: 'category' | 'group';
+  target: string;
+  name: string;
+  following: boolean;
+  /** Where the form posts, such as a page with its own query string. */
+  action?: string;
+}
+
+const { kind, target, name, following, action = actions.follows.set.queryString } = Astro.props;
+---
+
+<form method="post" action={action}>
+  <input type="hidden" name="kind" value={kind} />
+  <input type="hidden" name="target" value={target} />
+  <button name="follow" value={following ? 'false' : 'true'} aria-pressed={following}>
+    {following ? 'Following' : 'Follow'}
+    <span class="visually-hidden">{name}</span>
+  </button>
+</form>
+
+<style>
+  button {
+    min-height: 44px;
+    padding: 0 1rem;
+  }
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+</style>

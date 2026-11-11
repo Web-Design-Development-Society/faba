@@ -4,6 +4,7 @@ import {
   activityTransfer,
   dismissal,
   memberModeration,
+  reasonFor,
 } from '../../src/lib/validation/moderation';
 
 describe('dismissal', () => {
@@ -13,10 +14,24 @@ describe('dismissal', () => {
     expect(dismissal.parse(form)).toEqual({ ...form, reason: 'Not a sale' });
   });
 
+  // A reason is needed, typed or picked (MOD-08), which the handler checks with reasonFor().
+  it('takes a common reason when none is typed', () => {
+    const parsed = dismissal.parse({ report_id: form.report_id, template: 'not_a_problem' });
+    expect(reasonFor(parsed)).toBe('Not a problem after review');
+  });
+
+  it('uses what was typed over a common reason', () => {
+    expect(reasonFor(dismissal.parse({ ...form, template: 'spam' }))).toBe('Not a sale');
+  });
+
+  it('has no reason without either', () => {
+    expect(reasonFor(dismissal.parse({ report_id: form.report_id, template: '' }))).toBe('');
+    expect(reasonFor(dismissal.parse({ ...form, reason: '   ' }))).toBe('');
+  });
+
   it.each([
-    ['reason', undefined, 'Give a reason. It goes to the audit log.'],
-    ['reason', '   ', 'Give a reason. It goes to the audit log.'],
     ['reason', 'x'.repeat(501), 'Use 500 characters or fewer for the reason.'],
+    ['template', 'made_up', undefined],
     ['report_id', 'not-an-id', undefined],
   ])('rejects a %s of %j', (field, value, message) => {
     const issue = dismissal.safeParse({ ...form, [field]: value }).error?.issues[0];

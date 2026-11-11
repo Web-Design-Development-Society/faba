@@ -41,9 +41,14 @@ if (suspend && !suspend.error) {
   setFlash(Astro.cookies, Astro.url, 'suspended');
   return Astro.redirect('/mod', 303);
 }
+const note = Astro.getActionResult(actions.moderation.addNote);
+if (note && !note.error) {
+  setFlash(Astro.cookies, Astro.url, 'note_added');
+  return Astro.redirect('/mod', 303);
+}
 const flash = takeFlash(Astro.cookies);
 // The reason's error shows at the top, since its sheet has closed.
-const failed = dismiss?.error ?? hide?.error ?? hideUpdate?.error ?? suspend?.error;
+const failed = dismiss?.error ?? hide?.error ?? hideUpdate?.error ?? suspend?.error ?? note?.error;
 const failure = isInputError(failed) ? failed.fields.reason?.[0] : failed?.message;
 
 const moderator =
@@ -71,6 +76,26 @@ const targets = (type: string) =>
   reports?.filter(({ target_type }) => target_type === type).map(({ target_id }) => target_id) ??
   [];
 const now = new Date();
+// Groups that are reported (MOD-08), and the moderators' notes on everything reported.
+const [{ data: groups }, { data: notes }] = await Promise.all([
+  supabase.from('groups').select('id, slug, name').in('id', targets('group')),
+  moderator && reports?.length
+    ? supabase
+        .from('moderator_notes')
+        .select(
+          'target_type, target_id, body, created_at, author:profiles!moderator_notes_author_id_fkey(display_name)'
+        )
+        .in(
+          'target_id',
+          reports.map(({ target_id }) => target_id)
+        )
+        .order('created_at')
+    : { data: [] },
+]);
+const notesFor = (report: { target_type: string; target_id: string }) =>
+  notes?.filter(
+    (note) => note.target_type === report.target_type && note.target_id === report.target_id
+  ) ?? [];
 const [{ data: activities }, { data: profiles }, { data: updates }, { data: handovers }] =
   await Promise.all([
     supabase.from('activities').select('id, title, hidden_at').in('id', targets('activity')),
@@ -113,6 +138,16 @@ const preview = (type: string, id: string) => {
       actionable: !!update && !update.hidden_at,
     };
   }
+  if (type === 'group') {
+    // A group isn't hidden from the queue, so Dismiss is what a moderator does.
+    const group = groups?.find((g) => g.id === id);
+    return {
+      kind: 'Group',
+      href: `/groups/${group?.slug ?? ''}`,
+      name: group?.name,
+      actionable: false,
+    };
+  }
   const profile = profiles?.find((p) => p.id === id);
   return {
     kind: 'Member',
@@ -125,6 +160,12 @@ const preview = (type: string, id: string) => {
 
 <Layout title="Reports">
   <a href="/me">Back to Me</a>
+  {member?.role === 'admin' && (
+    <>
+      {' · '}
+      <a href="/admin">Admin</a>
+    </>
+  )}
   <h1>Reports</h1>
   <Status message={flash && FLASH_MESSAGES[flash]} />
   {failure && <p role="alert">{failure}</p>}
@@ -164,6 +205,7 @@ const preview = (type: string, id: string) => {
                   fields={{ report_id: report.id }}
                   confirm="Dismiss report"
                   cancel="Keep it open"
+                  templates
                 />
                 {report.target_type === 'activity' && target.actionable && (
                   <ModerationAction
@@ -174,6 +216,7 @@ const preview = (type: string, id: string) => {
                     fields={{ activity_id: report.target_id }}
                     confirm="Hide activity"
                     cancel="Keep it visible"
+                    templates
                   >
                     <p>
                       Members won't see it. Its organizer sees your reason, and can edit it. Its
@@ -190,6 +233,7 @@ const preview = (type: string, id: string) => {
                     fields={{ update_id: report.target_id }}
                     confirm="Hide update"
                     cancel="Keep it visible"
+                    templates
                   >
                     <p>
                       Members won't see it on the activity or in Alerts. Its author sees your
@@ -206,6 +250,7 @@ const preview = (type: string, id: string) => {
                     fields={{ user_id: report.target_id }}
                     confirm="Yes, suspend them"
                     cancel="Don't suspend"
+                    templates
                   >
                     <p>
                       They can't use FABA until a moderator reinstates them. Their activities that
@@ -215,6 +260,35 @@ const preview = (type: string, id: string) => {
                   </ModerationAction>
                 )}
               </div>
+              <section class="notes" aria-labelledby={`notes-${report.id}`}>
+                <h3 id={`notes-${report.id}`}>Moderators' notes</h3>
+                {notesFor(report).map((note) => (
+                  <p class="note-line">
+                    <strong>{note.author?.display_name ?? 'A moderator'}</strong> ·{' '}
+                    <time datetime={note.created_at}>
+                      {formatAgo(new Date(note.created_at), now)}
+                    </time>
+                    <br />
+                    {note.body}
+                  </p>
+                ))}
+                <form method="post" action={actions.moderation.addNote.queryString}>
+                  <input type="hidden" name="target_type" value={report.target_type} />
+                  <input type="hidden" name="target_id" value={report.target_id} />
+                  <p>
+                    <label for={`note-${report.id}`}>Add a note for moderators</label>
+                    <br />
+                    <textarea
+                      id={`note-${report.id}`}
+                      name="body"
+                      rows="2"
+                      maxlength={500}
+                      required
+                    ></textarea>
+                  </p>
+                  <button type="submit">Add note</button>
+                </form>
+              </section>
             </article>
           </li>
         );
@@ -276,6 +350,15 @@ const preview = (type: string, id: string) => {
   }
   .handovers h2 {
     font-size: 1.25rem;
+  }
+  .notes {
+    margin-top: 0.75rem;
+  }
+  .notes h3 {
+    font-size: 0.875rem;
+  }
+  .note-line {
+    font-size: 0.875rem;
   }
   .actions {
     display: flex;
