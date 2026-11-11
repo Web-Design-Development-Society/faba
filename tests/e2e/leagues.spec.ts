@@ -2,8 +2,9 @@
 // at a time, and ladders being one person.
 import { expect, expectAccessible, test } from './fixtures';
 
-test('a member starts a league, and starts its first season', async ({ page, signInAs }) => {
-  await signInAs('member');
+test('a member starts a league, and starts its first season', async ({ page, poster }) => {
+  // The poster fixture signs in a fresh account, with its own group quota.
+  void poster;
   await page.goto('/leagues/new');
   const name = `Pickle Ladder ${crypto.randomUUID().slice(0, 6)}`;
   await page.getByLabel('League name').fill(name);
@@ -24,8 +25,9 @@ test('a member starts a league, and starts its first season', async ({ page, sig
   await expectAccessible(page);
 });
 
-test('a member signs up for a season, and withdraws', async ({ page, signInAs }) => {
-  await signInAs('organizer');
+test('a member signs up for a season, and withdraws', async ({ page, poster }) => {
+  // The poster fixture signs in a fresh account, with its own group quota.
+  void poster;
   await page.goto('/leagues/new');
   await page.getByLabel('League name').fill(`Chess Club ${crypto.randomUUID().slice(0, 6)}`);
   await page.getByLabel('Category').selectOption('games');
