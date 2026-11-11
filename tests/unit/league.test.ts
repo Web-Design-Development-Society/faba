@@ -2,6 +2,7 @@
 import { describe as group, expect, it } from 'vitest';
 import {
   assignment,
+  availability,
   forfeit,
   gameEdit,
   newRegistration,
@@ -135,5 +136,14 @@ group('scores', () => {
   it('needs the team that forfeited', () => {
     expect(forfeit.safeParse({ game_id: gameId, forfeit_team_id: gameId }).success).toBe(true);
     expect(forfeit.safeParse({ game_id: gameId, forfeit_team_id: '' }).success).toBe(false);
+  });
+});
+
+group('availability', () => {
+  it('turns a yes or no into a boolean, and needs a game', () => {
+    expect(availability.parse({ game_id: seasonId, can_play: 'yes' }).can_play).toBe(true);
+    expect(availability.parse({ game_id: seasonId, can_play: 'no' }).can_play).toBe(false);
+    expect(availability.safeParse({ game_id: seasonId, can_play: 'maybe' }).success).toBe(false);
+    expect(availability.safeParse({ game_id: 'x', can_play: 'yes' }).success).toBe(false);
   });
 });

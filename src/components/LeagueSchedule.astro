@@ -37,8 +37,18 @@ interface Sub {
   user_id: string;
 }
 
+interface Answer {
+  game_id: string;
+  user_id: string;
+  can_play: boolean;
+}
+
 interface Props {
   seasonId: string;
+  myTeamId: string | null;
+  mySubGameIds: string[];
+  answers: Answer[];
+  playerTeams: Record<string, string | null>;
   organizer: boolean;
   me: string;
   freeAgent: boolean;
@@ -49,7 +59,29 @@ interface Props {
   names: Record<string, string>;
 }
 
-const { seasonId, organizer, me, freeAgent, teams, games, subRequests, subs, names } = Astro.props;
+const {
+  seasonId,
+  organizer,
+  me,
+  freeAgent,
+  teams,
+  games,
+  subRequests,
+  subs,
+  names,
+  myTeamId,
+  mySubGameIds,
+  answers,
+  playerTeams,
+} = Astro.props;
+// The answers from the players on the team a captain runs in a game (LEAG-07).
+const rosterAnswers = (game: Game) => {
+  const team = myTeamOf(game);
+  if (!team) return [];
+  return answers.filter(
+    (answer) => answer.game_id === game.id && playerTeams[answer.user_id] === team
+  );
+};
 const zone = 'America/Boise';
 const teamOf = (id: string | null) => teams.find((team) => team.id === id);
 const nameOf = (id: string | null) => teamOf(id)?.name ?? 'A team';
@@ -182,6 +214,34 @@ const locked = (game: Game) => game.status === 'confirmed' || game.status === 'f
                         Sub: {names[sub.user_id] ?? 'A free agent'} for {nameOf(sub.team_id)}
                       </p>
                     ))}
+                  {(game.home_team_id === myTeamId ||
+                    game.away_team_id === myTeamId ||
+                    mySubGameIds.includes(game.id)) &&
+                    game.status === 'scheduled' && (
+                      <div class="row">
+                        <form method="post" action={actions.leagues.setAvailability.queryString}>
+                          <input type="hidden" name="game_id" value={game.id} />
+                          <input type="hidden" name="can_play" value="yes" />
+                          <button>Can play</button>
+                        </form>
+                        <form method="post" action={actions.leagues.setAvailability.queryString}>
+                          <input type="hidden" name="game_id" value={game.id} />
+                          <input type="hidden" name="can_play" value="no" />
+                          <button>Can't play</button>
+                        </form>
+                      </div>
+                    )}
+                  {myTeamOf(game) && rosterAnswers(game).length > 0 && (
+                    <p class="sub">
+                      Availability:{' '}
+                      {rosterAnswers(game)
+                        .map(
+                          (answer) =>
+                            `${names[answer.user_id]} ${answer.can_play ? 'can play' : "can't play"}`
+                        )
+                        .join(', ')}
+                    </p>
+                  )}
                   {playing && !locked(game) && (
                     <form
                       method="post"

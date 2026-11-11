@@ -655,6 +655,43 @@ export type Database = {
           },
         ];
       };
+      league_game_availability: {
+        Row: {
+          can_play: boolean;
+          game_id: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          can_play: boolean;
+          game_id: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          can_play?: boolean;
+          game_id?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'league_game_availability_game_id_fkey';
+            columns: ['game_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_games';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_game_availability_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       league_game_subs: {
         Row: {
           created_at: string;
@@ -1712,6 +1749,7 @@ export type Database = {
       set_activity_tags: { Args: { activity_id: string; tag_ids: string[] }; Returns: undefined };
       set_board_activity: { Args: { activity_id: string; board: boolean }; Returns: undefined };
       set_email_visibility: { Args: { visible: boolean }; Returns: undefined };
+      set_game_availability: { Args: { can_play: boolean; game_id: string }; Returns: undefined };
       set_group_role: {
         Args: { group_id: string; role: string; user_id: string };
         Returns: undefined;
