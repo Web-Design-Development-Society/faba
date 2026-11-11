@@ -1,0 +1,201 @@
+---
+// A season's teams and players (LEAG-03). Every league member sees the teams, their captains and
+// their players, and the free agents. An organizer also names the teams and their captains, and
+// moves each player to a team, or takes them off one. Each form works without JavaScript.
+import { actions } from 'astro:actions';
+
+interface Team {
+  id: string;
+  name: string;
+  color: string;
+  captain_id: string | null;
+}
+
+interface Entry {
+  user_id: string;
+  kind: string;
+  note: string | null;
+  team_id: string | null;
+  profiles: { display_name: string } | null;
+}
+
+interface Props {
+  seasonId: string;
+  organizer: boolean;
+  teams: Team[];
+  signups: Entry[];
+}
+
+const { seasonId, organizer, teams, signups } = Astro.props;
+const nameOf = (entry: Entry) => entry.profiles?.display_name ?? 'A member';
+const players = signups.filter((entry) => entry.kind === 'player');
+const freeAgents = signups.filter((entry) => entry.kind !== 'player');
+const onTeam = (teamId: string) => players.filter((entry) => entry.team_id === teamId);
+const captainName = (team: Team) => {
+  const captain = players.find((entry) => entry.user_id === team.captain_id);
+  return captain ? nameOf(captain) : 'None yet';
+};
+---
+
+<section aria-labelledby="teams">
+  <h2 id="teams">Teams</h2>
+  {teams.length === 0 && <p>The teams aren't set yet.</p>}
+  {teams.map((team) => {
+    const roster = onTeam(team.id);
+    return (
+      <article>
+        <h3>
+          <span class="swatch" style={`background: ${team.color}`} aria-hidden="true" />
+          {team.name}
+        </h3>
+        <p>Captain: {captainName(team)}</p>
+        {roster.length > 0 ? (
+          <ul>
+            {roster.map((entry) => (
+              <li>{nameOf(entry)}</li>
+            ))}
+          </ul>
+        ) : (
+          <p>No players yet.</p>
+        )}
+        {organizer && (
+          <form method="post" action={actions.leagues.updateTeam.queryString} class="stack">
+            <input type="hidden" name="team_id" value={team.id} />
+            <label>
+              Team name
+              <input type="text" name="name" value={team.name} maxlength={40} required />
+            </label>
+            <label>
+              Colour
+              <input type="color" name="color" value={team.color} />
+            </label>
+            <label>
+              Captain
+              <select name="captain_id">
+                <option value="" selected={!team.captain_id}>
+                  No captain
+                </option>
+                {roster.map((entry) => (
+                  <option value={entry.user_id} selected={entry.user_id === team.captain_id}>
+                    {nameOf(entry)}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button>Save team</button>
+          </form>
+        )}
+      </article>
+    );
+  })}
+
+  {organizer && (
+    <section aria-labelledby="add-team">
+      <h3 id="add-team">Add a team</h3>
+      <form method="post" action={actions.leagues.createTeam.queryString} class="stack">
+        <input type="hidden" name="season_id" value={seasonId} />
+        <label>
+          Team name
+          <input type="text" name="name" maxlength={40} required />
+        </label>
+        <label>
+          Colour
+          <input type="color" name="color" value="#1d76db" />
+        </label>
+        <button>Add team</button>
+      </form>
+    </section>
+  )}
+</section>
+
+<section aria-labelledby="players">
+  <h2 id="players">Players and free agents</h2>
+  {players.length === 0 ? (
+    <p>No players have signed up yet.</p>
+  ) : (
+    <ul class="players">
+      {players.map((entry) => {
+        const team = teams.find((t) => t.id === entry.team_id);
+        return (
+          <li>
+            {nameOf(entry)} · {team ? team.name : 'No team yet'}
+            {organizer && (
+              <form method="post" action={actions.leagues.assignPlayer.queryString} class="inline">
+                <input type="hidden" name="season_id" value={seasonId} />
+                <input type="hidden" name="user_id" value={entry.user_id} />
+                <label>
+                  <span class="visually-hidden">Team for {nameOf(entry)}</span>
+                  <select name="team_id">
+                    <option value="">No team</option>
+                    {teams.map((t) => (
+                      <option value={t.id} selected={t.id === entry.team_id}>
+                        {t.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <button>Move</button>
+              </form>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  )}
+  {freeAgents.length > 0 && (
+    <>
+      <h3>Free agents</h3>
+      <ul>
+        {freeAgents.map((entry) => (
+          <li>
+            {nameOf(entry)}
+            {entry.note && <> · {entry.note}</>}
+          </li>
+        ))}
+      </ul>
+    </>
+  )}
+</section>
+
+<style>
+  .swatch {
+    display: inline-block;
+    width: 0.9em;
+    height: 0.9em;
+    margin-right: 0.4em;
+    border-radius: 3px;
+    border: 1px solid #0003;
+    vertical-align: middle;
+  }
+  .stack {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-width: 24rem;
+    margin-bottom: 1.5rem;
+  }
+  .stack label,
+  .inline label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+  }
+  .inline {
+    display: inline-flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-left: 0.5rem;
+  }
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
+  button,
+  input,
+  select {
+    min-height: 44px;
+  }
+</style>

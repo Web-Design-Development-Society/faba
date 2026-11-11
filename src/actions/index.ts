@@ -4,6 +4,7 @@ import { admin } from './admin';
 import { calendar } from './calendar';
 import { follows } from './follows';
 import { groups } from './groups';
+import { leagues } from './leagues';
 import { moderation } from './moderation';
 import { notifications } from './notifications';
 import { profile } from './profile';
@@ -16,6 +17,7 @@ export const server = {
   calendar,
   follows,
   groups,
+  leagues,
   moderation,
   notifications,
   profile,

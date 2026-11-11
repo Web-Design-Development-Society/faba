@@ -25,6 +25,7 @@ const { data: groups, error } = await supabase
   <header class="top">
     <h1>Discover</h1>
     <a href="/groups/new">Start a group</a>
+    <a href="/leagues/new">Start a league</a>
   </header>
   <DiscoverSwitch current="groups" />
   <Status message={flash && FLASH_MESSAGES[flash]} />
