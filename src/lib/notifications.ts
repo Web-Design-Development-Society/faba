@@ -20,6 +20,7 @@ export const TYPES: Record<string, { icon: string; summary: string }> = {
   group_owner: { icon: '🔑', summary: 'You own this group now' },
   rsvp_promoted: { icon: '🎉', summary: "A spot opened, and you're going" },
   rsvp_removed: { icon: '↩', summary: 'Taken off the list' },
+  new_activity: { icon: '✨', summary: 'New activities I follow' },
 };
 
 /** The types a member can turn off under Me → Notifications (NOTIF-10). Cancellations always come. */
@@ -83,6 +84,7 @@ export function describe(
     details_changed,
     location_name,
     member,
+    name,
     reason,
     series,
     starts_at,
@@ -93,6 +95,7 @@ export function describe(
     details_changed?: boolean;
     location_name?: string;
     member?: string;
+    name?: string;
     reason?: string | null;
     series?: boolean;
     starts_at?: string;
@@ -146,6 +149,10 @@ export function describe(
             : formatWhen(start);
         return `Reminder: ${[when, location_name].filter(Boolean).join(', ')}`;
       }
+      // NOTIF-09: "2 new Outdoors activities", once a day for each category or group followed.
+      case 'new_activity':
+        if (typeof count !== 'number' || count < 1 || !name) return '';
+        return count === 1 ? `A new ${name} activity` : `${count} new ${name} activities`;
       // GRP-02: "Dana Smith asked to join", with the group's name under it.
       case 'group_join_request':
         return member ? `${member} asked to join` : '';

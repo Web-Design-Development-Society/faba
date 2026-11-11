@@ -18,6 +18,8 @@ export const FLASH_MESSAGES = {
   co_organizer_added: 'Co-organizer added.',
   co_organizer_removed: 'Co-organizer removed.',
   attendee_removed: 'Taken off the list.',
+  followed: "You're following it. New activities will show up in your notifications.",
+  unfollowed: "You're not following it anymore.",
   reported: 'Thanks, a moderator will review this.',
   dismissed: 'Report dismissed.',
   hidden: 'Activity hidden.',

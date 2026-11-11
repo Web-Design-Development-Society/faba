@@ -20,15 +20,19 @@ export const notifications = {
       if (error) throw new ActionError(actionErrorFor(error));
       const { data } = await locals.supabase
         .from('notifications')
-        .select('type, activity_id, group:groups(slug)')
+        .select('type, activity_id, payload, group:groups(slug)')
         .eq('id', id)
         .maybeSingle();
+      // A batched follow notice opens its category or group, which its payload names.
+      const link = data?.type === 'new_activity' ? (data.payload as { href?: string }).href : null;
       return {
-        href: data?.activity_id
-          ? `/activities/${data.activity_id}`
-          : data?.group
-            ? `/groups/${data.group.slug}${data.type === 'group_join_request' ? '/members' : ''}`
-            : '/notifications',
+        href:
+          link ??
+          (data?.activity_id
+            ? `/activities/${data.activity_id}`
+            : data?.group
+              ? `/groups/${data.group.slug}${data.type === 'group_join_request' ? '/members' : ''}`
+              : '/notifications'),
       };
     },
   }),
