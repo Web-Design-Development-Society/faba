@@ -3,7 +3,7 @@
 // sheet asking why, which posts to the Action. The reason goes to the audit log (FR-MOD-1). It
 // works without JavaScript. Anything in the slot explains the action above the reason, and the
 // `fields` slot adds fields to the form, such as a choice.
-import { MODERATION_REASON_MAX } from '../lib/validation/moderation';
+import { MODERATION_REASON_MAX, REASON_TEMPLATES } from '../lib/validation/moderation';
 import Sheet from './Sheet.astro';
 
 interface Props {
@@ -21,9 +21,11 @@ interface Props {
   confirm: string;
   /** The button that closes the sheet. */
   cancel: string;
+  /** Offer the common reasons (MOD-08). The reason is still needed, typed or picked. */
+  templates?: boolean;
 }
 
-const { id, label, title, action, fields, confirm, cancel } = Astro.props;
+const { id, label, title, action, fields, confirm, cancel, templates } = Astro.props;
 ---
 
 <button type="button" commandfor={id} command="show-modal">
@@ -36,6 +38,18 @@ const { id, label, title, action, fields, confirm, cancel } = Astro.props;
       <input type="hidden" name={name} value={value} />
     ))}
     <slot name="fields" />
+    {templates && (
+      <p>
+        <label for={`${id}-template`}>Common reason</label>
+        <br />
+        <select id={`${id}-template`} name="template">
+          <option value="">Pick one, or write your own below</option>
+          {Object.entries(REASON_TEMPLATES).map(([value, label]) => (
+            <option value={value}>{label}</option>
+          ))}
+        </select>
+      </p>
+    )}
     <p>
       <label for={`${id}-reason`}>Reason, for the audit log</label>
       <br />
@@ -43,7 +57,7 @@ const { id, label, title, action, fields, confirm, cancel } = Astro.props;
         id={`${id}-reason`}
         name="reason"
         rows="2"
-        required
+        required={!templates}
         maxlength={MODERATION_REASON_MAX}
       ></textarea>
     </p>

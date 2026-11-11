@@ -1,0 +1,113 @@
+---
+// The audit log (MOD-08), for admins: who did what, to what, and why, newest first. Filter it by the
+// moderator or admin who acted, and by what it was about (an id). Only admins can read it, and the
+// database checks again.
+import { formatAgo } from '../../lib/time';
+import Layout from '../../layouts/Layout.astro';
+
+const { supabase, user, member } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+
+const admin = member?.status === 'active' && member.role === 'admin';
+if (!admin) Astro.response.status = 403;
+
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const actor = Astro.url.searchParams.get('actor') ?? '';
+const target = Astro.url.searchParams.get('target') ?? '';
+const actorId = UUID.test(actor) ? actor : null;
+const targetId = UUID.test(target) ? target : null;
+
+const [{ data: staff }, { data: rows, error }] = admin
+  ? await Promise.all([
+      supabase
+        .from('profiles')
+        .select('id, display_name')
+        .in('role', ['moderator', 'admin'])
+        .order('display_name'),
+      supabase.rpc('admin_audit_log', {
+        actor: actorId ?? undefined,
+        target: targetId ?? undefined,
+        lim: 100,
+      }),
+    ])
+  : [{ data: [] }, { data: [], error: null }];
+const now = new Date();
+---
+
+<Layout title="Audit log" tab="me">
+  <a href="/admin">Back to Admin</a>
+  <h1>Audit log</h1>
+  {!admin ? (
+    <p>Only admins can read the audit log.</p>
+  ) : (
+    <>
+      <form method="get">
+        <p>
+          <label for="actor">Who did it</label>
+          <br />
+          <select id="actor" name="actor">
+            <option value="">Anyone</option>
+            {staff?.map((person) => (
+              <option value={person.id} selected={person.id === actorId}>
+                {person.display_name}
+              </option>
+            ))}
+          </select>
+        </p>
+        <p>
+          <label for="target">About (an id, such as a report's target)</label>
+          <br />
+          <input id="target" name="target" value={targetId ?? ''} />
+        </p>
+        <button>Filter</button>
+      </form>
+      {error ? (
+        <p role="alert">The audit log couldn't load. Please try again.</p>
+      ) : !rows?.length ? (
+        <p>Nothing matches.</p>
+      ) : (
+        <ol class="log">
+          {rows.map((row) => (
+            <li>
+              <time datetime={row.created_at}>{formatAgo(new Date(row.created_at), now)}</time>
+              {' · '}
+              <strong>{row.actor_name ?? 'Automatic or a database job'}</strong>
+              {' · '}
+              {row.action} {row.target_type}
+              <span class="id">{row.target_id}</span>
+              {row.reason && <p class="reason">{row.reason}</p>}
+            </li>
+          ))}
+        </ol>
+      )}
+    </>
+  )}
+</Layout>
+
+<style>
+  .log {
+    padding: 0;
+    list-style: none;
+  }
+  .log li {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #ccc;
+  }
+  .id {
+    display: block;
+    font-size: 0.75rem;
+    color: #595959;
+    word-break: break-all;
+  }
+  .reason {
+    margin: 0.25rem 0 0;
+  }
+  button,
+  select,
+  input {
+    min-height: 44px;
+  }
+  button {
+    padding: 0 1rem;
+  }
+</style>

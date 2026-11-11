@@ -10,6 +10,7 @@ import ActivityCard from '../components/ActivityCard.astro';
 import Avatar from '../components/Avatar.astro';
 import DiscoverSwitch from '../components/DiscoverSwitch.astro';
 import FilterChips from '../components/FilterChips.astro';
+import FollowButton from '../components/FollowButton.astro';
 import MoreFilters from '../components/MoreFilters.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
@@ -26,6 +27,11 @@ const { supabase, user, member } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
 
 // I'm in and Can't make it without JavaScript come back to the card (RSVP-01, RSVP-02).
+const followed = Astro.getActionResult(actions.follows.set);
+if (followed && !followed.error) {
+  setFlash(Astro.cookies, Astro.url, followed.data.following ? 'followed' : 'unfollowed');
+  return Astro.redirect(postedFrom(Astro.url), 303);
+}
 const rsvp = Astro.getActionResult(actions.rsvps.set);
 if (rsvp && !rsvp.error) {
   setFlash(Astro.cookies, Astro.url, rsvp.data.status);
@@ -89,6 +95,16 @@ const newSince = visit.data ? new Date(visit.data) : null;
 const chips = categories.data?.length ? categories.data : null;
 const category = chips?.find(({ id }) => id === cat);
 if (cat && categories.data && !category) return Astro.redirect('/discover');
+// Whether the member follows the chosen category (NOTIF-09). Only a chosen category has a follow.
+const { data: following } = category
+  ? await supabase
+      .from('follows')
+      .select('target_id')
+      .eq('user_id', user.id)
+      .eq('target_type', 'category')
+      .eq('target_id', category.id)
+      .maybeSingle()
+  : { data: null };
 // The tags asked for that are offered, which are the ones the database used.
 const chosenTags = tags.data?.filter(({ id }) => moreFilters.tags.includes(id)) ?? [];
 const filters = {
@@ -140,6 +156,18 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
     </section>
   )}
   {chips && <FilterChips categories={chips} page="/discover" query={Astro.url.searchParams} />}
+  {category && (
+    <>
+      {followed?.error && <p role="alert">{followed.error.message}</p>}
+      <FollowButton
+        kind="category"
+        target={category.id}
+        name={category.name}
+        following={!!following}
+        action={`?cat=${encodeURIComponent(category.id)}&${actions.follows.set.queryString.replace(/^\?/, '')}`}
+      />
+    </>
+  )}
   <MoreFilters
     page="/discover"
     query={Astro.url.searchParams}
