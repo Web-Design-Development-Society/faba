@@ -26,9 +26,16 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="icon" href="/favicon.ico" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#000000" />
     <title>{title === 'FABA' ? title : `${title} · FABA`}</title>
   </head>
   <body>
+    {/* Shown while the device is offline (PWA-01, section 7.13). The script turns it on. */}
+    <p class="offline" data-offline role="status" hidden>
+      You're offline. We'll keep what you typed.
+    </p>
     <main>
       <slot />
     </main>
@@ -71,6 +78,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
 
 <script>
   import '../scripts/unread';
+  import '../scripts/offline';
 </script>
 
 <style is:global>
@@ -146,6 +154,13 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;
+  }
+  .offline {
+    margin: 0 0 1rem;
+    padding: 0.5rem 0.75rem;
+    color: #171717;
+    background: #fef3c7;
+    border-radius: 0.5rem;
   }
   /* The one filled button in the bar. */
   .tabs .post {
