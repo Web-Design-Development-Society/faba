@@ -164,7 +164,7 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
         target={category.id}
         name={category.name}
         following={!!following}
-        action={`?cat=${encodeURIComponent(category.id)}&${actions.follows.set.queryString}`}
+        action={`?cat=${encodeURIComponent(category.id)}&${actions.follows.set.queryString.replace(/^\?/, '')}`}
       />
     </>
   )}
