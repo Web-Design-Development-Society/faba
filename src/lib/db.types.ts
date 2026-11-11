@@ -1335,6 +1335,28 @@ export type Database = {
           },
         ];
       };
+      retention_runs: {
+        Row: {
+          id: string;
+          ran_at: string;
+          removed: number;
+          target: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          id?: string;
+          ran_at?: string;
+          removed: number;
+          target: string;
+        };
+        Update: {
+          id?: string;
+          ran_at?: string;
+          removed?: number;
+          target?: string;
+        };
+        Relationships: [];
+      };
       rsvps: {
         Row: {
           activity_id: string;
