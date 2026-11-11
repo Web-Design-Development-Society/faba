@@ -52,8 +52,9 @@ test('a member signs up for a season, and withdraws', async ({ page, poster }) =
   await expect(page.getByRole('button', { name: 'Join season' })).toBeVisible();
 });
 
-test('an organizer makes a team and moves a player onto it', async ({ page, signInAs }) => {
-  await signInAs('member');
+test('an organizer makes a team and moves a player onto it', async ({ page, poster }) => {
+  // The poster fixture signs in a fresh account, with its own group quota.
+  void poster;
   await page.goto('/leagues/new');
   await page.getByLabel('League name').fill(`Trivia Night ${crypto.randomUUID().slice(0, 6)}`);
   await page.getByLabel('Category').selectOption('games');
