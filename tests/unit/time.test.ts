@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   addDays,
   formatAgo,
+  formatDate,
   formatDay,
   formatRange,
   formatSoon,
@@ -247,5 +248,11 @@ describe('whenRange', () => {
       '2026-11-20T07:00:00.000Z',
       '2026-11-22T07:00:00.000Z',
     ]);
+  });
+});
+
+describe('formatDate', () => {
+  it('has the year, since a series can end in the next one', () => {
+    expect(formatDate('2027-11-07')).toBe('Nov 7, 2027');
   });
 });

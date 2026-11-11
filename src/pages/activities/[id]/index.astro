@@ -7,7 +7,8 @@
 // upcoming one to a new host or cancel it (AUTH-05). Its details for attendees show only to those
 // who can read them (ACT-09). Add to calendar sits beside the time (ACT-08). A board activity has a
 // badge, and an admin who organizes one marks it and announces it from the menu (MOD-07). One
-// posted under a group names it, and says when it's for the group's members only (GRP-03).
+// posted under a group names it, and says when it's for the group's members only (GRP-03). A date
+// in a series says how often it repeats, and through when (REC-01).
 import { actions, isInputError } from 'astro:actions';
 import Avatar from '../../../components/Avatar.astro';
 import BoardContact from '../../../components/BoardContact.astro';
@@ -23,8 +24,9 @@ import { googleCalendarUrl } from '../../../lib/calendar';
 import { isFull } from '../../../lib/cards';
 import { PHYSICAL_CATEGORIES } from '../../../lib/contact';
 import { linkify, mapsUrl } from '../../../lib/links';
+import { repeatsSentence } from '../../../lib/series';
 import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../../../lib/server/flash';
-import { formatAgo, formatRange, isOver } from '../../../lib/time';
+import { formatAgo, formatDate, formatRange, isOver } from '../../../lib/time';
 
 // Faces in the going row, and people in who's going before Show all (RSVP-03).
 const FACES = 4;
@@ -99,6 +101,7 @@ const [{ data: activity }, { data: me }] = await Promise.all([
       max_guests_per_rsvp, organizer_id,
       time_or_place_changed_at, category_id, has_private_details, is_board_activity, announced_at,
       visibility, group:groups(name, slug),
+      series:activity_series(freq, start_date, until_date),
       private:activity_private_details(details),
       category:categories(name),
       tags:activity_tags(tag:tags(name, sort_order)),
@@ -331,6 +334,12 @@ const email = activity
           </>
         )}
       </p>
+      {activity.series && (
+        <p class="repeats">
+          {repeatsSentence(activity.series.freq, activity.series.start_date)}
+          {activity.series.until_date && ` through ${formatDate(activity.series.until_date)}`}
+        </p>
+      )}
       {google && (
         <Sheet id="calendar" title="Add to calendar">
           <ul class="calendars">
@@ -709,8 +718,12 @@ const email = activity
   .description {
     white-space: pre-line;
   }
-  .updated {
+  .updated,
+  .repeats {
     font-size: 0.875rem;
+  }
+  .repeats {
+    margin-top: 0;
   }
   /* Within thumb reach at the bottom of the screen, even when the page is short, so toasts sit
      above it rather than on ✓ Going. The page leaves room for it. */

@@ -1,6 +1,7 @@
 ---
 // The fields that the create and edit forms share (ACT-03, ACT-04, design document section 7.7),
-// with each field's value and error. src/scripts/activity-form.ts adds the extras.
+// with each field's value and error. src/scripts/activity-form.ts adds the extras. The `more` slot
+// adds a form's own fields to More options, such as the create form's Repeats (REC-01).
 import { quickDates, rexburgDate } from '../lib/time';
 import { ACTIVITY, latestStart } from '../lib/validation/activity';
 import FieldError from './FieldError.astro';
@@ -25,6 +26,8 @@ const now = new Date();
 const { today, tomorrow, saturday } = quickDates(now);
 const moreOptions =
   chosen.length > 0 ||
+  (value('repeats') ?? 'none') !== 'none' ||
+  !!errors.repeats ||
   [
     'end_time',
     'cost_note',
@@ -33,6 +36,7 @@ const moreOptions =
     'tags',
     'guests_allowed',
     'max_guests_per_rsvp',
+    'until_date',
   ].some((name) => value(name) || errors[name]);
 ---
 
@@ -219,4 +223,5 @@ const moreOptions =
       <FieldError name="tags" errors={errors.tags} />
     </fieldset>
   )}
+  <slot name="more" />
 </details>

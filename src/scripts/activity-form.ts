@@ -1,6 +1,7 @@
 // The activity form's extras with JavaScript (ACT-03, ACT-04): quick date picks, checking the time
-// rules before posting, and restoring the create form's draft. The form works without them, and
-// the server checks everything again.
+// rules before posting, naming the date's day and weekday in Repeats (REC-01), and restoring the
+// create form's draft. The form works without them, and the server checks everything again.
+import { monthlyLabels, type Freq } from '../lib/series';
 import { rexburgInstant } from '../lib/time';
 import { clearDraft, loadDraft, saveDraft } from './activity-draft';
 
@@ -19,6 +20,20 @@ function enhance(form: HTMLFormElement) {
     date.value = pick.dataset.date!;
     date.dispatchEvent(new Event('input', { bubbles: true }));
   });
+
+  // A series' monthly choices name the date's day and weekday, such as "Monthly on the 2nd
+  // Tuesday", and its last date comes on or after it (REC-01).
+  const repeats = form.querySelector<HTMLSelectElement>('select[data-repeats]');
+  const until = form.elements.namedItem('until_date') as HTMLInputElement | null;
+  const relabel = () => {
+    if (!repeats || !date.value) return;
+    const labels = monthlyLabels(date.value);
+    for (const option of repeats.options) {
+      if (option.value in labels) option.textContent = labels[option.value as Freq];
+    }
+    if (until) until.min = date.value;
+  };
+  date.addEventListener('input', relabel);
 
   // "In the future" depends on when Post is pressed, so the check runs then.
   form.querySelector('button[type="submit"]')!.addEventListener('click', () => {
@@ -43,7 +58,14 @@ function enhance(form: HTMLFormElement) {
       const field = form.elements.namedItem(name) as HTMLInputElement | RadioNodeList | null;
       if (field) field.value = value;
     }
-    if (draft.end_time || draft.cost_note || draft.capacity) {
+    relabel();
+    if (
+      draft.end_time ||
+      draft.cost_note ||
+      draft.capacity ||
+      draft.until_date ||
+      (draft.repeats && draft.repeats !== 'none')
+    ) {
       form.querySelector('details')!.open = true;
     }
     const notice = document.querySelector<HTMLElement>('[data-draft-notice]')!;

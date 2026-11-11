@@ -215,7 +215,7 @@ Tap counts assume the user is signed in and starts on the Home (Discover) screen
    - **Where** (place name, or an **Online** toggle that turns the field into a link)
    - **Category** (chips)
    - **Details** (optional description)
-3. **More options** (collapsed) holds: end time, capacity, guests welcome, cost note, what to bring, private details for attendees, and (later) repeats and group.
+3. **More options** (collapsed) holds: end time, capacity, guests welcome, cost note, what to bring, private details for attendees, the group and who can see it (GRP-03), and **Repeats** (REC-01): Doesn't repeat, Weekly, Every 2 weeks, Monthly on the same date, or Monthly on the same weekday, the last two named from the chosen date ("Monthly on the 2nd Tuesday", where a 5th is the last), with a **Last date** that's empty to keep going and at most 12 months after the first. A series' dates are separate activities, made 8 weeks ahead and topped up daily by `pg_cron` on the series' calendar in Rexburg time, each with the organizer going, the tags and the details for attendees, and each saying how often it repeats. A series counts as one post toward the daily limit.
 4. **Post** publishes immediately, with no draft or approval step. The user lands on the new activity's page with a "Posted!" toast and a **Share** button (native share sheet).
 5. The organizer is automatically marked as going.
 
