@@ -8,10 +8,12 @@
 // who can read them (ACT-09). Add to calendar sits beside the time (ACT-08). A board activity has a
 // badge, and an admin who organizes one marks it and announces it from the menu (MOD-07). One
 // posted under a group names it, and says when it's for the group's members only (GRP-03). A date
-// in a series says how often it repeats, and through when (REC-01).
+// in a series says how often it repeats, and through when (REC-01), and its organizer cancels
+// just that date from here (REC-03).
 import { actions, isInputError } from 'astro:actions';
 import Avatar from '../../../components/Avatar.astro';
 import BoardContact from '../../../components/BoardContact.astro';
+import CancelActivity from '../../../components/CancelActivity.astro';
 import GoingList from '../../../components/GoingList.astro';
 import Menu from '../../../components/Menu.astro';
 import ModerationAction from '../../../components/ModerationAction.astro';
@@ -56,6 +58,12 @@ if (cancel && !cancel.error) {
   setFlash(Astro.cookies, Astro.url, 'cancelled');
   return Astro.redirect(postedFrom(Astro.url), 303);
 }
+// Cancel this date, on a date in a series (REC-03).
+const cancelDate = Astro.getActionResult(actions.activities.cancel);
+if (cancelDate && !cancelDate.error) {
+  setFlash(Astro.cookies, Astro.url, 'cancelled');
+  return Astro.redirect(postedFrom(Astro.url), 303);
+}
 const mute = Astro.getActionResult(actions.notifications.mute);
 if (mute && !mute.error) {
   setFlash(Astro.cookies, Astro.url, mute.data.muted ? 'muted' : 'unmuted');
@@ -81,6 +89,7 @@ const failed =
   unhide?.error ??
   transfer?.error ??
   cancel?.error ??
+  cancelDate?.error ??
   mute?.error ??
   board?.error ??
   announce?.error ??
@@ -338,6 +347,12 @@ const email = activity
         <p class="repeats">
           {repeatsSentence(activity.series.freq, activity.series.start_date)}
           {activity.series.until_date && ` through ${formatDate(activity.series.until_date)}`}
+        </p>
+      )}
+      {/* Skipping a week takes 2 taps from here (REC-03). Edit has it too, as for any activity. */}
+      {activity.series && hosting && open && (
+        <p>
+          <CancelActivity activityId={activity.id} inSeries />
         </p>
       )}
       {google && (
