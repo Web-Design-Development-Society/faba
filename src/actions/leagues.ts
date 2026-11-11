@@ -4,7 +4,9 @@ import { ActionError, defineAction } from 'astro:actions';
 import { actionErrorFor } from '../lib/server/errors';
 import {
   assignment,
+  gameEdit,
   newLeague,
+  newSchedule,
   newRegistration,
   newSeason,
   newTeam,
@@ -128,6 +130,43 @@ export const leagues = {
       });
       if (error) throw new ActionError(actionErrorFor(error));
       return { user_id };
+    },
+  }),
+
+  /** Making a season's round robin, one game a week for each pair of teams (LEAG-04). */
+  generateSchedule: defineAction({
+    accept: 'form',
+    input: newSchedule,
+    handler: async ({ season_id, first_day, weekday, starts_time, place }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { data, error } = await locals.supabase.rpc('schedule_round_robin', {
+        season_id,
+        first_day,
+        weekday,
+        starts_time,
+        place,
+      });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { games: data };
+    },
+  }),
+
+  /** Changing one game's day, time or place (LEAG-04). */
+  editGame: defineAction({
+    accept: 'form',
+    input: gameEdit,
+    handler: async ({ game_id, day, starts_time, place }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('update_game', {
+        game_id,
+        day,
+        starts_time,
+        place,
+      });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { game_id };
     },
   }),
 };
