@@ -17,7 +17,7 @@ test('an organizer posts a weekly series and lands on its first date', async ({ 
   await page.getByLabel('Start time').fill('19:00');
   await page.getByLabel('Where?').fill('Hart courts');
   await page.getByRole('radio', { name: 'Sports & Fitness' }).check();
-  const first = await page.getByLabel('Date').inputValue();
+  const first = await page.getByLabel('Date', { exact: true }).inputValue();
   const last = addDays(first, 21);
   await page.getByText('More options').click();
   await page.getByLabel('How often').selectOption('weekly');
@@ -61,7 +61,7 @@ test('the monthly choices name the chosen date', async ({ page, signInAs }) => {
   await page.goto('/activities/new');
   await page.getByText('More options').click();
   await page.getByRole('button', { name: 'This Saturday' }).click();
-  const saturday = await page.getByLabel('Date').inputValue();
+  const saturday = await page.getByLabel('Date', { exact: true }).inputValue();
   await expect(
     page.getByRole('option', { name: `Monthly on the ${ordinalDay(saturday)}` })
   ).toBeAttached();
@@ -81,7 +81,7 @@ test.describe('without JavaScript', () => {
     await page.getByLabel('Start time').fill('07:00');
     await page.getByLabel('Where?').fill('R Mountain trailhead');
     await page.getByRole('radio', { name: 'Outdoors' }).check();
-    const first = await page.getByLabel('Date').inputValue();
+    const first = await page.getByLabel('Date', { exact: true }).inputValue();
     await page.getByLabel('How often').selectOption('monthly_nth');
     await page.getByLabel('Last date').fill(addDays(first, -1));
     await page.getByRole('button', { name: 'Post activity' }).click();

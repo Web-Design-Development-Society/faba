@@ -42,7 +42,7 @@ test('the organizer posts a past activity again, with a new date', async ({ page
   await expect(page.getByRole('checkbox', { name: 'Free' })).toBeChecked();
   // Everything but the date and times, which start from the suggestion.
   await expect(page.getByLabel('End time')).toHaveValue('');
-  await expect(page.getByLabel('Date')).not.toHaveValue('');
+  await expect(page.getByLabel('Date', { exact: true })).not.toHaveValue('');
   await expectAccessible(page);
 
   await page.getByRole('button', { name: 'Post activity' }).click();

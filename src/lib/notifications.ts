@@ -18,6 +18,7 @@ export const TYPES: Record<string, { icon: string; summary: string }> = {
   group_update: { icon: '💬', summary: 'Update from the group' },
   group_join_approved: { icon: '✓', summary: "You're in the group" },
   group_owner: { icon: '🔑', summary: 'You own this group now' },
+  rsvp_promoted: { icon: '🎉', summary: "A spot opened, and you're going" },
 };
 
 /** An activity's time and place, as an activity_changed payload has them before and after. */
@@ -121,6 +122,9 @@ export function describe(
       // NOTIF-05: "You're going on Fri, Dec 4, 7:00 PM".
       case 'rsvp_confirmed':
         return starts_at ? `You're going on ${formatWhen(new Date(starts_at))}` : '';
+      // RSVP-07: "A spot opened. You're going on Fri, Dec 4, 7:00 PM".
+      case 'rsvp_promoted':
+        return starts_at ? `A spot opened. You're going on ${formatWhen(new Date(starts_at))}` : '';
       // NOTIF-06: "3 new people are going", for the organizer.
       case 'new_attendees':
         if (typeof count !== 'number' || count < 1) return '';

@@ -15,7 +15,7 @@ test('a member posts an activity and lands on it, going', async ({ page, poster 
   await page.goto('/discover');
   await page.getByRole('link', { name: 'Post', exact: true }).click();
   await expect(page).toHaveURL('/activities/new');
-  await expect(page.getByLabel('Date')).not.toHaveValue('');
+  await expect(page.getByLabel('Date', { exact: true })).not.toHaveValue('');
   await expectAccessible(page);
 
   await fillRequired(page);
@@ -78,11 +78,11 @@ test('quick picks set the date, and the time rules are checked before posting', 
   await page.goto('/activities/new');
   const { today, tomorrow, saturday } = quickDates(new Date());
   await page.getByRole('button', { name: 'Tomorrow' }).click();
-  await expect(page.getByLabel('Date')).toHaveValue(tomorrow);
+  await expect(page.getByLabel('Date', { exact: true })).toHaveValue(tomorrow);
   await page.getByRole('button', { name: 'This Saturday' }).click();
-  await expect(page.getByLabel('Date')).toHaveValue(saturday);
+  await expect(page.getByLabel('Date', { exact: true })).toHaveValue(saturday);
   await page.getByRole('button', { name: 'Today' }).click();
-  await expect(page.getByLabel('Date')).toHaveValue(today);
+  await expect(page.getByLabel('Date', { exact: true })).toHaveValue(today);
 
   // Midnight today has always passed, so the browser stops the post.
   await fillRequired(page, '00:00');
@@ -152,7 +152,7 @@ test.describe('without JavaScript', () => {
     // Midnight today has always passed.
     await page.goto('/activities/new');
     await fillRequired(page, '00:00');
-    await page.getByLabel('Date').fill(rexburgDate(new Date()));
+    await page.getByLabel('Date', { exact: true }).fill(rexburgDate(new Date()));
     await page.getByRole('button', { name: 'Post activity' }).click();
 
     await expect(page.getByText('Pick a time in the future.')).toBeVisible();
@@ -162,7 +162,7 @@ test.describe('without JavaScript', () => {
     // No axe check here: it runs in the page, which needs JavaScript.
 
     const tomorrow = rexburgDate(new Date(Date.now() + 24 * 60 * 60 * 1000));
-    await page.getByLabel('Date').fill(tomorrow);
+    await page.getByLabel('Date', { exact: true }).fill(tomorrow);
     await page.getByLabel('Start time').fill('07:00');
     await page.getByRole('button', { name: 'Post activity' }).click();
     await expect(page.getByRole('status')).toHaveText('Posted!');

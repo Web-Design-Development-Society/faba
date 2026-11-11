@@ -87,7 +87,7 @@ test('this and future dates warns about a new weekday and moves the later dates'
 
   // The warning waits for both the choice and a new weekday.
   const warning = page.locator('[data-weekday-warning]');
-  await page.getByLabel('Date').fill(now);
+  await page.getByLabel('Date', { exact: true }).fill(now);
   await expect(warning).toBeEmpty();
   await page.getByRole('radio', { name: 'This and future dates' }).check();
   await expect(warning).toHaveText(
