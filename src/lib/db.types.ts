@@ -549,6 +549,28 @@ export type Database = {
         };
         Relationships: [];
       };
+      daily_metrics: {
+        Row: {
+          day: string;
+          dimension: string;
+          metric: string;
+          value: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          day: string;
+          dimension?: string;
+          metric: string;
+          value: number;
+        };
+        Update: {
+          day?: string;
+          dimension?: string;
+          metric?: string;
+          value?: number;
+        };
+        Relationships: [];
+      };
       data_exports: {
         Row: {
           created_at: string;
@@ -1172,6 +1194,69 @@ export type Database = {
             foreignKeyName: 'moderator_notes_author_id_fkey';
             columns: ['author_id'];
             isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      notification_channel_choices: {
+        Row: {
+          channel: string;
+          enabled: boolean;
+          type: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          channel: string;
+          enabled: boolean;
+          type: string;
+          user_id: string;
+        };
+        Update: {
+          channel?: string;
+          enabled?: boolean;
+          type?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notification_channel_choices_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      notification_channel_settings: {
+        Row: {
+          quiet_end: string;
+          quiet_start: string;
+          reminder_lead_hours: number;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          quiet_end?: string;
+          quiet_start?: string;
+          reminder_lead_hours?: number;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          quiet_end?: string;
+          quiet_start?: string;
+          reminder_lead_hours?: number;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notification_channel_settings_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
           },
@@ -1943,6 +2028,14 @@ export type Database = {
       };
       set_activity_tags: { Args: { activity_id: string; tag_ids: string[] }; Returns: undefined };
       set_board_activity: { Args: { activity_id: string; board: boolean }; Returns: undefined };
+      set_channel_choice: {
+        Args: { channel: string; enabled: boolean; type: string };
+        Returns: undefined;
+      };
+      set_channel_settings: {
+        Args: { quiet_end: string; quiet_start: string; reminder_lead_hours: number };
+        Returns: undefined;
+      };
       set_email_visibility: { Args: { visible: boolean }; Returns: undefined };
       set_follow: { Args: { follow: boolean; kind: string; target: string }; Returns: boolean };
       set_game_availability: { Args: { can_play: boolean; game_id: string }; Returns: undefined };
