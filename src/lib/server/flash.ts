@@ -41,6 +41,8 @@ export const FLASH_MESSAGES = {
   team_created: 'Team added.',
   team_saved: 'Team saved.',
   player_assigned: 'Player moved.',
+  schedule_made: 'Schedule made.',
+  game_saved: 'Game saved.',
   joined: "You're in the group.",
   requested: "Request sent. You're in once an organizer approves it.",
   left: 'You left the group.',

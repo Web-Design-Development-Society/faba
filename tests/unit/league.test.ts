@@ -2,7 +2,9 @@
 import { describe as group, expect, it } from 'vitest';
 import {
   assignment,
+  gameEdit,
   newRegistration,
+  newSchedule,
   newTeam,
   teamEdit,
   withdrawal,
@@ -62,5 +64,42 @@ group('teams', () => {
     expect(
       assignment.parse({ season_id: seasonId, user_id: teamId, team_id: '' }).team_id
     ).toBeNull();
+  });
+});
+
+group('schedule', () => {
+  it('takes a first day, a weekday from 1 to 7, a time and a place', () => {
+    const schedule = {
+      season_id: seasonId,
+      first_day: '2027-03-01',
+      weekday: '2',
+      starts_time: '18:00',
+      place: ' Gym A ',
+    };
+    expect(newSchedule.parse(schedule)).toEqual({
+      season_id: seasonId,
+      first_day: '2027-03-01',
+      weekday: 2,
+      starts_time: '18:00',
+      place: 'Gym A',
+    });
+    expect(newSchedule.safeParse({ ...schedule, weekday: '8' }).success).toBe(false);
+    expect(newSchedule.safeParse({ ...schedule, starts_time: '6pm' }).success).toBe(false);
+    expect(newSchedule.safeParse({ ...schedule, place: '  ' }).success).toBe(false);
+  });
+
+  it('changes a game with a day, a time and a place', () => {
+    expect(
+      gameEdit.safeParse({
+        game_id: seasonId,
+        day: '2027-03-08',
+        starts_time: '19:30',
+        place: 'Field 2',
+      }).success
+    ).toBe(true);
+    expect(
+      gameEdit.safeParse({ game_id: seasonId, day: 'March', starts_time: '19:30', place: 'x' })
+        .success
+    ).toBe(false);
   });
 });

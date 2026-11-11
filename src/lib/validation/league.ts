@@ -21,6 +21,8 @@ export const newLeague = z.object({
   join_policy: z.enum(['open', 'approval'], { error: 'Choose how people join.' }),
 });
 
+const day = z.iso.date({ error: 'Pick a date.' });
+
 /** Signing up for a season (LEAG-02). A form leaves an empty note out as null, so it's nullish. */
 export const newRegistration = z.object({
   season_id: z.uuid({ error: 'Pick a season.' }),
@@ -73,9 +75,37 @@ export const assignment = z.object({
   team_id: optionalId,
 });
 
-// A date from a date input, as YYYY-MM-DD.
-const day = z.iso.date({ error: 'Pick a date.' });
+// A time from a time input, as HH:MM, in Boise time.
+const clock = z.string({ error: 'Pick a time.' }).regex(/^\d{2}:\d{2}$/, 'Pick a time.');
 
+const place = z
+  .string({ error: 'Give the place.' })
+  .trim()
+  .min(1, 'Give the place.')
+  .max(120, 'Use 120 characters or fewer for the place.');
+
+/** Making a season's round robin (LEAG-04). The weekday is 1 for Monday to 7 for Sunday. */
+export const newSchedule = z.object({
+  season_id: z.uuid({ error: 'Pick a season.' }),
+  first_day: day,
+  weekday: z.coerce
+    .number({ error: 'Pick a day of the week.' })
+    .int()
+    .min(1, 'Pick a day of the week.')
+    .max(7, 'Pick a day of the week.'),
+  starts_time: clock,
+  place,
+});
+
+/** Changing one game's day, time or place (LEAG-04). */
+export const gameEdit = z.object({
+  game_id: z.uuid({ error: 'Pick a game.' }),
+  day,
+  starts_time: clock,
+  place,
+});
+
+// A date from a date input, as YYYY-MM-DD.
 /** A season in a league. The team sizes and points default to the usual 3, 1 and 0. */
 export const newSeason = z
   .object({

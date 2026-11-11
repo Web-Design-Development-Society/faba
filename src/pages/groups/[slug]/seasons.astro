@@ -9,6 +9,7 @@ import { actions, isInputError } from 'astro:actions';
 import FieldError from '../../../components/FieldError.astro';
 import Status from '../../../components/Status.astro';
 import LeagueRoster from '../../../components/LeagueRoster.astro';
+import LeagueSchedule from '../../../components/LeagueSchedule.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { FLASH_MESSAGES, setFlash, takeFlash } from '../../../lib/server/flash';
 import { formatDate } from '../../../lib/time';
@@ -35,18 +36,23 @@ if (withdrew && !withdrew.error) {
 const created = Astro.getActionResult(actions.leagues.createTeam);
 const saved = Astro.getActionResult(actions.leagues.updateTeam);
 const assigned = Astro.getActionResult(actions.leagues.assignPlayer);
+const scheduled = Astro.getActionResult(actions.leagues.generateSchedule);
+const gameSaved = Astro.getActionResult(actions.leagues.editGame);
 const teamDone = [
   created && !created.error && 'team_created',
   saved && !saved.error && 'team_saved',
   assigned && !assigned.error && 'player_assigned',
+  scheduled && !scheduled.error && 'schedule_made',
+  gameSaved && !gameSaved.error && 'game_saved',
 ].find(Boolean);
 if (teamDone) {
-  setFlash(Astro.cookies, Astro.url, teamDone as 'team_created' | 'team_saved' | 'player_assigned');
+  setFlash(Astro.cookies, Astro.url, teamDone as Parameters<typeof setFlash>[2]);
   return Astro.redirect(`/groups/${slug}/seasons`, 303);
 }
 const flash = takeFlash(Astro.cookies);
 const signupError = joined?.error ?? withdrew?.error;
-const teamError = created?.error ?? saved?.error ?? assigned?.error;
+const teamError =
+  created?.error ?? saved?.error ?? assigned?.error ?? scheduled?.error ?? gameSaved?.error;
 // What was typed, after a failed start or sign-up. The Action read a copy of the request.
 const typed = started?.error || signupError ? await Astro.request.formData() : undefined;
 const value = (name: string) => typed?.get(name)?.toString() ?? '';
@@ -93,7 +99,7 @@ const active = seasons?.find((season) => season.active);
 const past = seasons?.filter((season) => !season.active) ?? [];
 // The member's own sign-up for the active season, the season's sign-ups, and its teams (LEAG-02,
 // LEAG-03). The database shows the rosters to the league's members only.
-const [{ data: signup }, { data: signups }, { data: teams }] =
+const [{ data: signup }, { data: signups }, { data: teams }, { data: games }] =
   league && active
     ? await Promise.all([
         supabase
@@ -112,8 +118,15 @@ const [{ data: signup }, { data: signups }, { data: teams }] =
           .select('id, name, color, captain_id')
           .eq('season_id', active.id)
           .order('created_at'),
+        supabase
+          .from('league_games')
+          .select(
+            'id, round, home_team_id, away_team_id, activity:activities(id, starts_at, location_name)'
+          )
+          .eq('season_id', active.id)
+          .order('round'),
       ])
-    : [{ data: null }, { data: [] }, { data: [] }];
+    : [{ data: null }, { data: [] }, { data: [] }, { data: [] }];
 const format = { teams: 'Teams', ladder: 'Individual ladder' } as const;
 const dates = (season: { starts_on: string; ends_on: string }) =>
   `${formatDate(season.starts_on)} to ${formatDate(season.ends_on)}`;
@@ -209,6 +222,12 @@ const sizes = (season: { format: string; team_min: number; team_max: number }) =
             organizer={organizer}
             teams={teams ?? []}
             signups={signups ?? []}
+          />
+          <LeagueSchedule
+            seasonId={active.id}
+            organizer={organizer}
+            teams={teams ?? []}
+            games={games ?? []}
           />
         </>
       )}
