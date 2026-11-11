@@ -26,6 +26,7 @@ group('describe', () => {
       'rsvp_promoted',
       'rsvp_removed',
       'new_activity',
+      'report_received',
     ]);
     expect(describe('activity_cancelled')).toEqual({ icon: '✕', summary: 'Cancelled' });
   });
@@ -227,6 +228,14 @@ group('excerpt', () => {
 
   it('cuts one long word where it must', () => {
     expect(excerpt('x'.repeat(30), 10)).toBe(`${'x'.repeat(9)}…`);
+  });
+});
+
+group('reports for moderators', () => {
+  it('says what kind of thing was reported', () => {
+    expect(describe('report_received', { kind: 'group' }).summary).toBe('New report: group');
+    expect(describe('report_received', { kind: 'profile' }).summary).toBe('New report: member');
+    expect(describe('report_received').summary).toBe('New report to review');
   });
 });
 

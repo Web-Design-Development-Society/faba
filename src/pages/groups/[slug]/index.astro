@@ -212,6 +212,11 @@ const members = group?.member_count ?? 0;
           )}
         </p>
       )}
+      {user.id !== group.owner_id && (
+        <p>
+          <a href={`/groups/${group.slug}/report`}>Report group</a>
+        </p>
+      )}
       <section aria-labelledby="activities" class="activities">
         <header>
           <h2 id="activities">Coming up</h2>
