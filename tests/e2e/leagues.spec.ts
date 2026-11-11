@@ -149,8 +149,9 @@ test('an organizer sets a game score, and the standings show it', async ({ page,
   await expectAccessible(page);
 });
 
-test('a captain asks for a sub for a game', async ({ page, signInAs }) => {
-  await signInAs('member');
+test('a captain asks for a sub for a game', async ({ page, poster }) => {
+  // The poster fixture signs in a fresh account, with its own group quota.
+  void poster;
   await page.goto('/leagues/new');
   await page.getByLabel('League name').fill(`Kickball ${crypto.randomUUID().slice(0, 6)}`);
   await page.getByLabel('Category').selectOption('sports');
