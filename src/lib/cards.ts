@@ -20,3 +20,26 @@ export function isFull(activity: {
     activity.capacity !== null && activity.going_count + activity.guest_total >= activity.capacity
   );
 }
+
+/** How far back History reaches (HIST-01): 24 months. */
+export const HISTORY_MONTHS = 24;
+
+/** The earliest start a History list shows, 24 months before `now`. */
+export function historySince(now: Date): string {
+  const since = new Date(now);
+  since.setMonth(since.getMonth() - HISTORY_MONTHS);
+  return since.toISOString();
+}
+
+/**
+ * The label on a past card for its viewer (HIST-01): "Organized" if they organized it, else "Went"
+ * if they were going. Only the viewer sees it, about themselves.
+ */
+export function historyLabel(activity: {
+  organizer_id: string | null;
+  my_rsvp: string | null;
+  viewer: string;
+}): 'Organized' | 'Went' | null {
+  if (activity.organizer_id === activity.viewer) return 'Organized';
+  return activity.my_rsvp === 'going' ? 'Went' : null;
+}

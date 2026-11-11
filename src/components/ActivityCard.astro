@@ -8,7 +8,7 @@
 // else posted since the member's previous visit says New, after all those (ACT-11). A date in a
 // series says how often it repeats, beside its time (REC-01).
 import { categoryLook } from '../lib/categories';
-import { isFull } from '../lib/cards';
+import { historyLabel, isFull } from '../lib/cards';
 import { repeatsBadge } from '../lib/series';
 import { formatSoon, isOver } from '../lib/time';
 import Avatar from './Avatar.astro';
@@ -51,11 +51,13 @@ interface Props {
   faces: number;
   /** True for Plans' status badges. */
   badges?: boolean;
+  /** True for a past activity, which says "Went" or "Organized" for the viewer (HIST-01). */
+  history?: boolean;
   /** On Home, when the member's previous visit ended, so newer activities say New (ACT-11). */
   newSince?: Date | null;
 }
 
-const { activity, viewer, now, faces, badges, newSince } = Astro.props;
+const { activity, viewer, now, faces, badges, history, newSince } = Astro.props;
 const { category } = activity;
 const look = category && categoryLook(category);
 const hosting = activity.organizer_id === viewer;
@@ -74,15 +76,18 @@ const fresh =
   !(open && full) &&
   new Date(activity.created_at) > newSince &&
   'New';
+const past = history ? historyLabel({ ...activity, viewer }) : null;
 const shown = (
-  badges
-    ? [
-        open && activity.time_or_place_changed_at && 'Changed',
-        open && full && 'Full',
-        board,
-        activity.hidden_at && 'Hidden',
-      ]
-    : [board || fresh]
+  past
+    ? [past]
+    : badges
+      ? [
+          open && activity.time_or_place_changed_at && 'Changed',
+          open && full && 'Full',
+          board,
+          activity.hidden_at && 'Hidden',
+        ]
+      : [board || fresh]
 ).filter((badge) => !!badge);
 ---
 
