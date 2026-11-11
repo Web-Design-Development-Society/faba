@@ -1,0 +1,68 @@
+---
+// Me → Notifications (NOTIF-10). Each type has a switch. Cancellations always come, so they have
+// none. Saving works without JavaScript: the form posts the types that stay on, and the page comes
+// back with what was saved.
+import { actions, isInputError } from 'astro:actions';
+import Status from '../../components/Status.astro';
+import Layout from '../../layouts/Layout.astro';
+import { PREFERENCE_TYPES, TYPES } from '../../lib/notifications';
+
+const { supabase, user } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+
+const result = Astro.getActionResult(actions.notifications.savePreferences);
+const failure = result?.error && !isInputError(result.error) ? result.error.message : null;
+
+// The rows are only the types a member has turned off, and their own rows are all they can read.
+const { data: rows } = await supabase
+  .from('notification_preferences')
+  .select('type')
+  .eq('user_id', user.id);
+const off = new Set(rows?.map(({ type }) => type));
+---
+
+<Layout title="Notifications" tab="me">
+  <a href="/me">Back to Me</a>
+  <h1>Notifications</h1>
+  <p>Choose what FABA tells you about. Cancellations always come.</p>
+  {failure && <p role="alert">{failure}</p>}
+  <Status message={result && !result.error ? 'Saved.' : undefined} />
+  <form method="post" action={actions.notifications.savePreferences.queryString}>
+    <fieldset>
+      <legend>Tell me about</legend>
+      {PREFERENCE_TYPES.map((type) => (
+        <label class="toggle">
+          <input type="checkbox" name="on" value={type} checked={!off.has(type)} />
+          <span aria-hidden="true">{TYPES[type].icon}</span> {TYPES[type].summary}
+        </label>
+      ))}
+      <p class="always">✕ Cancelled: always on</p>
+    </fieldset>
+    <button type="submit">Save</button>
+  </form>
+</Layout>
+
+<style>
+  fieldset {
+    margin: 0 0 1rem;
+    padding: 0;
+    border: 0;
+  }
+  legend {
+    font-weight: 600;
+  }
+  .toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+  }
+  .always {
+    color: #595959;
+    font-size: 0.875rem;
+  }
+  button {
+    min-height: 44px;
+    padding: 0 1rem;
+  }
+</style>
