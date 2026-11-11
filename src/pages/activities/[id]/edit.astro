@@ -4,7 +4,8 @@
 // was typed and the version it showed, so a save from an older page keeps failing. Once the
 // activity has started, only its description and details for attendees can change (FR-ACT-4,
 // ACT-09). Cancel activity is at the bottom, away from Save, and asks first in a sheet. Restore
-// takes its place until the start (ACT-05).
+// takes its place until the start (ACT-05). A date in a series asks Just this date or This and
+// future dates (REC-02).
 import { actions, isInputError } from 'astro:actions';
 import ActivityFields from '../../../components/ActivityFields.astro';
 import FieldError from '../../../components/FieldError.astro';
@@ -22,7 +23,8 @@ const result =
   Astro.getActionResult(actions.activities.update) ??
   Astro.getActionResult(actions.activities.updateDescription);
 if (result && !result.error) {
-  setFlash(Astro.cookies, Astro.url, 'saved');
+  const series = 'scope' in result.data && result.data.scope === 'future';
+  setFlash(Astro.cookies, Astro.url, series ? 'saved_series' : 'saved');
   return Astro.redirect(`/activities/${result.data.id}`, 303);
 }
 const cancel = Astro.getActionResult(actions.activities.cancel);
@@ -42,7 +44,7 @@ const [{ data: activity }, { data: categories }, { data: tags }] = await Promise
   supabase
     .from('activities')
     .select(
-      'id, title, description, starts_at, ends_at, location_name, cost_note, capacity, guests_allowed, max_guests_per_rsvp, category_id, organizer_id, version, status, activity_tags(tag_id), private:activity_private_details(details)'
+      'id, title, description, starts_at, ends_at, location_name, cost_note, capacity, guests_allowed, max_guests_per_rsvp, category_id, organizer_id, version, status, series_id, series_detached, activity_tags(tag_id), private:activity_private_details(details)'
     )
     .eq('id', Astro.params.id!)
     .maybeSingle(),
@@ -82,6 +84,9 @@ const failure =
   (isInputError(cancel?.error) ? cancel.error.fields.reason?.[0] : cancel?.error?.message) ??
   restore?.error?.message;
 const started = startsAt <= new Date();
+// A date in a series asks which dates to change, until it's changed on its own (REC-02).
+const inSeries = !!activity?.series_id && !started;
+const detached = inSeries && !!activity?.series_detached;
 const offered = categories?.filter((c) => c.is_active || c.id === activity?.category_id) ?? [];
 // Its tags, or what was typed, and the tags offered, with any it keeps that no longer are.
 const chosen = typed
@@ -148,6 +153,30 @@ const back = `/activities/${Astro.params.id}`;
             chosen={chosen}
           />
         )}
+        {detached && <p>This date was changed on its own, so changes to the series skip it.</p>}
+        {inSeries && !detached && (
+          <fieldset class="scope" data-series-date={saved.date} aria-describedby="scope-hint">
+            <legend>Which dates?</legend>
+            <label>
+              <input type="radio" name="scope" value="one" checked={value('scope') !== 'future'} />
+              Just this date
+            </label>
+            <label>
+              <input
+                type="radio"
+                name="scope"
+                value="future"
+                checked={value('scope') === 'future'}
+              />
+              This and future dates
+            </label>
+            <span id="scope-hint">
+              A date you change on its own stops following the series. Changing the date for this
+              and future dates moves each later date by as many days, and people going stay going.
+            </span>
+            <p role="status" data-weekday-warning />
+          </fieldset>
+        )}
         <button type="submit">Save</button>
       </form>
       <div class="activity-status">
@@ -202,6 +231,17 @@ const back = `/activities/${Astro.params.id}`;
 </script>
 
 <style>
+  .scope {
+    margin-block: 1rem;
+  }
+  .scope label,
+  .scope span {
+    display: block;
+  }
+  .scope label {
+    min-height: 44px;
+    align-content: center;
+  }
   .activity-status {
     margin-top: 3rem;
     padding-top: 1rem;

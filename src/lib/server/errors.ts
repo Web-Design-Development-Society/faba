@@ -169,6 +169,15 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
     code: 'BAD_REQUEST',
     message: 'Pick a last date in the 12 months after the first.',
   },
+  NOT_IN_SERIES: {
+    code: 'CONFLICT',
+    message: 'This date changes on its own now. Choose Just this date.',
+  },
+  MONTHLY_DATE_FIXED: {
+    code: 'BAD_REQUEST',
+    message:
+      'A monthly series stays on its day. Keep the date to change future dates, or choose Just this date.',
+  },
 };
 
 /**

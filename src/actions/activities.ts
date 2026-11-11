@@ -67,12 +67,16 @@ export const activities = {
     },
   }),
 
-  /** Editing an activity (ACT-04). An optional field left empty is cleared. Returns its id. */
+  /**
+   * Editing an activity (ACT-04). An optional field left empty is cleared. For a date in a series,
+   * `scope` is just it, which detaches it, or it and the series' later dates (REC-02). Returns its
+   * id and the scope.
+   */
   update: defineAction({
     accept: 'form',
     input: activityChanges,
-    handler: async ({ id, version, tags, ...activity }, { locals }) => {
-      await update(locals, id, version, {
+    handler: async ({ id, version, tags, scope, ...activity }, { locals }) => {
+      const patch = {
         ...activity,
         description: activity.description ?? null,
         ends_at: activity.ends_at ?? null,
@@ -81,8 +85,24 @@ export const activities = {
         capacity: activity.capacity ?? null,
         guests_allowed: activity.guests_allowed ?? false,
         max_guests_per_rsvp: activity.max_guests_per_rsvp ?? ACTIVITY.guests.max,
-      });
-      return setTags(locals, id, tags ?? []);
+      };
+
+      if (scope === 'future') {
+        if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+        const { error } = await locals.supabase.rpc('update_series', {
+          activity_id: id,
+          patch,
+          expected_version: version,
+          tag_ids: tags ?? [],
+        });
+        if (error) throw new ActionError(actionErrorFor(error));
+        return { id, scope };
+      }
+
+      await update(locals, id, version, patch);
+      await setTags(locals, id, tags ?? []);
+      return { id, scope };
     },
   }),
 

@@ -176,12 +176,19 @@ describe('activityChanges', () => {
     expect(activityChanges.parse({ ...edit, end_time: '09:30' })).toEqual({
       id: edit.id,
       version: 3,
+      scope: 'one',
       title: 'Sunrise hike',
       location_name: 'R Mountain trailhead',
       category_id: 'outdoors',
       starts_at: '2026-11-07T14:00:00.000Z',
       ends_at: '2026-11-07T16:30:00.000Z',
     });
+  });
+
+  it('takes which dates of a series to change, and only those choices (REC-02)', () => {
+    expect(activityChanges.parse({ ...edit, scope: 'future' }).scope).toBe('future');
+    const result = activityChanges.safeParse({ ...edit, scope: 'all' });
+    expect(result.error?.issues.map(({ path }) => path[0])).toEqual(['scope']);
   });
 
   it("has the create form's rules", () => {

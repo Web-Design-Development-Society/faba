@@ -18,6 +18,22 @@ export type Freq = Exclude<Repeats, 'none'>;
 const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const ORDINALS = ['1st', '2nd', '3rd', '4th', 'last'];
 
+/** The weekday `date`, such as `2026-11-10`, falls on: `Tuesday`. */
+export function weekdayName(date: string): string {
+  return WEEKDAYS[new Date(`${date}T12:00:00Z`).getUTCDay()];
+}
+
+/**
+ * The edit form's warning when This and future dates moves a series from `from`'s weekday to
+ * `to`'s (REC-02), or nothing when it's the same weekday.
+ */
+export function weekdayWarning(from: string, to: string): string {
+  const [was, now] = [weekdayName(from), weekdayName(to)];
+  return was === now
+    ? ''
+    : `Future dates move from ${was}s to ${now}s. People going stay going, and they're told.`;
+}
+
 /** The day of `date`, such as `2026-11-07`, as the ordinal `7th`. */
 export function ordinalDay(date: string): string {
   const day = Number(date.slice(8, 10));
@@ -38,8 +54,7 @@ export function ordinalDay(date: string): string {
  */
 export function nthWeekday(date: string): string {
   const day = Number(date.slice(8, 10));
-  const weekday = new Date(`${date}T12:00:00Z`).getUTCDay();
-  return `${ORDINALS[Math.min(Math.ceil(day / 7), 5) - 1]} ${WEEKDAYS[weekday]}`;
+  return `${ORDINALS[Math.min(Math.ceil(day / 7), 5) - 1]} ${weekdayName(date)}`;
 }
 
 /**

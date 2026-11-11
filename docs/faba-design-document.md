@@ -1560,7 +1560,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - Single-date edits detach that occurrence from series updates.
   - Attendees are notified per NOTIF-02.
 - **Dependencies:** REC-01.
-- **Notes / edge cases:** "This and future" keeps existing RSVPs if only the time changed. It warns if the weekday changed.
+- **Notes / edge cases:** "This and future" keeps existing RSVPs, and warns if the weekday changed. Moving a weekly or every-2-weeks date moves each later date by as many days. A monthly series stays on its day: its time can change, and a new day is a single-date edit or a new series. A date edited on its own (`series_detached`) is skipped. Attendees get one notification, on the first changed date they're going to.
 
 #### REC-03 · Cancel one date
 

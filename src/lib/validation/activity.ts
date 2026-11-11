@@ -185,7 +185,10 @@ export const newActivity = z
   .superRefine(checkRepeats)
   .transform(toInstants);
 
-/** The edit form's fields. The output is update_activity()'s patch, the id and the version shown. */
+/**
+ * The edit form's fields. The output is update_activity()'s patch, the id, the version shown and,
+ * for a date in a series, which dates to change (REC-02).
+ */
 export const activityChanges = z
   .object(newActivity.in.shape)
   .omit({
@@ -196,7 +199,12 @@ export const activityChanges = z
     repeats: true,
     until_date: true,
   })
-  .extend({ id: z.uuid(), version: z.number().int() })
+  .extend({
+    id: z.uuid(),
+    version: z.number().int(),
+    // REC-02. For a date in a series: just it, or it and the series' later dates.
+    scope: z.enum(['one', 'future'], { error: 'Choose which dates to change.' }).default('one'),
+  })
   .superRefine(checkTimes)
   .transform(toInstants);
 
