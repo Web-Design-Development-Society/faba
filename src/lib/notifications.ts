@@ -22,6 +22,9 @@ export const TYPES: Record<string, { icon: string; summary: string }> = {
   rsvp_removed: { icon: '↩', summary: 'Taken off the list' },
 };
 
+/** The types a member can turn off under Me → Notifications (NOTIF-10). Cancellations always come. */
+export const PREFERENCE_TYPES = Object.keys(TYPES).filter((type) => type !== 'activity_cancelled');
+
 /** An activity's time and place, as an activity_changed payload has them before and after. */
 type Snapshot = { starts_at?: string; ends_at?: string | null; location_name?: string };
 

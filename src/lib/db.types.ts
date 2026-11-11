@@ -655,6 +655,39 @@ export type Database = {
           },
         ];
       };
+      notification_preferences: {
+        Row: {
+          channel: string;
+          enabled: boolean;
+          type: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          channel?: string;
+          enabled?: boolean;
+          type: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          channel?: string;
+          enabled?: boolean;
+          type?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notification_preferences_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       notifications: {
         Row: {
           activity_id: string | null;
@@ -1268,6 +1301,7 @@ export type Database = {
         Args: { group_id: string; role: string; user_id: string };
         Returns: undefined;
       };
+      set_notification_preferences: { Args: { off: string[] }; Returns: undefined };
       suspend_member: { Args: { reason: string; user_id: string }; Returns: undefined };
       sync_my_identity: { Args: Record<PropertyKey, never>; Returns: string };
       transfer_group: {
