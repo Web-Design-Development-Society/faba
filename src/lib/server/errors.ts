@@ -34,6 +34,14 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
   },
   ORGANIZER_GOING: { code: 'BAD_REQUEST', message: "You're hosting, so you're already going." },
   NOT_ORGANIZER: { code: 'FORBIDDEN', message: 'Only the organizer can edit this activity.' },
+  NOT_ATTENDEE_MANAGER: {
+    code: 'FORBIDDEN',
+    message: 'Only the organizer, a co-organizer, a group organizer or a moderator can do that.',
+  },
+  CANNOT_REMOVE_ORGANIZER: {
+    code: 'BAD_REQUEST',
+    message: "The organizer is always going, so they can't be taken off the list.",
+  },
   TOO_MANY_CO_ORGANIZERS: {
     code: 'BAD_REQUEST',
     message: 'An activity can have up to 3 co-organizers. Remove one to add another.',

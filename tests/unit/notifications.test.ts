@@ -17,6 +17,7 @@ group('describe', () => {
       'group_join_approved',
       'group_owner',
       'rsvp_promoted',
+      'rsvp_removed',
     ]);
     expect(describe('activity_cancelled')).toEqual({ icon: '✕', summary: 'Cancelled' });
   });

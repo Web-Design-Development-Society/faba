@@ -70,4 +70,20 @@ export const rsvps = {
       return { activity_id, dates };
     },
   }),
+
+  /**
+   * Takes `user_id` off `activity_id`'s attendee list (RSVP-09). Only those who can manage it, and
+   * never the organizer. Returns the activity's id.
+   */
+  removeAttendee: defineAction({
+    accept: 'form',
+    input: z.object({ activity_id: z.uuid(), user_id: z.uuid() }),
+    handler: async ({ activity_id, user_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('remove_attendee', { activity_id, user_id });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { activity_id };
+    },
+  }),
 };
