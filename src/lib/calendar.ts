@@ -83,12 +83,23 @@ function notes(event: LinkedEvent, privateDetails: string | null | undefined): s
  * time zone.
  */
 export function icsFile(event: CalendarEvent, now: Date): string {
-  const lines = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//FABA//Activities//EN',
-    'CALSCALE:GREGORIAN',
-    'METHOD:PUBLISH',
+  return calendarLines([eventLines(event, now)]);
+}
+
+/**
+ * The .ics feed of `events`, made at `now` (CAL-01): one event each, in the order given, under one
+ * calendar. Each event is written as icsFile() writes it, so a calendar updates the same events.
+ */
+export function icsFeed(events: CalendarEvent[], now: Date): string {
+  return calendarLines(
+    events.map((event) => eventLines(event, now)),
+    'FABA'
+  );
+}
+
+/** The VEVENT lines for `event`, made at `now`. Feed events never carry details for attendees. */
+function eventLines(event: CalendarEvent, now: Date): string[] {
+  return [
     'BEGIN:VEVENT',
     `UID:${event.id}`,
     `SEQUENCE:${event.version}`,
@@ -101,6 +112,19 @@ export function icsFile(event: CalendarEvent, now: Date): string {
     `URL:${event.url}`,
     `STATUS:${event.cancelled ? 'CANCELLED' : 'CONFIRMED'}`,
     'END:VEVENT',
+  ];
+}
+
+/** The calendar file around `events`, which are VEVENT line lists, folded to 75 octets. */
+function calendarLines(events: string[][], name?: string): string {
+  const lines = [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//FABA//Activities//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    ...(name ? [`X-WR-CALNAME:${escapeText(name)}`] : []),
+    ...events.flat(),
     'END:VCALENDAR',
   ];
   return `${lines.map(fold).join('\r\n')}\r\n`;
