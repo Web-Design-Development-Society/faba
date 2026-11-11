@@ -20,6 +20,22 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
     code: 'BAD_REQUEST',
     message: "This group isn't a league, so it has no seasons.",
   },
+  SEASON_NOT_FOUND: {
+    code: 'NOT_FOUND',
+    message: "This season isn't available. It may have been removed.",
+  },
+  REGISTRATION_CLOSED: {
+    code: 'CONFLICT',
+    message: "This season isn't taking sign-ups right now.",
+  },
+  INVALID_REGISTRATION: {
+    code: 'BAD_REQUEST',
+    message: 'Sign up as a player or a free agent.',
+  },
+  TEAMS_SET: {
+    code: 'CONFLICT',
+    message: 'The teams are set, so ask an organizer to change your sign-up.',
+  },
   SEASON_ALREADY_ACTIVE: {
     code: 'BAD_REQUEST',
     message: 'This league already has an active season. End it before starting another.',

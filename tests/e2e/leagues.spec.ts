@@ -23,3 +23,29 @@ test('a member starts a league, and starts its first season', async ({ page, sig
   await expect(page.getByRole('heading', { name: 'Summer 2026' })).toBeVisible();
   await expectAccessible(page);
 });
+
+test('a member signs up for a season, and withdraws', async ({ page, signInAs }) => {
+  await signInAs('member');
+  await page.goto('/leagues/new');
+  await page.getByLabel('League name').fill(`Chess Club ${crypto.randomUUID().slice(0, 6)}`);
+  await page.getByLabel('Category').selectOption('games');
+  await page.getByRole('button', { name: 'Start league' }).click();
+  await expect(page).toHaveURL(/\/groups\/.+\/seasons$/);
+
+  await page.getByLabel('Season name').fill('Winter 2026');
+  await page.getByLabel('First day').fill('2026-12-01');
+  await page.getByLabel('Last day').fill('2027-02-28');
+  await page.getByRole('button', { name: 'Start season' }).click();
+  await expect(page.getByRole('status')).toHaveText('Season started.');
+
+  await page.getByLabel('A free agent').check();
+  await page.getByLabel('Note, optional').fill('Free on weeknights');
+  await expectAccessible(page);
+  await page.getByRole('button', { name: 'Join season' }).click();
+  await expect(page.getByRole('status')).toHaveText("You're signed up for this season.");
+  await expect(page.getByText("You're signed up as a free agent.")).toBeVisible();
+
+  await page.getByRole('button', { name: 'Withdraw' }).click();
+  await expect(page.getByRole('status')).toHaveText("You've withdrawn from this season.");
+  await expect(page.getByRole('button', { name: 'Join season' })).toBeVisible();
+});
