@@ -107,3 +107,39 @@ test('an organizer makes the round robin for a season', async ({ page, signInAs 
   await expect(page.getByRole('link', { name: 'Reds vs Blues' })).toBeVisible();
   await expectAccessible(page);
 });
+
+test('an organizer sets a game score, and the standings show it', async ({ page, signInAs }) => {
+  await signInAs('member');
+  await page.goto('/leagues/new');
+  await page.getByLabel('League name').fill(`Cornhole ${crypto.randomUUID().slice(0, 6)}`);
+  await page.getByLabel('Category').selectOption('sports');
+  await page.getByRole('button', { name: 'Start league' }).click();
+  await expect(page).toHaveURL(/\/groups\/.+\/seasons$/);
+
+  await page.getByLabel('Season name').fill('Summer 2028');
+  await page.getByLabel('First day').fill('2028-06-01');
+  await page.getByLabel('Last day').fill('2028-08-31');
+  await page.getByRole('button', { name: 'Start season' }).click();
+  await expect(page.getByRole('status')).toHaveText('Season started.');
+
+  for (const name of ['Reds', 'Blues']) {
+    await page.getByLabel('Team name').last().fill(name);
+    await page.getByRole('button', { name: 'Add team' }).click();
+    await expect(page.getByRole('status')).toHaveText('Team added.');
+  }
+
+  await page.getByLabel('First game day').fill('2028-06-06');
+  await page.getByLabel('Place').fill('Lawn');
+  await page.getByRole('button', { name: 'Make the round robin' }).click();
+  await expect(page.getByRole('status')).toHaveText('Schedule made.');
+
+  await page.getByText('Set a score or record a forfeit').click();
+  await page.getByLabel('Reds score').fill('2');
+  await page.getByLabel('Blues score').fill('1');
+  await page.getByLabel('Reason, for the audit log').fill('Confirmed at the field');
+  await page.getByRole('button', { name: 'Set score' }).click();
+  await expect(page.getByRole('status')).toHaveText('Score saved.');
+  await expect(page.getByText(/Final: /)).toBeVisible();
+  await expect(page.getByRole('table')).toBeVisible();
+  await expectAccessible(page);
+});

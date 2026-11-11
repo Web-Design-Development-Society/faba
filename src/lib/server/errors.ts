@@ -73,6 +73,22 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
     code: 'BAD_REQUEST',
     message: "This team has a bye, so there's no game to change.",
   },
+  INVALID_SCORE: { code: 'BAD_REQUEST', message: 'Enter whole-number scores from 0 to 999.' },
+  NOT_CAPTAIN: {
+    code: 'FORBIDDEN',
+    message: 'Only a captain of one of these teams can report the score.',
+  },
+  NOT_OPPOSING_CAPTAIN: {
+    code: 'FORBIDDEN',
+    message: "The other team's captain, or an organizer, has to confirm the score.",
+  },
+  NOT_REPORTED: { code: 'CONFLICT', message: 'There is no reported score to confirm.' },
+  GAME_LOCKED: {
+    code: 'CONFLICT',
+    message: 'This game is confirmed or forfeited. Ask an organizer to change it.',
+  },
+  NOT_IN_GAME: { code: 'BAD_REQUEST', message: 'Pick one of the two teams in this game.' },
+  REASON_REQUIRED: { code: 'BAD_REQUEST', message: 'Give a reason. It goes to the audit log.' },
   SEASON_ALREADY_ACTIVE: {
     code: 'BAD_REQUEST',
     message: 'This league already has an active season. End it before starting another.',
@@ -138,7 +154,6 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
     message: "You've already reported this. A moderator will review it.",
   },
   NOT_MODERATOR: { code: 'FORBIDDEN', message: 'Only moderators can do that.' },
-  REASON_REQUIRED: { code: 'BAD_REQUEST', message: 'Give a reason. It goes to the audit log.' },
   REPORT_NOT_OPEN: { code: 'CONFLICT', message: 'This report has already been handled.' },
   ALREADY_HIDDEN: { code: 'CONFLICT', message: 'This activity is already hidden.' },
   NOT_HIDDEN: { code: 'CONFLICT', message: "This activity isn't hidden." },

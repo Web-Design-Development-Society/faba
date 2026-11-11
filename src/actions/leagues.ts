@@ -4,12 +4,16 @@ import { ActionError, defineAction } from 'astro:actions';
 import { actionErrorFor } from '../lib/server/errors';
 import {
   assignment,
+  forfeit,
   gameEdit,
   newLeague,
   newSchedule,
   newRegistration,
   newSeason,
   newTeam,
+  scoreConfirmation,
+  scoreOverride,
+  scoreReport,
   teamEdit,
   withdrawal,
 } from '../lib/validation/league';
@@ -164,6 +168,70 @@ export const leagues = {
         day,
         starts_time,
         place,
+      });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { game_id };
+    },
+  }),
+
+  /** A captain reports a game's score, which the other captain or an organizer confirms (LEAG-05). */
+  reportScore: defineAction({
+    accept: 'form',
+    input: scoreReport,
+    handler: async ({ game_id, home_score, away_score }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('report_score', {
+        game_id,
+        home_score,
+        away_score,
+      });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { game_id };
+    },
+  }),
+
+  /** The other captain, or an organizer, confirms a reported score (LEAG-05). */
+  confirmScore: defineAction({
+    accept: 'form',
+    input: scoreConfirmation,
+    handler: async ({ game_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('confirm_score', { game_id });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { game_id };
+    },
+  }),
+
+  /** An organizer sets a score, with the reason for the audit log (LEAG-05). */
+  overrideScore: defineAction({
+    accept: 'form',
+    input: scoreOverride,
+    handler: async ({ game_id, home_score, away_score, reason }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('override_score', {
+        game_id,
+        home_score,
+        away_score,
+        reason,
+      });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { game_id };
+    },
+  }),
+
+  /** An organizer records that a team forfeited a game (LEAG-05). */
+  forfeitGame: defineAction({
+    accept: 'form',
+    input: forfeit,
+    handler: async ({ game_id, forfeit_team_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('forfeit_game', {
+        game_id,
+        forfeit_team_id,
       });
       if (error) throw new ActionError(actionErrorFor(error));
       return { game_id };

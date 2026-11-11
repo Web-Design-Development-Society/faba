@@ -1,0 +1,85 @@
+---
+// A season's standings (LEAG-05): played, won, tied, lost, points and differential. They count
+// confirmed results and forfeits only. Each row is a team, in the order the database gives.
+interface Row {
+  team_id: string | null;
+  team_name: string | null;
+  played: number | null;
+  won: number | null;
+  tied: number | null;
+  lost: number | null;
+  points: number | null;
+  differential: number | null;
+}
+
+interface Props {
+  rows: Row[];
+}
+
+const { rows } = Astro.props;
+const played = rows.some((row) => (row.played ?? 0) > 0);
+const signed = (n: number | null) => (n == null ? '0' : n > 0 ? `+${n}` : `${n}`);
+---
+
+<section aria-labelledby="standings">
+  <h2 id="standings">Standings</h2>
+  {rows.length === 0 ? (
+    <p>The teams aren't set yet.</p>
+  ) : !played ? (
+    <p>No results are confirmed yet.</p>
+  ) : (
+    <div class="scroll">
+      <table>
+        <caption>Confirmed results and forfeits only</caption>
+        <thead>
+          <tr>
+            <th scope="col">Team</th>
+            <th scope="col">P</th>
+            <th scope="col">W</th>
+            <th scope="col">T</th>
+            <th scope="col">L</th>
+            <th scope="col">Pts</th>
+            <th scope="col">Diff</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr>
+              <th scope="row">{row.team_name}</th>
+              <td>{row.played ?? 0}</td>
+              <td>{row.won ?? 0}</td>
+              <td>{row.tied ?? 0}</td>
+              <td>{row.lost ?? 0}</td>
+              <td>{row.points ?? 0}</td>
+              <td>{signed(row.differential)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  )}
+</section>
+
+<style>
+  .scroll {
+    overflow-x: auto;
+  }
+  table {
+    border-collapse: collapse;
+    min-width: 20rem;
+  }
+  caption {
+    text-align: left;
+    padding-bottom: 0.5rem;
+  }
+  th,
+  td {
+    padding: 0.4rem 0.6rem;
+    border-bottom: 1px solid #ccc;
+    text-align: right;
+  }
+  th[scope='row'],
+  thead th:first-child {
+    text-align: left;
+  }
+</style>

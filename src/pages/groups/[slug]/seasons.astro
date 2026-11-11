@@ -10,6 +10,7 @@ import FieldError from '../../../components/FieldError.astro';
 import Status from '../../../components/Status.astro';
 import LeagueRoster from '../../../components/LeagueRoster.astro';
 import LeagueSchedule from '../../../components/LeagueSchedule.astro';
+import LeagueStandings from '../../../components/LeagueStandings.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { FLASH_MESSAGES, setFlash, takeFlash } from '../../../lib/server/flash';
 import { formatDate } from '../../../lib/time';
@@ -38,12 +39,20 @@ const saved = Astro.getActionResult(actions.leagues.updateTeam);
 const assigned = Astro.getActionResult(actions.leagues.assignPlayer);
 const scheduled = Astro.getActionResult(actions.leagues.generateSchedule);
 const gameSaved = Astro.getActionResult(actions.leagues.editGame);
+const reported = Astro.getActionResult(actions.leagues.reportScore);
+const confirmed = Astro.getActionResult(actions.leagues.confirmScore);
+const overridden = Astro.getActionResult(actions.leagues.overrideScore);
+const forfeited = Astro.getActionResult(actions.leagues.forfeitGame);
 const teamDone = [
   created && !created.error && 'team_created',
   saved && !saved.error && 'team_saved',
   assigned && !assigned.error && 'player_assigned',
   scheduled && !scheduled.error && 'schedule_made',
   gameSaved && !gameSaved.error && 'game_saved',
+  reported && !reported.error && 'score_reported',
+  confirmed && !confirmed.error && 'score_confirmed',
+  overridden && !overridden.error && 'score_saved',
+  forfeited && !forfeited.error && 'score_saved',
 ].find(Boolean);
 if (teamDone) {
   setFlash(Astro.cookies, Astro.url, teamDone as Parameters<typeof setFlash>[2]);
@@ -52,7 +61,15 @@ if (teamDone) {
 const flash = takeFlash(Astro.cookies);
 const signupError = joined?.error ?? withdrew?.error;
 const teamError =
-  created?.error ?? saved?.error ?? assigned?.error ?? scheduled?.error ?? gameSaved?.error;
+  created?.error ??
+  saved?.error ??
+  assigned?.error ??
+  scheduled?.error ??
+  gameSaved?.error ??
+  reported?.error ??
+  confirmed?.error ??
+  overridden?.error ??
+  forfeited?.error;
 // What was typed, after a failed start or sign-up. The Action read a copy of the request.
 const typed = started?.error || signupError ? await Astro.request.formData() : undefined;
 const value = (name: string) => typed?.get(name)?.toString() ?? '';
@@ -99,7 +116,7 @@ const active = seasons?.find((season) => season.active);
 const past = seasons?.filter((season) => !season.active) ?? [];
 // The member's own sign-up for the active season, the season's sign-ups, and its teams (LEAG-02,
 // LEAG-03). The database shows the rosters to the league's members only.
-const [{ data: signup }, { data: signups }, { data: teams }, { data: games }] =
+const [{ data: signup }, { data: signups }, { data: teams }, { data: games }, { data: standings }] =
   league && active
     ? await Promise.all([
         supabase
@@ -121,12 +138,13 @@ const [{ data: signup }, { data: signups }, { data: teams }, { data: games }] =
         supabase
           .from('league_games')
           .select(
-            'id, round, home_team_id, away_team_id, activity:activities(id, starts_at, location_name)'
+            'id, round, home_team_id, away_team_id, status, home_score, away_score, reporting_team_id, forfeit_team_id, activity:activities(id, starts_at, location_name)'
           )
           .eq('season_id', active.id)
           .order('round'),
+        supabase.rpc('season_standings', { season_id: active.id }),
       ])
-    : [{ data: null }, { data: [] }, { data: [] }, { data: [] }];
+    : [{ data: null }, { data: [] }, { data: [] }, { data: [] }, { data: [] }];
 const format = { teams: 'Teams', ladder: 'Individual ladder' } as const;
 const dates = (season: { starts_on: string; ends_on: string }) =>
   `${formatDate(season.starts_on)} to ${formatDate(season.ends_on)}`;
@@ -226,9 +244,11 @@ const sizes = (season: { format: string; team_min: number; team_max: number }) =
           <LeagueSchedule
             seasonId={active.id}
             organizer={organizer}
+            me={user.id}
             teams={teams ?? []}
             games={games ?? []}
           />
+          <LeagueStandings rows={standings ?? []} />
         </>
       )}
 

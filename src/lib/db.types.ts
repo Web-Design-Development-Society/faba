@@ -658,31 +658,52 @@ export type Database = {
       league_games: {
         Row: {
           activity_id: string | null;
+          away_score: number | null;
           away_team_id: string | null;
+          confirmed_by: string | null;
           created_at: string;
+          forfeit_team_id: string | null;
+          home_score: number | null;
           home_team_id: string;
           id: string;
+          reported_by: string | null;
+          reporting_team_id: string | null;
           round: number;
           season_id: string;
+          status: string;
         };
         ComputedFields: never;
         Insert: {
           activity_id?: string | null;
+          away_score?: number | null;
           away_team_id?: string | null;
+          confirmed_by?: string | null;
           created_at?: string;
+          forfeit_team_id?: string | null;
+          home_score?: number | null;
           home_team_id: string;
           id?: string;
+          reported_by?: string | null;
+          reporting_team_id?: string | null;
           round: number;
           season_id: string;
+          status?: string;
         };
         Update: {
           activity_id?: string | null;
+          away_score?: number | null;
           away_team_id?: string | null;
+          confirmed_by?: string | null;
           created_at?: string;
+          forfeit_team_id?: string | null;
+          home_score?: number | null;
           home_team_id?: string;
           id?: string;
+          reported_by?: string | null;
+          reporting_team_id?: string | null;
           round?: number;
           season_id?: string;
+          status?: string;
         };
         Relationships: [
           {
@@ -700,8 +721,36 @@ export type Database = {
             referencedColumns: ['id'];
           },
           {
+            foreignKeyName: 'league_games_confirmed_by_fkey';
+            columns: ['confirmed_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_games_forfeit_team_id_fkey';
+            columns: ['forfeit_team_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_teams';
+            referencedColumns: ['id'];
+          },
+          {
             foreignKeyName: 'league_games_home_team_id_fkey';
             columns: ['home_team_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_teams';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_games_reported_by_fkey';
+            columns: ['reported_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_games_reporting_team_id_fkey';
+            columns: ['reporting_team_id'];
             isOneToOne: false;
             referencedRelation: 'league_teams';
             referencedColumns: ['id'];
@@ -1231,6 +1280,7 @@ export type Database = {
         }[];
       };
       cancel_activity: { Args: { activity_id: string; reason?: string }; Returns: undefined };
+      confirm_score: { Args: { game_id: string }; Returns: undefined };
       create_activity: {
         Args: {
           capacity?: number;
@@ -1307,6 +1357,7 @@ export type Database = {
       create_team: { Args: { color: string; name: string; season_id: string }; Returns: string };
       delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
       dismiss_report: { Args: { reason: string; report_id: string }; Returns: undefined };
+      forfeit_game: { Args: { forfeit_team_id: string; game_id: string }; Returns: undefined };
       get_feed: {
         Args: {
           after_id?: string;
@@ -1423,6 +1474,10 @@ export type Database = {
         };
         Returns: string;
       };
+      override_score: {
+        Args: { away_score: number; game_id: string; home_score: number; reason: string };
+        Returns: undefined;
+      };
       post_activity_update: {
         Args: { activity_id: string; body: string; idempotency_key?: string };
         Returns: string;
@@ -1439,6 +1494,10 @@ export type Database = {
       report_content: {
         Args: { note?: string; reason: string; target_id: string; target_type: string };
         Returns: string;
+      };
+      report_score: {
+        Args: { away_score: number; game_id: string; home_score: number };
+        Returns: undefined;
       };
       reset_calendar_feed: { Args: { token_hash: string }; Returns: undefined };
       restore_activity: { Args: { activity_id: string }; Returns: undefined };
@@ -1510,6 +1569,19 @@ export type Database = {
           isOneToOne: false;
           isSetofReturn: true;
         };
+      };
+      season_standings: {
+        Args: { season_id: string };
+        Returns: {
+          differential: number;
+          lost: number;
+          played: number;
+          points: number;
+          team_id: string;
+          team_name: string;
+          tied: number;
+          won: number;
+        }[];
       };
       set_activity_tags: { Args: { activity_id: string; tag_ids: string[] }; Returns: undefined };
       set_board_activity: { Args: { activity_id: string; board: boolean }; Returns: undefined };
