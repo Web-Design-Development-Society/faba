@@ -2,6 +2,7 @@
 // member's own notifications read (ADR-004).
 import { ActionError, defineAction } from 'astro:actions';
 import { z } from 'astro/zod';
+import { PREFERENCE_TYPES } from '../lib/notifications';
 import { actionErrorFor } from '../lib/server/errors';
 
 export const notifications = {
@@ -19,15 +20,23 @@ export const notifications = {
       if (error) throw new ActionError(actionErrorFor(error));
       const { data } = await locals.supabase
         .from('notifications')
-        .select('type, activity_id, group:groups(slug)')
+        .select('type, activity_id, payload, group:groups(slug)')
         .eq('id', id)
         .maybeSingle();
+      // A batched follow notice opens its category or group, and a new report opens the queue. Each
+      // names where in its payload.
+      const link =
+        data?.type === 'new_activity' || data?.type === 'report_received'
+          ? (data.payload as { href?: string }).href
+          : null;
       return {
-        href: data?.activity_id
-          ? `/activities/${data.activity_id}`
-          : data?.group
-            ? `/groups/${data.group.slug}${data.type === 'group_join_request' ? '/members' : ''}`
-            : '/notifications',
+        href:
+          link ??
+          (data?.activity_id
+            ? `/activities/${data.activity_id}`
+            : data?.group
+              ? `/groups/${data.group.slug}${data.type === 'group_join_request' ? '/members' : ''}`
+              : '/notifications'),
       };
     },
   }),
@@ -57,6 +66,23 @@ export const notifications = {
       const { data, error } = await locals.supabase.rpc('mark_notifications_read', {});
       if (error) throw new ActionError(actionErrorFor(error));
       return { marked: data };
+    },
+  }),
+
+  /**
+   * Saves which types the member wants (NOTIF-10). `on` lists the ones they keep. The rest are off,
+   * and cancellations are always on. Returns the types that are off.
+   */
+  savePreferences: defineAction({
+    accept: 'form',
+    input: z.object({ on: z.array(z.string()).max(PREFERENCE_TYPES.length).default([]) }),
+    handler: async ({ on }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const off = PREFERENCE_TYPES.filter((type) => !on.includes(type));
+      const { error } = await locals.supabase.rpc('set_notification_preferences', { off });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { off };
     },
   }),
 };
