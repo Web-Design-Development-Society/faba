@@ -101,6 +101,7 @@ const [
   { data: profiles },
   { data: updates },
   { data: comments },
+  { data: pictures },
   { data: handovers },
 ] = await Promise.all([
   supabase.from('activities').select('id, title, hidden_at').in('id', targets('activity')),
@@ -113,6 +114,10 @@ const [
     .from('activity_comments')
     .select('id, body, hidden_at, activity:activities(id, title)')
     .in('id', targets('comment')),
+  supabase
+    .from('images')
+    .select('id, alt, hidden_at, activity:activities(id, title), group:groups(slug, name)')
+    .in('id', targets('image')),
   moderator
     ? supabase
         .from('activities')
@@ -132,6 +137,19 @@ const preview = (type: string, id: string) => {
       href: `/activities/${id}`,
       name: activity?.title,
       actionable: !!activity && !activity.hidden_at,
+    };
+  }
+  if (type === 'image') {
+    // A picture on an activity or a group (MEDIA-01). Hiding it doesn't hide what it's on.
+    const picture = pictures?.find((i) => i.id === id);
+    const place = picture?.activity?.title ?? picture?.group?.name;
+    return {
+      kind: place ? `Picture on ${place}` : 'Picture',
+      href: picture?.activity
+        ? `/activities/${picture.activity.id}`
+        : `/groups/${picture?.group?.slug ?? ''}`,
+      name: picture?.alt,
+      actionable: !!picture && !picture.hidden_at,
     };
   }
   if (type === 'comment') {
@@ -240,6 +258,23 @@ const preview = (type: string, id: string) => {
                     <p>
                       Members won't see it. Its organizer sees your reason, and can edit it. Its
                       other open reports are dealt with too.
+                    </p>
+                  </ModerationAction>
+                )}
+                {report.target_type === 'image' && target.actionable && (
+                  <ModerationAction
+                    id={`hide-image-${report.id}`}
+                    label="Hide picture"
+                    title="Hide this picture?"
+                    action={actions.moderation.hideImage.queryString}
+                    fields={{ image_id: report.target_id }}
+                    confirm="Hide picture"
+                    cancel="Keep it visible"
+                    templates
+                  >
+                    <p>
+                      Members won't see it on the activity or group. Its uploader sees your reason.
+                      Its other open reports are dealt with too.
                     </p>
                   </ModerationAction>
                 )}

@@ -10,3 +10,25 @@ declare namespace App {
       | null;
   }
 }
+
+// The picture bucket (MEDIA-01), bound as MEDIA in wrangler.jsonc. Only the methods the Worker uses.
+interface MediaBucket {
+  put(
+    key: string,
+    value: ArrayBuffer,
+    options?: { httpMetadata?: { contentType?: string } }
+  ): Promise<unknown>;
+  get(key: string): Promise<{
+    body: ReadableStream;
+    size: number;
+    httpEtag: string;
+    httpMetadata?: { contentType?: string };
+  } | null>;
+  delete(key: string): Promise<void>;
+}
+
+// The Cloudflare runtime's module, which Astro's adapter provides at build time. Its bindings are
+// read by name, so the type stays loose here; each file says what it expects.
+declare module 'cloudflare:workers' {
+  export const env: Record<string, unknown>;
+}

@@ -12,6 +12,7 @@ export type Database = {
           category_id: string;
           copied_from_id: string | null;
           cost_note: string | null;
+          cover_image_id: string | null;
           created_at: string;
           description: string | null;
           ends_at: string | null;
@@ -52,6 +53,7 @@ export type Database = {
           category_id: string;
           copied_from_id?: string | null;
           cost_note?: string | null;
+          cover_image_id?: string | null;
           created_at?: string;
           description?: string | null;
           ends_at?: string | null;
@@ -90,6 +92,7 @@ export type Database = {
           category_id?: string;
           copied_from_id?: string | null;
           cost_note?: string | null;
+          cover_image_id?: string | null;
           created_at?: string;
           description?: string | null;
           ends_at?: string | null;
@@ -133,6 +136,13 @@ export type Database = {
             columns: ['copied_from_id'];
             isOneToOne: false;
             referencedRelation: 'activities';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'activities_cover_image_id_fkey';
+            columns: ['cover_image_id'];
+            isOneToOne: false;
+            referencedRelation: 'images';
             referencedColumns: ['id'];
           },
           {
@@ -727,6 +737,7 @@ export type Database = {
       groups: {
         Row: {
           archived_at: string | null;
+          banner_image_id: string | null;
           category_id: string;
           created_at: string;
           description: string | null;
@@ -745,6 +756,7 @@ export type Database = {
         ComputedFields: 'member_count' | 'my_membership';
         Insert: {
           archived_at?: string | null;
+          banner_image_id?: string | null;
           category_id: string;
           created_at?: string;
           description?: string | null;
@@ -760,6 +772,7 @@ export type Database = {
         };
         Update: {
           archived_at?: string | null;
+          banner_image_id?: string | null;
           category_id?: string;
           created_at?: string;
           description?: string | null;
@@ -775,6 +788,13 @@ export type Database = {
         };
         Relationships: [
           {
+            foreignKeyName: 'groups_banner_image_id_fkey';
+            columns: ['banner_image_id'];
+            isOneToOne: false;
+            referencedRelation: 'images';
+            referencedColumns: ['id'];
+          },
+          {
             foreignKeyName: 'groups_category_id_fkey';
             columns: ['category_id'];
             isOneToOne: false;
@@ -784,6 +804,81 @@ export type Database = {
           {
             foreignKeyName: 'groups_owner_id_fkey';
             columns: ['owner_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      images: {
+        Row: {
+          activity_id: string | null;
+          alt: string;
+          bytes: number;
+          content_type: string;
+          created_at: string;
+          group_id: string | null;
+          hidden_at: string | null;
+          hidden_by: string | null;
+          hidden_reason: string | null;
+          id: string;
+          r2_key: string;
+          uploaded_by: string | null;
+        };
+        ComputedFields: never;
+        Insert: {
+          activity_id?: string | null;
+          alt: string;
+          bytes: number;
+          content_type: string;
+          created_at?: string;
+          group_id?: string | null;
+          hidden_at?: string | null;
+          hidden_by?: string | null;
+          hidden_reason?: string | null;
+          id?: string;
+          r2_key: string;
+          uploaded_by?: string | null;
+        };
+        Update: {
+          activity_id?: string | null;
+          alt?: string;
+          bytes?: number;
+          content_type?: string;
+          created_at?: string;
+          group_id?: string | null;
+          hidden_at?: string | null;
+          hidden_by?: string | null;
+          hidden_reason?: string | null;
+          id?: string;
+          r2_key?: string;
+          uploaded_by?: string | null;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'images_activity_id_fkey';
+            columns: ['activity_id'];
+            isOneToOne: false;
+            referencedRelation: 'activities';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'images_group_id_fkey';
+            columns: ['group_id'];
+            isOneToOne: false;
+            referencedRelation: 'groups';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'images_hidden_by_fkey';
+            columns: ['hidden_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'images_uploaded_by_fkey';
+            columns: ['uploaded_by'];
             isOneToOne: false;
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
@@ -1876,6 +1971,7 @@ export type Database = {
           category_id: string;
           copied_from_id: string | null;
           cost_note: string | null;
+          cover_image_id: string | null;
           created_at: string;
           description: string | null;
           ends_at: string | null;
@@ -1948,6 +2044,7 @@ export type Database = {
       };
       moderate_hide: { Args: { activity_id: string; reason: string }; Returns: undefined };
       moderate_hide_comment: { Args: { comment_id: string; reason: string }; Returns: undefined };
+      moderate_hide_image: { Args: { image_id: string; reason: string }; Returns: undefined };
       moderate_hide_update: { Args: { reason: string; update_id: string }; Returns: undefined };
       moderate_transfer_activity: {
         Args: { activity_id: string; reason: string; to_user: string };
@@ -1955,6 +2052,7 @@ export type Database = {
       };
       moderate_unhide: { Args: { activity_id: string; reason: string }; Returns: undefined };
       moderate_unhide_comment: { Args: { comment_id: string; reason: string }; Returns: undefined };
+      moderate_unhide_image: { Args: { image_id: string; reason: string }; Returns: undefined };
       moderate_unhide_update: { Args: { reason: string; update_id: string }; Returns: undefined };
       mute_activity: { Args: { activity_id: string; muted: boolean }; Returns: undefined };
       my_membership: {
@@ -2036,6 +2134,7 @@ export type Database = {
           category_id: string;
           copied_from_id: string | null;
           cost_note: string | null;
+          cover_image_id: string | null;
           created_at: string;
           description: string | null;
           ends_at: string | null;
@@ -2086,6 +2185,16 @@ export type Database = {
           won: number;
         }[];
       };
+      set_activity_cover: {
+        Args: {
+          activity_id: string;
+          alt: string;
+          bytes: number;
+          content_type: string;
+          r2_key: string;
+        };
+        Returns: string;
+      };
       set_activity_tags: { Args: { activity_id: string; tag_ids: string[] }; Returns: undefined };
       set_board_activity: { Args: { activity_id: string; board: boolean }; Returns: undefined };
       set_channel_choice: {
@@ -2099,6 +2208,16 @@ export type Database = {
       set_email_visibility: { Args: { visible: boolean }; Returns: undefined };
       set_follow: { Args: { follow: boolean; kind: string; target: string }; Returns: boolean };
       set_game_availability: { Args: { can_play: boolean; game_id: string }; Returns: undefined };
+      set_group_banner: {
+        Args: {
+          alt: string;
+          bytes: number;
+          content_type: string;
+          group_id: string;
+          r2_key: string;
+        };
+        Returns: string;
+      };
       set_group_role: {
         Args: { group_id: string; role: string; user_id: string };
         Returns: undefined;

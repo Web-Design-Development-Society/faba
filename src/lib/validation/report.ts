@@ -13,7 +13,7 @@ export const REASONS = {
 export const NOTE_MAX = 500;
 
 export const newReport = z.object({
-  target_type: z.enum(['activity', 'profile', 'activity_update', 'group', 'comment']),
+  target_type: z.enum(['activity', 'profile', 'activity_update', 'group', 'comment', 'image']),
   target_id: z.uuid(),
   reason: z.enum(Object.keys(REASONS) as [keyof typeof REASONS], { error: 'Choose a reason.' }),
   note: z

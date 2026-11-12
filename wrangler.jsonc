@@ -3,6 +3,9 @@
   "name": "faba",
   "main": "@astrojs/cloudflare/entrypoints/server",
   "compatibility_date": "2026-10-23",
+  // Picture uploads (MEDIA-01). Private: the Worker reads and writes the bucket, and serves a picture
+  // only to a member who can see its activity or group. Local development uses a simulated bucket.
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "faba-media-local" }],
   // Values for local development, matching `npx supabase start`. Secrets never go here: use
   // `wrangler secret put`, or .dev.vars locally.
   "vars": {
@@ -21,6 +24,7 @@
     "staging": {
       "workers_dev": true,
       "preview_urls": true,
+      "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "faba-media-staging" }],
       "vars": {
         "SITE_URL": "https://faba-staging.zack-alvey.workers.dev",
         "SUPABASE_URL": "https://qptrhaxvrozdozhuhagb.supabase.co",
