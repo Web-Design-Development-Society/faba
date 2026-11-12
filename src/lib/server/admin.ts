@@ -1,6 +1,7 @@
-// The one Supabase client with the secret key (design document section 9.6). The secret key
-// bypasses Row Level Security, so only the account-deletion Action may import this module, which
-// eslint.config.js enforces. Phase 5's job handlers will be the only others (R-SEC-1).
+// The Supabase client with the secret key for requests (design document section 9.6). The secret
+// key bypasses Row Level Security, so only the account-deletion Action may import this module, which
+// eslint.config.js enforces. The only other secret-key client is the push sender's
+// (src/lib/server/push/send.ts), which runs outside any request (R-SEC-1).
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_SECRET_KEY, SUPABASE_URL } from 'astro:env/server';
 

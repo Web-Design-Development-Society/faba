@@ -2,23 +2,41 @@
 // Me → Notifications (NOTIF-10). Each type has a switch. Cancellations always come, so they have
 // none. Saving works without JavaScript: the form posts the types that stay on, and the page comes
 // back with what was saved.
+//
+// Push (NOTIF-20): a member turns push on for this device, which needs JavaScript and a browser
+// that can get pushes (on iPhone, FABA added to the Home Screen). Once one of their devices has it,
+// they choose which types push. The urgent ones are on until they choose.
 import { actions, isInputError } from 'astro:actions';
+import { VAPID_PRIVATE_KEY, VAPID_PUBLIC_KEY } from 'astro:env/server';
 import Status from '../../components/Status.astro';
 import Layout from '../../layouts/Layout.astro';
-import { PREFERENCE_TYPES, TYPES } from '../../lib/notifications';
+import { PREFERENCE_TYPES, PUSH_DEFAULT_TYPES, TYPES } from '../../lib/notifications';
 
 const { supabase, user } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
 
 const result = Astro.getActionResult(actions.notifications.savePreferences);
 const failure = result?.error && !isInputError(result.error) ? result.error.message : null;
+const pushResult = Astro.getActionResult(actions.notifications.savePushPreferences);
+const pushFailure =
+  pushResult?.error && !isInputError(pushResult.error) ? pushResult.error.message : null;
 
-// The rows are only the types a member has turned off, and their own rows are all they can read.
-const { data: rows } = await supabase
-  .from('notification_preferences')
-  .select('type')
-  .eq('user_id', user.id);
-const off = new Set(rows?.map(({ type }) => type));
+// Push is set up when this environment has its keys.
+const pushReady = Boolean(VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY);
+
+// Their own rows are all a member can read. In the app, a row means off. For push, a row says
+// on or off where it differs from the default.
+const [{ data: rows }, { count: devices }] = await Promise.all([
+  supabase.from('notification_preferences').select('type, channel, enabled').eq('user_id', user.id),
+  pushReady
+    ? supabase.from('push_subscriptions').select('id', { count: 'exact', head: true })
+    : Promise.resolve({ count: 0 }),
+]);
+const off = new Set(rows?.filter((row) => row.channel === 'in_app').map(({ type }) => type));
+const pushChoice = new Map(
+  rows?.filter((row) => row.channel === 'push').map(({ type, enabled }) => [type, enabled])
+);
+const pushes = (type: string) => pushChoice.get(type) ?? PUSH_DEFAULT_TYPES.includes(type);
 ---
 
 <Layout title="Notifications" tab="me">
@@ -40,9 +58,75 @@ const off = new Set(rows?.map(({ type }) => type));
     </fieldset>
     <button type="submit">Save</button>
   </form>
+
+  {pushReady && (
+    <section aria-labelledby="push">
+      <h2 id="push">Push to your phone</h2>
+      <p>
+        Get urgent changes as notifications on this device, even when FABA is closed. They're also
+        in Alerts.
+      </p>
+      <div data-push data-key={VAPID_PUBLIC_KEY}>
+        <p data-push-message="script">Turning push on needs JavaScript.</p>
+        <p data-push-message="checking" hidden>
+          Checking this device…
+        </p>
+        <p data-push-message="unsupported" hidden>
+          This browser can't get push notifications.
+        </p>
+        <p data-push-message="ios" hidden>
+          On iPhone and iPad, add FABA to your Home Screen first: tap Share, then Add to Home
+          Screen. Open FABA from there, and turn push on here.
+        </p>
+        <p data-push-message="blocked" hidden>
+          Notifications are blocked for FABA. Allow them in this browser's settings, then try again.
+        </p>
+        <p data-push-message="on" hidden>
+          Push is on for this device.
+        </p>
+        <p data-push-message="failed" role="alert" hidden>
+          Push couldn't be turned on. Please try again.
+        </p>
+        <button type="button" data-push-on hidden>
+          Turn on for this device
+        </button>
+        <button type="button" data-push-off hidden>
+          Turn off for this device
+        </button>
+      </div>
+
+      {devices ? (
+        <>
+          {pushFailure && <p role="alert">{pushFailure}</p>}
+          <Status message={pushResult && !pushResult.error ? 'Saved.' : undefined} />
+          <form method="post" action={actions.notifications.savePushPreferences.queryString}>
+            <fieldset>
+              <legend>Push to my devices</legend>
+              {PREFERENCE_TYPES.map((type) => (
+                <label class="toggle">
+                  <input type="checkbox" name="push" value={type} checked={pushes(type)} />
+                  <span aria-hidden="true">{TYPES[type].icon}</span> {TYPES[type].summary}
+                </label>
+              ))}
+              <p class="always">✕ Cancelled: always on</p>
+            </fieldset>
+            <p class="always">A type that's off in the app above doesn't push either.</p>
+            <button type="submit">Save push settings</button>
+          </form>
+        </>
+      ) : null}
+    </section>
+  )}
 </Layout>
 
+<script>
+  import '../../scripts/push';
+</script>
+
 <style>
+  section {
+    margin-top: 2rem;
+  }
   fieldset {
     margin: 0 0 1rem;
     padding: 0;

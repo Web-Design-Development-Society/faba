@@ -1,0 +1,17 @@
+---
+// Opening a push (NOTIF-20). It marks the notification read, as tapping it in Alerts does, and goes
+// where it points. A push opens this with a plain link, so it's a GET.
+import { openedHref } from '../../lib/server/notifications';
+
+const { supabase, user } = Astro.locals;
+if (!user) return Astro.redirect('/auth/login');
+
+const { id = '' } = Astro.params;
+if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+  return Astro.redirect('/notifications', 303);
+}
+
+// Their own notifications are all a member can mark read, so another member's id changes nothing.
+await supabase.rpc('mark_notifications_read', { ids: [id] });
+return Astro.redirect(await openedHref(supabase, id), 303);
+---

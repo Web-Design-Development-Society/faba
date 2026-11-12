@@ -1350,6 +1350,61 @@ export type Database = {
           },
         ];
       };
+      notification_deliveries: {
+        Row: {
+          attempts: number;
+          channel: string;
+          created_at: string;
+          id: number;
+          last_error: string | null;
+          next_attempt_at: string;
+          notification_id: string;
+          sent_at: string | null;
+          status: string;
+          subscription_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          attempts?: number;
+          channel?: string;
+          created_at?: string;
+          id?: never;
+          last_error?: string | null;
+          next_attempt_at?: string;
+          notification_id: string;
+          sent_at?: string | null;
+          status?: string;
+          subscription_id: string;
+        };
+        Update: {
+          attempts?: number;
+          channel?: string;
+          created_at?: string;
+          id?: never;
+          last_error?: string | null;
+          next_attempt_at?: string;
+          notification_id?: string;
+          sent_at?: string | null;
+          status?: string;
+          subscription_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notification_deliveries_notification_id_fkey';
+            columns: ['notification_id'];
+            isOneToOne: false;
+            referencedRelation: 'notifications';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'notification_deliveries_subscription_id_fkey';
+            columns: ['subscription_id'];
+            isOneToOne: false;
+            referencedRelation: 'push_subscriptions';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       notification_preferences: {
         Row: {
           channel: string;
@@ -1548,6 +1603,45 @@ export type Database = {
           use_initials?: boolean;
         };
         Relationships: [];
+      };
+      push_subscriptions: {
+        Row: {
+          auth: string;
+          created_at: string;
+          endpoint: string;
+          id: string;
+          last_sent_at: string | null;
+          p256dh: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          auth: string;
+          created_at?: string;
+          endpoint: string;
+          id?: string;
+          last_sent_at?: string | null;
+          p256dh: string;
+          user_id: string;
+        };
+        Update: {
+          auth?: string;
+          created_at?: string;
+          endpoint?: string;
+          id?: string;
+          last_sent_at?: string | null;
+          p256dh?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'push_subscriptions_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       reports: {
         Row: {
@@ -1798,6 +1892,21 @@ export type Database = {
         }[];
       };
       cancel_activity: { Args: { activity_id: string; reason?: string }; Returns: undefined };
+      claim_push_deliveries: {
+        Args: { max_count?: number };
+        Returns: {
+          activity_id: string;
+          attempts: number;
+          auth: string;
+          delivery_id: number;
+          endpoint: string;
+          group_slug: string;
+          notification_id: string;
+          p256dh: string;
+          payload: Json;
+          type: string;
+        }[];
+      };
       confirm_score: { Args: { game_id: string }; Returns: undefined };
       create_activity: {
         Args: {
@@ -1888,6 +1997,10 @@ export type Database = {
       dismiss_report: { Args: { reason: string; report_id: string }; Returns: undefined };
       enter_ladder: { Args: { season_id: string }; Returns: number };
       export_my_data: { Args: Record<PropertyKey, never>; Returns: Json };
+      finish_push_delivery: {
+        Args: { delivery_id: number; error?: string; outcome: string };
+        Returns: undefined;
+      };
       forfeit_game: { Args: { forfeit_team_id: string; game_id: string }; Returns: undefined };
       get_feed: {
         Args: {
@@ -2028,6 +2141,7 @@ export type Database = {
       remove_attendee: { Args: { activity_id: string; user_id: string }; Returns: undefined };
       remove_co_organizer: { Args: { activity_id: string; user_id: string }; Returns: undefined };
       remove_group_member: { Args: { group_id: string; user_id: string }; Returns: undefined };
+      remove_push_subscription: { Args: { endpoint: string }; Returns: undefined };
       report_content: {
         Args: { note?: string; reason: string; target_id: string; target_type: string };
         Returns: string;
@@ -2040,6 +2154,10 @@ export type Database = {
       reset_calendar_feed: { Args: { token_hash: string }; Returns: undefined };
       restore_activity: { Args: { activity_id: string }; Returns: undefined };
       rsvp: { Args: { activity_id: string; guests?: number; status: string }; Returns: number };
+      save_push_subscription: {
+        Args: { auth_secret: string; endpoint: string; p256dh: string };
+        Returns: undefined;
+      };
       schedule_round_robin: {
         Args: {
           first_day: string;
@@ -2152,6 +2270,10 @@ export type Database = {
         Returns: undefined;
       };
       set_notification_preferences: { Args: { off: string[] }; Returns: undefined };
+      set_push_preferences: {
+        Args: { turned_off: string[]; turned_on: string[] };
+        Returns: undefined;
+      };
       suspend_member: { Args: { reason: string; user_id: string }; Returns: undefined };
       sync_my_identity: { Args: Record<PropertyKey, never>; Returns: string };
       transfer_group: {

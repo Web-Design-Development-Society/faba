@@ -28,6 +28,64 @@ export const TYPES: Record<string, { icon: string; summary: string }> = {
 /** The types a member can turn off under Me → Notifications (NOTIF-10). Cancellations always come. */
 export const PREFERENCE_TYPES = Object.keys(TYPES).filter((type) => type !== 'activity_cancelled');
 
+/**
+ * The types that push to a member's devices before they choose (NOTIF-20): urgent changes to plans
+ * they're in. It matches private.push_on_by_default() in the database.
+ */
+export const PUSH_DEFAULT_TYPES = [
+  'activity_changed',
+  'activity_cancelled',
+  'activity_restored',
+  'reminder',
+  'rsvp_promoted',
+  'rsvp_removed',
+  'sub_needed',
+];
+
+/** A notification, with the slug of its group if it has one, as far as opening it needs. */
+type Opened = {
+  type: string;
+  activity_id: string | null;
+  payload: unknown;
+  group_slug?: string | null;
+};
+
+/**
+ * Where a notification opens: its activity, or its group. A join request opens the group's members,
+ * to approve it (GRP-02, GRP-05). A batched follow notice opens its category or group, and a new
+ * report opens the queue, each from its payload.
+ */
+export function notificationHref({ type, activity_id, payload, group_slug }: Opened): string {
+  const named =
+    type === 'new_activity' || type === 'report_received'
+      ? (payload as { href?: unknown } | null)?.href
+      : null;
+  if (typeof named === 'string' && named.startsWith('/')) return named;
+  if (activity_id) return `/activities/${activity_id}`;
+  if (group_slug) return `/groups/${group_slug}${type === 'group_join_request' ? '/members' : ''}`;
+  return '/notifications';
+}
+
+/**
+ * A push's words (NOTIF-20): what it's about as the title, and the same line as Alerts. An update
+ * from an organizer or a group says only that there is one, so its message never shows on a lock
+ * screen. Tapping it opens /notifications/{id}, which marks it read and goes where it points.
+ */
+export function pushMessage(
+  { notification_id, type, payload }: { notification_id: string; type: string; payload: unknown },
+  now: Date = new Date()
+): { id: string; title: string; body: string; url: string } {
+  const { title, name } = (payload ?? {}) as { title?: unknown; name?: unknown };
+  const about =
+    typeof title === 'string' && title ? title : typeof name === 'string' && name ? name : 'FABA';
+  return {
+    id: notification_id,
+    title: about,
+    body: describe(type, payload, undefined, now).summary,
+    url: `/notifications/${notification_id}`,
+  };
+}
+
 /** What a report is about, as the moderators' line names it (MOD-08). */
 const REPORTED: Record<string, string> = {
   activity: 'activity',

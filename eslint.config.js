@@ -17,6 +17,26 @@ export default defineConfig(
     languageOptions: { globals: globals.node },
   },
   {
+    // A client made with supabase-js, not @supabase/ssr, is one with the secret key. Only the two
+    // that need it make one: admin.ts and the push sender (NOTIF-20).
+    files: ['src/**/*.{ts,astro}'],
+    ignores: ['src/lib/server/admin.ts', 'src/lib/server/push/send.ts'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          paths: [
+            {
+              name: '@supabase/supabase-js',
+              importNames: ['createClient'],
+              message: 'Use the request client from src/lib/server/supabase.ts.',
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
     // The secret key bypasses Row Level Security, so only account deletion uses it (PROF-05,
     // design document section 9.6).
     files: ['src/**/*.{ts,astro}'],

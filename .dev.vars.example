@@ -9,3 +9,9 @@ SUPABASE_SECRET_KEY=replace-with-the-local-secret-key
 
 # Error tracking. Used in staging and production only; leave empty locally.
 SENTRY_DSN=
+
+# Web Push keys for this machine (NOTIF-20). `npm run setup:dev-vars` makes a new pair. Without
+# them, push is off locally. Staging and production have their own: the public key in
+# wrangler.jsonc, and the private key set with `wrangler secret put VAPID_PRIVATE_KEY`.
+VAPID_PUBLIC_KEY=
+VAPID_PRIVATE_KEY=
