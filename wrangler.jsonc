@@ -3,6 +3,9 @@
   "name": "faba",
   "main": "@astrojs/cloudflare/entrypoints/server",
   "compatibility_date": "2026-10-23",
+  // Smart Placement runs the Worker near the Supabase database it calls most, not near the visitor,
+  // which keeps page loads fast as queries grow (PERF-01).
+  "placement": { "mode": "smart" },
   // Picture uploads (MEDIA-01). Private: the Worker reads and writes the bucket, and serves a picture
   // only to a member who can see its activity or group. Local development uses a simulated bucket.
   "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "faba-media-local" }],
@@ -24,6 +27,7 @@
     "staging": {
       "workers_dev": true,
       "preview_urls": true,
+      "placement": { "mode": "smart" },
       "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "faba-media-staging" }],
       "vars": {
         "SITE_URL": "https://faba-staging.zack-alvey.workers.dev",
