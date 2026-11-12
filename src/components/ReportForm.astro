@@ -8,7 +8,7 @@ import { NOTE_MAX, REASONS } from '../lib/validation/report';
 import FieldError from './FieldError.astro';
 
 interface Props {
-  type: 'activity' | 'profile' | 'activity_update' | 'group';
+  type: 'activity' | 'profile' | 'activity_update' | 'group' | 'comment';
   id: string;
   /** Whether it's the signed-in member's own. */
   mine: boolean;
@@ -22,6 +22,7 @@ const NAMES = {
   profile: 'profile',
   activity_update: 'update',
   group: 'group',
+  comment: 'comment',
 };
 const result = Astro.getActionResult(actions.reports.create);
 // What was typed, after a failed send. The Action read a copy of the request.
