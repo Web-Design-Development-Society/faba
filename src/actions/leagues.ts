@@ -14,6 +14,8 @@ import {
   scoreConfirmation,
   scoreOverride,
   scoreReport,
+  subAcceptance,
+  subRequest,
   teamEdit,
   withdrawal,
 } from '../lib/validation/league';
@@ -235,6 +237,32 @@ export const leagues = {
       });
       if (error) throw new ActionError(actionErrorFor(error));
       return { game_id };
+    },
+  }),
+
+  /** A captain asks the season's free agents for a sub for a game (LEAG-06). */
+  requestSub: defineAction({
+    accept: 'form',
+    input: subRequest,
+    handler: async ({ game_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { data, error } = await locals.supabase.rpc('request_sub', { game_id });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { request_id: data };
+    },
+  }),
+
+  /** A free agent takes a sub spot, which is that game only (LEAG-06). */
+  acceptSub: defineAction({
+    accept: 'form',
+    input: subAcceptance,
+    handler: async ({ request_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('accept_sub', { request_id });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { request_id };
     },
   }),
 };

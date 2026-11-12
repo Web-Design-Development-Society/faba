@@ -148,3 +148,46 @@ test('an organizer sets a game score, and the standings show it', async ({ page,
   await expect(page.getByRole('table')).toBeVisible();
   await expectAccessible(page);
 });
+
+test('a captain asks for a sub for a game', async ({ page, poster }) => {
+  // The poster fixture signs in a fresh account, with its own group quota.
+  void poster;
+  await page.goto('/leagues/new');
+  await page.getByLabel('League name').fill(`Kickball ${crypto.randomUUID().slice(0, 6)}`);
+  await page.getByLabel('Category').selectOption('sports');
+  await page.getByRole('button', { name: 'Start league' }).click();
+  await expect(page).toHaveURL(/\/groups\/.+\/seasons$/);
+
+  await page.getByLabel('Season name').fill('Summer 2029');
+  await page.getByLabel('First day').fill('2029-06-01');
+  await page.getByLabel('Last day').fill('2029-08-31');
+  await page.getByRole('button', { name: 'Start season' }).click();
+  await expect(page.getByRole('status')).toHaveText('Season started.');
+
+  await page.getByRole('button', { name: 'Join season' }).click();
+  await expect(page.getByRole('status')).toHaveText("You're signed up for this season.");
+
+  for (const name of ['Reds', 'Blues']) {
+    await page.getByLabel('Team name').last().fill(name);
+    await page.getByRole('button', { name: 'Add team' }).click();
+    await expect(page.getByRole('status')).toHaveText('Team added.');
+  }
+
+  // The organizer plays for Reds and captains it.
+  await page.getByLabel('Team for').first().selectOption({ label: 'Reds' });
+  await page.getByRole('button', { name: 'Move' }).first().click();
+  await expect(page.getByRole('status')).toHaveText('Player moved.');
+  await page.getByLabel('Captain').first().selectOption({ index: 1 });
+  await page.getByRole('button', { name: 'Save team' }).first().click();
+  await expect(page.getByRole('status')).toHaveText('Team saved.');
+
+  await page.getByLabel('First game day').fill('2029-06-05');
+  await page.getByLabel('Place').fill('Field 1');
+  await page.getByRole('button', { name: 'Make the round robin' }).click();
+  await expect(page.getByRole('status')).toHaveText('Schedule made.');
+
+  await page.getByRole('button', { name: 'Need a sub' }).click();
+  await expect(page.getByRole('status')).toHaveText('Sub request sent to the free agents.');
+  await expect(page.getByText('A sub is needed for Reds.')).toBeVisible();
+  await expectAccessible(page);
+});

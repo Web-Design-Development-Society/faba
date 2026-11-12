@@ -136,6 +136,12 @@ export const forfeit = z.object({
   forfeit_team_id: z.uuid({ error: 'Pick the team that forfeited.' }),
 });
 
+/** A captain asks the free agents for a sub for a game (LEAG-06). */
+export const subRequest = z.object({ game_id: z.uuid({ error: 'Pick a game.' }) });
+
+/** A free agent takes a sub spot (LEAG-06). */
+export const subAcceptance = z.object({ request_id: z.uuid({ error: 'Pick a sub request.' }) });
+
 // A date from a date input, as YYYY-MM-DD.
 /** A season in a league. The team sizes and points default to the usual 3, 1 and 0. */
 export const newSeason = z
