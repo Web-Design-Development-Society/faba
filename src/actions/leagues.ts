@@ -4,6 +4,7 @@ import { ActionError, defineAction } from 'astro:actions';
 import { actionErrorFor } from '../lib/server/errors';
 import {
   assignment,
+  availability,
   forfeit,
   gameEdit,
   newLeague,
@@ -263,6 +264,19 @@ export const leagues = {
       const { error } = await locals.supabase.rpc('accept_sub', { request_id });
       if (error) throw new ActionError(actionErrorFor(error));
       return { request_id };
+    },
+  }),
+
+  /** A player says whether they can play a game, which is also their RSVP (LEAG-07). */
+  setAvailability: defineAction({
+    accept: 'form',
+    input: availability,
+    handler: async ({ game_id, can_play }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('set_game_availability', { game_id, can_play });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { game_id };
     },
   }),
 };

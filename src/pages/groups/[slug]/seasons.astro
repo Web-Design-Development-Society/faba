@@ -45,6 +45,7 @@ const overridden = Astro.getActionResult(actions.leagues.overrideScore);
 const forfeited = Astro.getActionResult(actions.leagues.forfeitGame);
 const subAsked = Astro.getActionResult(actions.leagues.requestSub);
 const subTaken = Astro.getActionResult(actions.leagues.acceptSub);
+const answered = Astro.getActionResult(actions.leagues.setAvailability);
 const teamDone = [
   created && !created.error && 'team_created',
   saved && !saved.error && 'team_saved',
@@ -57,6 +58,7 @@ const teamDone = [
   forfeited && !forfeited.error && 'score_saved',
   subAsked && !subAsked.error && 'sub_requested',
   subTaken && !subTaken.error && 'sub_accepted',
+  answered && !answered.error && 'availability_saved',
 ].find(Boolean);
 if (teamDone) {
   setFlash(Astro.cookies, Astro.url, teamDone as Parameters<typeof setFlash>[2]);
@@ -75,7 +77,8 @@ const teamError =
   overridden?.error ??
   forfeited?.error ??
   subAsked?.error ??
-  subTaken?.error;
+  subTaken?.error ??
+  answered?.error;
 // What was typed, after a failed start or sign-up. The Action read a copy of the request.
 const typed = started?.error || signupError ? await Astro.request.formData() : undefined;
 const value = (name: string) => typed?.get(name)?.toString() ?? '';
@@ -127,7 +130,7 @@ const [{ data: signup }, { data: signups }, { data: teams }, { data: games }, { 
     ? await Promise.all([
         supabase
           .from('league_registrations')
-          .select('kind')
+          .select('kind, team_id')
           .eq('season_id', active.id)
           .eq('user_id', user.id)
           .maybeSingle(),
@@ -167,6 +170,21 @@ const [{ data: subRequests }, { data: subs }] =
           .in('game_id', gameIds),
       ])
     : [{ data: [] }, { data: [] }];
+// Each game's answers (LEAG-07), and which subs the viewer is in.
+const answers = gameIds.length
+  ? ((
+      await supabase
+        .from('league_game_availability')
+        .select('game_id, user_id, can_play')
+        .in('game_id', gameIds)
+    ).data ?? [])
+  : [];
+const mySubGameIds = (subs ?? [])
+  .filter((sub) => sub.user_id === user.id)
+  .map((sub) => sub.game_id);
+const playerTeams: Record<string, string | null> = Object.fromEntries(
+  (signups ?? []).map((entry) => [entry.user_id, entry.team_id])
+);
 const names: Record<string, string> = Object.fromEntries(
   (signups ?? []).map((entry) => [entry.user_id, entry.profiles?.display_name ?? 'A member'])
 );
@@ -276,6 +294,10 @@ const sizes = (season: { format: string; team_min: number; team_max: number }) =
             subRequests={subRequests ?? []}
             subs={subs ?? []}
             names={names}
+            myTeamId={signup?.team_id ?? null}
+            mySubGameIds={mySubGameIds}
+            answers={answers}
+            playerTeams={playerTeams}
           />
           <LeagueStandings rows={standings ?? []} />
         </>

@@ -54,6 +54,7 @@ export const FLASH_MESSAGES = {
   score_saved: 'Score saved.',
   sub_requested: 'Sub request sent to the free agents.',
   sub_accepted: "You're in as the sub for that game.",
+  availability_saved: 'Saved. Your answer is in your Plans.',
   joined: "You're in the group.",
   requested: "Request sent. You're in once an organizer approves it.",
   left: 'You left the group.',

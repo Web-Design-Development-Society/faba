@@ -142,6 +142,14 @@ export const subRequest = z.object({ game_id: z.uuid({ error: 'Pick a game.' }) 
 /** A free agent takes a sub spot (LEAG-06). */
 export const subAcceptance = z.object({ request_id: z.uuid({ error: 'Pick a sub request.' }) });
 
+/** A player's answer for a game: "yes" or "no", from two buttons (LEAG-07). */
+export const availability = z.object({
+  game_id: z.uuid({ error: 'Pick a game.' }),
+  can_play: z
+    .enum(['yes', 'no'], { error: 'Say whether you can play.' })
+    .transform((v) => v === 'yes'),
+});
+
 // A date from a date input, as YYYY-MM-DD.
 /** A season in a league. The team sizes and points default to the usual 3, 1 and 0. */
 export const newSeason = z
