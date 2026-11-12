@@ -6,7 +6,6 @@ import { actions, isInputError } from 'astro:actions';
 import Status from '../../components/Status.astro';
 import Layout from '../../layouts/Layout.astro';
 import { PREFERENCE_TYPES, TYPES } from '../../lib/notifications';
-import { REMINDER_LEAD_HOURS } from '../../lib/validation/channels';
 
 const { supabase, user } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
@@ -20,37 +19,6 @@ const { data: rows } = await supabase
   .select('type')
   .eq('user_id', user.id);
 const off = new Set(rows?.map(({ type }) => type));
-
-// Email (NOTIF-13): the types turned off by email, quiet hours and the reminder lead time. A member
-// who hasn't chosen yet has the defaults: every type by email, quiet hours 9 PM to 7 AM.
-const channelResult = Astro.getActionResult(actions.notifications.saveChannels);
-const channelFailure =
-  channelResult?.error && !isInputError(channelResult.error) ? channelResult.error.message : null;
-const [{ data: settings }, { data: emailOff }] = await Promise.all([
-  supabase
-    .from('notification_channel_settings')
-    .select('quiet_start, quiet_end, reminder_lead_hours')
-    .eq('user_id', user.id)
-    .maybeSingle(),
-  supabase
-    .from('notification_channel_choices')
-    .select('type')
-    .eq('user_id', user.id)
-    .eq('channel', 'email')
-    .eq('enabled', false),
-]);
-const emailOffSet = new Set(emailOff?.map(({ type }) => type));
-// Postgres returns times as HH:MM:SS; the time inputs want HH:MM.
-const clock = (value: string | undefined, fallback: string) => value?.slice(0, 5) ?? fallback;
-const quietStart = clock(settings?.quiet_start, '21:00');
-const quietEnd = clock(settings?.quiet_end, '07:00');
-const lead = settings?.reminder_lead_hours ?? 2;
-const LEAD_LABELS: Record<number, string> = {
-  1: '1 hour before',
-  2: '2 hours before',
-  6: '6 hours before',
-  24: 'A day before',
-};
 ---
 
 <Layout title="Notifications" tab="me">
@@ -71,40 +39,6 @@ const LEAD_LABELS: Record<number, string> = {
       <p class="always">✕ Cancelled: always on</p>
     </fieldset>
     <button type="submit">Save</button>
-  </form>
-
-  <h2>By email</h2>
-  <p>Email delivery is coming soon. These settings apply once it's on.</p>
-  {channelFailure && <p role="alert">{channelFailure}</p>}
-  <Status message={channelResult && !channelResult.error ? 'Saved.' : undefined} />
-  <form method="post" action={actions.notifications.saveChannels.queryString}>
-    <fieldset>
-      <legend>Email me about</legend>
-      {PREFERENCE_TYPES.map((type) => (
-        <label class="toggle">
-          <input type="checkbox" name="email" value={type} checked={!emailOffSet.has(type)} />
-          <span aria-hidden="true">{TYPES[type].icon}</span> {TYPES[type].summary}
-        </label>
-      ))}
-      <p class="always">✕ Cancelled: always on</p>
-    </fieldset>
-    <p>
-      <label for="quiet_start">Quiet hours from</label>
-      <input id="quiet_start" name="quiet_start" type="time" value={quietStart} required />
-      <label for="quiet_end">to</label>
-      <input id="quiet_end" name="quiet_end" type="time" value={quietEnd} required />
-    </p>
-    <p>
-      <label for="reminder_lead_hours">Reminders</label>
-      <select id="reminder_lead_hours" name="reminder_lead_hours">
-        {REMINDER_LEAD_HOURS.map((hours) => (
-          <option value={hours} selected={hours === lead}>
-            {LEAD_LABELS[hours]}
-          </option>
-        ))}
-      </select>
-    </p>
-    <button type="submit">Save email settings</button>
   </form>
 </Layout>
 
