@@ -8,6 +8,8 @@ import {
   activityTransfer,
   commentHide,
   commentModeration,
+  imageHide,
+  imageModeration,
   dismissal,
   memberModeration,
   memberSuspension,
@@ -125,6 +127,33 @@ export const moderation = {
       });
       if (error) throw new ActionError(actionErrorFor(error));
       return { comment_id };
+    },
+  }),
+
+  /** Hiding a picture, with the reason its uploader sees (MEDIA-01). Returns its id. */
+  hideImage: defineAction({
+    accept: 'form',
+    input: imageHide,
+    handler: async ({ image_id, ...input }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const reason = required(input);
+      const { error } = await locals.supabase.rpc('moderate_hide_image', { image_id, reason });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { image_id };
+    },
+  }),
+
+  /** Unhiding a picture, with a reason (MEDIA-01). Returns its id. */
+  unhideImage: defineAction({
+    accept: 'form',
+    input: imageModeration,
+    handler: async ({ image_id, reason }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('moderate_unhide_image', { image_id, reason });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { image_id };
     },
   }),
 

@@ -76,6 +76,12 @@ export const commentHide = z.object({ comment_id: z.uuid(), ...reasonOrTemplate 
 /** Unhiding a comment, with a reason (ACT-12). */
 export const commentModeration = z.object({ comment_id: z.uuid(), reason });
 
+/** Hiding a picture, with the reason its uploader sees (MEDIA-01). */
+export const imageHide = z.object({ image_id: z.uuid(), ...reasonOrTemplate });
+
+/** Unhiding a picture, with a reason (MEDIA-01). */
+export const imageModeration = z.object({ image_id: z.uuid(), reason });
+
 /** Suspending a member (MOD-04). */
 export const memberSuspension = z.object({ user_id: z.uuid(), ...reasonOrTemplate });
 
@@ -84,7 +90,7 @@ export const memberModeration = z.object({ user_id: z.uuid(), reason });
 
 /** A moderator's note on what's reported (MOD-08). */
 export const moderatorNote = z.object({
-  target_type: z.enum(['activity', 'profile', 'activity_update', 'group', 'comment']),
+  target_type: z.enum(['activity', 'profile', 'activity_update', 'group', 'comment', 'image']),
   target_id: z.uuid(),
   body: z
     .string({ error: 'Write a note.' })

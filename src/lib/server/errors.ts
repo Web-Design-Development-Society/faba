@@ -3,6 +3,9 @@
 import type { ActionErrorCode } from 'astro:actions';
 
 const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
+  IMAGE_NOT_FOUND: { code: 'NOT_FOUND', message: 'That picture is gone.' },
+  IMAGE_ALREADY_HIDDEN: { code: 'CONFLICT', message: 'This picture is already hidden.' },
+  IMAGE_NOT_HIDDEN: { code: 'CONFLICT', message: 'This picture is already visible.' },
   QUOTA_EXCEEDED: {
     code: 'TOO_MANY_REQUESTS',
     message: 'You can post up to 10 activities a day. Try again tomorrow.',

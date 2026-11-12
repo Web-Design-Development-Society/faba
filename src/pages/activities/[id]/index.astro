@@ -178,6 +178,7 @@ const [{ data: activity }, { data: me }] = await Promise.all([
       mine:rsvps(status, guest_count, mute:activity_mutes(muted_at)),
       going:rsvps(member:profiles!inner(id, display_name, avatar_url, use_initials, department)),
       maybe:rsvps(member:profiles!inner(id, display_name, avatar_url, use_initials, department)),
+      cover:images!activities_cover_image_id_fkey(id, alt, uploaded_by, hidden_at, hidden_reason),
       updates:activity_updates(id, body, created_at, author_id, hidden_at, hidden_reason,
         author:profiles!activity_updates_author_id_fkey(display_name)),
       comments:activity_comments(id, body, created_at, author_id, hidden_at, hidden_reason,
@@ -412,6 +413,21 @@ const email = activity
         </p>
       )}
       <h1>{activity.title}</h1>
+      {activity.cover && !activity.cover.hidden_at && (
+        <figure class="cover">
+          <img src={`/api/media/${activity.cover.id}`} alt={activity.cover.alt} loading="lazy" />
+          {activity.cover.uploaded_by !== user.id && (
+            <figcaption>
+              <a href={`/media/${activity.cover.id}/report`}>Report picture</a>
+            </figcaption>
+          )}
+        </figure>
+      )}
+      {activity.cover?.hidden_at && (
+        <p class="hidden">
+          {withReason('Picture hidden by a moderator', activity.cover.hidden_reason)}
+        </p>
+      )}
       <p>
         <time datetime={activity.starts_at}>
           {formatRange(
@@ -743,6 +759,32 @@ const email = activity
               </li>
             ))}
           </ul>
+        </section>
+      )}
+      {hosting && !activity.hidden_at && (
+        <section class="cover-upload" aria-labelledby="cover-heading">
+          <h2 id="cover-heading">Cover picture</h2>
+          <form
+            method="post"
+            action="/api/media/upload"
+            enctype="multipart/form-data"
+            class="stack"
+          >
+            <input type="hidden" name="target" value="activity" />
+            <input type="hidden" name="id" value={activity.id} />
+            <input type="hidden" name="back" value={`/activities/${activity.id}`} />
+            <label for="cover-picture">Picture (JPEG, PNG or WebP, under 2 MB)</label>
+            <input
+              id="cover-picture"
+              name="picture"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              required
+            />
+            <label for="cover-alt">Describe it for people who can't see it</label>
+            <input id="cover-alt" name="alt" type="text" maxlength="200" required />
+            <button>Save picture</button>
+          </form>
         </section>
       )}
       <section class="comments" id="comments" aria-labelledby="comments-heading">

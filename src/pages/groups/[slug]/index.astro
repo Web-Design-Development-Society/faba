@@ -36,7 +36,7 @@ const flash = takeFlash(Astro.cookies);
 const { data: group } = await supabase
   .from('groups')
   .select(
-    'id, slug, name, description, kind, join_policy, owner_id, archived_at, hidden_at, member_count, my_membership, category:categories(name), owner:profiles!groups_owner_id_fkey(id, display_name)'
+    'id, slug, name, description, kind, join_policy, owner_id, archived_at, hidden_at, member_count, my_membership, category:categories(name), owner:profiles!groups_owner_id_fkey(id, display_name), banner:images!groups_banner_image_id_fkey(id, alt, uploaded_by, hidden_at, hidden_reason)'
   )
   .eq('slug', Astro.params.slug!)
   .maybeSingle();
@@ -96,6 +96,9 @@ const { data: past } = group
       .limit(20)
   : { data: null };
 const organizer = me?.role === 'owner' || me?.role === 'organizer';
+// A hidden picture's label, with the moderator's reason when there is one.
+const withReason = (label: string, reason: string | null) =>
+  reason ? `${label}. Reason: ${reason}` : label;
 const moderator =
   member?.status === 'active' && (member.role === 'moderator' || member.role === 'admin');
 const { count: asking } =
@@ -134,6 +137,47 @@ const members = group?.member_count ?? 0;
       {group.archived_at && <p class="banner">This group is archived.</p>}
       {group.category && <p class="category">{group.category.name}</p>}
       <h1>{group.name}</h1>
+      {group.banner && !group.banner.hidden_at && (
+        <figure class="banner">
+          <img src={`/api/media/${group.banner.id}`} alt={group.banner.alt} loading="lazy" />
+          {group.banner.uploaded_by !== user.id && (
+            <figcaption>
+              <a href={`/media/${group.banner.id}/report`}>Report picture</a>
+            </figcaption>
+          )}
+        </figure>
+      )}
+      {group.banner?.hidden_at && (
+        <p class="hidden">
+          {withReason('Picture hidden by a moderator', group.banner.hidden_reason)}
+        </p>
+      )}
+      {organizer && !group.archived_at && !group.hidden_at && (
+        <details class="banner-upload">
+          <summary>Change the banner</summary>
+          <form
+            method="post"
+            action="/api/media/upload"
+            enctype="multipart/form-data"
+            class="stack"
+          >
+            <input type="hidden" name="target" value="group" />
+            <input type="hidden" name="id" value={group.id} />
+            <input type="hidden" name="back" value={`/groups/${group.slug}`} />
+            <label for="banner-picture">Picture (JPEG, PNG or WebP, under 2 MB)</label>
+            <input
+              id="banner-picture"
+              name="picture"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              required
+            />
+            <label for="banner-alt">Describe it for people who can't see it</label>
+            <input id="banner-alt" name="alt" type="text" maxlength="200" required />
+            <button>Save banner</button>
+          </form>
+        </details>
+      )}
       <p>
         {me || moderator ? (
           <a href={`/groups/${group.slug}/members`}>
