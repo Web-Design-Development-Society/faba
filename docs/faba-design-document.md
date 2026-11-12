@@ -22,13 +22,13 @@
 | Topic               | Decision                                                                                                                                                                                                                    | Section   |
 | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- |
 | Rendering           | Astro `output: 'server'` (on-demand by default). Only static public pages (about, privacy, guidelines, help) use `prerender = true`. The landing page stays on-demand so it can send signed-in members straight to Discover | 9.2       |
-| Runtime             | **One Cloudflare Worker** runs the whole Astro app: pages, Astro Actions, a few API routes, and (later) `scheduled` and `queue` handlers through a custom entrypoint. There is no separate API service                      | 9.1, 9.3  |
+| Runtime             | **One Cloudflare Worker** runs the whole Astro app: pages, Astro Actions, and a few API routes. There is no separate API service                                                                                            | 9.1, 9.3  |
 | Data access         | Server-side only. The Worker calls Supabase with **the signed-in user's JWT** and the publishable key, so Row Level Security (RLS) applies to every user request. Multi-step operations run as Postgres functions (RPC)     | 9.6, 9.8  |
 | Browser to Supabase | **None** in early phases. The browser talks only to the FABA Worker, and auth cookies are `HttpOnly`                                                                                                                        | 9.4       |
 | Sessions            | `@supabase/ssr` with the PKCE flow and cookie-based sessions. Middleware calls `getClaims()` on every request. `getSession()` is never trusted for authorization                                                            | 9.7       |
 | Eligibility gate    | Four layers: Google `hd=byui.edu` hint, then the Supabase **before-user-created** auth hook, then a callback check, then an RLS helper. Together they form a lightweight gate, **not** employment verification              | 9.7       |
-| Notifications       | Postgres writes one `notifications` row per recipient in the same transaction as the change that caused it. Email and SMS arrive in Phase 5 as `notification_deliveries` rows on top of the same model                      | 8.8, 9.12 |
-| Scheduled jobs      | `pg_cron` in Supabase for data jobs (reminders, cleanup, recurring-activity generation). Cloudflare Cron Triggers and Queues are added only in Phase 5, for external delivery                                               | 9.3       |
+| Notifications       | Postgres writes one `notifications` row per recipient in the same transaction as the change that caused it. Notifications are shown in the app                                                                              | 8.8, 9.12 |
+| Scheduled jobs      | `pg_cron` in Supabase for data jobs (reminders, cleanup, recurring-activity generation)                                                                                                                                     | 9.3       |
 | Environments        | Local (Supabase CLI) → per-PR preview (against the staging database) → staging → production. Staging and production use separate Supabase projects and separate Google OAuth clients                                        | 11        |
 | CI/CD               | GitHub Actions. Database migrations run before each Worker deploy and follow expand/contract so a rollback never breaks the database                                                                                        | 11        |
 | Phasing changes     | Basic **"I'm going" RSVP** and **minimal moderation** move into Phase 1, ahead of the suggested outline, because neither the product nor user-generated content is safe or useful without them                              | 5         |
@@ -39,11 +39,11 @@
 
 ### The problem
 
-BYU-Idaho has roughly **600 full-time** and **2,000 part-time** faculty. Faculty social life (hikes, game nights, pickleball, potlucks, book clubs) is organized today through scattered email threads, group texts, and word of mouth. That causes predictable problems:
+BYU-Idaho has roughly **600 full-time** and **2,000 part-time** faculty. Faculty social life (hikes, game nights, pickleball, potlucks, book clubs) is organized today through scattered message threads, group texts, and word of mouth. That causes predictable problems:
 
 - **Discovery is luck.** If you are not on the right thread you never hear about the activity. Part-time faculty, who are about 77% of all faculty and are often remote or on campus only briefly, are the most likely to miss out.
 - **Organizing is high-friction.** Organizers cannot easily gauge interest, share updates, or tell people about a change of plans.
-- **Official channels are the wrong tool.** University email lists and calendars are built for official business. Informal social activity either clutters them or never reaches them.
+- **Official channels are the wrong tool.** University announcement lists and calendars are built for official business. Informal social activity either clutters them or never reaches them.
 
 ### The proposed solution
 
@@ -54,7 +54,7 @@ FABA is a **mobile-first web app** where faculty sign in with their school Googl
 3. Post their own activity in under a minute.
 4. Get in-app updates when plans change.
 
-Over later phases FABA adds recurring activities, interest groups, and informal leagues. Email and SMS come last, as opt-in channels.
+Over later phases FABA adds recurring activities, interest groups, and informal leagues.
 
 ### Intended users
 
@@ -64,7 +64,7 @@ All faculty with an `@byui.edu` Google account, plus a small team of FABA board 
 
 | For                          | Value                                                                                                     |
 | ---------------------------- | --------------------------------------------------------------------------------------------------------- |
-| Faculty                      | One trusted, informal place to find people and things to do, without joining a dozen email threads        |
+| Faculty                      | One trusted, informal place to find people and things to do, without joining a dozen group threads        |
 | Part-time and remote faculty | A visible on-ramp to the faculty community, including online activities                                   |
 | Organizers                   | Activities posted in seconds, attendance visible at a glance, attendees notified of changes automatically |
 | FABA board                   | Less coordination overhead, and aggregate, privacy-respecting insight into what faculty enjoy             |
@@ -95,14 +95,13 @@ FABA will **not**:
 
 - **Act as an official university communication channel**, or claim authority over official announcements. Every page footer states this.
 - **Verify employment**, distinguish full-time from part-time status, or integrate with HR, payroll, the faculty directory, the student information system, or campus SSO.
-- **Replace** university calendars, email lists, the LMS, or departmental tools.
+- **Replace** university calendars, announcement lists, the LMS, or departmental tools.
 - **Handle money**: no payments, ticketing, dues, or reimbursements. A free-text "cost note" is allowed.
 - **Offer chat**: no direct messages, group chat, or threaded discussion in early phases. One-way organizer updates cover the core need.
 - **Be a social network**: no followers, likes, feeds ranked by algorithm, stories, or photo galleries.
 - **Be public**: no activity, profile, or attendee data is visible to anyone who is not signed in.
 - **Ship native apps.** The web app is installable to the home screen in Phase 3 (as a PWA). Native apps are not planned.
 - **Manage liability**: no waivers or insurance. A participation disclaimer is shown (see [open questions](#unresolved-questions-to-answer-before-development)).
-- **Send email or SMS before Phase 5.**
 
 ---
 
@@ -327,12 +326,11 @@ Tap counts assume the user is signed in and starts on the Home (Discover) screen
 
 ### 5.1 Changes from the suggested outline, and why
 
-| Change                                                                                          | Reason                                                                                                                                                                                                                                                           |
-| ----------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A basic **"I'm going" RSVP**, going count, and attendee list move from Phase 2 into **Phase 1** | Without them, Phase 1 is only a bulletin board, and organizers cannot see who is coming, which is the main reason to use FABA instead of an email thread. The feature is one table and one action. Capacity, maybe, guests, and waitlists stay in Phases 2 and 3 |
-| **Edit and cancel** move into **Phase 1**                                                       | Anyone who can post must be able to fix a typo or call an activity off. The _notifications_ about changes stay in Phase 2                                                                                                                                        |
-| **Minimal moderation** (report, hide, suspend, audit log) moves into **Phase 1**                | User-generated content exists from day one, so the board needs a way to respond from day one. The richer moderation tools stay in Phase 3                                                                                                                        |
-| **Phase 5 splits into 5a (email, digests, analytics) and 5b (SMS)**                             | Email is cheap and broadly useful. US application-to-person SMS requires carrier (A2P 10DLC) registration that takes weeks, costs money per message, and should be justified by Phase 5a data first                                                              |
+| Change                                                                                          | Reason                                                                                                                                                                                                                                                          |
+| ----------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| A basic **"I'm going" RSVP**, going count, and attendee list move from Phase 2 into **Phase 1** | Without them, Phase 1 is only a bulletin board, and organizers cannot see who is coming, which is the main reason to use FABA instead of a group thread. The feature is one table and one action. Capacity, maybe, guests, and waitlists stay in Phases 2 and 3 |
+| **Edit and cancel** move into **Phase 1**                                                       | Anyone who can post must be able to fix a typo or call an activity off. The _notifications_ about changes stay in Phase 2                                                                                                                                       |
+| **Minimal moderation** (report, hide, suspend, audit log) moves into **Phase 1**                | User-generated content exists from day one, so the board needs a way to respond from day one. The richer moderation tools stay in Phase 3                                                                                                                       |
 
 **Assumption:** the team is about 2 developers plus part-time product/design help from the board. Duration estimates below are rough calendar weeks for that team and should be re-estimated in Phase 0.
 
@@ -344,7 +342,7 @@ flowchart LR
   P1 --> P2["Phase 2<br/>Participation and awareness<br/>search · filters · in-app notifications<br/>~5-6 wks"]
   P2 --> P3["Phase 3<br/>Community<br/>groups · recurring · waitlist · follows<br/>~6-8 wks"]
   P3 --> P4["Phase 4<br/>Informal leagues<br/>~6-8 wks"]
-  P4 --> P5["Phase 5a/5b<br/>Email · digests · analytics<br/>then opt-in SMS<br/>~5-7 wks"]
+  P4 --> P5["Phase 5<br/>Advanced reminders · analytics"]
   P5 --> P6["Phase 6<br/>Scale, optimize, long-term<br/>ongoing"]
 ```
 
@@ -410,7 +408,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Footer disclaimer** ("informal, not an official BYU-Idaho channel") and participation disclaimer.
 - **Account deletion** (self-service).
 
-**Intentionally excluded:** notifications of any kind (the on-screen state is the confirmation), search, capacity, maybe, guests, waitlists, recurring activities, groups, leagues, images or uploads, comments, email, SMS, and admin UI for categories and moderators (SQL runbooks are used instead).
+**Intentionally excluded:** notifications of any kind (the on-screen state is the confirmation), search, capacity, maybe, guests, waitlists, recurring activities, groups, leagues, images or uploads, comments, and admin UI for categories and moderators (SQL runbooks are used instead).
 
 **User stories:** `AUTH-01` to `AUTH-05`, `PROF-01` to `PROF-05`, `ACT-01` to `ACT-06`, `RSVP-01` to `RSVP-03`, `MOD-01` to `MOD-06`, `HIST-02`, `INFO-01`, `OPS-01`.
 
@@ -465,7 +463,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Post again:** duplicate a past activity.
 - **Share:** native share sheet. The shared link requires sign-in.
 
-**Intentionally excluded:** notification preferences beyond per-activity mute (Phase 3); new-activity notifications for category follows (Phase 3); waitlist (Phase 3); real-time push (polling only); email and SMS (Phase 5); comments.
+**Intentionally excluded:** notification preferences beyond per-activity mute (Phase 3); new-activity notifications for category follows (Phase 3); waitlist (Phase 3); real-time push (polling only); comments.
 
 **User stories:** `SRCH-01` to `SRCH-03`, `RSVP-04` to `RSVP-06`, `RSVP-08`, `NOTIF-01` to `NOTIF-08`, `ACT-07` to `ACT-09`, `ACT-11`, `MOD-07`.
 
@@ -510,7 +508,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Personal calendar feed** (Could Have): a private, revocable iCal URL listing activities I'm going to.
 - **History:** a "Past" archive for my attended and organized activities, and group activity history.
 
-**Intentionally excluded:** leagues, teams, scores; comments (re-evaluate at the end of the phase); image uploads; email and SMS.
+**Intentionally excluded:** leagues, teams, scores; comments (re-evaluate at the end of the phase); image uploads.
 
 **User stories:** `GRP-01` to `GRP-05`, `REC-01` to `REC-04`, `RSVP-07`, `RSVP-09`, `ACT-10`, `NOTIF-09`, `NOTIF-10`, `MOD-08`, `HIST-01`, `CAL-01`, `PWA-01`, `UI-01`.
 
@@ -569,69 +567,27 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 ---
 
-### Phase 5a: Email notifications, digests, advanced reminders, analytics
+### Phase 5: Advanced reminders and analytics
 
-**Main objective:** Reach people who don't open the app daily, using opt-in email that respects attention, and give the board aggregate insight.
+**Main objective:** Let members choose when they're reminded, and give the board aggregate insight.
 
 **Features included**
 
-- **Email delivery** for selected notification types:
-  - **Default on:** activity cancelled and activity changed within 48 hours of the start.
-  - **Default off:** everything else.
-- **Weekly digest email** (opt-in): "This week on FABA", covering upcoming activities in followed categories and groups.
-- **Per-type, per-channel preferences** and quiet hours.
-- **One-click unsubscribe** that works without signing in, through a signed token.
 - **Advanced reminders:** the member chooses a lead time (none, 2 hours, the morning of, 1 day before).
-- **Delivery pipeline:** `notification_deliveries` records; a Cloudflare Queue; a transactional email provider; retries; bounce and complaint handling.
 - **Board analytics dashboard** (aggregate only, minimum cohort size of 10): weekly active members, activities posted, RSVPs, the full-time and part-time split (self-reported, optional), and category popularity.
 
-**Intentionally excluded:** SMS (Phase 5b); marketing emails; per-person tracking pixels (open tracking is disabled).
+**Intentionally excluded:** per-person tracking.
 
-**User stories:** `NOTIF-11` to `NOTIF-13`, `NOTIF-15`, `NOTIF-16`, `ANLY-01`.
+**User stories:** `NOTIF-13`, `ANLY-01`.
 
 **Acceptance criteria**
 
-- No email is sent to anyone who has not opted in, except the two default-on urgent types, which can be turned off from the first email.
-- Unsubscribe works in one click and takes effect within 1 minute.
-- Delivery is idempotent: retrying never sends duplicates (a test with an injected provider failure).
-- SPF, DKIM, and DMARC pass for the sending domain.
+- Reminders follow each member's chosen lead time.
+- Analytics totals for groups smaller than 10 are suppressed.
 
-**Dependencies:** a sending domain and DNS access; an email provider account; a privacy notice update.
+**Dependencies:** Phase 2 data.
 
-**Risks:** notification overload (R-NOTIF-1); deliverability to the school's mail servers (R-NOTIF-2).
-
-**Definition of done:** released to an opt-in beta group first, then to everyone after 2 weeks with a complaint rate below 0.1%.
-
-**Suggested success metrics:** at least 30% digest opt-in among weekly active users; unsubscribe rate below 2% per month; more activity views from digest links.
-
-### Phase 5b: SMS for urgent changes (optional, only if 5a data justifies it)
-
-**Main objective:** Optional text messages for same-day changes and cancellations only.
-
-**Features included**
-
-- Phone number entry with one-time-code verification.
-- SMS for "cancelled or changed within 6 hours of the start" only.
-- STOP and HELP handling.
-- Carrier registration (A2P 10DLC) and a monthly budget cap.
-
-**Intentionally excluded:** marketing texts, reminders by SMS, and two-way SMS.
-
-**User stories:** `NOTIF-14`, `NOTIF-17`, `NOTIF-18`.
-
-**Acceptance criteria:**
-
-- Only verified, opted-in numbers receive messages.
-- A STOP reply opts the number out immediately.
-- When the monthly budget cap is reached, the system falls back to email and in-app only and alerts admins.
-
-**Dependencies:** a funding decision; an SMS provider; registration approval.
-
-**Risks:** cost; registration delays; phone numbers are sensitive personal data.
-
-**Definition of done:** shipped behind a feature flag to an opt-in beta, then to everyone.
-
-**Suggested success metrics:** fewer no-shows at same-day cancelled activities; cost per month within budget.
+**Risks:** notification overload (R-NOTIF-1).
 
 ---
 
@@ -684,24 +640,24 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 ### 6.2 Story index
 
-| Area                   | Phase 0          | Phase 1            | Phase 2                     | Phase 3                            | Phase 4            | Phase 5              | Phase 6                  |
-| ---------------------- | ---------------- | ------------------ | --------------------------- | ---------------------------------- | ------------------ | -------------------- | ------------------------ |
-| Foundation             | FND-02 to FND-11 |                    |                             |                                    |                    |                      |                          |
-| Auth                   |                  | AUTH-01 to AUTH-05 |                             |                                    |                    |                      |                          |
-| Profiles               |                  | PROF-01 to PROF-05 |                             |                                    |                    |                      |                          |
-| Public pages           |                  | INFO-01            |                             |                                    |                    |                      |                          |
-| Activities             |                  | ACT-01 to ACT-06   | ACT-07 to ACT-09, ACT-11    | ACT-10                             |                    |                      | ACT-12                   |
-| RSVP                   |                  | RSVP-01 to RSVP-03 | RSVP-04 to RSVP-06, RSVP-08 | RSVP-07, RSVP-09                   |                    |                      |                          |
-| Search                 |                  |                    | SRCH-01 to SRCH-03          |                                    |                    |                      |                          |
-| Notifications          |                  |                    | NOTIF-01 to NOTIF-08        | NOTIF-09, NOTIF-10                 |                    | NOTIF-11 to NOTIF-18 | NOTIF-19, NOTIF-20       |
-| Moderation             |                  | MOD-01 to MOD-06   | MOD-07                      | MOD-08                             |                    |                      |                          |
-| Groups / recurring     |                  |                    |                             | GRP-01 to GRP-05, REC-01 to REC-04 |                    |                      |                          |
-| History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |                      |                          |
-| Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |                      | LEAG-09                  |
-| Analytics              |                  |                    |                             |                                    |                    | ANLY-01              |                          |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |                      | MEDIA-01                 |
-| Privacy                |                  |                    |                             |                                    |                    |                      | PRIV-01, PRIV-02         |
-| Operations and quality |                  | OPS-01             |                             |                                    |                    |                      | OPS-02, PERF-01, A11Y-01 |
+| Area                   | Phase 0          | Phase 1            | Phase 2                     | Phase 3                            | Phase 4            | Phase 5  | Phase 6                  |
+| ---------------------- | ---------------- | ------------------ | --------------------------- | ---------------------------------- | ------------------ | -------- | ------------------------ |
+| Foundation             | FND-02 to FND-11 |                    |                             |                                    |                    |          |                          |
+| Auth                   |                  | AUTH-01 to AUTH-05 |                             |                                    |                    |          |                          |
+| Profiles               |                  | PROF-01 to PROF-05 |                             |                                    |                    |          |                          |
+| Public pages           |                  | INFO-01            |                             |                                    |                    |          |                          |
+| Activities             |                  | ACT-01 to ACT-06   | ACT-07 to ACT-09, ACT-11    | ACT-10                             |                    |          | ACT-12                   |
+| RSVP                   |                  | RSVP-01 to RSVP-03 | RSVP-04 to RSVP-06, RSVP-08 | RSVP-07, RSVP-09                   |                    |          |                          |
+| Search                 |                  |                    | SRCH-01 to SRCH-03          |                                    |                    |          |                          |
+| Notifications          |                  |                    | NOTIF-01 to NOTIF-08        | NOTIF-09, NOTIF-10                 |                    | NOTIF-13 | NOTIF-19, NOTIF-20       |
+| Moderation             |                  | MOD-01 to MOD-06   | MOD-07                      | MOD-08                             |                    |          |                          |
+| Groups / recurring     |                  |                    |                             | GRP-01 to GRP-05, REC-01 to REC-04 |                    |          |                          |
+| History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                          |
+| Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                  |
+| Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                          |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01                 |
+| Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02         |
+| Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02, PERF-01, A11Y-01 |
 
 ### 6.3 Phase 0 stories
 
@@ -1182,7 +1138,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   3. Moderators see an "Open reports: N" indicator on the Me screen.
 - **Dependencies:** MOD-01; moderator role assigned.
 - **Notes / edge cases:**
-  - There is no email alert to moderators until Phase 5. Moderators agree to check the queue on business days.
+  - Moderators agree to check the queue on business days.
   - Phase 2 adds an in-app notification to moderators when a report arrives.
 
 #### MOD-03 · Hide or unhide an activity
@@ -1248,7 +1204,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   2. About, Privacy, and Guidelines are prerendered. The landing page is rendered on demand and sends signed-in members to Discover.
   3. Every page footer says FABA is informal and not an official BYU-Idaho channel.
   4. The participation disclaimer appears on the guidelines page and on Outdoors and Sports & Fitness activity pages.
-  5. The guidelines page gives an out-of-app contact for urgent safety concerns (the board's email), and says emergencies go to 911 or campus security.
+  5. The guidelines page gives an out-of-app contact for urgent safety concerns (the board's contact details), and says emergencies go to 911 or campus security.
 - **Dependencies:** FND-05.
 - **Notes / edge cases:** Requirements FR-PROF-7 and FR-REP-5. Use no university logo or marks (R-POL-1).
 
@@ -1376,12 +1332,12 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   1. Cancelling notifies all going and maybe attendees with the reason. Restoring sends an `activity_restored` notification.
   2. Mute does **not** suppress cancellation notices.
 - **Dependencies:** NOTIF-01; ACT-05.
-- **Notes / edge cases:** In Phase 5, cancellation is the first type that can also go by email.
+- **Notes / edge cases:** None.
 
 #### NOTIF-04 · Organizer update to attendees
 
 - **Role:** Activity organizer · **Priority:** Must · **Phase:** 2
-- **Story:** As an organizer, I want to post a short update ("Bring a headlamp!"), so that everyone going gets it without a reply-all thread.
+- **Story:** As an organizer, I want to post a short update ("Bring a headlamp!"), so that everyone going gets it without a long group thread.
 - **Acceptance criteria**
   1. **Post update** on the activity accepts plain text up to 500 characters. The update appears on the activity page, newest first, and notifies going and maybe attendees.
   2. Organizers are limited to 5 updates per activity per day.
@@ -1397,7 +1353,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   1. RSVPing creates an `rsvp_confirmed` notification **already marked read**. It appears in the list but doesn't increase the badge.
   2. Waitlist promotion (Phase 3) creates an _unread_ `rsvp_promoted` notification.
 - **Dependencies:** NOTIF-01.
-- **Notes / edge cases:** This becomes the email confirmation template in Phase 5, if a member opts in.
+- **Notes / edge cases:** None.
 
 #### NOTIF-06 · New attendees (for organizers)
 
@@ -1622,7 +1578,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - Cancellations cannot be turned off.
   - Stored per type and channel, with only `in_app` values in this phase.
 - **Dependencies:** NOTIF-01.
-- **Notes / edge cases:** The table shape is final, and Phase 5 only adds rows for new channels.
+- **Notes / edge cases:** The table shape is final, so a later channel adds rows only.
 
 #### MOD-08 · Moderation and admin tools
 
@@ -1782,54 +1738,19 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 
 ### 6.8 Phase 5 stories
 
-#### NOTIF-11 · Email for urgent changes
+#### NOTIF-13 · Reminder lead time
 
-- **Role:** Member · **Priority:** Must · **Phase:** 5a
-- **Story:** As an attendee, I want an email if an activity I'm going to is cancelled or changed shortly before it starts.
+- **Role:** Member · **Priority:** Must · **Phase:** 5
+- **Story:** As a member, I want to choose how far ahead I'm reminded, so that reminders arrive when I need them.
 - **Acceptance criteria:**
-  - Applies to cancellations, and to changes within 48 hours of the start.
-  - Sent to the account email by default, with a one-click unsubscribe.
-  - Sent within 5 minutes.
-- **Dependencies:** delivery pipeline; email provider.
-- **Notes / edge cases:** Plain-text plus simple HTML templates, with no tracking pixels.
-
-#### NOTIF-12 · Weekly digest
-
-- **Role:** Member · **Priority:** Should · **Phase:** 5a
-- **Story:** As a member who rarely opens the app, I want a weekly summary email.
-- **Acceptance criteria:**
-  - Opt-in. Sent Monday at 7 AM local time.
-  - Covers the next 2 weeks in followed categories and groups, plus board activities.
-  - Skipped if there is nothing to send.
-- **Dependencies:** NOTIF-09.
-- **Notes / edge cases:** Rendered on the server and queued, at about 2,600 messages per week at most.
-
-#### NOTIF-13 · Channel preferences, quiet hours, reminder timing
-
-- **Role:** Member · **Priority:** Must · **Phase:** 5a
-- **Story:** As a member, I want to choose what reaches me by email and when.
-- **Acceptance criteria:**
-  - A matrix of type × channel.
-  - Quiet hours (default 9 PM to 7 AM) delay non-urgent email.
-  - Reminder lead-time choice.
-  - Unsubscribe links map to specific preferences.
+  - Lead-time choice: none, 2 hours, the morning of, or 1 day before.
+  - The choice applies to reminders for activities I'm going to.
 - **Dependencies:** NOTIF-10.
 - **Notes / edge cases:** None.
 
-#### NOTIF-14 · SMS for same-day changes
-
-- **Role:** Member · **Priority:** Could · **Phase:** 5b
-- **Story:** As an attendee, I want a text if an activity I'm going to today is cancelled or changed.
-- **Acceptance criteria:**
-  - Requires a verified phone number and explicit opt-in.
-  - Applies only to changes within 6 hours of the start.
-  - STOP is honored immediately, and spending stays under the monthly cap.
-- **Dependencies:** NOTIF-13; carrier registration.
-- **Notes / edge cases:** Phone numbers are stored in the private table and visible only to their owner.
-
 #### ANLY-01 · Board analytics
 
-- **Role:** Admin / Moderator · **Priority:** Should · **Phase:** 5a
+- **Role:** Admin / Moderator · **Priority:** Should · **Phase:** 5
 - **Story:** As the board, I want aggregate participation trends, so that we can plan and report value.
 - **Acceptance criteria:**
   - Weekly active members, new members, activities by category, RSVPs, the self-reported full-time and part-time split, and organizer count.
@@ -1837,52 +1758,6 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - Computed nightly into a `daily_metrics` table, and never shows individuals.
 - **Dependencies:** Phase 2 data.
 - **Notes / edge cases:** Cloudflare Web Analytics (cookieless) covers page views. No third-party trackers.
-
-#### NOTIF-15 · One-click unsubscribe
-
-- **Role:** Member · **Priority:** Must · **Phase:** 5a
-- **Story:** As a member, I want to turn off an email type straight from the email, so that I don't have to sign in to change my settings.
-- **Acceptance criteria:**
-  - Every email has an unsubscribe link with a signed token that works without signing in.
-  - One click turns off that email type, as mapped in NOTIF-13, and takes effect within 1 minute.
-  - The default-on urgent emails can be turned off from the first one a member receives.
-- **Dependencies:** NOTIF-13; NOTIF-16.
-- **Notes / edge cases:** The token is signed with `UNSUBSCRIBE_SIGNING_KEY`. It only changes email preferences and never signs anyone in.
-
-#### NOTIF-16 · Reliable email delivery
-
-- **Role:** Admin · **Priority:** Must · **Phase:** 5a
-- **Story:** As the FABA board, I want email delivery to be reliable and never send duplicates, so that members trust what FABA sends.
-- **Acceptance criteria:**
-  - Each email is a `notification_deliveries` row, sent through a Cloudflare Queue to a transactional email provider, with retries.
-  - Retrying never sends a duplicate (tested with an injected provider failure).
-  - Bounce and complaint webhooks are handled.
-  - SPF, DKIM, and DMARC pass for the sending domain. Open tracking is disabled.
-  - Email goes to an opt-in beta group first, then to everyone after 2 weeks with a complaint rate below 0.1%.
-- **Dependencies:** a sending domain and DNS access; an email provider account; a privacy notice update.
-- **Notes / edge cases:** School mail servers may filter FABA email (R-NOTIF-2). Ask IT to allow-list the sender.
-
-#### NOTIF-17 · Verify my phone number
-
-- **Role:** Member · **Priority:** Could · **Phase:** 5b
-- **Story:** As a member who wants texts, I want to verify my phone number, so that FABA texts reach only my phone.
-- **Acceptance criteria:**
-  - Entering a phone number sends a one-time code. The number counts as verified only after the code is entered.
-  - Only verified, opted-in numbers receive messages.
-  - A STOP reply opts the number out immediately, and a HELP reply returns help text.
-- **Dependencies:** an SMS provider; carrier registration (A2P 10DLC).
-- **Notes / edge cases:** Phone numbers are sensitive. They are stored in `profile_private` and visible only to their owner.
-
-#### NOTIF-18 · SMS spending cap
-
-- **Role:** Admin · **Priority:** Could · **Phase:** 5b
-- **Story:** As the FABA board, I want SMS spending capped each month, so that texting never exceeds the budget.
-- **Acceptance criteria:**
-  - A monthly SMS budget cap is configured.
-  - When the cap is reached, FABA sends only email and in-app notifications, and alerts admins.
-  - SMS sits behind a feature flag that can turn it off in minutes.
-- **Dependencies:** NOTIF-14; a funding decision.
-- **Notes / edge cases:** Phase 5b ships only if Phase 5a data justifies it.
 
 ### 6.9 Phase 6 stories (candidates, prioritized with data)
 
@@ -1900,18 +1775,18 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 #### NOTIF-20 · Web Push notifications
 
 - **Role:** Member · **Priority:** Could · **Phase:** 6
-- **Story:** As a member who installed FABA, I want push notifications on my phone, so that urgent changes reach me without email or SMS.
+- **Story:** As a member who installed FABA, I want push notifications on my phone, so that urgent changes reach me without opening the app.
 - **Acceptance criteria:**
   - Web Push is a new channel in the existing delivery pipeline.
   - It works on installed PWAs on iOS 16.4 and later, and on Android.
-  - It is opt-in, and each notification type can be turned on or off for push (NOTIF-13).
-- **Dependencies:** PWA-01; NOTIF-13; NOTIF-16.
+  - It is opt-in, and each notification type can be turned on or off for push (NOTIF-10).
+- **Dependencies:** PWA-01; NOTIF-10.
 - **Notes / edge cases:** None.
 
 #### ACT-12 · Comments on activities
 
 - **Role:** Member · **Priority:** Could · **Phase:** 6
-- **Story:** As a member, I want to ask a quick question on an activity page, so that I don't have to email the organizer.
+- **Story:** As a member, I want to ask a quick question on an activity page, so that I don't have to message the organizer elsewhere.
 - **Acceptance criteria:**
   - Comments are flat (no threads) and plain text.
   - Comments are reportable, and moderators can hide them.
@@ -2374,35 +2249,33 @@ Requirements use "must" for required behavior. **P** is the phase in which a req
 
 ### 8.8 Notifications
 
-| ID       | Requirement                                                                                                                                              | P   | Source             |
-| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --- | ------------------ |
-| FR-NOT-1 | The system must store one notification row per recipient with a type, payload snapshot, target, `dedupe_key`, `created_at`, and `read_at`                | 2   | NOTIF-01           |
-| FR-NOT-2 | Notifications must be created in the same database transaction as the triggering change, by database functions only. Clients cannot insert notifications | 2   | NOTIF-02           |
-| FR-NOT-3 | The system must provide an unread count, mark read, and mark all read                                                                                    | 2   | NOTIF-01           |
-| FR-NOT-4 | Members must be able to mute an activity. Cancellations bypass mute                                                                                      | 2   | NOTIF-08           |
-| FR-NOT-5 | Notifications older than 90 days must be purged                                                                                                          | 2   | NOTIF-01           |
-| FR-NOT-6 | The system must support per-type preferences, stored per channel                                                                                         | 3   | NOTIF-10           |
-| FR-NOT-7 | Email delivery must use per-notification, per-channel delivery records with idempotent sends, retries, one-click unsubscribe, and quiet hours            | 5a  | NOTIF-11, NOTIF-13 |
-| FR-NOT-8 | SMS delivery must require a verified phone number, explicit opt-in, STOP handling, and a budget cap                                                      | 5b  | NOTIF-14           |
+| ID       | Requirement                                                                                                                                              | P   | Source   |
+| -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | --- | -------- |
+| FR-NOT-1 | The system must store one notification row per recipient with a type, payload snapshot, target, `dedupe_key`, `created_at`, and `read_at`                | 2   | NOTIF-01 |
+| FR-NOT-2 | Notifications must be created in the same database transaction as the triggering change, by database functions only. Clients cannot insert notifications | 2   | NOTIF-02 |
+| FR-NOT-3 | The system must provide an unread count, mark read, and mark all read                                                                                    | 2   | NOTIF-01 |
+| FR-NOT-4 | Members must be able to mute an activity. Cancellations bypass mute                                                                                      | 2   | NOTIF-08 |
+| FR-NOT-5 | Notifications older than 90 days must be purged                                                                                                          | 2   | NOTIF-01 |
+| FR-NOT-6 | The system must support per-type preferences, stored per channel                                                                                         | 3   | NOTIF-10 |
 
 **Notification type catalog.** This table is the source for `docs/notifications.md`.
 
-| Type                                      | Trigger                                            | Recipients                            | Unread?               | Dedupe window        | Mute applies | Email eligible (5a)              | SMS eligible (5b)  | P   |
-| ----------------------------------------- | -------------------------------------------------- | ------------------------------------- | --------------------- | -------------------- | ------------ | -------------------------------- | ------------------ | --- |
-| `activity_changed`                        | Time, date, place, link, or private details edited | Going and maybe, excluding the editor | Yes                   | 10 min per activity  | Yes          | Yes, if within 48 h (default on) | Yes, if within 6 h | 2   |
-| `activity_cancelled`                      | Cancel                                             | Going and maybe                       | Yes                   | None                 | **No**       | Yes (default on)                 | Yes, if within 6 h | 2   |
-| `activity_restored`                       | Restore                                            | Previously going and maybe            | Yes                   | None                 | No           | Yes                              | No                 | 2   |
-| `organizer_update`                        | Update posted                                      | Going and maybe                       | Yes                   | None                 | Yes          | Opt-in                           | No                 | 2   |
-| `rsvp_confirmed`                          | Own RSVP to going. Deleted on leaving or maybe     | Self                                  | **No** (created read) | 1 per activity       | No           | Opt-in                           | No                 | 2   |
-| `new_attendees`                           | Others say I'm in. Counts who's new since read     | Organizers                            | Yes                   | 1 hour per activity  | Yes          | Opt-in (digest)                  | No                 | 2   |
-| `reminder`                                | `pg_cron` schedule                                 | Going                                 | Yes                   | 1 per activity       | Yes          | Opt-in                           | No                 | 2   |
-| `board_announcement`                      | Admin announces                                    | All active members                    | Yes                   | 1 per activity       | No           | Opt-in                           | No                 | 2   |
-| `report_received`                         | New report                                         | Moderators                            | Yes                   | 1 per target per day | No           | Opt-in                           | No                 | 3   |
-| `rsvp_promoted`                           | Waitlist promotion                                 | Self                                  | Yes                   | None                 | No           | Yes                              | Opt-in             | 3   |
-| `follow_new_activities`                   | New activity in a followed category or group       | Followers                             | Yes                   | 1 per follow per day | —            | Digest                           | No                 | 3   |
-| `group_update`, `group_join_request`      | Group events                                       | Members / organizers                  | Yes                   | None                 | Yes          | Opt-in                           | No                 | 3   |
-| `group_join_approved`, `group_owner`      | Approved, or handed the group                      | Self                                  | Yes                   | None                 | Yes          | Opt-in                           | No                 | 3   |
-| `league_*` (score to confirm, sub needed) | League events                                      | Captains, free agents                 | Yes                   | Per game             | Yes          | Opt-in                           | No                 | 4   |
+| Type                                      | Trigger                                            | Recipients                            | Unread?               | Dedupe window        | Mute applies | P   |
+| ----------------------------------------- | -------------------------------------------------- | ------------------------------------- | --------------------- | -------------------- | ------------ | --- |
+| `activity_changed`                        | Time, date, place, link, or private details edited | Going and maybe, excluding the editor | Yes                   | 10 min per activity  | Yes          | 2   |
+| `activity_cancelled`                      | Cancel                                             | Going and maybe                       | Yes                   | None                 | **No**       | 2   |
+| `activity_restored`                       | Restore                                            | Previously going and maybe            | Yes                   | None                 | No           | 2   |
+| `organizer_update`                        | Update posted                                      | Going and maybe                       | Yes                   | None                 | Yes          | 2   |
+| `rsvp_confirmed`                          | Own RSVP to going. Deleted on leaving or maybe     | Self                                  | **No** (created read) | 1 per activity       | No           | 2   |
+| `new_attendees`                           | Others say I'm in. Counts who's new since read     | Organizers                            | Yes                   | 1 hour per activity  | Yes          | 2   |
+| `reminder`                                | `pg_cron` schedule                                 | Going                                 | Yes                   | 1 per activity       | Yes          | 2   |
+| `board_announcement`                      | Admin announces                                    | All active members                    | Yes                   | 1 per activity       | No           | 2   |
+| `report_received`                         | New report                                         | Moderators                            | Yes                   | 1 per target per day | No           | 3   |
+| `rsvp_promoted`                           | Waitlist promotion                                 | Self                                  | Yes                   | None                 | No           | 3   |
+| `follow_new_activities`                   | New activity in a followed category or group       | Followers                             | Yes                   | 1 per follow per day | —            | 3   |
+| `group_update`, `group_join_request`      | Group events                                       | Members / organizers                  | Yes                   | None                 | Yes          | 3   |
+| `group_join_approved`, `group_owner`      | Approved, or handed the group                      | Self                                  | Yes                   | None                 | Yes          | 3   |
+| `league_*` (score to confirm, sub needed) | League events                                      | Captains, free agents                 | Yes                   | Per game             | Yes          | 4   |
 
 ### 8.9 Moderation
 
@@ -2417,13 +2290,13 @@ Requirements use "must" for required behavior. **P** is the phase in which a req
 
 ### 8.10 Reporting inappropriate content
 
-| ID       | Requirement                                                                                                                                                       | P   | Source   |
-| -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- | -------- |
-| FR-REP-1 | Members must be able to report activities and profiles with a reason and an optional note. The reporter's identity is visible to moderators only                  | 1   | MOD-01   |
-| FR-REP-2 | The system must allow one report per member per target, and at most 10 reports per member per day                                                                 | 1   | MOD-01   |
-| FR-REP-3 | Organizer updates must be reportable                                                                                                                              | 2   | NOTIF-04 |
-| FR-REP-4 | Groups must be reportable                                                                                                                                         | 3   | MOD-08   |
-| FR-REP-5 | The guidelines page must include an out-of-app contact for urgent safety concerns (the board's email), and must say that emergencies go to 911 or campus security | 1   | INFO-01  |
+| ID       | Requirement                                                                                                                                                                 | P   | Source   |
+| -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --- | -------- |
+| FR-REP-1 | Members must be able to report activities and profiles with a reason and an optional note. The reporter's identity is visible to moderators only                            | 1   | MOD-01   |
+| FR-REP-2 | The system must allow one report per member per target, and at most 10 reports per member per day                                                                           | 1   | MOD-01   |
+| FR-REP-3 | Organizer updates must be reportable                                                                                                                                        | 2   | NOTIF-04 |
+| FR-REP-4 | Groups must be reportable                                                                                                                                                   | 3   | MOD-08   |
+| FR-REP-5 | The guidelines page must include an out-of-app contact for urgent safety concerns (the board's contact details), and must say that emergencies go to 911 or campus security | 1   | INFO-01  |
 
 ### 8.11 Search and filtering
 
@@ -2474,10 +2347,8 @@ flowchart TB
       MW["Astro middleware<br/>session, eligibility, headers"]
       PAGES["On-demand pages"]
       ACTS["Astro Actions and API routes"]
-      JOBS["scheduled and queue handlers<br/>(Phase 5)"]
     end
     RL["Rate limiting binding"]
-    Q[["Queue (Phase 5)"]]
   end
 
   subgraph SB["Supabase project (one per environment)"]
@@ -2487,7 +2358,6 @@ flowchart TB
   end
 
   GOOGLE["Google OAuth<br/>(byui.edu Workspace)"]
-  PROV["Email and SMS providers<br/>(Phase 5)"]
 
   BR -->|HTTPS| EDGE
   EDGE --> ASSETS
@@ -2502,13 +2372,9 @@ flowchart TB
   AUTH --> PG
   BR <-->|"OAuth redirects"| GOOGLE
   AUTH <-->|"code exchange"| GOOGLE
-  JOBS --> Q
-  Q --> JOBS
-  JOBS -->|"secret key, narrow use"| API
-  JOBS --> PROV
 ```
 
-**In one paragraph:** the browser talks only to the FABA Worker. The Worker is the Astro app, built with `@astrojs/cloudflare`. Static assets are served directly from Cloudflare's edge. Every other request runs through Astro middleware, which validates the Supabase session from `HttpOnly` cookies, then renders a page or runs an Action. The Worker reads and writes data through Supabase's Data API **as the signed-in user** (the user's JWT plus the publishable key), so PostgreSQL Row Level Security decides what each request may see or change. Supabase Auth owns identity and the Google OAuth exchange. A database hook enforces the `@byui.edu` gate at account creation. Scheduled data work (reminders, cleanup) runs inside Postgres with `pg_cron`. Delivery to external channels (email, SMS) is added in Phase 5 through Worker `scheduled` and `queue` handlers.
+**In one paragraph:** the browser talks only to the FABA Worker. The Worker is the Astro app, built with `@astrojs/cloudflare`. Static assets are served directly from Cloudflare's edge. Every other request runs through Astro middleware, which validates the Supabase session from `HttpOnly` cookies, then renders a page or runs an Action. The Worker reads and writes data through Supabase's Data API **as the signed-in user** (the user's JWT plus the publishable key), so PostgreSQL Row Level Security decides what each request may see or change. Supabase Auth owns identity and the Google OAuth exchange. A database hook enforces the `@byui.edu` gate at account creation. Scheduled data work (reminders, cleanup) runs inside Postgres with `pg_cron`.
 
 ### 9.2 Rendering strategy: static, server, or hybrid?
 
@@ -2537,19 +2403,10 @@ Introduce a UI framework island (Preact recommended, for its size) only if a com
 
 **Astro does not call a separate Worker.** The Cloudflare adapter compiles the Astro app _into_ a Worker. Middleware, page frontmatter, Actions, and API endpoints all execute inside the Worker, so "communication" is in-process function calls. Cloudflare bindings (rate limiter, and later the queue) are imported from `cloudflare:workers` (`import { env } from 'cloudflare:workers'`) and typed with `wrangler types`.
 
-**Phase 5 custom entrypoint:** add `src/worker.ts` and point `main` in `wrangler.jsonc` at it. It exports a standard Worker object:
-
-- `fetch` delegates to Astro's `handle` from `@astrojs/cloudflare/handler`.
-- `queue` and `scheduled` handlers are added beside it.
-
-The current adapter documentation shows a `queue` handler on this entrypoint. Confirm `scheduled` in a spike before Phase 5.
-
-**If a second Worker is ever justified** (for example, isolating email delivery), it is called through a **Service Binding**, never over public HTTP.
-
 | Component                       | Owns                                                                                                                                                                                                                                                      | Does not own                                                    |
 | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | **Astro (inside the Worker)**   | Routing; HTML rendering; middleware (session, eligibility, security headers); Actions (input validation, calling RPC, mapping errors); a few API routes (`/api/notifications/unread-count`, `/activities/[id].ics`, `/healthz`); UI components and styles | Business invariants (capacity, quotas, permissions); scheduling |
-| **Cloudflare Workers platform** | Hosting and the global edge; static assets; TLS; WAF and rate-limiting rules; the rate limiting binding; logs and observability; Smart Placement near the database. **Phase 5:** Cron Triggers, Queues, and external delivery                             | Long-term data; identity                                        |
+| **Cloudflare Workers platform** | Hosting and the global edge; static assets; TLS; WAF and rate-limiting rules; the rate limiting binding; logs and observability; Smart Placement near the database                                                                                        | Long-term data; identity                                        |
 | **Supabase Auth**               | Google OAuth exchange; user records (`auth.users`); JWT issuing, signing, and refresh rotation; the before-user-created hook; session lifetime settings                                                                                                   | Profiles; roles; any FABA data                                  |
 | **PostgreSQL**                  | The schema; **all authorization (RLS)**; business rules in functions (RSVP capacity, quotas, notification fan-out, moderation and audit); `pg_cron` jobs (reminders, purges, series generation); full-text search                                         | Rendering; external delivery; secrets for third parties         |
 
@@ -2636,15 +2493,14 @@ faba/
 
 ### 9.5 API boundaries
 
-| Boundary                         | Protocol                                                      | Contents                                                                                                               | Auth                                                        |
-| -------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Browser ↔ Worker                 | HTTPS                                                         | HTML pages (GET); Astro Actions (POST, as form or RPC at `/_actions/*`); JSON: unread count; `.ics` files; auth routes | Session cookie. Actions re-check the user in their handler  |
-| Worker ↔ Supabase Data API       | HTTPS (supabase-js)                                           | Table and view reads; RPC calls to Postgres functions                                                                  | The user's JWT plus the publishable key, so **RLS applies** |
-| Worker ↔ Supabase Auth           | HTTPS (supabase-js)                                           | OAuth start, code exchange, refresh, sign-out, admin delete-user                                                       | PKCE. The secret key is used only for admin delete-user     |
-| Worker jobs ↔ Supabase (Phase 5) | HTTPS                                                         | Claim pending deliveries, record results                                                                               | Secret key, used only from narrowly scoped RPC functions    |
-| Supabase Auth ↔ Postgres         | Internal                                                      | before-user-created hook; trigger that creates the profile                                                             | `supabase_auth_admin`                                       |
-| Browser ↔ Supabase               | **None** (until Realtime, if ever adopted in Phase 6)         | —                                                                                                                      | —                                                           |
-| Third parties ↔ FABA             | **None** (no public API). Phase 5 adds provider webhooks only | —                                                                                                                      | Signed webhook verification                                 |
+| Boundary                   | Protocol                                              | Contents                                                                                                               | Auth                                                        |
+| -------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Browser ↔ Worker           | HTTPS                                                 | HTML pages (GET); Astro Actions (POST, as form or RPC at `/_actions/*`); JSON: unread count; `.ics` files; auth routes | Session cookie. Actions re-check the user in their handler  |
+| Worker ↔ Supabase Data API | HTTPS (supabase-js)                                   | Table and view reads; RPC calls to Postgres functions                                                                  | The user's JWT plus the publishable key, so **RLS applies** |
+| Worker ↔ Supabase Auth     | HTTPS (supabase-js)                                   | OAuth start, code exchange, refresh, sign-out, admin delete-user                                                       | PKCE. The secret key is used only for admin delete-user     |
+| Supabase Auth ↔ Postgres   | Internal                                              | before-user-created hook; trigger that creates the profile                                                             | `supabase_auth_admin`                                       |
+| Browser ↔ Supabase         | **None** (until Realtime, if ever adopted in Phase 6) | —                                                                                                                      | —                                                           |
+| Third parties ↔ FABA       | **None** (no public API)                              | —                                                                                                                      | —                                                           |
 
 **Assume a hostile client.** The publishable key is public, and a determined member can copy their own access token out of the browser's developer tools and call the Data API directly. Therefore:
 
@@ -2655,7 +2511,7 @@ faba/
 ### 9.6 Supabase integration and data access pattern
 
 - **Per-request client:** middleware creates a `createServerClient` from `@supabase/ssr` with `getAll` and `setAll` cookie adapters over `Astro.cookies` and the request headers, and stores it on `Astro.locals.supabase`. Every page and Action uses this client, so it carries the user's session.
-- **Admin client:** `src/lib/server/admin.ts` creates a secret-key client. It may be imported only by the account-deletion Action and, later, by the Phase 5 job handlers. Enforce this with an ESLint `no-restricted-imports` rule. Remember that the secret key **bypasses RLS**.
+- **Admin client:** `src/lib/server/admin.ts` creates a secret-key client. It may be imported only by the account-deletion Action. Enforce this with an ESLint `no-restricted-imports` rule. Remember that the secret key **bypasses RLS**.
 - **Typed queries:** generate `db.types.ts` with `supabase gen types typescript` in CI, and fail the build if it drifts from the migrations.
 - **Reads:**
   - The Data API's query builder, on tables and on views marked `security_invoker = true` so RLS applies.
@@ -2834,40 +2690,25 @@ Limits return HTTP 429, or the `TOO_MANY_REQUESTS` Action error, with a friendly
 | Navigation speed                                  | Astro prefetch for primary links, plus CSS cross-document view transitions                                                                                                                                     |
 | Not used                                          | KV or edge caching of member data (privacy and staleness risk with no meaningful benefit at this scale)                                                                                                        |
 
-### 9.12 Notification architecture and future channels
+### 9.12 Notification architecture
 
 ```mermaid
 flowchart LR
   A["Domain RPC<br/>cancel_activity, update_activity,<br/>rsvp, post_activity_update"] -->|"same transaction<br/>via private.notify()"| N[("notifications<br/>one row per recipient")]
   CRON["pg_cron<br/>reminders, purge"] --> N
   N --> UI["In-app center and unread badge<br/>(Phase 2)"]
-  N -.->|"Phase 5: trigger applies<br/>preferences and quiet hours"| D[("notification_deliveries<br/>channel: email, sms, push")]
-  D -.-> CT["Worker Cron Trigger<br/>claims pending rows"]
-  CT -.-> Q[["Cloudflare Queue"]]
-  Q -.-> C["Queue consumer<br/>renders template and calls provider"]
-  C -.-> P["Email or SMS provider"]
-  P -.->|"webhooks: bounce, complaint, STOP"| WH["Worker webhook route"]
-  WH -.-> D
 ```
 
-**Decisions to make now (Phases 1 to 2), so email and SMS need no redesign:**
+**Decisions to make now (Phases 1 to 2), so later channels need no redesign:**
 
-1. **The canonical record is a per-recipient `notifications` row.** In-app is simply the first view of it. External channels are _deliveries of_ a notification, never separate notification systems.
+1. **The canonical record is a per-recipient `notifications` row.** In-app is its only view today. Any later channel (such as Web Push) would be a delivery of the same row, never a separate notification system.
 2. **There is one creation path.** Every notification is created by `private.notify(recipients, type, target, payload, dedupe_key)`, called from domain functions in the same transaction as the change (the transactional outbox pattern). The Worker never inserts notifications.
-3. **The notification type catalog is typed.** `type` plus a versioned JSON `payload` schema (Section 8.8 catalog). Each type declares its default recipients, whether mute applies, whether it is urgent, and which channels it may use.
-4. **Store data, not rendered text.** Payloads hold snapshots (activity title, old and new times, the organizer's name), and rendering happens per channel at read or send time. The same notification can then become a one-line in-app row, an email, or a 160-character SMS. Private details are the exception: `activity_changed` holds only `details_changed`, never the details, since maybe attendees get it but can't read them, and a notification stays after its reader stops going.
-5. **Keep in-app copy SMS-short.** Write the first line of every template to stand alone in under 120 characters.
-6. **Deduplication and batching keys exist from day one,** so channels never multiply noise.
-7. **Preferences are keyed by (user, type, channel)** from Phase 3, with defaults defined in the catalog. Mute (per activity) stays separate from preferences (per type).
-8. **Each member's time zone is stored now,** for reminders, quiet hours, and digest timing later.
-9. **Contact data is isolated.** Email lives in `profile_private`. The phone number, its verification, and SMS consent timestamps go in the same private table in Phase 5b, never in `profiles`.
-10. **The delivery state machine is designed now and built in Phase 5:**
-    - Statuses: `pending → sending → sent | failed | suppressed`.
-    - Idempotency key: `(notification_id, channel)`.
-    - Also recorded: attempts, `provider_message_id`, `last_error`.
-    - Claims use `FOR UPDATE SKIP LOCKED`, so retries never double-send.
-11. **External providers sit behind an interface** (`sendEmail`, `sendSms`), so switching providers is a configuration change.
-12. **Unsubscribe and calendar-feed links use signed or hashed tokens**, with secrets in Worker environment variables. Consent (timestamp and source) is recorded for SMS.
+3. **The notification type catalog is typed.** `type` plus a versioned JSON `payload` schema (Section 8.8 catalog). Each type declares its default recipients and whether mute applies.
+4. **Store data, not rendered text.** Payloads hold snapshots (activity title, old and new times, the organizer's name), and rendering happens at read time. Private details are the exception: `activity_changed` holds only `details_changed`, never the details, since maybe attendees get it but can't read them, and a notification stays after its reader stops going.
+5. **Deduplication and batching keys exist from day one,** so notifications never multiply noise.
+6. **Preferences are keyed by (user, type, channel)** from Phase 3, with defaults defined in the catalog. Mute (per activity) stays separate from preferences (per type).
+7. **Each member's time zone is stored now,** for reminders and batched notices.
+8. **Contact data is isolated.** Email lives in `profile_private`.
 
 ### 9.13 Logging and monitoring
 
@@ -2881,7 +2722,7 @@ flowchart LR
   - **Security Advisor** and **Performance Advisor**, reviewed before every release and kept at zero findings.
   - `cron.job_run_details` for `pg_cron` failures.
 - **Uptime:** an external monitor calls `/healthz` every 5 minutes. `/healthz` runs a trivial database query and returns build information.
-- **Alerts** go to the technical owner's email or the board's chat. Initial thresholds:
+- **Alerts** go to the technical owner or the board's chat. Initial thresholds:
   - 5xx rate above 2% for 5 minutes.
   - `/healthz` failing twice.
   - Any `pg_cron` job failure.
@@ -2944,13 +2785,11 @@ flowchart LR
 
 | Item                                                                                                                               | Phase | Approximate monthly cost                           |
 | ---------------------------------------------------------------------------------------------------------------------------------- | ----- | -------------------------------------------------- |
-| Cloudflare Workers Paid (more CPU-time headroom, logs, Queues)                                                                     | 1     | ~$5                                                |
+| Cloudflare Workers Paid (more CPU-time headroom, logs)                                                                             | 1     | ~$5                                                |
 | Supabase Pro for production (daily backups, no auto-pause)                                                                         | 1     | ~$25, plus compute if the default size is exceeded |
 | Supabase staging. Free plan projects pause after inactivity, which is acceptable for staging. Alternatively, a second paid project | 0     | $0 to ~$10                                         |
 | Domain                                                                                                                             | 0     | ~$1                                                |
 | Error tracking, uptime monitor                                                                                                     | 1     | $0 (free tiers)                                    |
-| Email provider (about 5,000 to 15,000 emails a month)                                                                              | 5a    | $0 to ~$20                                         |
-| SMS (registration plus per-message fees)                                                                                           | 5b    | ~$10 to $50, capped                                |
 | **Total, Phases 1 to 4**                                                                                                           |       | **~$30 to $40/month**                              |
 
 ---
@@ -3066,7 +2905,6 @@ erDiagram
   - `email citext`, `email_visible bool`.
   - `based_in` (`rexburg_area` | `elsewhere` | null), `faculty_type` (`full_time` | `part_time` | `prefer_not` | null).
   - `last_seen_at` and `previous_visit_at` (for the "New since your last visit" marker). `record_visit()` sets them when Home loads, writing at most every 5 minutes within a visit.
-  - **Phase 5b:** `phone_e164`, `phone_verified_at`, `sms_opt_in_at`.
 - **Ownership rules:** self (for the granted columns) and moderators. Email is written only by `sync_my_identity()`.
 - **Indexing:** the primary key. A unique index on `email` helps support runbooks.
 
@@ -3161,7 +2999,7 @@ erDiagram
 | `activity_series`          | 3     | `id`, `organizer_id`, `group_id`, a template of activity fields, `freq` (`weekly` \| `biweekly` \| `monthly_date` \| `monthly_nth`), `by_weekday`, `start_date`, `until_date`, `timezone`, `generated_through`    | Organizer through RPC. Occurrences generated by `pg_cron`                                                                    | `(generated_through)`                                                                                                  |
 | `series_subscriptions`     | 3     | PK `(series_id, user_id)`, created by "I'm in for all upcoming"                                                                                                                                                   | Self                                                                                                                         | `(user_id)`                                                                                                            |
 | `follows`                  | 3     | PK `(user_id, target_type, target_id)`, where target is a category or group                                                                                                                                       | Self                                                                                                                         | `(target_type, target_id)`                                                                                             |
-| `notification_preferences` | 3     | PK `(user_id, type, channel)`, `enabled`, plus quiet hours (5a)                                                                                                                                                   | Self                                                                                                                         | Primary key                                                                                                            |
+| `notification_preferences` | 3     | PK `(user_id, type, channel)`, `enabled`                                                                                                                                                                          | Self                                                                                                                         | Primary key                                                                                                            |
 | `calendar_feed_tokens`     | 3     | `user_id`, `token_hash` (unique), `created_at`, `revoked_at`                                                                                                                                                      | Self (the hash is never returned)                                                                                            | `token_hash`                                                                                                           |
 | `terms` (optional)         | 3     | Semester `name`, `starts_on`, `ends_on`, for the "until end of semester" quick pick                                                                                                                               | Read by members. Admin write                                                                                                 | `(ends_on)`                                                                                                            |
 | `league_seasons`           | 4     | `id`, `group_id`, `name`, `starts_on`, `ends_on`, `format` (`teams` \| `ladder`), `points_win`, `points_tie`, `points_loss`, `registration_open`, `status`                                                        | League members. Organizer writes                                                                                             | `(group_id, status)`                                                                                                   |
@@ -3169,9 +3007,7 @@ erDiagram
 | `teams`, `team_members`    | 4     | `teams(id, season_id, name, color, captain_id)`; `team_members` PK `(team_id, user_id)`                                                                                                                           | League members read. The organizer writes                                                                                    | `(season_id)`, `(user_id)`                                                                                             |
 | `matches`                  | 4     | `id`, `season_id`, `activity_id` (time, place, RSVP), `home_team_id`, `away_team_id`, `home_score`, `away_score`, `status` (`scheduled` \| `reported` \| `confirmed` \| `forfeit`), `reported_by`, `confirmed_by` | League members read. Captains report, and the opponent or organizer confirms                                                 | `(season_id, status)`, `(activity_id)`                                                                                 |
 | `standings` (view)         | 4     | Computed from confirmed matches                                                                                                                                                                                   | `security_invoker`                                                                                                           | —                                                                                                                      |
-| `notification_deliveries`  | 5a    | `id`, `notification_id`, `channel`, `status`, `attempts`, `provider_message_id`, `last_error`, `send_after`, `sent_at`. Unique `(notification_id, channel)`                                                       | Not exposed. Job functions only                                                                                              | Partial `(send_after) where status = 'pending'`                                                                        |
-| `email_suppressions`       | 5a    | `email`, `reason` (`bounce` \| `complaint` \| `unsubscribe`), `created_at`                                                                                                                                        | Not exposed                                                                                                                  | `email`                                                                                                                |
-| `daily_metrics`            | 5a    | `date`, `metric`, `value`, `dimension`                                                                                                                                                                            | Moderators and admins (aggregates only)                                                                                      | `(metric, date)`                                                                                                       |
+| `daily_metrics`            | 5     | `date`, `metric`, `value`, `dimension`                                                                                                                                                                            | Moderators and admins (aggregates only)                                                                                      | `(metric, date)`                                                                                                       |
 
 ### 10.5 Key database functions (RPC)
 
@@ -3196,7 +3032,6 @@ erDiagram
 | `private.generate_reminders()`, `private.purge_old_data()`, `private.check_counts()`       | 2           | `pg_cron` jobs                                                                                                                                                                      |
 | Group, series, waitlist, and follow functions                                              | 3           | For example `create_group`, `join_group`, `create_series`, `generate_occurrences`                                                                                                   |
 | League functions                                                                           | 4           | `create_season`, `register_for_season`, `generate_round_robin`, `report_score`, `confirm_score`                                                                                     |
-| `claim_pending_deliveries(limit)`, `record_delivery_result(...)`                           | 5a          | Called by the Worker with the job key                                                                                                                                               |
 
 ### 10.6 How the schema grows
 
@@ -3206,7 +3041,7 @@ erDiagram
 | 2     | `tags`, `activity_tags`, `activity_private_details`, `activity_updates`, `notifications`, `activity_mutes`                                                          | `activities`: capacity, guest options, board flags, `search_doc`, `has_private_details`. `rsvps`: `maybe`, `guest_count` |
 | 3     | `groups`, `group_members`, `activity_organizers`, `activity_series`, `series_subscriptions`, `follows`, `notification_preferences`, `calendar_feed_tokens`, `terms` | `activities`: group, visibility, series columns. `rsvps`: `waitlisted`. Helper functions extended                        |
 | 4     | `league_seasons`, `season_registrations`, `teams`, `team_members`, `matches`, `standings` view                                                                      | `groups.kind = 'league'`                                                                                                 |
-| 5     | `notification_deliveries`, `email_suppressions`, `daily_metrics`                                                                                                    | `profile_private`: phone and consent fields (5b). `notification_preferences`: email and SMS rows, quiet hours            |
+| 5     | `daily_metrics`                                                                                                                                                     | —                                                                                                                        |
 
 **Expected volume (year 1):**
 
@@ -3362,8 +3197,6 @@ A pull request runs every end-to-end test at one size, Pixel 7, since FABA is fo
 | `SENTRY_DSN`                                                            | secret                                                | `wrangler secret`                                                                             | staging, production | Error tracking                                                |
 | `LOG_LEVEL`, feature flags                                              | var                                                   | `wrangler.jsonc`                                                                              | all                 | —                                                             |
 | `CALENDAR_FEED_PEPPER`                                                  | secret                                                | `wrangler secret`                                                                             | all (Phase 3)       | Token hashing                                                 |
-| `EMAIL_API_KEY`, `EMAIL_WEBHOOK_SECRET`, `UNSUBSCRIBE_SIGNING_KEY`      | secret                                                | `wrangler secret`                                                                             | all (Phase 5a)      | Delivery                                                      |
-| `SMS_*`                                                                 | secret                                                | `wrangler secret`                                                                             | all (Phase 5b)      | Delivery                                                      |
 | Google OAuth client ID and secret                                       | secret                                                | Supabase project Auth settings; locally `supabase/.env` read by `config.toml` through `env()` | per environment     | Supabase Auth                                                 |
 | `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`                         | secret                                                | GitHub Environment secrets                                                                    | staging, production | CI deploys                                                    |
 | `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD` | secret                                                | GitHub Environment secrets                                                                    | staging, production | `supabase db push`                                            |
@@ -3385,7 +3218,7 @@ A pull request runs every end-to-end test at one size, Pixel 7, since FABA is fo
 | A gradual rollout looks bad    | Shift 100% back to the previous version with `wrangler versions deploy`                                                                                              | Minutes      |
 | A migration bug (no data loss) | Write a forward-fix migration and ship it through the normal pipeline (expedited review)                                                                             | Under 1 hour |
 | Data corruption or loss        | Stop writes using the maintenance flag (middleware serves a read-only banner), restore with point-in-time recovery or the backup runbook, and communicate to members | Hours        |
-| A risky feature misbehaving    | Turn off its feature flag (for example, board announcements or SMS)                                                                                                  | Minutes      |
+| A risky feature misbehaving    | Turn off its feature flag (for example, board announcements)                                                                                                         | Minutes      |
 
 ### 11.12 Monitoring after deployment
 
@@ -3550,7 +3383,7 @@ A pull request runs every end-to-end test at one size, Pixel 7, since FABA is fo
   - Mixed ages and comfort levels with technology.
   - An assistive-technology user if possible.
 - **Format:** a 2-week soft launch in production. Each participant starts with 5 scripted tasks (for example, "Find something to do this weekend and RSVP", "Post a lunch walk for Thursday"), then uses the app freely.
-- **Feedback:** a link in the **Me** screen (a `mailto:` to the board, or a short form).
+- **Feedback:** a link in the **Me** screen (a short form, or the board's contact details).
 - **Exit criteria:**
   - At least 90% of scripted tasks completed without help.
   - A System Usability Scale (SUS) score of 75 or more.
@@ -3565,28 +3398,27 @@ A pull request runs every end-to-end test at one size, Pixel 7, since FABA is fo
 
 Likelihood (L) and impact (I) use H, M, and L.
 
-| ID          | Risk                                                                                                          | L   | I   | Mitigation                                                                                                                                                                                                                                                                                              |
-| ----------- | ------------------------------------------------------------------------------------------------------------- | --- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| R-ADOPT-1   | **Low adoption** (an "empty room" at launch)                                                                  | H   | H   | The board seeds 10 to 15 real activities before the announcement. Launch at the start of a semester. A 60-second, one-tap sign-in. Board announcements through existing channels (FABA can't send email until Phase 5). Feature "board activities". Measure weekly and talk to non-returning users      |
-| R-AUTH-1    | **Students or staff also have `@byui.edu` accounts** and get in                                               | M   | M   | Faculty attestation on Welcome. "Not faculty" report reason. Moderators can suspend. If abuse occurs, consider an allow-list of faculty emails from the board (a manual list, not an HR integration). Confirm with IT in Phase 0                                                                        |
-| R-AUTH-2    | **The university's Google Workspace blocks unverified third-party OAuth apps**, so sign-in fails for everyone | M   | H   | Confirm with IT in Phase 0. Request only basic scopes. Ask IT to allow-list the client ID or host the project as an Internal app. Phase 0 is not done until a real `byui.edu` sign-in succeeds in production                                                                                            |
-| R-AUTH-3    | **Authentication edge cases** (email changes, in-app browsers, departed faculty keeping sessions)             | M   | M   | Identity keyed by user ID; `sync_my_identity()`; four-layer gate; in-app browser detection and guidance; an inactivity timeout; moderators can suspend                                                                                                                                                  |
-| R-CONTENT-1 | **Inappropriate content** (offensive, commercial, or unsafe posts)                                            | M   | H   | Guidelines accepted at sign-up; report button everywhere; moderation queue in Phase 1; hide and suspend; audit log; rate limits; plain-text-only content; named moderators with a 2-business-day service target                                                                                         |
-| R-NOTIF-1   | **Notification overload** leads members to ignore or mute FABA                                                | M   | H   | No "new activity" notification to everyone. Instead: a "New since last visit" marker, follow-based batches, deduplication windows, per-activity mute, a limit of 2 announcements a month, and per-type preferences in Phase 3. Email is opt-in, except urgent changes. Track mute and unsubscribe rates |
-| R-NOTIF-2   | **School mail servers filter FABA email** (Phase 5)                                                           | M   | M   | SPF, DKIM, and DMARC on the sending domain; plain-text-first templates; ask IT to allow-list the sender; start with a beta cohort                                                                                                                                                                       |
-| R-PRIV-1    | **Privacy concerns** (exposing names, attendance, or home addresses)                                          | M   | H   | Nothing public. Email hidden by default. Private details visible only to going attendees and then purged. `not_going` responses never shown. Attendance history private. Plain-language privacy notice. Self-service deletion. No trackers                                                              |
-| R-PERF-1    | **Poor mobile performance**                                                                                   | L   | H   | SSR with almost no JavaScript; system fonts; no embedded maps or images; Smart Placement; budgets enforced in CI; real-device checks                                                                                                                                                                    |
-| R-LEAG-1    | **League management becomes complicated**                                                                     | H   | M   | Phase 4 is limited to teams, schedule, scores, and standings. Games reuse activities. No brackets, statistics, or officials. One real league pilots it. Organizer guide. Defer anything not used by the pilot league                                                                                    |
-| R-DB-1      | **Database permission errors**: data leaks, or legitimate actions blocked                                     | M   | H   | Writes only through definer RPCs; helper functions; table-driven pgTAP RLS matrix required in CI; CODEOWNERS review; Security Advisor at zero; monitoring of `42501` errors after deploys                                                                                                               |
-| R-SCOPE-1   | **Overbuilding too early** (chat, images, leagues before the basics work)                                     | H   | M   | Phase gates with success metrics. The Won't Have Yet list is reviewed at each phase kickoff. "Make each phase independently usable" is the test. A new feature request needs a story and a metric                                                                                                       |
-| R-POL-1     | **University policy, branding, or approval** concerns delay launch                                            | M   | H   | Engage the appropriate office in Phase 0. Use no university logo. Prominent "unofficial" disclaimer. Use an independent domain unless IT offers a subdomain                                                                                                                                             |
-| R-POL-2     | **Members treat FABA as an official channel**                                                                 | M   | M   | Footer disclaimer, guidelines language, and no "official" styling. Board activities are labeled as FABA board activities, not university events                                                                                                                                                         |
-| R-SAFE-1    | **Injury or liability at outdoor or sports activities**                                                       | M   | H   | A participation disclaimer (at your own risk, FABA does not supervise) on the guidelines page and on Outdoors and Sports activity pages. Ask about university risk-management requirements in Phase 0. Rideshare features are out of scope                                                              |
-| R-OPS-1     | **Bus factor**: a single volunteer maintainer leaves                                                          | H   | H   | Organization-owned accounts with 2 or more owners; documentation (this document, ADRs, runbooks); boring technology choices; at least 2 people able to deploy                                                                                                                                           |
-| R-OPS-2     | **Moderator burnout or slow response**                                                                        | M   | M   | 3 or more moderators, with a rotation; mobile-friendly queue; in-app report notifications (Phase 3); clear, simple guidelines                                                                                                                                                                           |
-| R-SEC-1     | **A leaked secret key** (it bypasses RLS)                                                                     | L   | H   | Used in one module only; separate keys per component; GitHub secret scanning; rotation runbook; never sent to the browser (Supabase also blocks secret keys from browsers)                                                                                                                              |
-| R-TECH-1    | **Platform changes** (Astro or adapter major versions, Supabase key deprecation, pricing)                     | M   | M   | Pin versions; Dependabot with grouped updates; read changelogs; new-style Supabase keys from day one; a cost review each semester                                                                                                                                                                       |
-| R-TECH-2    | **Time zone and daylight saving bugs** (reminders, "this weekend", recurrence)                                | M   | M   | Store `timestamptz` plus an IANA time zone; compute in the database or a single helper module; unit-test the daylight saving dates; show the time zone when it differs from the viewer's                                                                                                                |
+| ID          | Risk                                                                                                          | L   | I   | Mitigation                                                                                                                                                                                                                                                   |
+| ----------- | ------------------------------------------------------------------------------------------------------------- | --- | --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| R-ADOPT-1   | **Low adoption** (an "empty room" at launch)                                                                  | H   | H   | The board seeds 10 to 15 real activities before the announcement. Launch at the start of a semester. A 60-second, one-tap sign-in. Board announcements through existing channels. Feature "board activities". Measure weekly and talk to non-returning users |
+| R-AUTH-1    | **Students or staff also have `@byui.edu` accounts** and get in                                               | M   | M   | Faculty attestation on Welcome. "Not faculty" report reason. Moderators can suspend. If abuse occurs, consider an allow-list of faculty emails from the board (a manual list, not an HR integration). Confirm with IT in Phase 0                             |
+| R-AUTH-2    | **The university's Google Workspace blocks unverified third-party OAuth apps**, so sign-in fails for everyone | M   | H   | Confirm with IT in Phase 0. Request only basic scopes. Ask IT to allow-list the client ID or host the project as an Internal app. Phase 0 is not done until a real `byui.edu` sign-in succeeds in production                                                 |
+| R-AUTH-3    | **Authentication edge cases** (email changes, in-app browsers, departed faculty keeping sessions)             | M   | M   | Identity keyed by user ID; `sync_my_identity()`; four-layer gate; in-app browser detection and guidance; an inactivity timeout; moderators can suspend                                                                                                       |
+| R-CONTENT-1 | **Inappropriate content** (offensive, commercial, or unsafe posts)                                            | M   | H   | Guidelines accepted at sign-up; report button everywhere; moderation queue in Phase 1; hide and suspend; audit log; rate limits; plain-text-only content; named moderators with a 2-business-day service target                                              |
+| R-NOTIF-1   | **Notification overload** leads members to ignore or mute FABA                                                | M   | H   | No "new activity" notification to everyone. Instead: a "New since last visit" marker, follow-based batches, deduplication windows, per-activity mute, a limit of 2 announcements a month, and per-type preferences in Phase 3. Track mute rates              |
+| R-PRIV-1    | **Privacy concerns** (exposing names, attendance, or home addresses)                                          | M   | H   | Nothing public. Email hidden by default. Private details visible only to going attendees and then purged. `not_going` responses never shown. Attendance history private. Plain-language privacy notice. Self-service deletion. No trackers                   |
+| R-PERF-1    | **Poor mobile performance**                                                                                   | L   | H   | SSR with almost no JavaScript; system fonts; no embedded maps or images; Smart Placement; budgets enforced in CI; real-device checks                                                                                                                         |
+| R-LEAG-1    | **League management becomes complicated**                                                                     | H   | M   | Phase 4 is limited to teams, schedule, scores, and standings. Games reuse activities. No brackets, statistics, or officials. One real league pilots it. Organizer guide. Defer anything not used by the pilot league                                         |
+| R-DB-1      | **Database permission errors**: data leaks, or legitimate actions blocked                                     | M   | H   | Writes only through definer RPCs; helper functions; table-driven pgTAP RLS matrix required in CI; CODEOWNERS review; Security Advisor at zero; monitoring of `42501` errors after deploys                                                                    |
+| R-SCOPE-1   | **Overbuilding too early** (chat, images, leagues before the basics work)                                     | H   | M   | Phase gates with success metrics. The Won't Have Yet list is reviewed at each phase kickoff. "Make each phase independently usable" is the test. A new feature request needs a story and a metric                                                            |
+| R-POL-1     | **University policy, branding, or approval** concerns delay launch                                            | M   | H   | Engage the appropriate office in Phase 0. Use no university logo. Prominent "unofficial" disclaimer. Use an independent domain unless IT offers a subdomain                                                                                                  |
+| R-POL-2     | **Members treat FABA as an official channel**                                                                 | M   | M   | Footer disclaimer, guidelines language, and no "official" styling. Board activities are labeled as FABA board activities, not university events                                                                                                              |
+| R-SAFE-1    | **Injury or liability at outdoor or sports activities**                                                       | M   | H   | A participation disclaimer (at your own risk, FABA does not supervise) on the guidelines page and on Outdoors and Sports activity pages. Ask about university risk-management requirements in Phase 0. Rideshare features are out of scope                   |
+| R-OPS-1     | **Bus factor**: a single volunteer maintainer leaves                                                          | H   | H   | Organization-owned accounts with 2 or more owners; documentation (this document, ADRs, runbooks); boring technology choices; at least 2 people able to deploy                                                                                                |
+| R-OPS-2     | **Moderator burnout or slow response**                                                                        | M   | M   | 3 or more moderators, with a rotation; mobile-friendly queue; in-app report notifications (Phase 3); clear, simple guidelines                                                                                                                                |
+| R-SEC-1     | **A leaked secret key** (it bypasses RLS)                                                                     | L   | H   | Used in one module only; separate keys per component; GitHub secret scanning; rotation runbook; never sent to the browser (Supabase also blocks secret keys from browsers)                                                                                   |
+| R-TECH-1    | **Platform changes** (Astro or adapter major versions, Supabase key deprecation, pricing)                     | M   | M   | Pin versions; Dependabot with grouped updates; read changelogs; new-style Supabase keys from day one; a cost review each semester                                                                                                                            |
+| R-TECH-2    | **Time zone and daylight saving bugs** (reminders, "this weekend", recurrence)                                | M   | M   | Store `timestamptz` plus an IANA time zone; compute in the database or a single helper module; unit-test the daylight saving dates; show the time zone when it differs from the viewer's                                                                     |
 
 ### 13.2 Decision log
 
@@ -3599,7 +3431,7 @@ Each ADR has its own file in [`docs/adr/`](adr/README.md). ADRs 001 to 013 are t
 | 003 | Server-only Supabase access with the user's JWT; no Supabase client in the browser; `HttpOnly` cookies                      | Accepted                                                       |
 | 004 | Writes to rule-bearing tables only through `SECURITY DEFINER` RPC functions; direct updates only for self-owned columns     | Accepted                                                       |
 | 005 | Four-layer eligibility gate; roles read from the database, not JWT claims                                                   | Accepted. External consent screen, no IT approval (2026-10-29) |
-| 006 | `pg_cron` for data jobs; Cloudflare Cron and Queues only for external delivery (Phase 5)                                    | Accepted                                                       |
+| 006 | `pg_cron` for data jobs                                                                                                     | Accepted                                                       |
 | 007 | Notification model: per-recipient rows, typed payload snapshots, one creation path, deliveries per channel later            | Accepted                                                       |
 | 008 | Denormalized RSVP counts maintained only by `rsvp()`, with a nightly reconciliation                                         | Accepted                                                       |
 | 009 | Previews share the staging database; Supabase Branching deferred                                                            | Accepted, revisit at Phase 3                                   |
@@ -3675,7 +3507,7 @@ RSVP, moderation, profile editing, and account deletion are the **next** iterati
 | AU-3 | `src/lib/server/supabase.ts`: per-request `@supabase/ssr` client with `HttpOnly` cookie options                                                                                                                                  | S    | Unit-tested cookie options                                    |
 | AU-4 | Routes: `POST /auth/login` (PKCE, `hd`, `prompt`, `next` cookie), `GET /auth/callback` (exchange, domain and verified checks, `sync_my_identity`), `POST /auth/logout`                                                           | M    | Manual checklist (12.5) passes on staging                     |
 | AU-5 | Middleware: `getClaims()`, public-route list, eligibility, session context, redirects (Welcome, Paused, Not eligible), headers                                                                                                   | M    | E2E and middleware tests pass                                 |
-| AU-6 | Spikes: Supabase's behavior when a Google account's email changes; in-app browser handling; the `scheduled` handler on the custom entrypoint (Phase 5 preparation)                                                               | S    | Findings recorded in ADR-005 notes                            |
+| AU-6 | Spikes: Supabase's behavior when a Google account's email changes; in-app browser handling                                                                                                                                       | S    | Findings recorded in ADR-005 notes                            |
 | AU-7 | Test auth for CI: Playwright global setup produces storage state per persona through `@supabase/ssr`                                                                                                                             | S    | E2E tests sign in as each persona                             |
 
 ### Astro tasks
@@ -3746,7 +3578,7 @@ Each question had a **recommended default** so work could begin. Phase 0 answere
    - **Answer:** Rexburg only for now. No "Online" activities and no "based in" field in Phase 1. Revisit when remote faculty ask, or after Phase 2 data ([ADR-017](adr/017-rexburg-only-for-now.md)).
 6. **Is a participation disclaimer enough** for outdoor and sports activities, or does university risk management require more? _Default: a disclaimer on the guidelines and on Outdoors and Sports pages. No waivers._
    - **Answer:** the default. A disclaimer only, with no waivers and no risk-management review ([ADR-016](adr/016-independent-of-byu-idaho.md)).
-7. **Who pays for hosting** (about $30 to $40 a month, more for email and SMS later), and whose payment method and organization owns the accounts? _Default: the FABA board budget, with organization-owned accounts._
+7. **Who pays for hosting** (about $30 to $40 a month), and whose payment method and organization owns the accounts? _Default: the FABA board budget, with organization-owned accounts._
    - **Answer:** free tiers for local, preview, and staging until launch ([ADR-014](adr/014-cloudflare-and-supabase-stack.md)).
    - **Open:** who pays for production, and which plan it starts on. Owner: Zack Alvey, with the board, by 2026-11-13. This must be settled before the pilot, which runs in production.
 8. **Who is building FABA, how many hours per week, and what is the target launch?** _Default: 2 developers, launching Phase 1 at the start of the next semester._
