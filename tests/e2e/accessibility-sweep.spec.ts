@@ -33,6 +33,10 @@ test('member pages pass in both themes, and reflow at 320 px', async ({
   poster,
   signInAs,
 }) => {
+  // Fourteen pages in two themes, with a full axe run on each, doesn't fit the default 30 s on a
+  // CI runner, mostly on the mobile profile. Slow gives it three times as long.
+  test.slow();
+
   const { data: activity } = await poster.admin
     .from('activities')
     .insert({
