@@ -1777,7 +1777,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 - **Role:** Member · **Priority:** Could · **Phase:** 6
 - **Story:** As a member who installed FABA, I want push notifications on my phone, so that urgent changes reach me without opening the app.
 - **Acceptance criteria:**
-  - Web Push is a new channel in the existing delivery pipeline.
+  - Web Push is a new channel for notifications: each push is a delivery of an existing `notifications` row.
   - It works on installed PWAs on iOS 16.4 and later, and on Android.
   - It is opt-in, and each notification type can be turned on or off for push (NOTIF-10).
 - **Dependencies:** PWA-01; NOTIF-10.
