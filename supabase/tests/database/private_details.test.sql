@@ -374,7 +374,8 @@ SELECT ok(
   NOT EXISTS (
     SELECT
     FROM public.notifications
-    WHERE payload::text LIKE '%5678%' OR payload::text LIKE '%1234%'
+    -- Matching the words, not the digits: a random uuid in a payload can contain 1234 or 5678.
+    WHERE payload::text LIKE '%Gate code%'
   ),
   'the notification doesn''t hold the details'
 );
