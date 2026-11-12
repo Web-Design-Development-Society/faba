@@ -32,6 +32,10 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     <title>{title === 'FABA' ? title : `${title} · FABA`}</title>
   </head>
   <body>
+    {/* Skips the header and the navigation, which come before every page's content (section 7.14). */}
+    <a class="skip" href="#content">
+      Skip to content
+    </a>
     {/* Shown while the device is offline (PWA-01, section 7.13). The script turns it on. */}
     <p class="offline" data-offline role="status" hidden>
       You're offline. We'll keep what you typed.
@@ -41,7 +45,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
         <img src="/brand/faba-logo.png" alt="FABA" width="44" height="52" />
       </a>
     </header>
-    <main>
+    <main id="content">
       <slot />
     </main>
     <footer>
@@ -87,6 +91,40 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
 </script>
 
 <style is:global>
+  /* A visible focus ring on every control, in both themes (section 7.14). */
+  :focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 2px;
+  }
+
+  /* The skip link is hidden until it has focus, then it appears at the top left. */
+  .skip {
+    position: absolute;
+    left: 1rem;
+    top: 0.5rem;
+    z-index: 10;
+    padding: 0.5rem 0.75rem;
+    background: var(--blue);
+    color: #fff;
+    border-radius: var(--radius);
+    transform: translateY(-200%);
+  }
+  .skip:focus {
+    transform: none;
+  }
+
+  /* People who ask for less motion get none, even where a page adds some later (section 7.14). */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
   /* The look from the My events design (UI-01). Colors are tokens, so they change in one place. */
   :root {
     --blue: #0b5bd3; /* white text on it is 6.4:1 */
