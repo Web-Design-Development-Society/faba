@@ -549,6 +549,28 @@ export type Database = {
         };
         Relationships: [];
       };
+      daily_metrics: {
+        Row: {
+          day: string;
+          dimension: string;
+          metric: string;
+          value: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          day: string;
+          dimension?: string;
+          metric: string;
+          value: number;
+        };
+        Update: {
+          day?: string;
+          dimension?: string;
+          metric?: string;
+          value?: number;
+        };
+        Relationships: [];
+      };
       data_exports: {
         Row: {
           created_at: string;
