@@ -2,7 +2,7 @@
 // activity or a paused account. The board chooses the address with FND-05. Until then it's null,
 // and pages say "the FABA board" without a link.
 
-export const BOARD_EMAIL: string | null = null;
+export const BOARD_EMAIL: 'alveyz@byui.edu' | null = null;
 
 /** The categories whose activities show the participation disclaimer (ADR-016, R-SAFE-1). */
 export const PHYSICAL_CATEGORIES = ['outdoors', 'sports'];
