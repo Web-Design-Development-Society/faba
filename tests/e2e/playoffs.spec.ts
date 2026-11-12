@@ -1,8 +1,8 @@
-// Playoff brackets (LEAG-09). The pgTAP tests cover seeding, the round order and the champion.
-// Written while E2E is paused; not yet run.
+// Playoff brackets (LEAG-09). The pgTAP tests cover seeding, the round order and the champion. This
+// checks the page: the round robin comes first, and the bracket waits for it.
 import { expect, expectAccessible, test } from './fixtures';
 
-test('an organizer starts a playoff bracket from the standings', async ({ page, poster }) => {
+test('the playoff bracket waits until the regular season is scored', async ({ page, poster }) => {
   // The poster fixture signs in a fresh account, with its own group quota.
   void poster;
   await page.goto('/leagues/new');
@@ -23,9 +23,12 @@ test('an organizer starts a playoff bracket from the standings', async ({ page, 
     await expect(page.getByRole('status')).toHaveText('Team added.');
   }
 
-  await page.getByLabel('First playoff day').fill('2030-10-05');
-  await page.getByLabel('Playoff venue').fill('Gym');
+  // The bracket starts only once every regular game has a score, so this checks the round robin
+  // comes first. Scoring every game is covered by the pgTAP tests.
+  await page.getByLabel('First game day').fill('2030-09-07');
+  await page.getByLabel('Place').fill('Gym');
   await page.getByRole('button', { name: 'Make the round robin' }).click();
   await expect(page.getByRole('status')).toHaveText('Schedule made.');
+  await expect(page.getByRole('button', { name: 'Start the bracket' })).toHaveCount(0);
   await expectAccessible(page);
 });
