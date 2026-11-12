@@ -112,6 +112,32 @@ if (unhideUpdate && !unhideUpdate.error) {
   setFlash(Astro.cookies, Astro.url, 'update_unhidden');
   return Astro.redirect(postedFrom(Astro.url, '#updates'), 303);
 }
+// Comments (ACT-12). A failed one shows in the comments section, beside its form.
+const commentPosted = Astro.getActionResult(actions.comments.post);
+if (commentPosted && !commentPosted.error) {
+  setFlash(Astro.cookies, Astro.url, 'comment_posted');
+  return Astro.redirect(postedFrom(Astro.url, '#comments'), 303);
+}
+const commentRemoved = Astro.getActionResult(actions.comments.remove);
+if (commentRemoved && !commentRemoved.error) {
+  setFlash(Astro.cookies, Astro.url, 'comment_deleted');
+  return Astro.redirect(postedFrom(Astro.url, '#comments'), 303);
+}
+const commentHidden = Astro.getActionResult(actions.moderation.hideComment);
+if (commentHidden && !commentHidden.error) {
+  setFlash(Astro.cookies, Astro.url, 'comment_hidden');
+  return Astro.redirect(postedFrom(Astro.url, '#comments'), 303);
+}
+const commentUnhidden = Astro.getActionResult(actions.moderation.unhideComment);
+if (commentUnhidden && !commentUnhidden.error) {
+  setFlash(Astro.cookies, Astro.url, 'comment_unhidden');
+  return Astro.redirect(postedFrom(Astro.url, '#comments'), 303);
+}
+const commentError =
+  commentPosted?.error?.message ??
+  commentRemoved?.error?.message ??
+  commentHidden?.error?.message ??
+  commentUnhidden?.error?.message;
 // The error shows at the top, since its sheet has closed.
 const failed =
   joinSeries?.error ??
@@ -153,7 +179,9 @@ const [{ data: activity }, { data: me }] = await Promise.all([
       going:rsvps(member:profiles!inner(id, display_name, avatar_url, use_initials, department)),
       maybe:rsvps(member:profiles!inner(id, display_name, avatar_url, use_initials, department)),
       updates:activity_updates(id, body, created_at, author_id, hidden_at, hidden_reason,
-        author:profiles!activity_updates_author_id_fkey(display_name))`
+        author:profiles!activity_updates_author_id_fkey(display_name)),
+      comments:activity_comments(id, body, created_at, author_id, hidden_at, hidden_reason,
+        author:profiles!activity_comments_author_id_fkey(display_name))`
     )
     .eq('id', Astro.params.id!)
     .eq('mine.user_id', user.id)
@@ -165,6 +193,8 @@ const [{ data: activity }, { data: me }] = await Promise.all([
     .limit(LIST, { referencedTable: 'going' })
     .order('created_at', { referencedTable: 'updates', ascending: false })
     .limit(LIST, { referencedTable: 'updates' })
+    .order('created_at', { referencedTable: 'comments' })
+    .limit(LIST, { referencedTable: 'comments' })
     .maybeSingle(),
   // The member in who's going, for after I'm in.
   supabase
@@ -715,6 +745,80 @@ const email = activity
           </ul>
         </section>
       )}
+      <section class="comments" id="comments" aria-labelledby="comments-heading">
+        <h2 id="comments-heading">Questions and comments</h2>
+        {commentError && <p role="alert">{commentError}</p>}
+        {activity.comments.length > 0 ? (
+          <ul>
+            {activity.comments.map((comment) => (
+              <li>
+                {comment.hidden_at && (
+                  // Only its author and moderators read a hidden comment (ACT-12).
+                  <p class="hidden">{withReason('Hidden by a moderator', comment.hidden_reason)}</p>
+                )}
+                <p class="byline">
+                  {comment.author?.display_name ?? 'Member'},{' '}
+                  <time datetime={comment.created_at}>
+                    {formatAgo(new Date(comment.created_at), new Date())}
+                  </time>
+                  {!comment.hidden_at && comment.author_id !== user.id && (
+                    <>
+                      {' · '}
+                      <a href={`/activities/${activity.id}/comments/${comment.id}/report`}>
+                        Report
+                      </a>
+                    </>
+                  )}
+                </p>
+                <p class="description">{comment.body}</p>
+                {comment.author_id === user.id && (
+                  <form method="post" action={actions.comments.remove.queryString}>
+                    <input type="hidden" name="comment_id" value={comment.id} />
+                    <button>Delete my comment</button>
+                  </form>
+                )}
+                {comment.hidden_at && moderator && (
+                  <ModerationAction
+                    id={`unhide-comment-${comment.id}`}
+                    label="Unhide comment"
+                    title="Unhide this comment?"
+                    action={actions.moderation.unhideComment.queryString}
+                    fields={{ comment_id: comment.id }}
+                    confirm="Yes, unhide it"
+                    cancel="No, keep it hidden"
+                  >
+                    <p>Members will see it again on this page.</p>
+                  </ModerationAction>
+                )}
+                {!comment.hidden_at && moderator && (
+                  <ModerationAction
+                    id={`hide-comment-${comment.id}`}
+                    label="Hide comment"
+                    title="Hide this comment?"
+                    action={actions.moderation.hideComment.queryString}
+                    fields={{ comment_id: comment.id }}
+                    confirm="Hide comment"
+                    cancel="Keep it visible"
+                    templates
+                  >
+                    <p>Members won't see it here. Its author sees your reason.</p>
+                  </ModerationAction>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p>No questions or comments yet.</p>
+        )}
+        {!activity.hidden_at && (
+          <form method="post" action={actions.comments.post.queryString} class="stack">
+            <input type="hidden" name="activity_id" value={activity.id} />
+            <label for="comment-body">Ask a question or leave a comment</label>
+            <textarea id="comment-body" name="body" maxlength="500" required></textarea>
+            <button>Post comment</button>
+          </form>
+        )}
+      </section>
       <div class="actions">
         {hosting ? (
           <>

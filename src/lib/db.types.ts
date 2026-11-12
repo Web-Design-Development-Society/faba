@@ -209,6 +209,62 @@ export type Database = {
           },
         ];
       };
+      activity_comments: {
+        Row: {
+          activity_id: string;
+          author_id: string | null;
+          body: string;
+          created_at: string;
+          hidden_at: string | null;
+          hidden_by: string | null;
+          hidden_reason: string | null;
+          id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          activity_id: string;
+          author_id?: string | null;
+          body: string;
+          created_at?: string;
+          hidden_at?: string | null;
+          hidden_by?: string | null;
+          hidden_reason?: string | null;
+          id?: string;
+        };
+        Update: {
+          activity_id?: string;
+          author_id?: string | null;
+          body?: string;
+          created_at?: string;
+          hidden_at?: string | null;
+          hidden_by?: string | null;
+          hidden_reason?: string | null;
+          id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'activity_comments_activity_id_fkey';
+            columns: ['activity_id'];
+            isOneToOne: false;
+            referencedRelation: 'activities';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'activity_comments_author_id_fkey';
+            columns: ['author_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'activity_comments_hidden_by_fkey';
+            columns: ['hidden_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       activity_mutes: {
         Row: {
           activity_id: string;
@@ -1795,6 +1851,7 @@ export type Database = {
         Returns: string;
       };
       create_team: { Args: { color: string; name: string; season_id: string }; Returns: string };
+      delete_comment: { Args: { comment_id: string }; Returns: undefined };
       delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
       dismiss_report: { Args: { reason: string; report_id: string }; Returns: undefined };
       enter_ladder: { Args: { season_id: string }; Returns: number };
@@ -1890,12 +1947,14 @@ export type Database = {
         Returns: undefined;
       };
       moderate_hide: { Args: { activity_id: string; reason: string }; Returns: undefined };
+      moderate_hide_comment: { Args: { comment_id: string; reason: string }; Returns: undefined };
       moderate_hide_update: { Args: { reason: string; update_id: string }; Returns: undefined };
       moderate_transfer_activity: {
         Args: { activity_id: string; reason: string; to_user: string };
         Returns: undefined;
       };
       moderate_unhide: { Args: { activity_id: string; reason: string }; Returns: undefined };
+      moderate_unhide_comment: { Args: { comment_id: string; reason: string }; Returns: undefined };
       moderate_unhide_update: { Args: { reason: string; update_id: string }; Returns: undefined };
       mute_activity: { Args: { activity_id: string; muted: boolean }; Returns: undefined };
       my_membership: {
@@ -1924,6 +1983,7 @@ export type Database = {
         Args: { activity_id: string; body: string; idempotency_key?: string };
         Returns: string;
       };
+      post_comment: { Args: { activity_id: string; body: string }; Returns: string };
       post_group_update: {
         Args: { body: string; group_id: string; idempotency_key?: string };
         Returns: string;

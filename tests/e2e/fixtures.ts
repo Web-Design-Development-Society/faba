@@ -161,10 +161,21 @@ async function createAccount(admin: SupabaseClient, displayName: string) {
 
 /** Skips Welcome for a new account. */
 async function acceptGuidelines(admin: SupabaseClient, id: string) {
-  await admin
-    .from('profiles')
-    .update({ guidelines_version: 1, guidelines_accepted_at: new Date().toISOString() })
-    .eq('id', id);
+  // The local database sometimes drops a connection under load, so retry a few times.
+  for (let attempt = 1; ; attempt++) {
+    const { data, error } = await admin
+      .from('profiles')
+      .update({ guidelines_version: 1, guidelines_accepted_at: new Date().toISOString() })
+      .eq('id', id)
+      .select('id');
+    if (!error && data?.length) return;
+    if (attempt === 3) {
+      throw new Error(
+        `Accepting the guidelines for ${id} failed: ${error?.message ?? 'no profile row'}`
+      );
+    }
+    await new Promise((resolve) => setTimeout(resolve, 300 * attempt));
+  }
 }
 
 /**
