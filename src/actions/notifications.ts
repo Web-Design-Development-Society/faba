@@ -3,6 +3,7 @@
 import { ActionError, defineAction } from 'astro:actions';
 import { z } from 'astro/zod';
 import { PREFERENCE_TYPES } from '../lib/notifications';
+import { channelSave } from '../lib/validation/channels';
 import { actionErrorFor } from '../lib/server/errors';
 
 export const notifications = {
@@ -83,6 +84,33 @@ export const notifications = {
       const { error } = await locals.supabase.rpc('set_notification_preferences', { off });
       if (error) throw new ActionError(actionErrorFor(error));
       return { off };
+    },
+  }),
+
+  /** Saving email preferences, quiet hours and the reminder lead time (NOTIF-13). */
+  saveChannels: defineAction({
+    accept: 'form',
+    input: channelSave,
+    handler: async ({ email, quiet_start, quiet_end, reminder_lead_hours }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const settings = await locals.supabase.rpc('set_channel_settings', {
+        quiet_start,
+        quiet_end,
+        reminder_lead_hours,
+      });
+      if (settings.error) throw new ActionError(actionErrorFor(settings.error));
+
+      // Each type's email choice is saved on its own. A type left out of the form is turned off.
+      for (const type of PREFERENCE_TYPES) {
+        const { error } = await locals.supabase.rpc('set_channel_choice', {
+          type,
+          channel: 'email',
+          enabled: email.includes(type),
+        });
+        if (error) throw new ActionError(actionErrorFor(error));
+      }
+      return { saved: true };
     },
   }),
 };
