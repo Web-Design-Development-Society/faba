@@ -112,6 +112,10 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
     code: 'FORBIDDEN',
     message: 'Only the players on the two teams, and their subs, can answer for this game.',
   },
+  NOT_A_LADDER: {
+    code: 'BAD_REQUEST',
+    message: "This season isn't an individual ladder, so its players don't become teams.",
+  },
   SEASON_ALREADY_ACTIVE: {
     code: 'BAD_REQUEST',
     message: 'This league already has an active season. End it before starting another.',

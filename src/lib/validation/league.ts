@@ -150,6 +150,9 @@ export const availability = z.object({
     .transform((v) => v === 'yes'),
 });
 
+/** Entering a ladder's players, so each one is a team of one (LEAG-08). */
+export const ladderEntry = z.object({ season_id: z.uuid({ error: 'Pick a season.' }) });
+
 // A date from a date input, as YYYY-MM-DD.
 /** A season in a league. The team sizes and points default to the usual 3, 1 and 0. */
 export const newSeason = z
