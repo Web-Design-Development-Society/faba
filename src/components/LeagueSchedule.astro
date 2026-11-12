@@ -1,33 +1,102 @@
 ---
-// A season's games (LEAG-04), by round. Every league member sees them, and each game links to its
-// activity, where members RSVP. An organizer makes the round robin once, and changes one game's day,
-// time or place at a time. Times are shown in Boise time. Each form works without JavaScript.
+// A season's games (LEAG-04, LEAG-05), by round. Every league member sees them, and each game links
+// to its activity, where members RSVP. An organizer makes the round robin once, and changes one
+// game's day, time or place at a time. A captain reports a game's score, the other captain or an
+// organizer confirms it, and an organizer can set a score or record a forfeit. Times are shown in
+// Boise time. Each form works without JavaScript.
 import { actions } from 'astro:actions';
 
 interface Team {
   id: string;
   name: string;
+  captain_id: string | null;
 }
 
 interface Game {
   id: string;
   round: number;
+  stage?: string;
   home_team_id: string;
   away_team_id: string | null;
+  status: string;
+  home_score: number | null;
+  away_score: number | null;
+  reporting_team_id: string | null;
+  forfeit_team_id: string | null;
   activity: { id: string; starts_at: string; location_name: string } | null;
+}
+
+interface SubRequest {
+  id: string;
+  game_id: string;
+  team_id: string;
+}
+
+interface Sub {
+  game_id: string;
+  team_id: string;
+  user_id: string;
+}
+
+interface Answer {
+  game_id: string;
+  user_id: string;
+  can_play: boolean;
 }
 
 interface Props {
   seasonId: string;
+  myTeamId: string | null;
+  mySubGameIds: string[];
+  answers: Answer[];
+  playerTeams: Record<string, string | null>;
   organizer: boolean;
+  me: string;
+  freeAgent: boolean;
   teams: Team[];
   games: Game[];
+  subRequests: SubRequest[];
+  subs: Sub[];
+  names: Record<string, string>;
 }
 
-const { seasonId, organizer, teams, games } = Astro.props;
+const {
+  seasonId,
+  organizer,
+  me,
+  freeAgent,
+  teams,
+  games,
+  subRequests,
+  subs,
+  names,
+  myTeamId,
+  mySubGameIds,
+  answers,
+  playerTeams,
+} = Astro.props;
+// The answers from the players on the team a captain runs in a game (LEAG-07).
+const rosterAnswers = (game: Game) => {
+  const team = myTeamOf(game);
+  if (!team) return [];
+  return answers.filter(
+    (answer) => answer.game_id === game.id && playerTeams[answer.user_id] === team
+  );
+};
 const zone = 'America/Boise';
-const nameOf = (id: string | null) => teams.find((team) => team.id === id)?.name ?? 'A team';
-const rounds = [...new Set(games.map((game) => game.round))].sort((a, b) => a - b);
+const teamOf = (id: string | null) => teams.find((team) => team.id === id);
+const nameOf = (id: string | null) => teamOf(id)?.name ?? 'A team';
+const captains = (teamId: string | null) => teamOf(teamId)?.captain_id === me;
+// The team this member captains in a game, if any.
+const myTeamOf = (game: Game) =>
+  captains(game.home_team_id)
+    ? game.home_team_id
+    : captains(game.away_team_id)
+      ? game.away_team_id
+      : null;
+// Playoff games are shown by LeaguePlayoffs, so the regular rounds are only the regular games.
+const regularGames = games.filter((game) => game.stage !== 'playoff');
+const rounds = [...new Set(regularGames.map((game) => game.round))].sort((a, b) => a - b);
 const weekdays = [
   [1, 'Monday'],
   [2, 'Tuesday'],
@@ -67,58 +136,207 @@ const when = (iso: string) =>
     hour: 'numeric',
     minute: '2-digit',
   }).format(new Date(iso));
+
+// What the game's score says, in a sentence.
+const scoreLine = (game: Game) => {
+  const home = nameOf(game.home_team_id);
+  const away = nameOf(game.away_team_id);
+  if (game.status === 'forfeit') return `${nameOf(game.forfeit_team_id)} forfeited.`;
+  if (game.status === 'confirmed')
+    return `Final: ${home} ${game.home_score}, ${away} ${game.away_score}.`;
+  if (game.status === 'reported')
+    return `Reported ${home} ${game.home_score}, ${away} ${game.away_score}. Waiting for the other captain or an organizer to confirm.`;
+  return null;
+};
+const locked = (game: Game) => game.status === 'confirmed' || game.status === 'forfeit';
 ---
 
 <section aria-labelledby="schedule">
   <h2 id="schedule">Schedule</h2>
-  {games.length === 0 ? (
+  {regularGames.length === 0 ? (
     <p>No games are scheduled yet.</p>
   ) : (
     rounds.map((round) => (
       <section aria-labelledby={`round-${round}`}>
         <h3 id={`round-${round}`}>Round {round}</h3>
-        <ul>
-          {games
+        <ul class="games">
+          {regularGames
             .filter((game) => game.round === round)
             .map((game) => {
               if (!game.activity || !game.away_team_id) {
                 return <li>{nameOf(game.home_team_id)} has a bye.</li>;
               }
+              const home = nameOf(game.home_team_id);
+              const away = nameOf(game.away_team_id);
               const { day, time } = boise(game.activity.starts_at);
+              const playing = captains(game.home_team_id) || captains(game.away_team_id);
+              // The captain of the team that didn't report the score, or an organizer, confirms it.
+              const otherCaptain =
+                game.reporting_team_id === game.home_team_id
+                  ? captains(game.away_team_id)
+                  : captains(game.home_team_id);
+              const mayConfirm = game.status === 'reported' && (organizer || otherCaptain);
+              const line = scoreLine(game);
               return (
                 <li>
                   <a href={`/activities/${game.activity.id}`}>
-                    {nameOf(game.home_team_id)} vs {nameOf(game.away_team_id)}
+                    {home} vs {away}
                   </a>
                   {' · '}
                   {when(game.activity.starts_at)} · {game.activity.location_name}
-                  {organizer && (
+                  {line && <p class="score">{line}</p>}
+                  {game.status === 'scheduled' &&
+                    myTeamOf(game) &&
+                    !subRequests.some(
+                      (request) => request.game_id === game.id && request.team_id === myTeamOf(game)
+                    ) && (
+                      <div class="row">
+                        <form method="post" action={actions.leagues.requestSub.queryString}>
+                          <input type="hidden" name="game_id" value={game.id} />
+                          <button>Need a sub</button>
+                        </form>
+                      </div>
+                    )}
+                  {subRequests
+                    .filter((request) => request.game_id === game.id)
+                    .map((request) => (
+                      <div class="row">
+                        <span>A sub is needed for {nameOf(request.team_id)}.</span>
+                        {freeAgent && (
+                          <form method="post" action={actions.leagues.acceptSub.queryString}>
+                            <input type="hidden" name="request_id" value={request.id} />
+                            <button>Take the spot</button>
+                          </form>
+                        )}
+                      </div>
+                    ))}
+                  {subs
+                    .filter((sub) => sub.game_id === game.id)
+                    .map((sub) => (
+                      <p class="sub">
+                        Sub: {names[sub.user_id] ?? 'A free agent'} for {nameOf(sub.team_id)}
+                      </p>
+                    ))}
+                  {(game.home_team_id === myTeamId ||
+                    game.away_team_id === myTeamId ||
+                    mySubGameIds.includes(game.id)) &&
+                    game.status === 'scheduled' && (
+                      <div class="row">
+                        <form method="post" action={actions.leagues.setAvailability.queryString}>
+                          <input type="hidden" name="game_id" value={game.id} />
+                          <input type="hidden" name="can_play" value="yes" />
+                          <button>Can play</button>
+                        </form>
+                        <form method="post" action={actions.leagues.setAvailability.queryString}>
+                          <input type="hidden" name="game_id" value={game.id} />
+                          <input type="hidden" name="can_play" value="no" />
+                          <button>Can't play</button>
+                        </form>
+                      </div>
+                    )}
+                  {myTeamOf(game) && rosterAnswers(game).length > 0 && (
+                    <p class="sub">
+                      Availability:{' '}
+                      {rosterAnswers(game)
+                        .map(
+                          (answer) =>
+                            `${names[answer.user_id]} ${answer.can_play ? 'can play' : "can't play"}`
+                        )
+                        .join(', ')}
+                    </p>
+                  )}
+                  {playing && !locked(game) && (
                     <form
                       method="post"
-                      action={actions.leagues.editGame.queryString}
-                      class="game-edit"
+                      action={actions.leagues.reportScore.queryString}
+                      class="row"
                     >
                       <input type="hidden" name="game_id" value={game.id} />
                       <label>
-                        Day
-                        <input type="date" name="day" value={day} required />
+                        {home} score
+                        <input type="number" name="home_score" min={0} max={999} required />
                       </label>
                       <label>
-                        Time
-                        <input type="time" name="starts_time" value={time} required />
+                        {away} score
+                        <input type="number" name="away_score" min={0} max={999} required />
                       </label>
-                      <label>
-                        Place
-                        <input
-                          type="text"
-                          name="place"
-                          value={game.activity.location_name}
-                          maxlength={120}
-                          required
-                        />
-                      </label>
-                      <button>Save game</button>
+                      <button>Send score</button>
                     </form>
+                  )}
+                  {mayConfirm && (
+                    <form
+                      method="post"
+                      action={actions.leagues.confirmScore.queryString}
+                      class="row"
+                    >
+                      <input type="hidden" name="game_id" value={game.id} />
+                      <button>Confirm score</button>
+                    </form>
+                  )}
+                  {organizer && (
+                    <>
+                      <form method="post" action={actions.leagues.editGame.queryString} class="row">
+                        <input type="hidden" name="game_id" value={game.id} />
+                        <label>
+                          Day
+                          <input type="date" name="day" value={day} required />
+                        </label>
+                        <label>
+                          Time
+                          <input type="time" name="starts_time" value={time} required />
+                        </label>
+                        <label>
+                          Place
+                          <input
+                            type="text"
+                            name="place"
+                            value={game.activity.location_name}
+                            maxlength={120}
+                            required
+                          />
+                        </label>
+                        <button>Save game</button>
+                      </form>
+
+                      <details class="override">
+                        <summary>Set a score or record a forfeit</summary>
+                        <form
+                          method="post"
+                          action={actions.leagues.overrideScore.queryString}
+                          class="row"
+                        >
+                          <input type="hidden" name="game_id" value={game.id} />
+                          <label>
+                            {home} score
+                            <input type="number" name="home_score" min={0} max={999} required />
+                          </label>
+                          <label>
+                            {away} score
+                            <input type="number" name="away_score" min={0} max={999} required />
+                          </label>
+                          <label>
+                            Reason, for the audit log
+                            <input type="text" name="reason" maxlength={500} required />
+                          </label>
+                          <button>Set score</button>
+                        </form>
+                        <form
+                          method="post"
+                          action={actions.leagues.forfeitGame.queryString}
+                          class="row"
+                        >
+                          <input type="hidden" name="game_id" value={game.id} />
+                          <label>
+                            Team that forfeited
+                            <select name="forfeit_team_id">
+                              <option value={game.home_team_id}>{home}</option>
+                              <option value={game.away_team_id}>{away}</option>
+                            </select>
+                          </label>
+                          <button>Record forfeit</button>
+                        </form>
+                      </details>
+                    </>
                   )}
                 </li>
               );
@@ -128,7 +346,7 @@ const when = (iso: string) =>
     ))
   )}
 
-  {organizer && games.length === 0 && (
+  {organizer && regularGames.length === 0 && (
     <section aria-labelledby="make-schedule">
       <h3 id="make-schedule">Make the round robin</h3>
       <p>
@@ -166,28 +384,43 @@ const when = (iso: string) =>
 </section>
 
 <style>
-  .game-edit,
+  .games {
+    padding-left: 1.25rem;
+  }
+  .games li {
+    margin-bottom: 1rem;
+  }
+  .score {
+    margin: 0.25rem 0;
+    font-weight: 600;
+  }
+  .row,
   .stack {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
     align-items: end;
-    margin: 0.5rem 0 1.5rem;
+    margin: 0.5rem 0;
   }
   .stack {
     flex-direction: column;
     align-items: stretch;
     max-width: 24rem;
+    margin-bottom: 1.5rem;
   }
-  .game-edit label,
+  .row label,
   .stack label {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
   }
+  .override {
+    margin: 0.5rem 0;
+  }
   button,
   input,
-  select {
+  select,
+  summary {
     min-height: 44px;
   }
 </style>

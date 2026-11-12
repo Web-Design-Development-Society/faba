@@ -2,10 +2,15 @@
 import { describe as group, expect, it } from 'vitest';
 import {
   assignment,
+  availability,
+  newBracket,
+  forfeit,
   gameEdit,
   newRegistration,
   newSchedule,
   newTeam,
+  scoreOverride,
+  scoreReport,
   teamEdit,
   withdrawal,
 } from '../../src/lib/validation/league';
@@ -101,5 +106,58 @@ group('schedule', () => {
       gameEdit.safeParse({ game_id: seasonId, day: 'March', starts_time: '19:30', place: 'x' })
         .success
     ).toBe(false);
+  });
+});
+
+group('scores', () => {
+  const gameId = '3f6c2d4e-1a2b-4c3d-8e9f-0a1b2c3d4e5f';
+  it('takes two whole scores from 0 to 999', () => {
+    expect(scoreReport.parse({ game_id: gameId, home_score: '3', away_score: '0' })).toEqual({
+      game_id: gameId,
+      home_score: 3,
+      away_score: 0,
+    });
+    expect(
+      scoreReport.safeParse({ game_id: gameId, home_score: '1.5', away_score: '0' }).success
+    ).toBe(false);
+    expect(
+      scoreReport.safeParse({ game_id: gameId, home_score: '1000', away_score: '0' }).success
+    ).toBe(false);
+    expect(
+      scoreReport.safeParse({ game_id: gameId, home_score: '', away_score: '0' }).success
+    ).toBe(false);
+  });
+
+  it('needs a reason for an override', () => {
+    const override = { game_id: gameId, home_score: '2', away_score: '2' };
+    expect(scoreOverride.safeParse({ ...override, reason: '  ' }).success).toBe(false);
+    expect(scoreOverride.safeParse({ ...override, reason: 'Scorer error' }).success).toBe(true);
+  });
+
+  it('needs the team that forfeited', () => {
+    expect(forfeit.safeParse({ game_id: gameId, forfeit_team_id: gameId }).success).toBe(true);
+    expect(forfeit.safeParse({ game_id: gameId, forfeit_team_id: '' }).success).toBe(false);
+  });
+});
+
+group('availability', () => {
+  it('turns a yes or no into a boolean, and needs a game', () => {
+    expect(availability.parse({ game_id: seasonId, can_play: 'yes' }).can_play).toBe(true);
+    expect(availability.parse({ game_id: seasonId, can_play: 'no' }).can_play).toBe(false);
+    expect(availability.safeParse({ game_id: seasonId, can_play: 'maybe' }).success).toBe(false);
+    expect(availability.safeParse({ game_id: 'x', can_play: 'yes' }).success).toBe(false);
+  });
+});
+
+group('playoffs', () => {
+  it('starts a bracket of 2, 4 or 8 teams only', () => {
+    const bracket = {
+      season_id: seasonId,
+      first_day: '2027-09-01',
+      starts_time: '18:00',
+      place: 'Main gym',
+    };
+    expect(newBracket.safeParse({ ...bracket, size: '4' }).success).toBe(true);
+    expect(newBracket.safeParse({ ...bracket, size: '6' }).success).toBe(false);
   });
 });

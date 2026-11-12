@@ -4,12 +4,22 @@ import { ActionError, defineAction } from 'astro:actions';
 import { actionErrorFor } from '../lib/server/errors';
 import {
   assignment,
+  availability,
+  bracketAdvance,
+  ladderEntry,
+  newBracket,
+  forfeit,
   gameEdit,
   newLeague,
   newSchedule,
   newRegistration,
   newSeason,
   newTeam,
+  scoreConfirmation,
+  scoreOverride,
+  scoreReport,
+  subAcceptance,
+  subRequest,
   teamEdit,
   withdrawal,
 } from '../lib/validation/league';
@@ -167,6 +177,154 @@ export const leagues = {
       });
       if (error) throw new ActionError(actionErrorFor(error));
       return { game_id };
+    },
+  }),
+
+  /** A captain reports a game's score, which the other captain or an organizer confirms (LEAG-05). */
+  reportScore: defineAction({
+    accept: 'form',
+    input: scoreReport,
+    handler: async ({ game_id, home_score, away_score }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('report_score', {
+        game_id,
+        home_score,
+        away_score,
+      });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { game_id };
+    },
+  }),
+
+  /** The other captain, or an organizer, confirms a reported score (LEAG-05). */
+  confirmScore: defineAction({
+    accept: 'form',
+    input: scoreConfirmation,
+    handler: async ({ game_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('confirm_score', { game_id });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { game_id };
+    },
+  }),
+
+  /** An organizer sets a score, with the reason for the audit log (LEAG-05). */
+  overrideScore: defineAction({
+    accept: 'form',
+    input: scoreOverride,
+    handler: async ({ game_id, home_score, away_score, reason }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('override_score', {
+        game_id,
+        home_score,
+        away_score,
+        reason,
+      });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { game_id };
+    },
+  }),
+
+  /** An organizer records that a team forfeited a game (LEAG-05). */
+  forfeitGame: defineAction({
+    accept: 'form',
+    input: forfeit,
+    handler: async ({ game_id, forfeit_team_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('forfeit_game', {
+        game_id,
+        forfeit_team_id,
+      });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { game_id };
+    },
+  }),
+
+  /** A captain asks the season's free agents for a sub for a game (LEAG-06). */
+  requestSub: defineAction({
+    accept: 'form',
+    input: subRequest,
+    handler: async ({ game_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { data, error } = await locals.supabase.rpc('request_sub', { game_id });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { request_id: data };
+    },
+  }),
+
+  /** A free agent takes a sub spot, which is that game only (LEAG-06). */
+  acceptSub: defineAction({
+    accept: 'form',
+    input: subAcceptance,
+    handler: async ({ request_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('accept_sub', { request_id });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { request_id };
+    },
+  }),
+
+  /** A player says whether they can play a game, which is also their RSVP (LEAG-07). */
+  setAvailability: defineAction({
+    accept: 'form',
+    input: availability,
+    handler: async ({ game_id, can_play }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('set_game_availability', { game_id, can_play });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { game_id };
+    },
+  }),
+
+  /** Entering a ladder's players, so each is a team of one (LEAG-08). */
+  enterLadder: defineAction({
+    accept: 'form',
+    input: ladderEntry,
+    handler: async ({ season_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { data, error } = await locals.supabase.rpc('enter_ladder', { season_id });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { players: data };
+    },
+  }),
+
+  /** Starting a playoff bracket from the final standings (LEAG-09). */
+  createPlayoffs: defineAction({
+    accept: 'form',
+    input: newBracket,
+    handler: async ({ season_id, size, first_day, starts_time, place }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { data, error } = await locals.supabase.rpc('create_playoffs', {
+        season_id,
+        size,
+        first_day,
+        starts_time,
+        place,
+      });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { games: data };
+    },
+  }),
+
+  /** Starting the next playoff round (LEAG-09). */
+  advancePlayoffs: defineAction({
+    accept: 'form',
+    input: bracketAdvance,
+    handler: async ({ season_id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { data, error } = await locals.supabase.rpc('advance_playoffs', { season_id });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { games: data };
     },
   }),
 };

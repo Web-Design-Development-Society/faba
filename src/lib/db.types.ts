@@ -605,6 +605,55 @@ export type Database = {
         };
         Relationships: [];
       };
+      daily_metrics: {
+        Row: {
+          day: string;
+          dimension: string;
+          metric: string;
+          value: number;
+        };
+        ComputedFields: never;
+        Insert: {
+          day: string;
+          dimension?: string;
+          metric: string;
+          value: number;
+        };
+        Update: {
+          day?: string;
+          dimension?: string;
+          metric?: string;
+          value?: number;
+        };
+        Relationships: [];
+      };
+      data_exports: {
+        Row: {
+          created_at: string;
+          id: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          id?: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'data_exports_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       follows: {
         Row: {
           created_at: string;
@@ -741,34 +790,152 @@ export type Database = {
           },
         ];
       };
+      league_game_availability: {
+        Row: {
+          can_play: boolean;
+          game_id: string;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          can_play: boolean;
+          game_id: string;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          can_play?: boolean;
+          game_id?: string;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'league_game_availability_game_id_fkey';
+            columns: ['game_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_games';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_game_availability_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      league_game_subs: {
+        Row: {
+          created_at: string;
+          game_id: string;
+          request_id: string | null;
+          team_id: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          game_id: string;
+          request_id?: string | null;
+          team_id: string;
+          user_id: string;
+        };
+        Update: {
+          created_at?: string;
+          game_id?: string;
+          request_id?: string | null;
+          team_id?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'league_game_subs_game_id_fkey';
+            columns: ['game_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_games';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_game_subs_request_id_fkey';
+            columns: ['request_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_sub_requests';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_game_subs_team_id_fkey';
+            columns: ['team_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_teams';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_game_subs_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       league_games: {
         Row: {
           activity_id: string | null;
+          away_score: number | null;
           away_team_id: string | null;
+          bracket_round: number | null;
+          confirmed_by: string | null;
           created_at: string;
+          forfeit_team_id: string | null;
+          home_score: number | null;
           home_team_id: string;
           id: string;
+          reported_by: string | null;
+          reporting_team_id: string | null;
           round: number;
           season_id: string;
+          stage: string;
+          status: string;
         };
         ComputedFields: never;
         Insert: {
           activity_id?: string | null;
+          away_score?: number | null;
           away_team_id?: string | null;
+          bracket_round?: number | null;
+          confirmed_by?: string | null;
           created_at?: string;
+          forfeit_team_id?: string | null;
+          home_score?: number | null;
           home_team_id: string;
           id?: string;
+          reported_by?: string | null;
+          reporting_team_id?: string | null;
           round: number;
           season_id: string;
+          stage?: string;
+          status?: string;
         };
         Update: {
           activity_id?: string | null;
+          away_score?: number | null;
           away_team_id?: string | null;
+          bracket_round?: number | null;
+          confirmed_by?: string | null;
           created_at?: string;
+          forfeit_team_id?: string | null;
+          home_score?: number | null;
           home_team_id?: string;
           id?: string;
+          reported_by?: string | null;
+          reporting_team_id?: string | null;
           round?: number;
           season_id?: string;
+          stage?: string;
+          status?: string;
         };
         Relationships: [
           {
@@ -786,8 +953,36 @@ export type Database = {
             referencedColumns: ['id'];
           },
           {
+            foreignKeyName: 'league_games_confirmed_by_fkey';
+            columns: ['confirmed_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_games_forfeit_team_id_fkey';
+            columns: ['forfeit_team_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_teams';
+            referencedColumns: ['id'];
+          },
+          {
             foreignKeyName: 'league_games_home_team_id_fkey';
             columns: ['home_team_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_teams';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_games_reported_by_fkey';
+            columns: ['reported_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_games_reporting_team_id_fkey';
+            columns: ['reporting_team_id'];
             isOneToOne: false;
             referencedRelation: 'league_teams';
             referencedColumns: ['id'];
@@ -911,6 +1106,76 @@ export type Database = {
           },
         ];
       };
+      league_sub_requests: {
+        Row: {
+          created_at: string;
+          filled_at: string | null;
+          filled_by: string | null;
+          game_id: string;
+          id: string;
+          requested_by: string | null;
+          season_id: string;
+          team_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          created_at?: string;
+          filled_at?: string | null;
+          filled_by?: string | null;
+          game_id: string;
+          id?: string;
+          requested_by?: string | null;
+          season_id: string;
+          team_id: string;
+        };
+        Update: {
+          created_at?: string;
+          filled_at?: string | null;
+          filled_by?: string | null;
+          game_id?: string;
+          id?: string;
+          requested_by?: string | null;
+          season_id?: string;
+          team_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'league_sub_requests_filled_by_fkey';
+            columns: ['filled_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_sub_requests_game_id_fkey';
+            columns: ['game_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_games';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_sub_requests_requested_by_fkey';
+            columns: ['requested_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_sub_requests_season_id_fkey';
+            columns: ['season_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_seasons';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'league_sub_requests_team_id_fkey';
+            columns: ['team_id'];
+            isOneToOne: false;
+            referencedRelation: 'league_teams';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
       league_teams: {
         Row: {
           captain_id: string | null;
@@ -985,6 +1250,69 @@ export type Database = {
             foreignKeyName: 'moderator_notes_author_id_fkey';
             columns: ['author_id'];
             isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      notification_channel_choices: {
+        Row: {
+          channel: string;
+          enabled: boolean;
+          type: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          channel: string;
+          enabled: boolean;
+          type: string;
+          user_id: string;
+        };
+        Update: {
+          channel?: string;
+          enabled?: boolean;
+          type?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notification_channel_choices_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+        ];
+      };
+      notification_channel_settings: {
+        Row: {
+          quiet_end: string;
+          quiet_start: string;
+          reminder_lead_hours: number;
+          updated_at: string;
+          user_id: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          quiet_end?: string;
+          quiet_start?: string;
+          reminder_lead_hours?: number;
+          updated_at?: string;
+          user_id: string;
+        };
+        Update: {
+          quiet_end?: string;
+          quiet_start?: string;
+          reminder_lead_hours?: number;
+          updated_at?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: 'notification_channel_settings_user_id_fkey';
+            columns: ['user_id'];
+            isOneToOne: true;
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
           },
@@ -1247,6 +1575,28 @@ export type Database = {
           },
         ];
       };
+      retention_runs: {
+        Row: {
+          id: string;
+          ran_at: string;
+          removed: number;
+          target: string;
+        };
+        ComputedFields: never;
+        Insert: {
+          id?: string;
+          ran_at?: string;
+          removed: number;
+          target: string;
+        };
+        Update: {
+          id?: string;
+          ran_at?: string;
+          removed?: number;
+          target?: string;
+        };
+        Relationships: [];
+      };
       rsvps: {
         Row: {
           activity_id: string;
@@ -1364,6 +1714,7 @@ export type Database = {
         Args: { display_name: string; use_initials: boolean; version: number };
         Returns: undefined;
       };
+      accept_sub: { Args: { request_id: string }; Returns: undefined };
       add_co_organizer: { Args: { activity_id: string; user_id: string }; Returns: undefined };
       add_moderator_note: {
         Args: { body: string; target_id: string; target_type: string };
@@ -1393,6 +1744,7 @@ export type Database = {
         Args: { reason: string; role: string; user_id: string };
         Returns: undefined;
       };
+      advance_playoffs: { Args: { season_id: string }; Returns: number };
       announce_activity: { Args: { activity_id: string }; Returns: number };
       approve_group_member: { Args: { group_id: string; user_id: string }; Returns: undefined };
       assign_player: {
@@ -1414,6 +1766,7 @@ export type Database = {
         }[];
       };
       cancel_activity: { Args: { activity_id: string; reason?: string }; Returns: undefined };
+      confirm_score: { Args: { game_id: string }; Returns: undefined };
       create_activity: {
         Args: {
           capacity?: number;
@@ -1447,6 +1800,16 @@ export type Database = {
       create_league: {
         Args: { category_id: string; description?: string; join_policy?: string; name: string };
         Returns: string;
+      };
+      create_playoffs: {
+        Args: {
+          first_day: string;
+          place: string;
+          season_id: string;
+          size: number;
+          starts_time: string;
+        };
+        Returns: number;
       };
       create_season: {
         Args: {
@@ -1491,6 +1854,9 @@ export type Database = {
       delete_comment: { Args: { comment_id: string }; Returns: undefined };
       delete_my_account: { Args: Record<PropertyKey, never>; Returns: undefined };
       dismiss_report: { Args: { reason: string; report_id: string }; Returns: undefined };
+      enter_ladder: { Args: { season_id: string }; Returns: number };
+      export_my_data: { Args: Record<PropertyKey, never>; Returns: Json };
+      forfeit_game: { Args: { forfeit_team_id: string; game_id: string }; Returns: undefined };
       get_feed: {
         Args: {
           after_id?: string;
@@ -1609,6 +1975,10 @@ export type Database = {
         };
         Returns: string;
       };
+      override_score: {
+        Args: { away_score: number; game_id: string; home_score: number; reason: string };
+        Returns: undefined;
+      };
       post_activity_update: {
         Args: { activity_id: string; body: string; idempotency_key?: string };
         Returns: string;
@@ -1627,6 +1997,11 @@ export type Database = {
         Args: { note?: string; reason: string; target_id: string; target_type: string };
         Returns: string;
       };
+      report_score: {
+        Args: { away_score: number; game_id: string; home_score: number };
+        Returns: undefined;
+      };
+      request_sub: { Args: { game_id: string }; Returns: string };
       reset_calendar_feed: { Args: { token_hash: string }; Returns: undefined };
       restore_activity: { Args: { activity_id: string }; Returns: undefined };
       rsvp: { Args: { activity_id: string; guests?: number; status: string }; Returns: number };
@@ -1698,10 +2073,32 @@ export type Database = {
           isSetofReturn: true;
         };
       };
+      season_standings: {
+        Args: { season_id: string };
+        Returns: {
+          differential: number;
+          lost: number;
+          played: number;
+          points: number;
+          team_id: string;
+          team_name: string;
+          tied: number;
+          won: number;
+        }[];
+      };
       set_activity_tags: { Args: { activity_id: string; tag_ids: string[] }; Returns: undefined };
       set_board_activity: { Args: { activity_id: string; board: boolean }; Returns: undefined };
+      set_channel_choice: {
+        Args: { channel: string; enabled: boolean; type: string };
+        Returns: undefined;
+      };
+      set_channel_settings: {
+        Args: { quiet_end: string; quiet_start: string; reminder_lead_hours: number };
+        Returns: undefined;
+      };
       set_email_visibility: { Args: { visible: boolean }; Returns: undefined };
       set_follow: { Args: { follow: boolean; kind: string; target: string }; Returns: boolean };
+      set_game_availability: { Args: { can_play: boolean; game_id: string }; Returns: undefined };
       set_group_role: {
         Args: { group_id: string; role: string; user_id: string };
         Returns: undefined;

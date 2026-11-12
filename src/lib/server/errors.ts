@@ -73,6 +73,68 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
     code: 'BAD_REQUEST',
     message: "This team has a bye, so there's no game to change.",
   },
+  INVALID_SCORE: { code: 'BAD_REQUEST', message: 'Enter whole-number scores from 0 to 999.' },
+  NOT_CAPTAIN: {
+    code: 'FORBIDDEN',
+    message: 'Only a captain of one of these teams can report the score.',
+  },
+  NOT_OPPOSING_CAPTAIN: {
+    code: 'FORBIDDEN',
+    message: "The other team's captain, or an organizer, has to confirm the score.",
+  },
+  NOT_REPORTED: { code: 'CONFLICT', message: 'There is no reported score to confirm.' },
+  GAME_LOCKED: {
+    code: 'CONFLICT',
+    message: 'This game is confirmed or forfeited. Ask an organizer to change it.',
+  },
+  NOT_IN_GAME: { code: 'BAD_REQUEST', message: 'Pick one of the two teams in this game.' },
+  REASON_REQUIRED: { code: 'BAD_REQUEST', message: 'Give a reason. It goes to the audit log.' },
+  SUB_RATE_LIMITED: {
+    code: 'TOO_MANY_REQUESTS',
+    message: 'A sub was asked for this game in the last hour. Try again later.',
+  },
+  SUB_ALREADY_REQUESTED: {
+    code: 'CONFLICT',
+    message: 'Your team already has a sub request open for this game.',
+  },
+  GAME_STARTED: { code: 'CONFLICT', message: 'This game has started, so it has no sub spots.' },
+  SUB_FILLED: { code: 'CONFLICT', message: 'Someone has already taken this sub spot.' },
+  SUB_REQUEST_NOT_FOUND: { code: 'NOT_FOUND', message: "This sub request isn't available." },
+  NOT_FREE_AGENT: {
+    code: 'FORBIDDEN',
+    message: 'Only free agents who signed up for this season can take a sub spot.',
+  },
+  ALREADY_PLAYING: {
+    code: 'CONFLICT',
+    message: "You're already playing in this game, so you can't sub in it.",
+  },
+  NOT_PLAYING_IN_GAME: {
+    code: 'FORBIDDEN',
+    message: 'Only the players on the two teams, and their subs, can answer for this game.',
+  },
+  NOT_A_LADDER: {
+    code: 'BAD_REQUEST',
+    message: "This season isn't an individual ladder, so its players don't become teams.",
+  },
+  INVALID_BRACKET_SIZE: { code: 'BAD_REQUEST', message: 'Pick 2, 4 or 8 teams for the bracket.' },
+  PLAYOFFS_EXIST: { code: 'CONFLICT', message: 'This season already has a bracket.' },
+  REGULAR_UNFINISHED: {
+    code: 'CONFLICT',
+    message: 'Finish or forfeit every regular-season game before the playoffs start.',
+  },
+  NOT_ENOUGH_FOR_BRACKET: {
+    code: 'BAD_REQUEST',
+    message: 'The bracket needs at least as many teams as its size.',
+  },
+  ROUND_UNFINISHED: {
+    code: 'CONFLICT',
+    message: 'Finish every game in this round before the next one starts.',
+  },
+  NO_PLAYOFFS: { code: 'CONFLICT', message: 'This season has no bracket yet.' },
+  PLAYOFF_TIE: {
+    code: 'CONFLICT',
+    message: 'A playoff game needs a winner. Change the score so one team wins.',
+  },
   SEASON_ALREADY_ACTIVE: {
     code: 'BAD_REQUEST',
     message: 'This league already has an active season. End it before starting another.',
@@ -147,7 +209,6 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
   NOT_COMMENT_AUTHOR: { code: 'FORBIDDEN', message: 'Only the author can delete a comment.' },
   COMMENT_ALREADY_HIDDEN: { code: 'CONFLICT', message: 'This comment is already hidden.' },
   COMMENT_NOT_HIDDEN: { code: 'CONFLICT', message: 'This comment is already visible.' },
-  REASON_REQUIRED: { code: 'BAD_REQUEST', message: 'Give a reason. It goes to the audit log.' },
   REPORT_NOT_OPEN: { code: 'CONFLICT', message: 'This report has already been handled.' },
   ALREADY_HIDDEN: { code: 'CONFLICT', message: 'This activity is already hidden.' },
   NOT_HIDDEN: { code: 'CONFLICT', message: "This activity isn't hidden." },

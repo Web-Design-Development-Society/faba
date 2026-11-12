@@ -105,6 +105,69 @@ export const gameEdit = z.object({
   place,
 });
 
+// A score from a number input: a whole number from 0 to 999. A blank one is an error, not a 0.
+const score = z
+  .string({ error: 'Enter both scores.' })
+  .regex(/^\d{1,3}$/, 'Scores are whole numbers from 0 to 999.')
+  .transform(Number);
+
+/** A captain reporting a game's score (LEAG-05). Home and away are the game's two teams. */
+export const scoreReport = z.object({
+  game_id: z.uuid({ error: 'Pick a game.' }),
+  home_score: score,
+  away_score: score,
+});
+
+/** A game's score, confirmed by the other captain or an organizer (LEAG-05). */
+export const scoreConfirmation = z.object({ game_id: z.uuid({ error: 'Pick a game.' }) });
+
+/** An organizer setting a score, with the reason for the audit log (LEAG-05). */
+export const scoreOverride = scoreReport.extend({
+  reason: z
+    .string({ error: 'Give a reason. It goes to the audit log.' })
+    .trim()
+    .min(1, 'Give a reason. It goes to the audit log.')
+    .max(500, 'Use 500 characters or fewer for the reason.'),
+});
+
+/** An organizer recording that a team forfeited a game (LEAG-05). */
+export const forfeit = z.object({
+  game_id: z.uuid({ error: 'Pick a game.' }),
+  forfeit_team_id: z.uuid({ error: 'Pick the team that forfeited.' }),
+});
+
+/** A captain asks the free agents for a sub for a game (LEAG-06). */
+export const subRequest = z.object({ game_id: z.uuid({ error: 'Pick a game.' }) });
+
+/** A free agent takes a sub spot (LEAG-06). */
+export const subAcceptance = z.object({ request_id: z.uuid({ error: 'Pick a sub request.' }) });
+
+/** A player's answer for a game: "yes" or "no", from two buttons (LEAG-07). */
+export const availability = z.object({
+  game_id: z.uuid({ error: 'Pick a game.' }),
+  can_play: z
+    .enum(['yes', 'no'], { error: 'Say whether you can play.' })
+    .transform((v) => v === 'yes'),
+});
+
+/** Entering a ladder's players, so each one is a team of one (LEAG-08). */
+export const ladderEntry = z.object({ season_id: z.uuid({ error: 'Pick a season.' }) });
+
+/** Starting a playoff bracket, from the final standings (LEAG-09). */
+export const newBracket = z.object({
+  season_id: z.uuid({ error: 'Pick a season.' }),
+  size: z.coerce
+    .number({ error: 'Pick how many teams.' })
+    .int()
+    .refine((n) => [2, 4, 8].includes(n), 'Pick 2, 4 or 8 teams.'),
+  first_day: day,
+  starts_time: clock,
+  place,
+});
+
+/** Starting the next playoff round, once the last one is finished (LEAG-09). */
+export const bracketAdvance = z.object({ season_id: z.uuid({ error: 'Pick a season.' }) });
+
 // A date from a date input, as YYYY-MM-DD.
 /** A season in a league. The team sizes and points default to the usual 3, 1 and 0. */
 export const newSeason = z

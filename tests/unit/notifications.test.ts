@@ -25,6 +25,7 @@ group('describe', () => {
       'group_owner',
       'rsvp_promoted',
       'rsvp_removed',
+      'sub_needed',
       'new_activity',
       'report_received',
     ]);
@@ -228,6 +229,15 @@ group('excerpt', () => {
 
   it('cuts one long word where it must', () => {
     expect(excerpt('x'.repeat(30), 10)).toBe(`${'x'.repeat(9)}…`);
+  });
+});
+
+group('sub requests', () => {
+  it('says which team needs a sub', () => {
+    expect(describe('sub_needed', { team: 'Reds' }).summary).toBe(
+      'A sub is needed for Reds. Free agents can accept it.'
+    );
+    expect(describe('sub_needed').icon).toBe('🔁');
   });
 });
 
