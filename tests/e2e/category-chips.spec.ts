@@ -68,6 +68,12 @@ test('a category with nothing coming up invites the member to post one', async (
   await signInAs('member');
   // The sample data and the other tests have nothing in Other, the last chip.
   await page.goto('/discover?cat=other');
+  // The row scrolls sideways to the chosen chip. On a short screen, like the iPhone SE's, the row
+  // can start below the fold, under "Your next plan", so bring it up first. That scrolls the page,
+  // not the row, so the check below is still the row's own scroll.
+  await page
+    .getByRole('navigation', { name: 'Filters' })
+    .evaluate((nav) => nav.scrollIntoView({ block: 'center' }));
   await expect(chip(page, 'Other')).toBeInViewport({ ratio: 1 });
   await expect(page.getByText('Nothing matches Other.')).toBeVisible();
   await expect(page.getByRole('link', { name: 'Clear filters' })).toHaveAttribute(
