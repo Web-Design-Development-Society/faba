@@ -2,6 +2,7 @@
 import { activities } from './activities';
 import { admin } from './admin';
 import { calendar } from './calendar';
+import { comments } from './comments';
 import { follows } from './follows';
 import { groups } from './groups';
 import { leagues } from './leagues';
@@ -15,6 +16,7 @@ export const server = {
   activities,
   admin,
   calendar,
+  comments,
   follows,
   groups,
   leagues,

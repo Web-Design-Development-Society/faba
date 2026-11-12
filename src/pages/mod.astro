@@ -96,25 +96,34 @@ const notesFor = (report: { target_type: string; target_id: string }) =>
   notes?.filter(
     (note) => note.target_type === report.target_type && note.target_id === report.target_id
   ) ?? [];
-const [{ data: activities }, { data: profiles }, { data: updates }, { data: handovers }] =
-  await Promise.all([
-    supabase.from('activities').select('id, title, hidden_at').in('id', targets('activity')),
-    supabase.from('profiles').select('id, display_name, status').in('id', targets('profile')),
-    supabase
-      .from('activity_updates')
-      .select('id, body, hidden_at, activity:activities(id, title), group:groups(slug, name)')
-      .in('id', targets('activity_update')),
-    moderator
-      ? supabase
-          .from('activities')
-          .select('id, title, starts_at, organizer:profiles!activities_organizer_id_fkey!inner()')
-          .eq('organizer.status', 'ineligible')
-          .eq('status', 'published')
-          .gt('starts_at', now.toISOString())
-          .order('starts_at')
-          .limit(LIMIT)
-      : { data: [] },
-  ]);
+const [
+  { data: activities },
+  { data: profiles },
+  { data: updates },
+  { data: comments },
+  { data: handovers },
+] = await Promise.all([
+  supabase.from('activities').select('id, title, hidden_at').in('id', targets('activity')),
+  supabase.from('profiles').select('id, display_name, status').in('id', targets('profile')),
+  supabase
+    .from('activity_updates')
+    .select('id, body, hidden_at, activity:activities(id, title), group:groups(slug, name)')
+    .in('id', targets('activity_update')),
+  supabase
+    .from('activity_comments')
+    .select('id, body, hidden_at, activity:activities(id, title)')
+    .in('id', targets('comment')),
+  moderator
+    ? supabase
+        .from('activities')
+        .select('id, title, starts_at, organizer:profiles!activities_organizer_id_fkey!inner()')
+        .eq('organizer.status', 'ineligible')
+        .eq('status', 'published')
+        .gt('starts_at', now.toISOString())
+        .order('starts_at')
+        .limit(LIMIT)
+    : { data: [] },
+]);
 const preview = (type: string, id: string) => {
   if (type === 'activity') {
     const activity = activities?.find((a) => a.id === id);
@@ -123,6 +132,16 @@ const preview = (type: string, id: string) => {
       href: `/activities/${id}`,
       name: activity?.title,
       actionable: !!activity && !activity.hidden_at,
+    };
+  }
+  if (type === 'comment') {
+    // A comment on an activity (ACT-12). Hiding it doesn't hide the activity.
+    const comment = comments?.find((c) => c.id === id);
+    return {
+      kind: comment ? `Comment on ${comment.activity?.title ?? 'an activity'}` : 'Comment',
+      href: `/activities/${comment?.activity?.id}#comments`,
+      name: comment && excerpt(comment.body),
+      actionable: !!comment && !comment.hidden_at,
     };
   }
   if (type === 'activity_update') {
@@ -221,6 +240,23 @@ const preview = (type: string, id: string) => {
                     <p>
                       Members won't see it. Its organizer sees your reason, and can edit it. Its
                       other open reports are dealt with too.
+                    </p>
+                  </ModerationAction>
+                )}
+                {report.target_type === 'comment' && target.actionable && (
+                  <ModerationAction
+                    id={`hide-comment-${report.id}`}
+                    label="Hide comment"
+                    title="Hide this comment?"
+                    action={actions.moderation.hideComment.queryString}
+                    fields={{ comment_id: report.target_id }}
+                    confirm="Hide comment"
+                    cancel="Keep it visible"
+                    templates
+                  >
+                    <p>
+                      Members won't see it on the activity. Its author sees your reason. Its other
+                      open reports are dealt with too.
                     </p>
                   </ModerationAction>
                 )}

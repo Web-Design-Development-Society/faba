@@ -6,6 +6,8 @@ import {
   activityHide,
   activityModeration,
   activityTransfer,
+  commentHide,
+  commentModeration,
   dismissal,
   memberModeration,
   memberSuspension,
@@ -93,6 +95,36 @@ export const moderation = {
       const { error } = await locals.supabase.rpc('moderate_unhide_update', { update_id, reason });
       if (error) throw new ActionError(actionErrorFor(error));
       return { update_id };
+    },
+  }),
+
+  /** Hiding a comment, with the reason its author sees (ACT-12). Returns its id. */
+  hideComment: defineAction({
+    accept: 'form',
+    input: commentHide,
+    handler: async ({ comment_id, ...input }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const reason = required(input);
+      const { error } = await locals.supabase.rpc('moderate_hide_comment', { comment_id, reason });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { comment_id };
+    },
+  }),
+
+  /** Unhiding a comment, with a reason (ACT-12). Returns its id. */
+  unhideComment: defineAction({
+    accept: 'form',
+    input: commentModeration,
+    handler: async ({ comment_id, reason }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('moderate_unhide_comment', {
+        comment_id,
+        reason,
+      });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { comment_id };
     },
   }),
 
