@@ -1,0 +1,134 @@
+---
+// The board's metrics (ANLY-01): weekly active members, new members, RSVPs, the self-reported
+// faculty split and organizers, by day, and activities by category. Only moderators and admins open
+// it, and the database keeps the table to them as well. A figure is stored only when it covers 10 or
+// more people, so a short list means the figure is missing, not zero.
+import Layout from '../../layouts/Layout.astro';
+
+const { supabase, member } = Astro.locals;
+const allowed =
+  member?.status === 'active' && (member.role === 'moderator' || member.role === 'admin');
+if (!allowed) Astro.response.status = 403;
+
+const since = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+const [{ data: rows }, { data: categories }] = allowed
+  ? await Promise.all([
+      supabase
+        .from('daily_metrics')
+        .select('day, metric, dimension, value')
+        .gte('day', since)
+        .order('day', { ascending: false }),
+      supabase.from('categories').select('id, name'),
+    ])
+  : [{ data: [] }, { data: [] }];
+
+const NAMES: Record<string, string> = {
+  weekly_active_members: 'Weekly active members',
+  new_members: 'New members',
+  rsvps: 'RSVPs',
+  faculty_full_time: 'Full-time faculty',
+  faculty_part_time: 'Part-time faculty',
+  organizers: 'Organizers (last 7 days)',
+};
+const COLUMNS = Object.keys(NAMES);
+const categoryName = new Map((categories ?? []).map((c) => [c.id, c.name]));
+
+const days = [...new Set((rows ?? []).map((r) => r.day))];
+const valueOf = (day: string, metric: string) =>
+  rows?.find((r) => r.day === day && r.metric === metric && r.dimension === '')?.value;
+const byCategory = (rows ?? []).filter((r) => r.metric === 'activities');
+---
+
+<Layout title="Board metrics" tab="me">
+  <a href="/admin">Back to admin</a>
+  <h1>Board metrics</h1>
+  {!allowed ? (
+    <p>Only moderators and admins can see these figures.</p>
+  ) : (
+    <>
+      <p>
+        Figures are computed each night for the day before. A figure is shown only when it covers 10
+        or more people. Blank means it was too small to show, not zero.
+      </p>
+      {days.length === 0 ? (
+        <p>No figures yet. The first ones appear after the nightly job has run.</p>
+      ) : (
+        <>
+          <table>
+            <caption>The last two weeks</caption>
+            <thead>
+              <tr>
+                <th scope="col">Day</th>
+                {COLUMNS.map((metric) => (
+                  <th scope="col">{NAMES[metric]}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {days.map((day) => (
+                <tr>
+                  <th scope="row">
+                    <time datetime={day}>{day}</time>
+                  </th>
+                  {COLUMNS.map((metric) => (
+                    <td>{valueOf(day, metric) ?? ''}</td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {byCategory.length > 0 && (
+            <>
+              <h2>Activities by category</h2>
+              <table>
+                <caption>Activities posted in the last two weeks, by category</caption>
+                <thead>
+                  <tr>
+                    <th scope="col">Day</th>
+                    <th scope="col">Category</th>
+                    <th scope="col">Activities</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {byCategory.map((r) => (
+                    <tr>
+                      <td>
+                        <time datetime={r.day}>{r.day}</time>
+                      </td>
+                      <td>{categoryName.get(r.dimension) ?? r.dimension}</td>
+                      <td>{r.value}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          )}
+        </>
+      )}
+    </>
+  )}
+</Layout>
+
+<style>
+  table {
+    border-collapse: collapse;
+    width: 100%;
+    margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+  }
+  caption {
+    text-align: left;
+    padding-bottom: 0.25rem;
+    color: #4b5563;
+  }
+  th,
+  td {
+    padding: 0.4rem 0.5rem;
+    border-bottom: 1px solid #c9d3e0;
+    text-align: left;
+    vertical-align: top;
+  }
+  thead th {
+    font-weight: 600;
+  }
+</style>
