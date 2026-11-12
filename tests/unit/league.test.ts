@@ -3,6 +3,7 @@ import { describe as group, expect, it } from 'vitest';
 import {
   assignment,
   availability,
+  newBracket,
   forfeit,
   gameEdit,
   newRegistration,
@@ -145,5 +146,18 @@ group('availability', () => {
     expect(availability.parse({ game_id: seasonId, can_play: 'no' }).can_play).toBe(false);
     expect(availability.safeParse({ game_id: seasonId, can_play: 'maybe' }).success).toBe(false);
     expect(availability.safeParse({ game_id: 'x', can_play: 'yes' }).success).toBe(false);
+  });
+});
+
+group('playoffs', () => {
+  it('starts a bracket of 2, 4 or 8 teams only', () => {
+    const bracket = {
+      season_id: seasonId,
+      first_day: '2027-09-01',
+      starts_time: '18:00',
+      place: 'Main gym',
+    };
+    expect(newBracket.safeParse({ ...bracket, size: '4' }).success).toBe(true);
+    expect(newBracket.safeParse({ ...bracket, size: '6' }).success).toBe(false);
   });
 });

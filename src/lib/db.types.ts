@@ -781,6 +781,7 @@ export type Database = {
           activity_id: string | null;
           away_score: number | null;
           away_team_id: string | null;
+          bracket_round: number | null;
           confirmed_by: string | null;
           created_at: string;
           forfeit_team_id: string | null;
@@ -791,6 +792,7 @@ export type Database = {
           reporting_team_id: string | null;
           round: number;
           season_id: string;
+          stage: string;
           status: string;
         };
         ComputedFields: never;
@@ -798,6 +800,7 @@ export type Database = {
           activity_id?: string | null;
           away_score?: number | null;
           away_team_id?: string | null;
+          bracket_round?: number | null;
           confirmed_by?: string | null;
           created_at?: string;
           forfeit_team_id?: string | null;
@@ -808,12 +811,14 @@ export type Database = {
           reporting_team_id?: string | null;
           round: number;
           season_id: string;
+          stage?: string;
           status?: string;
         };
         Update: {
           activity_id?: string | null;
           away_score?: number | null;
           away_team_id?: string | null;
+          bracket_round?: number | null;
           confirmed_by?: string | null;
           created_at?: string;
           forfeit_team_id?: string | null;
@@ -824,6 +829,7 @@ export type Database = {
           reporting_team_id?: string | null;
           round?: number;
           season_id?: string;
+          stage?: string;
           status?: string;
         };
         Relationships: [
@@ -1548,6 +1554,7 @@ export type Database = {
         Args: { reason: string; role: string; user_id: string };
         Returns: undefined;
       };
+      advance_playoffs: { Args: { season_id: string }; Returns: number };
       announce_activity: { Args: { activity_id: string }; Returns: number };
       approve_group_member: { Args: { group_id: string; user_id: string }; Returns: undefined };
       assign_player: {
@@ -1603,6 +1610,16 @@ export type Database = {
       create_league: {
         Args: { category_id: string; description?: string; join_policy?: string; name: string };
         Returns: string;
+      };
+      create_playoffs: {
+        Args: {
+          first_day: string;
+          place: string;
+          season_id: string;
+          size: number;
+          starts_time: string;
+        };
+        Returns: number;
       };
       create_season: {
         Args: {
