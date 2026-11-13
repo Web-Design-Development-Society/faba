@@ -45,7 +45,7 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
   <p>
     <a href="/me/data.json" download="faba-my-data.json">
       Download my data
-    </a>
+    </a>{' '}
     <a href="/me/notifications">Notifications</a>
   </p>
   {typeof open?.count === 'number' && (
@@ -73,7 +73,7 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
     <form method="post" action={actions.calendar.resetFeed.queryString}>
       <button>{hasFeed ? 'Reset link' : 'Get calendar link'}</button>
     </form>
-    {hasFeed && !feed && <p>Resetting makes a new link, and the old one stops working.</p>}
+    {hasFeed && !feed ? <p>Resetting makes a new link, and the old one stops working.</p> : null}
   </section>
 
   <form method="post" action="/auth/logout">
