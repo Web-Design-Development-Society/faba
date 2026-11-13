@@ -40,9 +40,8 @@ const moreOptions =
   ].some((name) => value(name) || errors[name]);
 ---
 
-<p>
+<p class="title">
   <label for="title">What are you doing?</label>
-  <br />
   <input
     id="title"
     name="title"
@@ -225,3 +224,30 @@ const moreOptions =
   )}
   <slot name="more" />
 </details>
+
+<style>
+  /* What the activity is, the field everything else hangs on, so it's the biggest on the form. */
+  .title label {
+    display: block;
+    margin-bottom: 0.25rem;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .title input {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 3.25rem;
+    padding: 0.5rem 0.75rem;
+    font: inherit;
+    font-size: 1.25rem;
+    /* 4.5:1 on white, so the box itself stands out (WCAG 1.4.11 asks for 3:1). */
+    border: 2px solid #767676;
+    border-radius: var(--radius);
+  }
+  .title input:focus-visible {
+    border-color: var(--blue);
+    outline: 3px solid var(--blue);
+    outline-offset: 2px;
+  }
+</style>
