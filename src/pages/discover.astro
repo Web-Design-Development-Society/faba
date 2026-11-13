@@ -155,7 +155,7 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
   {plan.data && (
     <section aria-labelledby="plan">
       <h2 id="plan">Your next plan</h2>
-      <ActivityCard activity={plan.data} viewer={user.id} now={now} faces={FACES} />
+      <ActivityCard activity={plan.data} viewer={user.id} now={now} faces={FACES} next />
     </section>
   )}
   {chips && <FilterChips categories={chips} page="/discover" query={Astro.url.searchParams} />}

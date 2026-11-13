@@ -2,10 +2,17 @@
 // JavaScript: a form posts here, and the page it came from says what happened. The Worker checks the
 // file's own bytes, stores it under a random key in the bucket, then asks Postgres to point the
 // activity or group at it. Postgres checks who's allowed, and the Worker deletes the file again if
-// that fails, so the bucket never keeps a picture nothing points to.
+// that fails, so the bucket never keeps a picture nothing points to. With JavaScript, the device also
+// sends a small copy for cards (UI-03), kept beside it. One that isn't a picture is left out.
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
-import { ALT_MAX, pictureProblem, sniffPicture } from '../../../lib/media';
+import {
+  ALT_MAX,
+  pictureProblem,
+  sniffPicture,
+  THUMB_MAX_BYTES,
+  thumbKey,
+} from '../../../lib/media';
 import { setFlash } from '../../../lib/server/flash';
 
 export const prerender = false;
@@ -60,6 +67,14 @@ export const POST = (async ({ locals, request, cookies, url, redirect }) => {
   const folder = target === 'group' ? 'groups' : 'activities';
   const key = `${folder}/${crypto.randomUUID()}`;
   await bucket().put(key, bytes.buffer, { httpMetadata: { contentType: type } });
+  const small = form.get('thumb');
+  if (small instanceof File && small.size > 0 && small.size <= THUMB_MAX_BYTES) {
+    const thumb = new Uint8Array(await small.arrayBuffer());
+    const thumbType = sniffPicture(thumb);
+    if (thumbType) {
+      await bucket().put(thumbKey(key), thumb.buffer, { httpMetadata: { contentType: thumbType } });
+    }
+  }
 
   const { error } =
     target === 'group'
@@ -79,7 +94,7 @@ export const POST = (async ({ locals, request, cookies, url, redirect }) => {
         });
 
   if (error) {
-    await bucket().delete(key);
+    await bucket().delete([key, thumbKey(key)]);
     return fail(
       error.message.includes('NOT_ORGANIZER') || error.message.includes('NOT_GROUP_ORGANIZER')
         ? 'upload_forbidden'

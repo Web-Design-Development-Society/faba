@@ -47,6 +47,8 @@ const prefix = target === 'group' ? 'banner' : 'cover';
     A big photo is made smaller on your device before it uploads, and where it was taken is left
     out.
   </p>
+  {/* The small copy for cards (UI-03), which src/scripts/pictures.ts makes. */}
+  <input name="thumb" type="file" hidden data-thumb />
   <label for={`${prefix}-alt`}>Describe it for people who can't see it</label>
   <input id={`${prefix}-alt`} name="alt" type="text" maxlength="200" required />
   <button>{submit}</button>

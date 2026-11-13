@@ -6,7 +6,9 @@
 // says when it's a FABA board activity (MOD-07), unless it's cancelled or full, which say so in
 // its place: a card has one status at most (design document section 7.5). On Home, one that someone
 // else posted since the member's previous visit says New, after all those (ACT-11). A date in a
-// series says how often it repeats, beside its time (REC-01).
+// series says how often it repeats, beside its time (REC-01). The layout is UI-03's: the date,
+// the cover's small copy or the category's icon, the title, then rows for the time and place, and
+// who's going with I'm in along the bottom, so a phone never squeezes the time into a narrow column.
 import { categoryLook } from '../lib/categories';
 import { historyLabel, isFull } from '../lib/cards';
 import { repeatsBadge } from '../lib/series';
@@ -34,6 +36,8 @@ interface Props {
     category: { name: string; icon: string; color_token: string } | null;
     /** The series it's a date in (REC-01). */
     series: { freq: string } | null;
+    /** Its cover picture (MEDIA-01), shown small (UI-03). */
+    cover?: { id: string; hidden_at: string | null } | null;
     going: {
       member: {
         id: string;
@@ -56,9 +60,11 @@ interface Props {
   history?: boolean;
   /** On Home, when the member's previous visit ended, so newer activities say New (ACT-11). */
   newSince?: Date | null;
+  /** True for Discover's Your next plan, which has a blue edge (UI-03). */
+  next?: boolean;
 }
 
-const { activity, viewer, now, faces, badges, history, newSince } = Astro.props;
+const { activity, viewer, now, faces, badges, history, newSince, next } = Astro.props;
 const { category } = activity;
 // The date badge (UI-01) shows the day in Rexburg's time, the same as the time line beside it.
 const starts = new Date(activity.starts_at);
@@ -69,6 +75,7 @@ const day = new Intl.DateTimeFormat('en-US', { day: 'numeric', timeZone: 'Americ
   starts
 );
 const look = category && categoryLook(category);
+const cover = activity.cover && !activity.cover.hidden_at ? activity.cover : null;
 const hosting = activity.organizer_id === viewer;
 const going = activity.my_rsvp === 'going';
 const cancelled = activity.status === 'cancelled';
@@ -100,75 +107,124 @@ const shown = (
 ).filter((badge) => !!badge);
 ---
 
-<article class="card" style={look ? `--stripe: ${look.color}` : undefined}>
-  <p class="date" aria-hidden="true">
-    <span class="month">{month}</span>
-    <span class="day">{day}</span>
-  </p>
-  {category && look && (
-    <span class="icon" role="img" aria-label={category.name}>
-      <Icon name={look.icon} size={22} />
-    </span>
-  )}
-  <div class="body">
+<article class:list={['card', { next }]} style={look ? `--stripe: ${look.color}` : undefined}>
+  <div class="layout">
+    <p class="date" aria-hidden="true">
+      <span class="month">{month}</span>
+      <span class="day">{day}</span>
+    </p>
+    {(cover || look) && (
+      <span
+        class="picture"
+        role={category ? 'img' : undefined}
+        aria-label={category?.name}
+        style={look ? undefined : '--stripe: #616161'}
+      >
+        {cover ? (
+          <img
+            src={`/api/media/${cover.id}?size=thumb`}
+            alt=""
+            width="64"
+            height="64"
+            loading="lazy"
+            decoding="async"
+          />
+        ) : (
+          look && <Icon name={look.icon} size={24} />
+        )}
+      </span>
+    )}
     <h3>
       <a href={`/activities/${activity.id}`}>{activity.title}</a>
     </h3>
-    <p>
-      <time datetime={activity.starts_at}>{formatSoon(new Date(activity.starts_at), now)}</time>
-      {activity.series && ` · ${repeatsBadge(activity.series.freq)}`}
-    </p>
-    <p class="place">{activity.location_name}</p>
-    {shown.length > 0 && (
-      <ul class="badges">
-        {shown.map((badge) => (
-          <li>{badge}</li>
+    <span class="chevron">
+      <Icon name="chevron" />
+    </span>
+    <div class="rows">
+      <p class="when">
+        <Icon name="calendar" />
+        <span>
+          <time datetime={activity.starts_at}>{formatSoon(new Date(activity.starts_at), now)}</time>
+          {activity.series && ` · ${repeatsBadge(activity.series.freq)}`}
+        </span>
+      </p>
+      <p class="place">
+        <Icon name="pin" />
+        <span>{activity.location_name}</span>
+      </p>
+      {shown.length > 0 && (
+        <ul class="badges">
+          {shown.map((badge) => (
+            <li>{badge}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+    <div class="foot">
+      <p class="going" data-going={activity.id} data-faces={faces}>
+        {activity.going.length === 0 && <Icon name="people" />}
+        {activity.going.map(({ member }) => (
+          <Avatar member={member} named mine={member.id === viewer} />
         ))}
-      </ul>
-    )}
-    <p class="going" data-going={activity.id} data-faces={faces}>
-      {activity.going.map(({ member }) => (
-        <Avatar member={member} named mine={member.id === viewer} />
-      ))}
-      <span data-count>{activity.going_count}</span> going
-    </p>
+        <span data-count>{activity.going_count}</span> going
+      </p>
+      {cancelled ? (
+        <p class="mine cancelled">Cancelled</p>
+      ) : hosting ? (
+        <p class="mine">You're hosting</p>
+      ) : open && full && !going && activity.my_rsvp !== 'maybe' ? (
+        <p class="mine">{activity.my_rsvp === 'waitlisted' ? 'On waitlist' : 'Full'}</p>
+      ) : open ? (
+        // Someone waiting when a spot is open says I'm in like anyone else (RSVP-07).
+        <RsvpForm
+          activityId={activity.id}
+          status={activity.my_rsvp === 'waitlisted' ? null : activity.my_rsvp}
+        />
+      ) : (
+        going && <p class="mine going-pill">✓ Going</p>
+      )}
+    </div>
   </div>
-  {cancelled ? (
-    <p class="mine cancelled">Cancelled</p>
-  ) : hosting ? (
-    <p class="mine">You're hosting</p>
-  ) : open && full && !going && activity.my_rsvp !== 'maybe' ? (
-    <p class="mine">{activity.my_rsvp === 'waitlisted' ? 'On waitlist' : 'Full'}</p>
-  ) : open ? (
-    // Someone waiting when a spot is open says I'm in like anyone else (RSVP-07).
-    <RsvpForm
-      activityId={activity.id}
-      status={activity.my_rsvp === 'waitlisted' ? null : activity.my_rsvp}
-    />
-  ) : (
-    going && <p class="mine going-pill">✓ Going</p>
-  )}
 </article>
 
 <style>
+  /* A white card with its category's color down the left edge (UI-01, UI-02). Its own width
+     decides the layout, so a card is laid out for the space it has, not the screen's. */
   .card {
     position: relative;
-    display: flex;
-    gap: 0.75rem;
-    padding: 0.75rem;
+    container-type: inline-size;
+    background: var(--card);
     border: 1px solid var(--line);
     border-left: 0.375rem solid var(--stripe, #616161);
     border-radius: var(--radius);
-    background: white;
+    box-shadow: var(--shadow);
+  }
+  /* Your next plan has a FABA blue edge, as in the mockup (UI-03). */
+  .next {
+    border-left-color: var(--blue);
+  }
+  /* The date and picture, then the title with the time and place beside them, then who's going
+     and I'm in along the bottom (UI-03). */
+  .layout {
+    display: grid;
+    /* Set widths, so the long rows under the title can't widen the date's column. */
+    grid-template-columns: 3.5rem 4rem minmax(0, 1fr) 1.25rem;
+    grid-template-areas:
+      'date picture title chevron'
+      'date picture rows chevron'
+      'foot foot foot foot';
+    gap: 0.25rem 0.75rem;
+    align-items: start;
+    padding: 0.75rem;
   }
   /* The day, as the My events design shows it: a blue badge (UI-01). */
   .date {
+    grid-area: date;
     display: flex;
     flex-direction: column;
     align-items: center;
-    align-self: flex-start;
-    min-width: 3.25rem;
-    padding: 0.25rem 0.375rem;
+    margin: 0;
+    padding: 0.25rem 0;
     color: white;
     line-height: 1.1;
     background: var(--blue);
@@ -183,41 +239,31 @@ const shown = (
     font-size: 1.5rem;
     font-weight: 800;
   }
-  .going-pill {
-    padding: 0.25rem 0.75rem;
-    color: var(--blue);
-    background: var(--blue-soft);
-    border-radius: 999px;
-  }
-  /* The title's link covers the card, so the card shows the focus. */
-  .card:has(a:focus-visible) {
-    outline: 2px solid;
-    outline-offset: 2px;
-  }
-  .card a:focus-visible {
-    outline: none;
-  }
-  /* The category's line icon on a tint of its color (UI-02). Its name is the label. */
-  .icon {
+  /* The cover's small copy, or the category's icon on a tint of its color (UI-02). Either way,
+     its label is the category's name. */
+  .picture {
+    grid-area: picture;
     display: grid;
-    flex: none;
     place-items: center;
-    align-self: flex-start;
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 4rem;
+    height: 4rem;
+    overflow: hidden;
     color: var(--navy);
     background: color-mix(in srgb, var(--stripe) 16%, white);
     border-radius: 0.5rem;
   }
-  .body {
-    flex: 1;
-    min-width: 0;
+  .picture img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
   h3 {
+    grid-area: title;
     display: -webkit-box;
     margin: 0;
     overflow: hidden;
     font-size: 1rem;
+    line-height: 1.35;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;
@@ -226,35 +272,94 @@ const shown = (
     color: inherit;
     text-decoration: none;
   }
+  /* The title's link covers the card, so the whole card opens the activity. */
   h3 a::after {
     content: '';
     position: absolute;
     inset: 0;
   }
+  .card:has(a:focus-visible) {
+    outline: 2px solid;
+    outline-offset: 2px;
+  }
+  .card a:focus-visible {
+    outline: none;
+  }
+  .chevron {
+    grid-area: chevron;
+    align-self: center;
+    color: var(--muted);
+  }
+  .rows {
+    grid-area: rows;
+    display: grid;
+    gap: 0.125rem;
+    min-width: 0;
+  }
   p {
     margin: 0;
   }
-  .place {
+  .rows p {
+    display: flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-width: 0;
+  }
+  .rows :global(.icon) {
+    color: var(--blue);
+  }
+  /* The time shows in full. A series' "Weekly" can go to the next line. */
+  time {
+    white-space: nowrap;
+  }
+  /* A long place ends with an ellipsis. The activity's page has all of it. */
+  .place span {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
   }
+  .foot {
+    grid-area: foot;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+  }
+  /* The faces overlap a little, with a white ring, so three fit beside the count on a phone. */
   .going {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
-    margin-top: 0.25rem;
+    gap: 0.375rem;
+  }
+  /* The people icon stands in for faces until someone's going. */
+  .going :global(.icon:has(~ .avatar)) {
+    display: none;
+  }
+  .going :global(.avatar) {
+    box-shadow: 0 0 0 2px var(--card);
+  }
+  .going :global(.avatar + .avatar) {
+    margin-left: -0.375rem;
   }
   .mine {
-    align-self: center;
+    margin-left: auto;
     font-weight: 600;
     white-space: nowrap;
   }
   .cancelled {
     color: #b42318;
   }
+  .going-pill {
+    padding: 0.25rem 0.75rem;
+    color: var(--blue);
+    background: var(--blue-soft);
+    border-radius: 999px;
+  }
   .badges {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.25rem;
     margin: 0.25rem 0 0;
     padding: 0;
@@ -264,7 +369,26 @@ const shown = (
     padding: 0 0.5rem;
     font-size: 0.875rem;
     font-weight: 600;
-    border: 1px solid #767676;
+    border: 1px solid var(--border);
     border-radius: 999px;
+  }
+  /* On a phone, the time and place take the card's whole width under the title, so they're never
+     squeezed into a narrow column. */
+  @container (max-width: 24rem) {
+    .layout {
+      grid-template-columns: 3rem 2.75rem minmax(0, 1fr) 1.25rem;
+      grid-template-areas:
+        'date picture title chevron'
+        'rows rows rows rows'
+        'foot foot foot foot';
+      column-gap: 0.5rem;
+    }
+    .date .day {
+      font-size: 1.25rem;
+    }
+    .picture {
+      width: 2.75rem;
+      height: 2.75rem;
+    }
   }
 </style>

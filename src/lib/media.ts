@@ -8,6 +8,17 @@ export const ALT_MAX = 200;
 /** The longest side a picture keeps when the device shrinks it before upload (src/scripts/pictures.ts). */
 export const MAX_SIDE = 1600;
 
+/** The longest side of a picture's small copy, which cards show (UI-03). */
+export const THUMB_SIDE = 320;
+
+/** The most a small copy weighs. At 320 px, a JPEG is usually 20 to 40 KB. */
+export const THUMB_MAX_BYTES = 200 * 1024;
+
+/** Where a picture's small copy is kept in the bucket, beside the picture. */
+export function thumbKey(key: string): string {
+  return `${key}-thumb`;
+}
+
 /** `width` by `height` scaled down to fit within `max` on its longest side. Never scaled up. */
 export function fitWithin(width: number, height: number, max = MAX_SIDE) {
   const scale = Math.min(1, max / Math.max(width, height));
