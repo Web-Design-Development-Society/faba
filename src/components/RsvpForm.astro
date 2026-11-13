@@ -110,19 +110,24 @@ const sheet = `rsvp-${crypto.randomUUID()}`;
     width: 4rem;
     min-height: 44px;
   }
+  /* Outlined, with the sheet's own text color: buttons are white on blue elsewhere (UI-01), and on
+     no background that white text would be invisible. Plain weight, so the answer stands out. */
   .choices button {
     width: 100%;
     margin-top: 0.5rem;
+    color: inherit;
+    font-weight: 400;
     text-align: left;
     background: none;
     border: 1px solid #767676;
     border-radius: 0.5rem;
   }
-  [aria-pressed='true'] {
+  /* The member's answer: bold, a thicker border, and a check. */
+  .choices [aria-pressed='true'] {
     font-weight: 600;
     border-width: 2px;
   }
-  [aria-pressed='true']::before {
+  .choices [aria-pressed='true']::before {
     content: '✓ ' / '';
   }
 </style>
