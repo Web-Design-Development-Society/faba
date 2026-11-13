@@ -2,6 +2,7 @@
 // Me → Delete account (PROF-05): what deleting does, and typing DELETE to confirm it. Once it's
 // done, the member is signed out and sees Goodbye. It works without JavaScript.
 import { actions, isInputError } from 'astro:actions';
+import Back from '../../components/Back.astro';
 import FieldError from '../../components/FieldError.astro';
 import Layout from '../../layouts/Layout.astro';
 
@@ -21,7 +22,7 @@ const failure = result?.error && !isInputError(result.error) ? result.error.mess
 ---
 
 <Layout title="Delete account">
-  <a href="/me">Back to Me</a>
+  <Back href="/me">Back to Me</Back>
   <h1>Delete your account</h1>
   {failure && <p role="alert">{failure}</p>}
   <p>Deleting your FABA account:</p>

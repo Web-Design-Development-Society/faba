@@ -1,0 +1,29 @@
+---
+// A page's way back (UI-02): a back chevron and where it goes, such as "Back to Discover".
+import Icon from './Icon.astro';
+
+interface Props {
+  href: string;
+}
+
+const { href } = Astro.props;
+---
+
+<a href={href} class="back">
+  <Icon name="back" />
+  <slot />
+</a>
+
+<style>
+  .back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-height: 44px;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .back:hover {
+    text-decoration: underline;
+  }
+</style>

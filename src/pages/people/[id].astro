@@ -7,6 +7,7 @@
 import { actions, isInputError } from 'astro:actions';
 import ActivityCard from '../../components/ActivityCard.astro';
 import Avatar from '../../components/Avatar.astro';
+import Back from '../../components/Back.astro';
 import Menu from '../../components/Menu.astro';
 import ModerationAction from '../../components/ModerationAction.astro';
 import Status from '../../components/Status.astro';
@@ -82,7 +83,7 @@ const mine = profile?.id === user.id;
 
 <Layout title={profile?.display_name ?? 'Not available'}>
   <header class="top">
-    <a href="/discover">Back to Discover</a>
+    <Back href="/discover">Back to Discover</Back>
     {profile?.status === 'active' && !mine && (
       <Menu>
         <li>

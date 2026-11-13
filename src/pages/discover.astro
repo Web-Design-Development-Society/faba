@@ -10,6 +10,7 @@ import ActivityCard from '../components/ActivityCard.astro';
 import Avatar from '../components/Avatar.astro';
 import DiscoverSwitch from '../components/DiscoverSwitch.astro';
 import FilterChips from '../components/FilterChips.astro';
+import Icon from '../components/Icon.astro';
 import FollowButton from '../components/FollowButton.astro';
 import MoreFilters from '../components/MoreFilters.astro';
 import Status from '../components/Status.astro';
@@ -140,7 +141,9 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
 <Layout title={category ? `${category.name} · Discover` : 'Discover'} tab="discover" post={post}>
   <header class="top">
     <h1>Discover</h1>
-    <a href="/search">Search</a>
+    <a href="/search" class="search" aria-label="Search">
+      <Icon name="search" size={24} />
+    </a>
   </header>
   <DiscoverSwitch current="activities" />
   <p data-zone-note hidden>
@@ -243,10 +246,20 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
     align-items: center;
     justify-content: space-between;
   }
-  .top a {
-    display: inline-grid;
+  /* An outlined square icon button beside the heading (UI-02). */
+  .search {
+    display: grid;
     place-items: center;
-    min-height: 44px;
+    width: 48px;
+    height: 48px;
+    color: var(--navy);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .search:hover {
+    color: var(--blue);
+    border-color: var(--blue);
   }
   h2 {
     margin: 1.5rem 0 0.5rem;

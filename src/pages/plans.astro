@@ -127,21 +127,22 @@ const activities = data ?? [];
     display: flex;
     overflow: hidden;
     margin-bottom: 1rem;
-    border: 1px solid #767676;
-    border-radius: 0.5rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
   }
   .segments a {
     display: grid;
     flex: 1;
     place-items: center;
     min-height: 44px;
-    color: inherit;
+    color: var(--navy);
     text-decoration: none;
   }
   .segments [aria-current] {
     font-weight: 600;
     color: white;
-    background: #222;
+    background: var(--blue);
   }
   /* minmax(0, 1fr) keeps a card with a long place on one line from widening the column. */
   ul {

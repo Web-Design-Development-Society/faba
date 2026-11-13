@@ -5,6 +5,7 @@
 // navigation (design document section 7.3): Discover, Plans, Post, Alerts and Me. Alerts shows the
 // unread count (NOTIF-01), which src/scripts/unread.ts keeps current. Detail and form pages don't
 // have it, so their own sticky actions keep the bottom of the screen.
+import Icon from '../components/Icon.astro';
 import { badge } from '../lib/notifications';
 
 interface Props {
@@ -28,7 +29,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     <link rel="icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#000000" />
+    <meta name="theme-color" content="#f4f7fb" />
     <title>{title === 'FABA' ? title : `${title} · FABA`}</title>
   </head>
   <body>
@@ -42,7 +43,8 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     </p>
     <header class="site">
       <a href="/discover" class="brand">
-        <img src="/brand/faba-logo.png" alt="FABA" width="44" height="52" />
+        <img src="/brand/faba-mark.png" alt="" width="49" height="36" />
+        <span>FABA</span>
       </a>
     </header>
     <main id="content">
@@ -54,22 +56,28 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
         BYU-Idaho channel.
       </p>
       <p>
-        <a href="/about">About</a> · <a href="/privacy">Privacy</a> ·
+        <a href="/about">About</a> · <a href="/privacy">Privacy</a> ·{' '}
         <a href="/guidelines">Guidelines</a>
       </p>
     </footer>
     {tab && (
       <nav aria-label="Main" class="tabs">
         <a href="/discover" aria-current={current('discover')}>
+          <Icon name="home" size={24} />
           Discover
         </a>
         <a href="/plans" aria-current={current('plans')}>
+          <Icon name="calendar" size={24} />
           Plans
         </a>
         <a href={post} class="post">
-          <span aria-hidden="true">＋</span> Post
+          <span class="circle">
+            <Icon name="plus" size={28} />
+          </span>
+          Post
         </a>
         <a href="/notifications" aria-current={current('alerts')} data-alerts>
+          <Icon name="bell" size={24} />
           Alerts
           {/* Screen readers hear "Alerts 3 unread", which keeps what's shown in the link's name. */}
           <span class="badge" data-badge hidden={!unread}>
@@ -78,6 +86,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
           </span>
         </a>
         <a href="/me" aria-current={current('me')}>
+          <Icon name="user" size={24} />
           Me
         </a>
       </nav>
@@ -125,15 +134,20 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     }
   }
 
-  /* The look from the My events design (UI-01). Colors are tokens, so they change in one place. */
+  /* The look from the My events design (UI-01) and the 2026 mockups (UI-02). Colors are tokens,
+     so they change in one place. Selected things are FABA blue, never black. */
   :root {
     --blue: #0b5bd3; /* white text on it is 6.4:1 */
     --blue-dark: #0a4fb8;
     --blue-soft: #e8f1fd;
     --navy: #0f1f3d;
     --ink: #171717;
-    --muted: #4b5563; /* 7.5:1 on white */
+    --muted: #4b5563; /* 7.5:1 on white, 7:1 on the page */
     --line: #c9d3e0;
+    --border: #767676; /* 4.5:1 on white, for controls that need 3:1 */
+    --page: #f4f7fb; /* the soft blue-gray the cards sit on */
+    --card: #ffffff;
+    --shadow: 0 1px 2px rgb(15 31 61 / 6%), 0 2px 8px rgb(15 31 61 / 6%);
     --radius: 0.625rem;
   }
   body {
@@ -143,15 +157,35 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     color: var(--ink);
     font-family: system-ui, sans-serif;
     line-height: 1.5;
+    background: var(--page);
   }
+  /* A white card on the page, for anything that groups content. */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  /* The mark with the wordmark beside it. The words are the link's name. */
   .site {
     display: flex;
     align-items: center;
     margin-bottom: 0.5rem;
   }
-  .site img {
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    color: var(--navy);
+    font-size: 1.625rem;
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    text-decoration: none;
+  }
+  .brand img {
     display: block;
-    height: 3rem;
+    height: 2.25rem;
     width: auto;
   }
   h1 {
@@ -184,8 +218,8 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     margin-top: 3rem;
     padding-top: 1rem;
     font-size: 0.875rem;
-    color: #595959;
-    border-top: 1px solid #767676;
+    color: var(--muted);
+    border-top: 1px solid var(--border);
   }
   footer a {
     display: inline-block;
@@ -194,8 +228,10 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   /* In thumb reach at the bottom of the screen (section 7.16), above the cards' I'm in buttons,
      which sit above their links. The page leaves room for it. */
   body:has(> .tabs) {
-    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom));
   }
+  /* Five items, each an icon over its label (section 7.3, UI-02). The current one is blue, bolder
+     and underlined, so it isn't shown by color alone. */
   .tabs {
     position: fixed;
     z-index: 2;
@@ -205,30 +241,43 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     display: flex;
     max-width: 40rem;
     margin: 0 auto;
-    padding: 0.25rem 0.5rem calc(0.25rem + env(safe-area-inset-bottom));
-    background: white;
-    border-top: 1px solid #767676;
+    padding: 0.25rem 0.25rem calc(0.25rem + env(safe-area-inset-bottom));
+    background: var(--card);
+    border-top: 1px solid var(--border);
   }
   .tabs a {
     position: relative;
-    display: grid;
+    display: flex;
     flex: 1;
-    place-items: center;
-    min-height: 48px;
-    color: inherit;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.125rem;
+    min-width: 0;
+    min-height: 56px;
+    padding-bottom: 0.25rem;
+    color: var(--navy);
+    font-size: 0.875rem;
     text-decoration: none;
   }
   .tabs [aria-current] {
-    font-weight: 600;
+    font-weight: 700;
     color: var(--blue);
-    text-decoration: underline;
-    text-decoration-thickness: 2px;
-    text-underline-offset: 0.25rem;
+  }
+  .tabs [aria-current]::after {
+    position: absolute;
+    right: 22%;
+    bottom: 0;
+    left: 22%;
+    height: 3px;
+    content: '';
+    background: currentColor;
+    border-radius: 2px;
   }
   .tabs .badge {
     position: absolute;
     top: 0;
-    left: calc(50% + 1rem);
+    left: calc(50% + 0.5rem);
     min-width: 1.25rem;
     padding: 0 0.25rem;
     font-size: 0.75rem;
@@ -255,12 +304,23 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     background: #fef3c7;
     border-radius: 0.5rem;
   }
-  /* The one filled button in the bar. */
+  /* The one filled button in the bar: a blue circle that rises above it, with "Post" under it. */
   .tabs .post {
-    margin: 0 0.25rem;
     font-weight: 600;
+  }
+  .tabs .post .circle {
+    display: grid;
+    place-items: center;
+    width: 3.25rem;
+    height: 3.25rem;
+    margin-top: -1.5rem;
     color: white;
-    background: #222;
-    border-radius: 999px;
+    background: var(--blue);
+    border: 3px solid var(--card);
+    border-radius: 50%;
+    box-shadow: 0 2px 6px rgb(11 91 211 / 35%);
+  }
+  .tabs .post:hover .circle {
+    background: var(--blue-dark);
   }
 </style>

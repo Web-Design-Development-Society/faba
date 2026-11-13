@@ -2,6 +2,7 @@
 // Reporting an organizer's update (NOTIF-04, FR-REP-3), from Report beside it on the activity's
 // page. Sending it goes back to the activity, which says thanks.
 import { actions } from 'astro:actions';
+import Back from '../../../../../components/Back.astro';
 import ReportForm from '../../../../../components/ReportForm.astro';
 import Layout from '../../../../../layouts/Layout.astro';
 import { setFlash } from '../../../../../lib/server/flash';
@@ -41,7 +42,9 @@ if (!update) Astro.response.status = 404;
 <Layout title={update ? `Report an update to ${update.activity.title}` : 'Not available'}>
   {update ? (
     <>
-      <a href={`/activities/${update.activity.id}#updates`}>Back to {update.activity.title}</a>
+      <Back href={`/activities/${update.activity.id}#updates`}>
+        Back to {update.activity.title}
+      </Back>
       <h1>Report this update</h1>
       <blockquote>{update.body}</blockquote>
       <ReportForm

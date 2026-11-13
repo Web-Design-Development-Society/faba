@@ -1,4 +1,5 @@
 import { describe as group, expect, it } from 'vitest';
+import { isIcon } from '../../src/lib/icons';
 import {
   badge,
   changeLine,
@@ -29,11 +30,15 @@ group('describe', () => {
       'new_activity',
       'report_received',
     ]);
-    expect(describe('activity_cancelled')).toEqual({ icon: '✕', summary: 'Cancelled' });
+    expect(describe('activity_cancelled')).toEqual({ icon: 'x', summary: 'Cancelled' });
+  });
+
+  it("has one of FABA's line icons for each type (UI-02)", () => {
+    for (const { icon } of Object.values(TYPES)) expect(isIcon(icon)).toBe(true);
   });
 
   it("has a plain line for a type it doesn't know", () => {
-    expect(describe('league_score')).toEqual({ icon: '•', summary: 'Update' });
+    expect(describe('league_score')).toEqual({ icon: 'bell', summary: 'Update' });
   });
 });
 
@@ -109,7 +114,7 @@ group('changeLine', () => {
 group('promoted from the waitlist (RSVP-07)', () => {
   it('says a spot opened, and when', () => {
     const { icon, summary } = describe('rsvp_promoted', { starts_at: '2026-12-05T02:00:00Z' });
-    expect(icon).toBe('🎉');
+    expect(icon).toBe('check');
     expect(summary).toMatch(/^A spot opened\. You're going on Fri, Dec 4, 7:00\sPM$/);
     expect(describe('rsvp_promoted', {}).summary).toBe("A spot opened, and you're going");
   });
@@ -135,7 +140,7 @@ group('RSVP confirmation', () => {
     [{ starts_at: '2026-12-04T19:00:00-07:00' }, "You're going on Fri, Dec 4, 7:00 PM"],
     [{}, "You're going"],
   ])('says %j as %j', (payload, line) => {
-    expect(describe('rsvp_confirmed', payload)).toEqual({ icon: '✓', summary: line });
+    expect(describe('rsvp_confirmed', payload)).toEqual({ icon: 'calendar', summary: line });
   });
 });
 
@@ -145,7 +150,7 @@ group('new attendees', () => {
     [{ count: 3 }, '3 new people are going'],
     [{}, 'New people going'],
   ])('says %j as %j', (payload, line) => {
-    expect(describe('new_attendees', payload)).toEqual({ icon: '👋', summary: line });
+    expect(describe('new_attendees', payload)).toEqual({ icon: 'user-plus', summary: line });
   });
 });
 
@@ -157,7 +162,7 @@ group('reminders', () => {
     ['a later day', '2026-12-05T09:00:00-07:00', 'Reminder: Fri, Dec 4, 12:10 PM, Hart courts'],
   ])('says it on %s', (_, now, line) => {
     expect(describe('reminder', payload, undefined, new Date(now))).toEqual({
-      icon: '⏰',
+      icon: 'bell',
       summary: line,
     });
   });
@@ -172,7 +177,7 @@ group('board announcements', () => {
     [{ starts_at: '2026-12-04T19:00:00-07:00' }, 'From the FABA board: Fri, Dec 4, 7:00 PM'],
     [{}, 'From the FABA board'],
   ])('says %j as %j', (payload, line) => {
-    expect(describe('board_announcement', payload)).toEqual({ icon: '📣', summary: line });
+    expect(describe('board_announcement', payload)).toEqual({ icon: 'megaphone', summary: line });
   });
 });
 
@@ -181,7 +186,7 @@ group('join requests', () => {
     [{ name: 'Quilters', member: 'Dana Smith' }, 'Dana Smith asked to join'],
     [{}, 'Asked to join'],
   ])('says %j as %j', (payload, line) => {
-    expect(describe('group_join_request', payload)).toEqual({ icon: '🙋', summary: line });
+    expect(describe('group_join_request', payload)).toEqual({ icon: 'user-plus', summary: line });
   });
 });
 
@@ -209,7 +214,7 @@ group('organizer updates', () => {
   // GRP-04.
   it("says a group's the same way", () => {
     expect(describe('group_update', {}, { author: 'Uma Lee', body: 'Bring boots.' })).toEqual({
-      icon: '💬',
+      icon: 'chat',
       summary: 'Uma Lee: Bring boots.',
     });
     expect(describe('group_update', {}).summary).toBe('Update from the group');
@@ -237,7 +242,7 @@ group('sub requests', () => {
     expect(describe('sub_needed', { team: 'Reds' }).summary).toBe(
       'A sub is needed for Reds. Free agents can accept it.'
     );
-    expect(describe('sub_needed').icon).toBe('🔁');
+    expect(describe('sub_needed').icon).toBe('arrows');
   });
 });
 
@@ -252,7 +257,7 @@ group('reports for moderators', () => {
 group('new activities I follow', () => {
   it('says how many new activities a follow has, by name', () => {
     expect(describe('new_activity', { name: 'Outdoors', count: 2 })).toEqual({
-      icon: '✨',
+      icon: 'sparkle',
       summary: '2 new Outdoors activities',
     });
     expect(describe('new_activity', { name: 'Hikers', count: 1 }).summary).toBe(

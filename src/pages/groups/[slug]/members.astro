@@ -5,6 +5,7 @@
 // organizers and back, removes organizers, and hands the group on, as a moderator can. Postgres
 // checks every rule again. It all works without JavaScript.
 import { actions } from 'astro:actions';
+import Back from '../../../components/Back.astro';
 import Status from '../../../components/Status.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { type Flash, FLASH_MESSAGES, setFlash, takeFlash } from '../../../lib/server/flash';
@@ -87,7 +88,7 @@ const everyone = active.filter(({ role }) => role === 'member');
     </>
   ) : (
     <>
-      <a href={`/groups/${group.slug}`}>Back to {group.name}</a>
+      <Back href={`/groups/${group.slug}`}>Back to {group.name}</Back>
       <h1>Members</h1>
       <Status message={flash && FLASH_MESSAGES[flash]} />
       {failure && <p role="alert">{failure}</p>}

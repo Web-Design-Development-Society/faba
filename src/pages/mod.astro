@@ -7,6 +7,7 @@
 // Below them, upcoming activities whose organizer is no longer eligible, for a moderator to give to
 // a new host or cancel on their pages (AUTH-05).
 import { actions, isInputError } from 'astro:actions';
+import Back from '../components/Back.astro';
 import ModerationAction from '../components/ModerationAction.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
@@ -196,7 +197,7 @@ const preview = (type: string, id: string) => {
 ---
 
 <Layout title="Reports">
-  <a href="/me">Back to Me</a>
+  <Back href="/me">Back to Me</Back>
   {member?.role === 'admin' && (
     <>
       {' · '}

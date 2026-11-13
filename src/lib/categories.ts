@@ -1,19 +1,6 @@
 // How categories look on cards. The database names each category's icon and color token
-// (design document section 10.3). These are placeholders until the design tokens and icons exist
-// (Iteration 1 task UX-4).
-
-const ICONS: Record<string, string> = {
-  mountain: '⛰️',
-  ball: '🏀',
-  dice: '🎲',
-  utensils: '🍴',
-  palette: '🎨',
-  book: '📚',
-  'heart-hand': '🤝',
-  people: '👪',
-  globe: '🌐',
-  sparkle: '✨',
-};
+// (design document section 10.3), and each icon is one of FABA's line icons (UI-02).
+import { isIcon, type IconName } from './icons';
 
 const COLORS: Record<string, string> = {
   'category-outdoors': '#2e7d32',
@@ -28,10 +15,13 @@ const COLORS: Record<string, string> = {
   'category-other': '#616161',
 };
 
-/** The emoji for a category's icon name, and the color for its color token. */
-export function categoryLook(category: { icon: string; color_token: string }) {
+/** The line icon for a category's icon name, and the color for its color token. */
+export function categoryLook(category: { icon: string; color_token: string }): {
+  icon: IconName;
+  color: string;
+} {
   return {
-    icon: ICONS[category.icon] ?? ICONS.sparkle,
+    icon: isIcon(category.icon) ? category.icon : 'sparkle',
     color: COLORS[category.color_token] ?? COLORS['category-other'],
   };
 }

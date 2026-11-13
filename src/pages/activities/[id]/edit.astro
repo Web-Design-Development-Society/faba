@@ -8,6 +8,7 @@
 // future dates (REC-02), and cancels just that date (REC-03).
 import { actions, isInputError } from 'astro:actions';
 import ActivityFields from '../../../components/ActivityFields.astro';
+import Back from '../../../components/Back.astro';
 import CancelActivity from '../../../components/CancelActivity.astro';
 import FieldError from '../../../components/FieldError.astro';
 import PrivateDetailsField from '../../../components/PrivateDetailsField.astro';
@@ -100,7 +101,7 @@ const back = `/activities/${Astro.params.id}`;
 ---
 
 <Layout title="Edit activity">
-  <a href={back}>Back to the activity</a>
+  <Back href={back}>Back to the activity</Back>
   {!activity ? (
     <>
       <h1>Not available</h1>

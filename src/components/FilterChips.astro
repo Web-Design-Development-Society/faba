@@ -76,17 +76,19 @@ const chips = [
     gap: 0.25rem;
     min-height: 44px;
     padding: 0 1rem;
-    color: inherit;
+    color: var(--navy);
     white-space: nowrap;
     text-decoration: none;
-    border: 1px solid #767676;
+    background: var(--card);
+    border: 1px solid var(--border);
     border-radius: 999px;
   }
+  /* FABA blue with a check (UI-02), so it isn't shown by color alone. */
   [aria-current] {
     font-weight: 600;
     color: white;
-    background: #222;
-    border-color: #222;
+    background: var(--blue);
+    border-color: var(--blue);
   }
   [aria-current]::before {
     content: '✓' / '';

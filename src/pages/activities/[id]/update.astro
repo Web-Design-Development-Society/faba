@@ -4,6 +4,7 @@
 // form comes back with what was typed and the same idempotency key, so posting again never posts
 // twice. Once it's posted, the page goes back to the activity, which shows it first.
 import { actions, isInputError } from 'astro:actions';
+import Back from '../../../components/Back.astro';
 import FieldError from '../../../components/FieldError.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { setFlash } from '../../../lib/server/flash';
@@ -43,7 +44,7 @@ const failure = result?.error && !isInputError(result.error) ? result.error.mess
     </>
   ) : (
     <>
-      <a href={`/activities/${activity.id}`}>Back to {activity.title}</a>
+      <Back href={`/activities/${activity.id}`}>Back to {activity.title}</Back>
       <h1>Post an update</h1>
       {!mine ? (
         <p>Only the organizer can post updates to this activity.</p>

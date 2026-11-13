@@ -9,6 +9,7 @@
 import { actions } from 'astro:actions';
 import ActivityCard from '../components/ActivityCard.astro';
 import Avatar from '../components/Avatar.astro';
+import Back from '../components/Back.astro';
 import FilterChips from '../components/FilterChips.astro';
 import MoreFilters from '../components/MoreFilters.astro';
 import Status from '../components/Status.astro';
@@ -101,7 +102,7 @@ const matching = [
 ---
 
 <Layout title={q ? `${q} · Search` : 'Search'} tab="discover">
-  <a href="/discover">Back to Discover</a>
+  <Back href="/discover">Back to Discover</Back>
   <h1>Search</h1>
   <form method="get" action="/search" role="search" data-search>
     <label for="q">Search activities</label>

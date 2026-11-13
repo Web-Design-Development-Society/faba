@@ -2,6 +2,7 @@
 // Reporting a group's update (GRP-04, FR-REP-3), from Report beside it on the group's page. Sending
 // it goes back to the group, which says thanks.
 import { actions } from 'astro:actions';
+import Back from '../../../../../components/Back.astro';
 import ReportForm from '../../../../../components/ReportForm.astro';
 import Layout from '../../../../../layouts/Layout.astro';
 import { setFlash } from '../../../../../lib/server/flash';
@@ -41,7 +42,7 @@ if (!update) Astro.response.status = 404;
 <Layout title={update ? `Report an update to ${update.group.name}` : 'Not available'}>
   {update ? (
     <>
-      <a href={`/groups/${update.group.slug}#updates`}>Back to {update.group.name}</a>
+      <Back href={`/groups/${update.group.slug}#updates`}>Back to {update.group.name}</Back>
       <h1>Report this update</h1>
       <blockquote>{update.body}</blockquote>
       <ReportForm

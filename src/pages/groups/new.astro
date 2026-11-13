@@ -3,6 +3,7 @@
 // becomes its owner. It works without JavaScript: when it fails, the form comes back with what was
 // typed and the same idempotency key, so starting it again can't make a second group.
 import { actions, isInputError } from 'astro:actions';
+import Back from '../../components/Back.astro';
 import FieldError from '../../components/FieldError.astro';
 import Layout from '../../layouts/Layout.astro';
 import { setFlash } from '../../lib/server/flash';
@@ -36,7 +37,7 @@ const { data: categories, error: categoriesError } = await supabase
 ---
 
 <Layout title="Start a group">
-  <a href="/groups">Back to Groups</a>
+  <Back href="/groups">Back to Groups</Back>
   <h1>Start a group</h1>
   <p>A home for people who meet again and again, such as a running club or a book club.</p>
   {failure && <p role="alert">{failure}</p>}
