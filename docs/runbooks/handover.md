@@ -28,6 +28,12 @@ These run in the database with pg_cron (ADR-006). Each one is in a migration, so
 
 To see the jobs and their last runs, use the `cron.job` and `cron.job_run_details` tables in the Supabase SQL editor.
 
+The Worker has one more: a Cloudflare Cron Trigger, every minute, that sends the Web Push notifications that are due (NOTIF-20, ADR-006). It's in `wrangler.jsonc`, and the code is `src/lib/server/push/send.ts`.
+
+- **Its queue** is the `notification_deliveries` table. A push still `pending` long after it was queued, or `failed`, shows what isn't getting through, and `last_error` says why.
+- **Its runs** show in the Worker's logs and under the Worker's Cron Events in the Cloudflare dashboard. A run that sent anything logs how many pushes went each way.
+- **It needs keys.** Each environment has its own VAPID key pair: the public key in `wrangler.jsonc`, and the private key as the `VAPID_PRIVATE_KEY` secret. Without the secret, push stays off and the queue isn't sent. Make a pair with `npm run push:keys`. Changing an environment's keys stops pushes to every device until its member turns push on again.
+
 ## Everyday commands
 
 ```bash

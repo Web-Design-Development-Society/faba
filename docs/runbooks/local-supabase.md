@@ -67,7 +67,7 @@ FABA uses ports 54330 to 54339, so it can run next to another project's Supabase
 
 FABA uses local Supabase unless something tells it otherwise. Make sure nothing does:
 
-- `.dev.vars` holds only `SUPABASE_SECRET_KEY` and `SENTRY_DSN`. Don't add `SUPABASE_URL` or `SITE_URL` to it.
+- `.dev.vars` holds only `SUPABASE_SECRET_KEY`, `SENTRY_DSN`, and the local Web Push keys (`VAPID_PUBLIC_KEY` and `VAPID_PRIVATE_KEY`). Don't add `SUPABASE_URL` or `SITE_URL` to it.
 - `CLOUDFLARE_ENV` isn't set, in your shell or in a `.env` file in the `faba` folder. `echo $CLOUDFLARE_ENV` should print nothing. `CLOUDFLARE_ENV=staging` is for CI's staging builds, and it makes FABA use the staging Supabase project instead.
 
 ## 4. Sign in with Google

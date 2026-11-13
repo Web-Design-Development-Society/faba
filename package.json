@@ -11,6 +11,7 @@
     "preview": "astro preview",
     "astro": "astro",
     "setup:dev-vars": "node scripts/setup-dev-vars.mjs",
+    "push:keys": "node scripts/vapid-keys.mjs",
     "lint": "eslint --max-warnings=0 .",
     "format:check": "prettier --check .",
     "typecheck": "astro check",

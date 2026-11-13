@@ -1,9 +1,24 @@
 // Notification Actions (NOTIF-01). Each checks who's signed in, and Postgres marks only the
 // member's own notifications read (ADR-004).
 import { ActionError, defineAction } from 'astro:actions';
+import { SITE_URL } from 'astro:env/server';
 import { z } from 'astro/zod';
 import { PREFERENCE_TYPES } from '../lib/notifications';
 import { actionErrorFor } from '../lib/server/errors';
+import { openedHref } from '../lib/server/notifications';
+import { isPushService } from '../lib/server/push/webpush';
+
+/** A device's push subscription, as the browser's PushSubscription.toJSON() gives it (NOTIF-20). */
+const device = z.object({
+  endpoint: z
+    .url()
+    .max(1000)
+    .refine((endpoint) => isPushService(endpoint, new URL(SITE_URL).hostname === 'localhost'), {
+      message: "This browser's push service isn't supported.",
+    }),
+  p256dh: z.string().regex(/^[A-Za-z0-9_-]{87}$/),
+  auth: z.string().regex(/^[A-Za-z0-9_-]{22}$/),
+});
 
 export const notifications = {
   /**
@@ -18,26 +33,7 @@ export const notifications = {
 
       const { error } = await locals.supabase.rpc('mark_notifications_read', { ids: [id] });
       if (error) throw new ActionError(actionErrorFor(error));
-      const { data } = await locals.supabase
-        .from('notifications')
-        .select('type, activity_id, payload, group:groups(slug)')
-        .eq('id', id)
-        .maybeSingle();
-      // A batched follow notice opens its category or group, and a new report opens the queue. Each
-      // names where in its payload.
-      const link =
-        data?.type === 'new_activity' || data?.type === 'report_received'
-          ? (data.payload as { href?: string }).href
-          : null;
-      return {
-        href:
-          link ??
-          (data?.activity_id
-            ? `/activities/${data.activity_id}`
-            : data?.group
-              ? `/groups/${data.group.slug}${data.type === 'group_join_request' ? '/members' : ''}`
-              : '/notifications'),
-      };
+      return { href: await openedHref(locals.supabase, id) };
     },
   }),
 
@@ -83,6 +79,55 @@ export const notifications = {
       const { error } = await locals.supabase.rpc('set_notification_preferences', { off });
       if (error) throw new ActionError(actionErrorFor(error));
       return { off };
+    },
+  }),
+
+  /** Turns push on for this device (NOTIF-20). The page's script sends its subscription. */
+  savePushDevice: defineAction({
+    accept: 'json',
+    input: device,
+    handler: async ({ endpoint, p256dh, auth }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('save_push_subscription', {
+        endpoint,
+        p256dh,
+        auth_secret: auth,
+      });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { saved: true };
+    },
+  }),
+
+  /** Turns push off for this device (NOTIF-20). */
+  removePushDevice: defineAction({
+    accept: 'json',
+    input: z.object({ endpoint: z.url().max(1000) }),
+    handler: async ({ endpoint }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('remove_push_subscription', { endpoint });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { removed: true };
+    },
+  }),
+
+  /**
+   * Saves which types push to the member's devices (NOTIF-20). The form posts the types that are on.
+   * Cancellations always push.
+   */
+  savePushPreferences: defineAction({
+    accept: 'form',
+    input: z.object({ push: z.array(z.string()).max(PREFERENCE_TYPES.length).default([]) }),
+    handler: async ({ push }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { error } = await locals.supabase.rpc('set_push_preferences', {
+        turned_on: PREFERENCE_TYPES.filter((type) => push.includes(type)),
+        turned_off: PREFERENCE_TYPES.filter((type) => !push.includes(type)),
+      });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { saved: true };
     },
   }),
 };

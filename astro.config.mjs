@@ -50,6 +50,10 @@ export default defineConfig({
       }),
       // Staging and production only.
       SENTRY_DSN: envField.string({ context: 'server', access: 'secret', optional: true }),
+      // Web Push (NOTIF-20). Push is off in an environment without both. The Cron Trigger's
+      // sender reads them from the Worker's environment (src/lib/server/push/send.ts).
+      VAPID_PUBLIC_KEY: envField.string({ context: 'server', access: 'public', optional: true }),
+      VAPID_PRIVATE_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
     },
   },
 });
