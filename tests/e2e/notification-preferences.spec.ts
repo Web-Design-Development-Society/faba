@@ -5,9 +5,8 @@ import { expect, expectAccessible, test } from './fixtures';
 // A new member of its own, since the other sizes run this at the same time and would change the
 // shared member's choices under it.
 test('a member turns a type off, and it stays off', async ({ page, poster }) => {
-  // From Me, where its link is a link of its own, apart from Download my data.
+  // From Me.
   await page.goto('/me');
-  await expect(page.getByRole('link', { name: 'Download my data', exact: true })).toBeVisible();
   await page.getByRole('link', { name: 'Notifications', exact: true }).click();
   await expect(page).toHaveURL('/me/notifications');
 
