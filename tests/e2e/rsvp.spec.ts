@@ -128,6 +128,23 @@ test("on a card, Going keeps the RSVP, and Can't make it changes the next plan t
   await page.reload();
   const going = card.getByRole('button', { name: '✓ Going' });
   await going.click();
+  // The choices are readable on the white sheet, not white like other buttons, and the member's
+  // answer stands out.
+  const sheet = page.getByRole('dialog', { name: 'Are you going?' });
+  for (const name of ['Going', 'Maybe', "Can't make it"]) {
+    await expect(sheet.getByRole('button', { name, exact: true })).not.toHaveCSS(
+      'color',
+      'rgb(255, 255, 255)'
+    );
+  }
+  await expect(sheet.getByRole('button', { name: 'Going', exact: true })).toHaveCSS(
+    'font-weight',
+    '600'
+  );
+  await expect(sheet.getByRole('button', { name: 'Maybe', exact: true })).toHaveCSS(
+    'font-weight',
+    '400'
+  );
   await page.getByRole('button', { name: 'Going', exact: true }).click();
   await expect(page.getByRole('dialog')).toBeHidden();
   await expect(going).toBeFocused();
