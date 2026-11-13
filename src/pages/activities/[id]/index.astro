@@ -19,6 +19,7 @@ import Menu from '../../../components/Menu.astro';
 import ModerationAction from '../../../components/ModerationAction.astro';
 import ParticipationDisclaimer from '../../../components/ParticipationDisclaimer.astro';
 import RsvpForm from '../../../components/RsvpForm.astro';
+import PictureUpload from '../../../components/PictureUpload.astro';
 import Sheet from '../../../components/Sheet.astro';
 import Status from '../../../components/Status.astro';
 import Layout from '../../../layouts/Layout.astro';
@@ -27,7 +28,13 @@ import { isFull } from '../../../lib/cards';
 import { PHYSICAL_CATEGORIES } from '../../../lib/contact';
 import { linkify, mapsUrl } from '../../../lib/links';
 import { repeatsSentence } from '../../../lib/series';
-import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../../../lib/server/flash';
+import {
+  FLASH_MESSAGES,
+  pictureRefusal,
+  postedFrom,
+  setFlash,
+  takeFlash,
+} from '../../../lib/server/flash';
 import { formatAgo, formatDate, formatRange, isOver } from '../../../lib/time';
 
 // Faces in the going row, and people in who's going before Show all (RSVP-03).
@@ -207,6 +214,8 @@ const [{ data: activity }, { data: me }] = await Promise.all([
 if (!activity) Astro.response.status = 404;
 
 const flash = takeFlash(Astro.cookies);
+// A refused picture says why next to its form, not in the toast (MEDIA-01).
+const pictureError = pictureRefusal(flash);
 // Co-organizers (ACT-10) can edit and cancel too, so they host like the organizer does.
 const coOrganizers = activity?.co_organizers.map(({ member }) => member) ?? [];
 const hosting = activity?.organizer_id === user.id || coOrganizers.some(({ id }) => id === user.id);
@@ -362,7 +371,7 @@ const email = activity
     </Sheet>
   )}
   <Status
-    message={flash && FLASH_MESSAGES[flash]}
+    message={flash && !pictureError ? FLASH_MESSAGES[flash] : undefined}
     data-posted={flash === 'posted' ? '' : undefined}
   />
   {rsvp?.error && <p role="alert">{rsvp.error.message}</p>}
@@ -764,27 +773,13 @@ const email = activity
       {hosting && !activity.hidden_at && (
         <section class="cover-upload" aria-labelledby="cover-heading">
           <h2 id="cover-heading">Cover picture</h2>
-          <form
-            method="post"
-            action="/api/media/upload"
-            enctype="multipart/form-data"
-            class="stack"
-          >
-            <input type="hidden" name="target" value="activity" />
-            <input type="hidden" name="id" value={activity.id} />
-            <input type="hidden" name="back" value={`/activities/${activity.id}`} />
-            <label for="cover-picture">Picture (JPEG, PNG or WebP, under 2 MB)</label>
-            <input
-              id="cover-picture"
-              name="picture"
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              required
-            />
-            <label for="cover-alt">Describe it for people who can't see it</label>
-            <input id="cover-alt" name="alt" type="text" maxlength="200" required />
-            <button>Save picture</button>
-          </form>
+          <PictureUpload
+            target="activity"
+            id={activity.id}
+            back={`/activities/${activity.id}`}
+            submit="Save picture"
+            error={pictureError}
+          />
         </section>
       )}
       <section class="comments" id="comments" aria-labelledby="comments-heading">

@@ -101,6 +101,14 @@ export function takeFlash(cookies: AstroCookies): Flash | undefined {
 }
 
 /**
+ * Why a picture upload was refused, when `flash` says it was (MEDIA-01). The page shows it next to
+ * the upload form (src/components/PictureUpload.astro), not as the toast.
+ */
+export function pictureRefusal(flash: Flash | undefined): string | null {
+  return flash?.startsWith('upload_') ? FLASH_MESSAGES[flash] : null;
+}
+
+/**
  * Where to redirect after a form posts to an Action on its own page: the same page without the
  * Action, which Astro names in `_action`, and with `hash`, such as a card's id.
  */

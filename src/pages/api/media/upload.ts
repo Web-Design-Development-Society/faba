@@ -29,9 +29,19 @@ export const POST = (async ({ locals, request, cookies, url, redirect }) => {
   const id = String(form.get('id') ?? '');
   const alt = String(form.get('alt') ?? '').trim();
   const file = form.get('picture');
+  // Back to the upload form (src/components/PictureUpload.astro), which says why. The Worker's logs
+  // say why too, with the file's size and the type the browser named, and nothing about who.
   const fail = (flash: Parameters<typeof setFlash>[2]) => {
+    console.warn(
+      JSON.stringify({
+        upload: 'refused',
+        reason: flash,
+        bytes: file instanceof File ? file.size : null,
+        sent_as: file instanceof File ? file.type : null,
+      })
+    );
     setFlash(cookies, url, flash);
-    return redirect(back, 303);
+    return redirect(`${back}#picture`, 303);
   };
 
   if (!/^[0-9a-f-]{36}$/i.test(id)) return new Response('Not found.', { status: 404 });
