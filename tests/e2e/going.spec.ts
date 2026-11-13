@@ -43,6 +43,55 @@ test("the going row opens who's going, with the organizer first", async ({
   await expect(row).toBeFocused();
 });
 
+// A phone has no Escape, so the sheet has a Close button, and a tap on the dimmed page above it
+// closes it too.
+test("who's going closes with Close, or a tap outside it", async ({ page, signInAs, host }) => {
+  await signInAs('member');
+  const id = await host.post();
+  await page.goto(`/activities/${id}`);
+  const row = page.getByRole('button', { name: /1 going$/ });
+  const sheet = page.getByRole('dialog', { name: "Who's going" });
+
+  await row.click();
+  const close = sheet.getByRole('button', { name: 'Close' });
+  // All of it is on screen, not cut off at the right edge.
+  await expect(close).toBeInViewport({ ratio: 1 });
+  await close.click();
+  await expect(sheet).toBeHidden();
+  await expect(row).toBeFocused();
+
+  await row.click();
+  await expect(sheet).toBeVisible();
+  await page.mouse.click(10, 10);
+  await expect(sheet).toBeHidden();
+});
+
+// The browsers the tests run in have closedby, so here it's taken away, as an older Safari would
+// be: only src/scripts/sheets.ts can close the sheet on a tap outside.
+test('a tap outside closes a sheet in a browser without closedby', async ({
+  page,
+  signInAs,
+  host,
+}) => {
+  await page.addInitScript(() => {
+    delete (HTMLDialogElement.prototype as { closedBy?: string }).closedBy;
+  });
+  await signInAs('member');
+  const id = await host.post();
+  await page.goto(`/activities/${id}`);
+  const sheet = page.getByRole('dialog', { name: "Who's going" });
+  // By its id, since a closed sheet is hidden, and roles only find what's shown.
+  await page.locator('dialog#going').evaluate((dialog) => dialog.removeAttribute('closedby'));
+
+  await page.getByRole('button', { name: /1 going$/ }).click();
+  await expect(sheet).toBeVisible();
+  // A tap on the sheet itself leaves it open.
+  await sheet.getByRole('heading', { name: "Who's going" }).click();
+  await expect(sheet).toBeVisible();
+  await page.mouse.click(10, 10);
+  await expect(sheet).toBeHidden();
+});
+
 test("after I'm in, who's going has the member in it", async ({ page, poster, host }) => {
   const id = await host.post();
   await page.goto(`/activities/${id}`);
@@ -98,5 +147,8 @@ test.describe('without JavaScript', () => {
     const sheet = page.getByRole('dialog', { name: "Who's going" });
     await expect(sheet.getByRole('listitem')).toHaveCount(1);
     await expect(sheet.getByRole('listitem')).toContainText('Hana Host');
+    // Close is a dialog form, so it works without JavaScript too.
+    await sheet.getByRole('button', { name: 'Close' }).click();
+    await expect(sheet).toBeHidden();
   });
 });

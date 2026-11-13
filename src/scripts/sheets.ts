@@ -11,6 +11,23 @@ document.addEventListener('click', (event) => {
   }
 });
 
+// A tap outside a sheet closes it. Sheet.astro asks for that with closedby="any", which older
+// browsers, such as an older Safari, don't have, so this does it there. A tap on the dimmed page
+// lands on the dialog itself, outside its box; one on the sheet's own padding lands inside it.
+if (!('closedBy' in HTMLDialogElement.prototype)) {
+  document.addEventListener('click', (event) => {
+    const sheet = event.target;
+    if (!(sheet instanceof HTMLDialogElement) || !sheet.open) return;
+    const box = sheet.getBoundingClientRect();
+    const inside =
+      event.clientX >= box.left &&
+      event.clientX <= box.right &&
+      event.clientY >= box.top &&
+      event.clientY <= box.bottom;
+    if (!inside) sheet.close();
+  });
+}
+
 document.addEventListener(
   'close',
   (event) => {
