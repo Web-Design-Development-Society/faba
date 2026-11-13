@@ -2099,15 +2099,19 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 
 ### 7.5 Activity cards
 
-| Element                        | Rule                                                                                                       |
-| ------------------------------ | ---------------------------------------------------------------------------------------------------------- |
-| Category icon and color stripe | Always shown. Color is never the only signal, because the category name is in the accessible label         |
-| Title                          | Up to 2 lines, truncated with an ellipsis                                                                  |
-| When                           | Relative for the next 6 days ("Tomorrow 6:30 PM", "Sat 7:00 AM"), absolute after that ("Nov 3, 6:30 PM")   |
-| Where                          | Short place text or "Online". At most 1 line                                                               |
-| Social proof                   | Up to 3 avatars plus "8 going". "+3 guests" appears only in details                                        |
-| Status                         | One badge at most, in priority order: Cancelled → Full → Board activity → New                              |
-| Action                         | **I'm in** / **✓ Going** button on the right, 44 px tall. The whole card (except the button) opens details |
+| Element               | Rule                                                                                                                                                |
+| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Date badge            | The month and day in a FABA blue badge, at the top left                                                                                             |
+| Picture               | The cover's small copy (MEDIA-01), or the category's line icon on a tint of its color. Its label is the category's name                             |
+| Category color stripe | Always shown down the left edge, except on **Your next plan**, which is FABA blue. Color is never the only signal                                   |
+| Title                 | Up to 2 lines, truncated with an ellipsis                                                                                                           |
+| When                  | A row with a calendar icon. Relative for the next 6 days ("Tomorrow 6:30 PM", "Sat 7:00 AM"), absolute after that ("Nov 3, 6:30 PM"). Never cut off |
+| Where                 | A row with a pin icon. Short place text or "Online". At most 1 line, ending with an ellipsis                                                        |
+| Social proof          | Along the bottom: up to 3 avatars, overlapping a little, plus "8 going". "+3 guests" appears only in details                                        |
+| Status                | One badge at most, in priority order: Cancelled → Full → Board activity → New                                                                       |
+| Action                | **I'm in** / **✓ Going** at the right of the bottom row, 44 px tall. The whole card (except the button) opens details, which a chevron shows        |
+
+- **Layout** (UI-03): a card is laid out for its own width. Wider than 24rem, the time and place sit beside the date and picture. On a phone, they take the card's whole width under the title, so a 320 px screen never squeezes them into a narrow column.
 
 ### 7.6 Activity details
 
