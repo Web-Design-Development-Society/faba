@@ -37,7 +37,9 @@ test('a chip shows only its category, and says it is chosen', async ({ page, sig
   await expect(chip(page, 'All')).toHaveAttribute('aria-current', 'page');
   // Every chip and button is on the screen: none runs off its edge, and nothing scrolls sideways.
   const width = page.viewportSize()!.width;
-  for (const control of await chips.locator('.chips:not(.panel) a, summary, button').all()) {
+  for (const control of await chips
+    .locator('.chips:not(.panel) a:visible, summary:visible, button:visible')
+    .all()) {
     const box = (await control.boundingBox())!;
     expect(box.x + box.width).toBeLessThanOrEqual(width);
   }
@@ -67,6 +69,7 @@ test('a chip shows only its category, and says it is chosen', async ({ page, sig
   await expect(page).toHaveURL('/discover?cat=games');
   await expect(page).toHaveTitle('Games · Discover · FABA');
   await expect(category(page)).toHaveText('Category: Games');
+  await category(page).click();
   await expect(chip(page, 'Games')).toHaveAttribute('aria-current', 'page');
   await expect(chips.locator('[aria-current]')).toHaveCount(1);
   await expect(chips.getByRole('link', { name: 'Clear filters' })).toHaveAttribute(
@@ -148,6 +151,8 @@ test.describe('without JavaScript', () => {
     await category(page).click();
     await chip(page, 'Outdoors').click();
     await expect(page).toHaveURL('/discover?cat=outdoors');
+    await expect(category(page)).toHaveText('Category: Outdoors');
+    await category(page).click();
     await expect(chip(page, 'Outdoors')).toHaveAttribute('aria-current', 'page');
     await expectOnly(page, 'Outdoors');
   });

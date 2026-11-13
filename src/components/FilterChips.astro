@@ -207,10 +207,11 @@ const clear = kept.size ? `${page}?${kept}` : page;
   .tools :global(.tool:hover) {
     border-color: var(--blue);
   }
-  /* The categories drop down under the row, over the feed, as a menu would. */
+  /* The categories drop down under the row, over the feed's cards and their buttons, as a menu
+     would, and under the bottom bar, which comes later in the page. */
   .panel {
     position: absolute;
-    z-index: 3;
+    z-index: 2;
     top: calc(100% + 0.5rem);
     right: 0;
     left: 0;
