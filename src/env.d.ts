@@ -24,7 +24,7 @@ interface MediaBucket {
     httpEtag: string;
     httpMetadata?: { contentType?: string };
   } | null>;
-  delete(key: string): Promise<void>;
+  delete(keys: string | string[]): Promise<void>;
 }
 
 // The Cloudflare runtime's module, which Astro's adapter provides at build time. Its bindings are

@@ -1,10 +1,11 @@
 // What an activity card reads (ACT-01, design document section 7.5), on Discover and in My
 // activities (HIST-02). Members who aren't active have no profile to read, so they're left out of
-// the faces. A series' date says how often it repeats (REC-01).
+// the faces. A series' date says how often it repeats (REC-01). Its cover shows as a small picture
+// (UI-03), unless a moderator hid it.
 export const CARD = `id, title, starts_at, ends_at, location_name, going_count, guest_total, capacity,
   organizer_id, my_rsvp, hidden_at, time_or_place_changed_at,
   status, is_board_activity, created_at, category:categories(name, icon, color_token),
-  series:activity_series(freq),
+  series:activity_series(freq), cover:images!activities_cover_image_id_fkey(id, hidden_at),
   going:rsvps(member:profiles!inner(id, display_name, avatar_url, use_initials))`;
 
 /** The most faces on a card. */
