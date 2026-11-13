@@ -69,9 +69,6 @@ const clear = new URLSearchParams([...query].filter(([name]) => ['q', 'past'].in
     <button>Apply</button>
   </form>
   <a href={clear.size ? `${page}?${clear}` : page}>Clear all</a>
-  <form method="dialog">
-    <button>Close</button>
-  </form>
 </Sheet>
 
 <script>

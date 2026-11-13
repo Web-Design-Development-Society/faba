@@ -1,7 +1,13 @@
 ---
-// A bottom sheet (design document section 7.8), a <dialog> with a heading. A button opens it with
-// commandfor and command="show-modal", which works without JavaScript. src/scripts/sheets.ts
-// covers browsers without invoker commands. Escape or a tap outside it closes it.
+// A bottom sheet (design document section 7.8), a <dialog> with a heading and a Close button. A
+// button opens it with commandfor and command="show-modal", which works without JavaScript.
+// src/scripts/sheets.ts covers browsers without invoker commands. Close, Escape, or a tap outside
+// it closes it. Close is a dialog form, so it works in every browser, with or without JavaScript:
+// a phone has no Escape, and an older browser without closedby, such as an older Safari, doesn't
+// close on a tap outside (sheets.ts does it there).
+//
+// Close shows at the top right, but comes last in the page, so opening a sheet still focuses its
+// own first control, such as the member's current answer in "Are you going?".
 interface Props {
   id: string;
   title: string;
@@ -13,11 +19,16 @@ const { id, title } = Astro.props;
 <dialog id={id} aria-labelledby={`${id}-title`} closedby="any">
   <h2 id={`${id}-title`}>{title}</h2>
   <slot />
+  <form method="dialog" class="close">
+    <button>Close</button>
+  </form>
 </dialog>
 
 <style>
   /* At the bottom of a phone's screen, and in the middle of a bigger one (section 7.16). */
   dialog {
+    /* The padding is inside the width, so the sheet is exactly as wide as the screen. */
+    box-sizing: border-box;
     width: 100%;
     max-width: 100%;
     max-height: 80vh;
@@ -38,6 +49,24 @@ const { id, title } = Astro.props;
   }
   h2 {
     margin: 0 0 0.5rem;
+    /* Room for Close beside it. */
+    padding-right: 5rem;
     font-size: 1.125rem;
+  }
+  /* Level with the heading, at the sheet's top right. */
+  .close {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+  }
+  /* A link-like button, so it doesn't compete with the sheet's own actions. Still 44 px tall. */
+  .close button {
+    padding: 0 0.5rem;
+    color: var(--blue);
+    background: none;
+  }
+  .close button:hover {
+    text-decoration: underline;
+    background: none;
   }
 </style>
