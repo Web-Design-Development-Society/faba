@@ -1,0 +1,47 @@
+---
+// An activity's cover or a group's banner (MEDIA-01), across the page's width at a fixed shape, so a
+// tall phone photo doesn't fill the screen. The middle of the picture shows, and the edges that
+// don't fit are cut off. Anyone but the person who added it can report it.
+interface Props {
+  image: { id: string; alt: string; uploaded_by: string | null };
+  /** The member viewing the page. */
+  viewer: string;
+  /** A cover is 16:9, as a photo usually is. A banner is a wide strip, 3:1. */
+  shape: 'cover' | 'banner';
+}
+
+const { image, viewer, shape } = Astro.props;
+---
+
+<figure class:list={['picture', shape]}>
+  <img src={`/api/media/${image.id}`} alt={image.alt} />
+  {image.uploaded_by !== viewer && (
+    <figcaption>
+      <a href={`/media/${image.id}/report`}>Report picture</a>
+    </figcaption>
+  )}
+</figure>
+
+<style>
+  .picture {
+    margin: 0 0 1rem;
+  }
+  img {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    background: var(--blue-soft);
+    border-radius: var(--radius);
+  }
+  .banner img {
+    aspect-ratio: 3 / 1;
+  }
+  figcaption {
+    font-size: 0.875rem;
+  }
+  figcaption a {
+    display: inline-block;
+    padding: 0.5rem 0;
+  }
+</style>

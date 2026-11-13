@@ -14,6 +14,7 @@ import { actions, isInputError } from 'astro:actions';
 import Avatar from '../../../components/Avatar.astro';
 import BoardContact from '../../../components/BoardContact.astro';
 import CancelActivity from '../../../components/CancelActivity.astro';
+import CoverPicture from '../../../components/CoverPicture.astro';
 import GoingList from '../../../components/GoingList.astro';
 import Menu from '../../../components/Menu.astro';
 import ModerationAction from '../../../components/ModerationAction.astro';
@@ -423,14 +424,7 @@ const email = activity
       )}
       <h1>{activity.title}</h1>
       {activity.cover && !activity.cover.hidden_at && (
-        <figure class="cover">
-          <img src={`/api/media/${activity.cover.id}`} alt={activity.cover.alt} loading="lazy" />
-          {activity.cover.uploaded_by !== user.id && (
-            <figcaption>
-              <a href={`/media/${activity.cover.id}/report`}>Report picture</a>
-            </figcaption>
-          )}
-        </figure>
+        <CoverPicture image={activity.cover} viewer={user.id} shape="cover" />
       )}
       {activity.cover?.hidden_at && (
         <p class="hidden">
