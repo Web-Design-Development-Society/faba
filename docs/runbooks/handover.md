@@ -5,6 +5,7 @@ For a new volunteer maintainer. It says what runs, where the rest is written dow
 ## Read these runbooks first
 
 - [local-supabase.md](local-supabase.md): running the app and the database on your own machine.
+- [release.md](release.md): releasing to production, and rolling back.
 - [restore-backup.md](restore-backup.md): restoring the database from a backup.
 - [supabase-settings.md](supabase-settings.md): the settings to check in the Supabase dashboard.
 - [roles.md](roles.md): who can do what, including the owner and the admin roles.

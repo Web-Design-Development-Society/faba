@@ -1,0 +1,65 @@
+# Deploys a release to production (FND-08, design document section 11.8). Publishing a GitHub
+# Release with a tag like v1.2.0, cut from main, starts it. It waits for a technical owner to
+# approve in the production environment, then deploys the same way staging does (deploy.yml).
+#
+# To roll back, run it from the Actions tab with an earlier release's tag and "Roll back" ticked,
+# which leaves out migrations. See docs/runbooks/release.md.
+name: Deploy production
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: The release tag to deploy, such as v1.2.0.
+        required: true
+        type: string
+      rollback:
+        description: Roll back to this earlier release. Its migrations are left out, since the schema only moves forward.
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Check the release
+    # A pre-release is for trying out, not for production.
+    if: github.event_name == 'workflow_dispatch' || !github.event.release.prerelease
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Check the tag is a release cut from main
+        id: tag
+        env:
+          TAG: ${{ github.event.release.tag_name || inputs.tag }}
+        run: |
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::'$TAG' isn't a release tag like v1.2.0."
+            exit 1
+          fi
+          if ! git rev-parse --verify --quiet "refs/tags/$TAG^{commit}" > /dev/null; then
+            echo "::error::There's no tag $TAG."
+            exit 1
+          fi
+          if ! git merge-base --is-ancestor "refs/tags/$TAG^{commit}" origin/main; then
+            echo "::error::$TAG isn't on main. Releases are cut from main."
+            exit 1
+          fi
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    needs: check
+    uses: ./.github/workflows/deploy.yml
+    with:
+      environment: production
+      ref: refs/tags/${{ needs.check.outputs.tag }}
+      migrate: ${{ !inputs.rollback }}
+    secrets: inherit
