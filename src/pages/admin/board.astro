@@ -3,6 +3,7 @@
 // faculty split and organizers, by day, and activities by category. Only moderators and admins open
 // it, and the database keeps the table to them as well. A figure is stored only when it covers 10 or
 // more people, so a short list means the figure is missing, not zero.
+import Back from '../../components/Back.astro';
 import Layout from '../../layouts/Layout.astro';
 
 const { supabase, member } = Astro.locals;
@@ -40,7 +41,7 @@ const byCategory = (rows ?? []).filter((r) => r.metric === 'activities');
 ---
 
 <Layout title="Board metrics" tab="me">
-  <a href="/admin">Back to admin</a>
+  <Back href="/admin">Back to admin</Back>
   <h1>Board metrics</h1>
   {!allowed ? (
     <p>Only moderators and admins can see these figures.</p>

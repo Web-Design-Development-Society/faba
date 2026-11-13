@@ -1,0 +1,40 @@
+---
+// One of FABA's line icons (UI-02), drawn in the text's color. Beside words it's hidden from screen
+// readers, and an icon on its own, such as Search, gets its name from `label` or from its link.
+import { ICONS, type IconName } from '../lib/icons';
+
+interface Props {
+  name: IconName;
+  /** Its width and height in px. */
+  size?: number;
+  /** Its name for screen readers, for an icon with no words beside it. */
+  label?: string;
+  class?: string;
+}
+
+const { name, size = 20, label, class: className } = Astro.props;
+---
+
+<svg
+  class:list={['icon', className]}
+  viewBox="0 0 24 24"
+  width={size}
+  height={size}
+  fill="none"
+  stroke="currentColor"
+  stroke-width="2"
+  stroke-linecap="round"
+  stroke-linejoin="round"
+  focusable="false"
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+  set:html={ICONS[name]}
+/>
+
+<style>
+  .icon {
+    flex: none;
+    vertical-align: middle;
+  }
+</style>

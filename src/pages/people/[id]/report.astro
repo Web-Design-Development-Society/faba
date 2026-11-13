@@ -2,6 +2,7 @@
 // Reporting a member (MOD-01), from Report in the ⋯ menu on their profile. Sending it goes back to
 // the profile, which says thanks.
 import { actions } from 'astro:actions';
+import Back from '../../../components/Back.astro';
 import ReportForm from '../../../components/ReportForm.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { setFlash } from '../../../lib/server/flash';
@@ -39,7 +40,7 @@ if (!profile) Astro.response.status = 404;
 <Layout title={profile ? `Report ${profile.display_name}` : 'Not available'}>
   {profile ? (
     <>
-      <a href={`/people/${profile.id}`}>Back to {profile.display_name}</a>
+      <Back href={`/people/${profile.id}`}>Back to {profile.display_name}</Back>
       <h1>Report this member</h1>
       <ReportForm
         type="profile"

@@ -3,6 +3,7 @@
 // its owner, and can start seasons after. It works without JavaScript, and the page goes to the
 // league's seasons when it's made.
 import { actions, isInputError } from 'astro:actions';
+import Back from '../../components/Back.astro';
 import FieldError from '../../components/FieldError.astro';
 import Layout from '../../layouts/Layout.astro';
 
@@ -28,7 +29,7 @@ const { data: categories } = await supabase
 ---
 
 <Layout title="Start a league" tab="discover">
-  <a href="/groups">Back to groups</a>
+  <Back href="/groups">Back to groups</Back>
   <h1>Start a league</h1>
   <p>A league runs seasons, with standings. You organize it, and can start seasons after.</p>
   {failure && <p role="alert">{failure}</p>}

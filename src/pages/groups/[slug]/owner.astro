@@ -4,6 +4,7 @@
 // as for a group whose owner left FABA, with a reason that goes to the audit log. The new owner
 // hears it's theirs. It works without JavaScript.
 import { actions, isInputError } from 'astro:actions';
+import Back from '../../../components/Back.astro';
 import FieldError from '../../../components/FieldError.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { setFlash } from '../../../lib/server/flash';
@@ -62,7 +63,7 @@ const picked = typed?.get('user_id')?.toString();
     </>
   ) : (
     <>
-      <a href={`/groups/${group.slug}/members`}>Back to members</a>
+      <Back href={`/groups/${group.slug}/members`}>Back to members</Back>
       <h1>Hand on {group.name}</h1>
       {!owner && !moderator ? (
         <p>Only the group's owner can hand it on.</p>

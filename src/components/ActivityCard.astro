@@ -12,6 +12,7 @@ import { historyLabel, isFull } from '../lib/cards';
 import { repeatsBadge } from '../lib/series';
 import { formatSoon, isOver } from '../lib/time';
 import Avatar from './Avatar.astro';
+import Icon from './Icon.astro';
 import RsvpForm from './RsvpForm.astro';
 
 interface Props {
@@ -106,7 +107,7 @@ const shown = (
   </p>
   {category && look && (
     <span class="icon" role="img" aria-label={category.name}>
-      {look.icon}
+      <Icon name={look.icon} size={22} />
     </span>
   )}
   <div class="body">
@@ -196,9 +197,17 @@ const shown = (
   .card a:focus-visible {
     outline: none;
   }
+  /* The category's line icon on a tint of its color (UI-02). Its name is the label. */
   .icon {
-    font-size: 1.5rem;
-    line-height: 1.2;
+    display: grid;
+    flex: none;
+    place-items: center;
+    align-self: flex-start;
+    width: 2.5rem;
+    height: 2.5rem;
+    color: var(--navy);
+    background: color-mix(in srgb, var(--stripe) 16%, white);
+    border-radius: 0.5rem;
   }
   .body {
     flex: 1;

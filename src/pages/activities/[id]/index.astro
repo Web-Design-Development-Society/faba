@@ -12,6 +12,7 @@
 // just that date from here (REC-03). Anyone else joins the whole series, or leaves it (REC-04).
 import { actions, isInputError } from 'astro:actions';
 import Avatar from '../../../components/Avatar.astro';
+import Back from '../../../components/Back.astro';
 import BoardContact from '../../../components/BoardContact.astro';
 import CancelActivity from '../../../components/CancelActivity.astro';
 import CoverPicture from '../../../components/CoverPicture.astro';
@@ -309,7 +310,7 @@ const email = activity
 
 <Layout title={activity?.title ?? 'Not available'}>
   <header class="top">
-    <a href="/discover">Back to Discover</a>
+    <Back href="/discover">Back to Discover</Back>
     {activity && (
       <Menu>
         <li>
@@ -618,10 +619,11 @@ const email = activity
         )}
       </Sheet>
       {host?.status === 'active' ? (
-        <p>
+        <p class="host">
           <Avatar member={host} />
-          Hosted by <a href={`/people/${host.id}`}>{host.display_name}</a>
-          {department}
+          <span>
+            Hosted by <a href={`/people/${host.id}`}>{host.display_name}</a> {department}
+          </span>
         </p>
       ) : activity.organizer_id ? (
         // Members can't read an organizer who isn't active (AUTH-05). Moderators see who it was.
@@ -997,10 +999,16 @@ const email = activity
     font-weight: 600;
     text-transform: uppercase;
   }
+  /* The avatars keep a gap before their words (UI-02). */
+  .host {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
   .going button {
     display: flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.5rem;
     min-height: 44px;
     padding: 0;
     font: inherit;

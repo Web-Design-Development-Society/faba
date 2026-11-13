@@ -4,6 +4,7 @@
 // fails, the form comes back with what was typed and the same idempotency key, so posting again
 // never posts twice. Once it's posted, the page goes back to the group, which shows it first.
 import { actions, isInputError } from 'astro:actions';
+import Back from '../../../components/Back.astro';
 import FieldError from '../../../components/FieldError.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { setFlash } from '../../../lib/server/flash';
@@ -46,7 +47,7 @@ const failure = result?.error && !isInputError(result.error) ? result.error.mess
     </>
   ) : (
     <>
-      <a href={`/groups/${slug}`}>Back to {group.name}</a>
+      <Back href={`/groups/${slug}`}>Back to {group.name}</Back>
       <h1>Post an update</h1>
       {!organizer ? (
         <p>Only the group's organizers can post updates to it.</p>

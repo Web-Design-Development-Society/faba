@@ -2,27 +2,28 @@
 // notification center's words. A notification stores data, and this writes the words. The stories
 // that make each type can make its line more specific from the payload, such as NOTIF-02's old and
 // new times.
+import type { IconName } from './icons';
 import { formatClock, formatWhen, rexburgDate } from './time';
 
-/** Each type's icon and one-line summary, for the Phase 2 types in section 8.8. */
-export const TYPES: Record<string, { icon: string; summary: string }> = {
-  activity_changed: { icon: '🕒', summary: 'Time or place changed' },
-  activity_cancelled: { icon: '✕', summary: 'Cancelled' },
-  activity_restored: { icon: '↺', summary: 'Back on' },
-  organizer_update: { icon: '💬', summary: 'Update from the organizer' },
-  rsvp_confirmed: { icon: '✓', summary: "You're going" },
-  new_attendees: { icon: '👋', summary: 'New people going' },
-  reminder: { icon: '⏰', summary: 'Reminder' },
-  board_announcement: { icon: '📣', summary: 'From the FABA board' },
-  group_join_request: { icon: '🙋', summary: 'Asked to join' },
-  group_update: { icon: '💬', summary: 'Update from the group' },
-  group_join_approved: { icon: '✓', summary: "You're in the group" },
-  group_owner: { icon: '🔑', summary: 'You own this group now' },
-  rsvp_promoted: { icon: '🎉', summary: "A spot opened, and you're going" },
-  rsvp_removed: { icon: '↩', summary: 'Taken off the list' },
-  sub_needed: { icon: '🔁', summary: 'A sub is needed' },
-  new_activity: { icon: '✨', summary: 'New activities I follow' },
-  report_received: { icon: '🚩', summary: 'New report to review' },
+/** Each type's line icon (UI-02) and one-line summary, for the types in section 8.8. */
+export const TYPES: Record<string, { icon: IconName; summary: string }> = {
+  activity_changed: { icon: 'arrows', summary: 'Time or place changed' },
+  activity_cancelled: { icon: 'x', summary: 'Cancelled' },
+  activity_restored: { icon: 'rotate', summary: 'Back on' },
+  organizer_update: { icon: 'chat', summary: 'Update from the organizer' },
+  rsvp_confirmed: { icon: 'calendar', summary: "You're going" },
+  new_attendees: { icon: 'user-plus', summary: 'New people going' },
+  reminder: { icon: 'bell', summary: 'Reminder' },
+  board_announcement: { icon: 'megaphone', summary: 'From the FABA board' },
+  group_join_request: { icon: 'user-plus', summary: 'Asked to join' },
+  group_update: { icon: 'chat', summary: 'Update from the group' },
+  group_join_approved: { icon: 'check', summary: "You're in the group" },
+  group_owner: { icon: 'key', summary: 'You own this group now' },
+  rsvp_promoted: { icon: 'check', summary: "A spot opened, and you're going" },
+  rsvp_removed: { icon: 'user-minus', summary: 'Taken off the list' },
+  sub_needed: { icon: 'arrows', summary: 'A sub is needed' },
+  new_activity: { icon: 'sparkle', summary: 'New activities I follow' },
+  report_received: { icon: 'flag', summary: 'New report to review' },
 };
 
 /** The types a member can turn off under Me → Notifications (NOTIF-10). Cancellations always come. */
@@ -143,8 +144,8 @@ export function describe(
   payload?: unknown,
   update?: PostedUpdate | null,
   now: Date = new Date()
-): { icon: string; summary: string } {
-  const found = TYPES[type] ?? { icon: '•', summary: 'Update' };
+): { icon: IconName; summary: string } {
+  const found = TYPES[type] ?? { icon: 'bell', summary: 'Update' };
   const {
     before,
     after,

@@ -6,6 +6,7 @@
 // activity that's gone, or hidden, opens "not available". Mark all read is at the top. It all works
 // without JavaScript.
 import { actions } from 'astro:actions';
+import Icon from '../components/Icon.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
 import { nextPage, readCursor } from '../lib/feed';
@@ -111,8 +112,8 @@ const unread = groups[0]?.name === 'New';
                 <form method="post" action={actions.notifications.open.queryString}>
                   <input type="hidden" name="id" value={notification.id} />
                   <button>
-                    <span class="icon" aria-hidden="true">
-                      {icon}
+                    <span class="tile">
+                      <Icon name={icon} />
                     </span>
                     <span class="text">
                       <span class="summary">
@@ -182,6 +183,17 @@ const unread = groups[0]?.name === 'New';
     border: 0;
     border-bottom: 1px solid #767676;
   }
+  /* The type's line icon on a soft blue tile (UI-02). */
+  .tile {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    color: var(--blue);
+    background: var(--blue-soft);
+    border-radius: 0.5rem;
+  }
   .text {
     display: grid;
   }
@@ -198,7 +210,7 @@ const unread = groups[0]?.name === 'New';
     overflow: hidden;
     vertical-align: middle;
     color: transparent;
-    background: #222;
+    background: var(--blue);
     border-radius: 50%;
   }
   time {

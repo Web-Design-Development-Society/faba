@@ -2,6 +2,7 @@
 // Reporting an activity (MOD-01), from Report in its ⋯ menu. Sending it goes back to the activity,
 // which says thanks.
 import { actions } from 'astro:actions';
+import Back from '../../../components/Back.astro';
 import ReportForm from '../../../components/ReportForm.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { setFlash } from '../../../lib/server/flash';
@@ -39,7 +40,7 @@ if (!activity) Astro.response.status = 404;
 <Layout title={activity ? `Report ${activity.title}` : 'Not available'}>
   {activity ? (
     <>
-      <a href={`/activities/${activity.id}`}>Back to {activity.title}</a>
+      <Back href={`/activities/${activity.id}`}>Back to {activity.title}</Back>
       <h1>Report this activity</h1>
       <ReportForm
         type="activity"

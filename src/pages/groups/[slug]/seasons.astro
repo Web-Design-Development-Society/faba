@@ -6,6 +6,7 @@
 // organizers make the teams and move players between them, and members see the rosters (LEAG-03).
 // It works without JavaScript.
 import { actions, isInputError } from 'astro:actions';
+import Back from '../../../components/Back.astro';
 import FieldError from '../../../components/FieldError.astro';
 import Status from '../../../components/Status.astro';
 import LeagueRoster from '../../../components/LeagueRoster.astro';
@@ -222,7 +223,7 @@ const sizes = (season: { format: string; team_min: number; team_max: number }) =
 <Layout title={league ? `${group.name} seasons` : 'Not available'} tab="discover">
   {league ? (
     <>
-      <a href={`/groups/${group.slug}`}>Back to {group.name}</a>
+      <Back href={`/groups/${group.slug}`}>Back to {group.name}</Back>
       <h1>{group.name}: seasons</h1>
       <Status message={(flash && FLASH_MESSAGES[flash]) || undefined} />
       {failure && <p role="alert">{failure}</p>}

@@ -3,6 +3,7 @@
 // moderator or admin who acted, and by what it was about (an id). Only admins can read it, and the
 // database checks again.
 import { formatAgo } from '../../lib/time';
+import Back from '../../components/Back.astro';
 import Layout from '../../layouts/Layout.astro';
 
 const { supabase, user, member } = Astro.locals;
@@ -35,7 +36,7 @@ const now = new Date();
 ---
 
 <Layout title="Audit log" tab="me">
-  <a href="/admin">Back to Admin</a>
+  <Back href="/admin">Back to Admin</Back>
   <h1>Audit log</h1>
   {!admin ? (
     <p>Only admins can read the audit log.</p>

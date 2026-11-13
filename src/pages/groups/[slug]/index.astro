@@ -9,6 +9,7 @@
 // join (GRP-05).
 import { actions } from 'astro:actions';
 import ActivityCard from '../../../components/ActivityCard.astro';
+import Back from '../../../components/Back.astro';
 import CoverPicture from '../../../components/CoverPicture.astro';
 import FollowButton from '../../../components/FollowButton.astro';
 import PictureUpload from '../../../components/PictureUpload.astro';
@@ -132,7 +133,7 @@ const members = group?.member_count ?? 0;
 ---
 
 <Layout title={group?.name ?? 'Not available'} tab="discover">
-  <a href="/groups">Back to Groups</a>
+  <Back href="/groups">Back to Groups</Back>
   <Status message={flash && !pictureError ? FLASH_MESSAGES[flash] : undefined} />
   {failure && <p role="alert">{failure}</p>}
   {group ? (

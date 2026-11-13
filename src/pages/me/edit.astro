@@ -3,6 +3,7 @@
 // interests, a private faculty type, and whether to show my email (PROF-04). It works without JavaScript: when a save fails, the form
 // comes back with what was typed and an error under each field. Saving returns to Me with "Saved."
 import { actions, isInputError } from 'astro:actions';
+import Back from '../../components/Back.astro';
 import FieldError from '../../components/FieldError.astro';
 import Layout from '../../layouts/Layout.astro';
 import { setFlash } from '../../lib/server/flash';
@@ -55,7 +56,7 @@ const invalid = (name: string) =>
 ---
 
 <Layout title="Edit profile">
-  <a href="/me">Back to Me</a>
+  <Back href="/me">Back to Me</Back>
   <h1>Edit profile</h1>
   {failure && <p role="alert">{failure}</p>}
   <form method="post" action={actions.profile.update.queryString}>

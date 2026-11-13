@@ -21,8 +21,9 @@ const { current } = Astro.props;
   .switch {
     display: flex;
     margin: 0.5rem 0;
-    border: 1px solid #767676;
-    border-radius: 0.5rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
     overflow: hidden;
   }
   a {
@@ -30,16 +31,16 @@ const { current } = Astro.props;
     flex: 1;
     place-items: center;
     min-height: 44px;
-    color: inherit;
+    color: var(--navy);
     text-decoration: none;
   }
   a + a {
-    border-left: 1px solid #767676;
+    border-left: 1px solid var(--border);
   }
-  /* The selected half is filled, and bold, so it doesn't rely on color alone. */
+  /* The selected half is FABA blue (UI-02), and bold, so it doesn't rely on color alone. */
   [aria-current='page'] {
     font-weight: 700;
     color: white;
-    background: #222;
+    background: var(--blue);
   }
 </style>

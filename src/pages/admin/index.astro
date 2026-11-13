@@ -3,6 +3,7 @@
 // change. Renaming and switching categories and tags on or off works without JavaScript, as does
 // changing a member's role, which needs a reason for the audit log. The audit log has its own page.
 import { actions, isInputError } from 'astro:actions';
+import Back from '../../components/Back.astro';
 import Status from '../../components/Status.astro';
 import Layout from '../../layouts/Layout.astro';
 import { FLASH_MESSAGES, setFlash, takeFlash } from '../../lib/server/flash';
@@ -60,7 +61,7 @@ const [{ data: categories }, { data: tags }, { data: staff }, { data: found }] =
 ---
 
 <Layout title="Admin">
-  <a href="/mod">Back to Reports</a>
+  <Back href="/mod">Back to Reports</Back>
   <h1>Admin</h1>
   <p>
     <a href="/admin/audit">Audit log</a>
