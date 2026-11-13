@@ -27,8 +27,11 @@ test('the weekend chip combines with a category and search', async ({ page, sign
   await expect(page.getByText(`Board games ${tag}`)).toBeVisible();
   await expect(page.getByText(`Next hike ${tag}`)).toHaveCount(0);
 
+  // The categories are behind Category (UI-04).
+  await chips.locator('summary').click();
   await chip('Outdoors').click();
   await expect(page).toHaveURL(`/search?q=${tag}&when=weekend&cat=outdoors`);
+  await expect(chips.locator('summary')).toHaveText('Category: Outdoors');
   await expect(page.getByText(`Hike ${tag}`, { exact: true })).toBeVisible();
   await expect(page.getByText(`Board games ${tag}`)).toHaveCount(0);
   await expectAccessible(page);
@@ -73,9 +76,9 @@ test('Discover says what nothing matches, and chips can be combined', async ({
   const chips = page.getByRole('navigation', { name: 'Filters' });
   await expect(chips.locator('[aria-current]')).toHaveText(['Today', 'Other']);
   await expect(page.getByText('Nothing matches Other today.')).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Clear filters' })).toHaveAttribute(
-    'href',
-    '/discover'
-  );
+  // Beside the filters, and with the message.
+  const clear = page.getByRole('link', { name: 'Clear filters' });
+  await expect(clear).toHaveCount(2);
+  for (const link of await clear.all()) await expect(link).toHaveAttribute('href', '/discover');
   await expectAccessible(page);
 });
