@@ -207,7 +207,8 @@ const shown = (
      and I'm in along the bottom (UI-03). */
   .layout {
     display: grid;
-    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    /* Set widths, so the long rows under the title can't widen the date's column. */
+    grid-template-columns: 3.5rem 4rem minmax(0, 1fr) 1.25rem;
     grid-template-areas:
       'date picture title chevron'
       'date picture rows chevron'
@@ -216,36 +217,14 @@ const shown = (
     align-items: start;
     padding: 0.75rem;
   }
-  /* On a phone, the time and place take the card's whole width under the title, so they're never
-     squeezed into a narrow column. */
-  @container (max-width: 24rem) {
-    .layout {
-      grid-template-areas:
-        'date picture title chevron'
-        'rows rows rows rows'
-        'foot foot foot foot';
-      column-gap: 0.625rem;
-    }
-    .date {
-      min-width: 2.75rem;
-    }
-    .date .day {
-      font-size: 1.25rem;
-    }
-    .picture {
-      width: 2.75rem;
-      height: 2.75rem;
-    }
-  }
   /* The day, as the My events design shows it: a blue badge (UI-01). */
   .date {
     grid-area: date;
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-width: 3.25rem;
     margin: 0;
-    padding: 0.25rem 0.375rem;
+    padding: 0.25rem 0;
     color: white;
     line-height: 1.1;
     background: var(--blue);
@@ -362,7 +341,7 @@ const shown = (
     box-shadow: 0 0 0 2px var(--card);
   }
   .going :global(.avatar + .avatar) {
-    margin-left: -0.75rem;
+    margin-left: -0.375rem;
   }
   .mine {
     margin-left: auto;
@@ -392,5 +371,24 @@ const shown = (
     font-weight: 600;
     border: 1px solid var(--border);
     border-radius: 999px;
+  }
+  /* On a phone, the time and place take the card's whole width under the title, so they're never
+     squeezed into a narrow column. */
+  @container (max-width: 24rem) {
+    .layout {
+      grid-template-columns: 3rem 2.75rem minmax(0, 1fr) 1.25rem;
+      grid-template-areas:
+        'date picture title chevron'
+        'rows rows rows rows'
+        'foot foot foot foot';
+      column-gap: 0.5rem;
+    }
+    .date .day {
+      font-size: 1.25rem;
+    }
+    .picture {
+      width: 2.75rem;
+      height: 2.75rem;
+    }
   }
 </style>
