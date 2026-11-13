@@ -601,6 +601,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Web Push** as a channel. The delivery pipeline already supports it, and installed PWAs on iOS 16.4+ and Android support it.
 - **Image uploads** for activity covers and group banners, using Cloudflare Images or R2, with moderation.
 - **Comments** on activities (flat, moderated), if Phase 3 feedback supports them.
+- **A clearer look** from the 2026 mockups (`mockups/discover.webp`, `mockups/new_activity_and_alerts.webp`): FABA blue and icons throughout, cards that show the whole time and place, filters that fit the screen, an easier activity page and form, and alerts as cards.
 - **Playoff brackets** for leagues.
 - **Data retention automation**, and a data export ("download my data").
 - **Performance:** query review with `pg_stat_statements`, edge caching of non-personalized fragments, Smart Placement tuning.
@@ -609,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-07`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -655,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                          |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                  |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                          |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01                 |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-07 |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02         |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02, PERF-01, A11Y-01 |
 
@@ -1864,6 +1865,142 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - Mean time to restore stays under 1 hour.
 - **Dependencies:** OPS-01.
 - **Notes / edge cases:** Marked Should, not Could, because losing a sole maintainer is a high-likelihood, high-impact risk (R-OPS-1).
+
+#### UI-02 · FABA blue, icons and a familiar bottom bar
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want FABA to look consistent, in FABA blue with clear icons, so that I can find my way around at a glance.
+- **Acceptance criteria:**
+  - Every selected state is FABA blue (`--blue`) with white text: the **Activities | Groups** control, chosen chips, and the center **＋ Post** button. Nothing in the app's frame is black.
+  - The bottom bar keeps its five items in the same order: **Discover**, **Plans**, **＋ Post**, **Alerts** and **Me**. Each has a line icon above its label. **＋ Post** is a blue circle with "Post" under it. The current tab is blue, with a bolder label and an underline, so it isn't shown by color alone. The Alerts badge stays.
+  - One small set of line icons lives in one component (`src/components/Icon.astro`) as inline SVG: search, back, calendar, clock, pin, people, bell, check, arrows, chevron, plus, and one for each category. They're 20 to 24 px, in navy or blue. An icon beside text is hidden from screen readers. An icon-only button, such as Search or Back, has an accessible name. These icons replace the emoji now used for categories and alerts.
+  - Pages sit on a soft blue-gray background, and content sits on white cards with a 1 px border, a soft shadow and the shared radius.
+  - The header shows the logo with the FABA wordmark beside it. **Search** is an outlined square icon button beside the page's heading. Detail pages show a back chevron. Each is at least 44 px.
+  - Body text is at least 16 px, and secondary text at least 14 px. Text meets 4.5:1 contrast, and controls and borders meet 3:1.
+  - Small fixes seen while comparing the mockups:
+    - The footer's "Privacy ·Guidelines" gets its missing space.
+    - The avatars beside **Hosted by** and **going** get a gap before their text.
+- **Dependencies:** UI-01.
+- **Notes / edge cases:**
+  - Do this first. UI-03 to UI-07 use its colors, cards and icons.
+  - Each category keeps its color, and its name stays in its label (UI-01).
+  - Icons are inline SVG, with no icon font or UI framework (ADR-011).
+  - Mockups: `mockups/discover.webp` and `mockups/new_activity_and_alerts.webp`.
+
+#### UI-03 · Activity cards that show the time and place
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member scanning Discover on my phone, I want each card to show the whole time and place, so that I can decide without opening it.
+- **Acceptance criteria:**
+  - A card shows, in order:
+    - the date badge
+    - a picture: the activity's cover, or its category's icon on the category's color when it has none
+    - the title, in up to 2 lines
+    - three rows, each with an icon: the day and time, the place, and how many are going
+  - **I'm in** or **✓ Going** moves from beside the text to the card's bottom row, at the right, with the avatars and going count at the left. The text gets the card's full width beside the picture.
+  - On a 320 px screen (iPhone SE):
+    - The title wraps by words, never one word per line.
+    - The day and time show in full on one line, worded as section 7.5 says, such as "Tomorrow 6:30 PM".
+    - A place too long for its line ends with an ellipsis. The full place is on the activity's page.
+  - A card still has at most one status badge (Cancelled, Full, Board activity or New), and **Your next plan** keeps its blue edge.
+  - The whole card except the button still opens the activity. A chevron at the right shows this, hidden from screen readers.
+  - Discover, Plans, Search and group pages all use the same card.
+  - The E2E tests check, at 320 px and 412 px, that the time row isn't cut off and that nothing scrolls sideways.
+- **Dependencies:** UI-02, MEDIA-01.
+- **Notes / edge cases:**
+  - Today, at 320 px, a card's text shrinks to a narrow column beside the button: "Disc / golf / Mon / 12:30 / PM / BY…", one word per line.
+  - The mockup's cards have no RSVP button. FABA keeps one-tap **I'm in** on cards (section 7.5, RSVP-01).
+  - A 64 px picture shouldn't download a 1600 px cover. Thumbnails need a small copy, made at upload or by Cloudflare Images, so Discover stays within the performance budget (PERF-01).
+  - Update section 7.5.
+
+#### UI-04 · Filters that fit on the screen
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want to see every filter without swiping sideways, so that I know what I can choose.
+- **Acceptance criteria:**
+  - At 320 px and wider, no chip is cut off at the screen's edge, and the page never scrolls sideways.
+  - **All** and the date chips (**Today**, **This week** and **This weekend**) wrap onto a second line when they don't fit, instead of scrolling.
+  - Categories move into a **Category** button beside **More filters**:
+    - It opens a sheet of category chips.
+    - When a category is chosen, the button names it, such as "Category: Outdoors".
+    - Choosing one is still a link (`?cat=outdoors`), and it works without JavaScript, as **More filters** does.
+  - **More filters** becomes an outlined button that shows how many of its filters are on, such as "More filters (2)". **Clear filters** shows whenever any filter is on.
+  - Each chip is at least 44 px tall. A chosen chip is FABA blue with a check, so it isn't shown by color alone.
+  - An **Upcoming activities** heading starts the feed, under **Your next plan**.
+  - Search uses the same chips and **Category** button.
+- **Dependencies:** UI-02.
+- **Notes / edge cases:**
+  - Today, All, the dates and nine categories share one row that runs off the screen. On a phone, only the first three or four chips show.
+  - A category's feed keeps **Follow** (NOTIF-09).
+  - Update section 7.10, which says the row scrolls sideways.
+
+#### UI-05 · Activity details at a glance
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want an activity's page to answer what, when, where and who at a glance, so that I don't have to read all of it.
+- **Acceptance criteria:**
+  - The category shows as a chip with its icon, above the title. Statuses such as Cancelled, FABA board activity and Group members only keep their places.
+  - Under the cover and the title, one details card has a row with an icon for each of these:
+    - **When:** the date and time, with **Add to calendar**.
+    - **Where:** the place, with **Open in Maps**.
+    - **Who's going:** the avatars, and "12 going · 2 maybe ›".
+    - **Hosted by:** the host's avatar and name.
+  - A row's link sits on its own line under the row's text, so it never wraps onto a line by itself after a long place.
+  - The details, **For attendees**, the safety note, **Updates**, and **Questions and comments** follow as sections with headings.
+  - The comment box is full width.
+  - The sticky bar keeps **I'm in**, or **Edit** and **Post update** for an organizer, styled as UI-02's buttons.
+- **Dependencies:** UI-02.
+- **Notes / edge cases:**
+  - The order still follows section 7.6: what, when, where, who, then details. Update its sketch.
+  - The mockups don't show this page. It uses the same icon rows as UI-03's cards.
+
+#### UI-06 · A clearer New activity form
+
+- **Role:** Activity organizer · **Priority:** Should · **Phase:** 6
+- **Story:** As an organizer, I want the New activity form laid out in clear sections, so that I can post an activity quickly and get it right.
+- **Acceptance criteria:**
+  - The form reads as sections, each under a bold question: **What are you doing?**, **When?**, **Where?**, **Category** and **Details (optional)**, then **More options**. No grey boxes surround the sections. The fieldsets stay for screen readers, without their borders.
+  - Every text field is full width, at least 48 px tall, with a border that meets 3:1 contrast.
+  - Each field shows an example as placeholder text, such as "e.g., Mountain biking, Disc golf, Hiking" or "e.g., Hidden Valley Park". The labels stay visible.
+  - **When?**:
+    - The date and the start time sit side by side in one bordered control, with calendar and clock icons. Under 360 px they stack.
+    - **Today**, **Tomorrow** and **This Saturday** become outlined chips above it, not solid blue buttons that look like the form's main button.
+  - **Where?** has a pin icon inside its field.
+  - **Category** choices are pill-shaped chips that wrap onto more lines. Each is a radio button underneath, and the chosen one is FABA blue with a check.
+  - **Details** is full width and 3 lines tall to start. Its hint suggests what to add: what to bring, the route, or a weather plan.
+  - The form ends with **Cancel** (outlined, back to where the member came from) and **Post activity** (FABA blue), side by side.
+  - The bottom bar shows on this page, with **＋ Post** as the current tab. Today it's hidden here.
+  - Errors still show beside their fields, and the local draft (section 7.7) still works.
+  - **Edit activity** uses the same layout, with **Save changes**.
+- **Dependencies:** UI-02.
+- **Notes / edge cases:**
+  - **What are you doing?** stays the form's main field (from PR 291).
+  - The date and time stay native inputs (section 7.7). Only their frame changes.
+  - Update section 7.7's sketch.
+
+#### UI-07 · Alerts as readable cards
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want each alert to say plainly what happened, so that I understand it without opening it.
+- **Acceptance criteria:**
+  - **All | Unread** sits at the top, styled like **Activities | Groups**:
+    - **All** keeps the **New** and **Earlier** headings.
+    - **Unread** shows only the new alerts. With none, it says "You're all caught up."
+    - Both are links, such as `?show=unread`.
+  - Each alert is a card with:
+    - an icon on a soft blue tile for its type: a calendar for "You're going", a bell for a reminder, arrows for a changed time or place, a speech bubble for an update, and so on
+    - the activity's or group's name, in bold
+    - a sentence with the specifics, such as "Moved to Fri, Nov 13, 10:30 AM (was 10:30 PM)" or "Reminder: today at 10:30 AM, Hidden Valley Park"
+    - the time ago
+    - a chevron
+  - The sentence wraps to as many lines as it needs. Nothing is cut off.
+  - An unread card has a blue left edge, a dot and a bold name. Screen readers still hear "Unread" first. Unread isn't shown by color alone.
+  - The whole card is still one button that marks the alert read and opens it, at least 44 px tall. **Mark all read** stays at the top right.
+- **Dependencies:** UI-02.
+- **Notes / edge cases:**
+  - Today an alert is a plain row: an emoji, the sentence in bold, then the activity's name, with a line between rows.
+  - The sentences are the ones `describe()` already writes from what each alert stores, falling back to the type's label, such as "Time or place changed". The mockup's wording is only an example.
+  - Update section 7.9.
 
 ### 6.10 Won't Have Yet
 
