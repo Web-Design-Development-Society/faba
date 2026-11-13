@@ -1,0 +1,70 @@
+---
+// Uploading a cover for an activity or a banner for a group (MEDIA-01). It posts to
+// /api/media/upload, which comes back to this form (#picture) with the reason when it refuses the
+// picture, so the reason shows here, not just in the toast at the top of the page.
+// src/scripts/pictures.ts shrinks a big photo on the device first.
+interface Props {
+  target: 'activity' | 'group';
+  id: string;
+  /** The page to come back to. */
+  back: string;
+  /** The submit button's words, such as Save picture. */
+  submit: string;
+  /** Why the last upload was refused, if it was. */
+  error?: string | null;
+}
+
+const { target, id, back, submit, error } = Astro.props;
+const prefix = target === 'group' ? 'banner' : 'cover';
+---
+
+<form
+  id="picture"
+  method="post"
+  action="/api/media/upload"
+  enctype="multipart/form-data"
+  class="stack"
+  data-picture
+>
+  <input type="hidden" name="target" value={target} />
+  <input type="hidden" name="id" value={id} />
+  <input type="hidden" name="back" value={back} />
+  {error && (
+    <p role="alert" id={`${prefix}-error`}>
+      {error}
+    </p>
+  )}
+  <label for={`${prefix}-picture`}>Picture (JPEG, PNG or WebP)</label>
+  <input
+    id={`${prefix}-picture`}
+    name="picture"
+    type="file"
+    accept="image/jpeg,image/png,image/webp"
+    required
+    aria-describedby={error ? `${prefix}-hint ${prefix}-error` : `${prefix}-hint`}
+  />
+  <p id={`${prefix}-hint`} class="hint">
+    A big photo is made smaller on your device before it uploads, and where it was taken is left
+    out.
+  </p>
+  <label for={`${prefix}-alt`}>Describe it for people who can't see it</label>
+  <input id={`${prefix}-alt`} name="alt" type="text" maxlength="200" required />
+  <button>{submit}</button>
+</form>
+
+<script>
+  import '../scripts/pictures';
+</script>
+
+<style>
+  .hint {
+    margin: 0;
+    color: #595959;
+    font-size: 0.875rem;
+  }
+  [role='alert'] {
+    margin: 0;
+    color: #b42318;
+    font-weight: 600;
+  }
+</style>

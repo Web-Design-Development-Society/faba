@@ -5,6 +5,15 @@
 export const MAX_BYTES = 2 * 1024 * 1024;
 export const ALT_MAX = 200;
 
+/** The longest side a picture keeps when the device shrinks it before upload (src/scripts/pictures.ts). */
+export const MAX_SIDE = 1600;
+
+/** `width` by `height` scaled down to fit within `max` on its longest side. Never scaled up. */
+export function fitWithin(width: number, height: number, max = MAX_SIDE) {
+  const scale = Math.min(1, max / Math.max(width, height));
+  return { width: Math.round(width * scale), height: Math.round(height * scale) };
+}
+
 export type PictureType = 'image/jpeg' | 'image/png' | 'image/webp';
 
 /** The picture's type from its first bytes, or null if it isn't a JPEG, PNG or WebP. */

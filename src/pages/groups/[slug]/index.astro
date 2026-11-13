@@ -10,11 +10,12 @@
 import { actions } from 'astro:actions';
 import ActivityCard from '../../../components/ActivityCard.astro';
 import FollowButton from '../../../components/FollowButton.astro';
+import PictureUpload from '../../../components/PictureUpload.astro';
 import Status from '../../../components/Status.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { CARD, FACES, historySince } from '../../../lib/cards';
 import { linkify } from '../../../lib/links';
-import { FLASH_MESSAGES, setFlash, takeFlash } from '../../../lib/server/flash';
+import { FLASH_MESSAGES, pictureRefusal, setFlash, takeFlash } from '../../../lib/server/flash';
 import { formatAgo } from '../../../lib/time';
 
 const { supabase, user, member } = Astro.locals;
@@ -32,6 +33,8 @@ if (leave && !leave.error) {
 }
 const failure = (join?.error ?? leave?.error)?.message;
 const flash = takeFlash(Astro.cookies);
+// A refused banner says why next to its form, not in the toast (MEDIA-01).
+const pictureError = pictureRefusal(flash);
 
 const { data: group } = await supabase
   .from('groups')
@@ -129,7 +132,7 @@ const members = group?.member_count ?? 0;
 
 <Layout title={group?.name ?? 'Not available'} tab="discover">
   <a href="/groups">Back to Groups</a>
-  <Status message={flash && FLASH_MESSAGES[flash]} />
+  <Status message={flash && !pictureError ? FLASH_MESSAGES[flash] : undefined} />
   {failure && <p role="alert">{failure}</p>}
   {group ? (
     <>
@@ -153,29 +156,15 @@ const members = group?.member_count ?? 0;
         </p>
       )}
       {organizer && !group.archived_at && !group.hidden_at && (
-        <details class="banner-upload">
+        <details class="banner-upload" open={pictureError ? true : undefined}>
           <summary>Change the banner</summary>
-          <form
-            method="post"
-            action="/api/media/upload"
-            enctype="multipart/form-data"
-            class="stack"
-          >
-            <input type="hidden" name="target" value="group" />
-            <input type="hidden" name="id" value={group.id} />
-            <input type="hidden" name="back" value={`/groups/${group.slug}`} />
-            <label for="banner-picture">Picture (JPEG, PNG or WebP, under 2 MB)</label>
-            <input
-              id="banner-picture"
-              name="picture"
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              required
-            />
-            <label for="banner-alt">Describe it for people who can't see it</label>
-            <input id="banner-alt" name="alt" type="text" maxlength="200" required />
-            <button>Save banner</button>
-          </form>
+          <PictureUpload
+            target="group"
+            id={group.id}
+            back={`/groups/${group.slug}`}
+            submit="Save banner"
+            error={pictureError}
+          />
         </details>
       )}
       <p>

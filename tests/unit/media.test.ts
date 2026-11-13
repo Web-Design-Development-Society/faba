@@ -1,6 +1,6 @@
 // Pictures (MEDIA-01): the type comes from the file's first bytes, and the size limit is 2 MB.
 import { describe, expect, it } from 'vitest';
-import { MAX_BYTES, pictureProblem, sniffPicture } from '../../src/lib/media';
+import { fitWithin, MAX_BYTES, MAX_SIDE, pictureProblem, sniffPicture } from '../../src/lib/media';
 
 const bytes = (...values: number[]) => new Uint8Array(values);
 const JPEG = bytes(0xff, 0xd8, 0xff, 0xe0, 0, 0x10);
@@ -43,5 +43,18 @@ describe('pictureProblem', () => {
 
   it('allows exactly 2 MB', () => {
     expect(pictureProblem(MAX_BYTES, JPEG)).toBeNull();
+  });
+});
+
+describe('fitWithin', () => {
+  it('shrinks a phone photo to 1600 px on its longest side, keeping its shape', () => {
+    expect(MAX_SIDE).toBe(1600);
+    expect(fitWithin(4032, 3024)).toEqual({ width: 1600, height: 1200 });
+    expect(fitWithin(3024, 4032)).toEqual({ width: 1200, height: 1600 });
+  });
+
+  it('leaves a small picture as it is, never making it bigger', () => {
+    expect(fitWithin(800, 600)).toEqual({ width: 800, height: 600 });
+    expect(fitWithin(1600, 900)).toEqual({ width: 1600, height: 900 });
   });
 });
