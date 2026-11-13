@@ -18,6 +18,13 @@ test('a member posts an activity and lands on it, going', async ({ page, poster 
   await expect(page.getByLabel('Date', { exact: true })).not.toHaveValue('');
   await expectAccessible(page);
 
+  // What the activity is comes first, and it's the biggest field: as wide as the form, and taller
+  // than a tap target.
+  const title = await page.getByLabel('What are you doing?').boundingBox();
+  const form = await page.locator('main form').first().boundingBox();
+  expect(title!.width).toBeGreaterThanOrEqual(form!.width - 1);
+  expect(title!.height).toBeGreaterThanOrEqual(48);
+
   await fillRequired(page);
   await page.getByLabel('Details (optional)').fill('Bring water.\nWe go slowly.');
   await page.getByText('More options').click();
