@@ -92,8 +92,11 @@ test('a photo from a phone is made smaller on the device, and saves', async ({ p
   await expect(page.getByRole('status')).toHaveText('Picture saved. It shows on the activity.');
   const picture = page.getByRole('img', { name: 'The game table' });
   await expect(picture).toBeVisible();
-  // At most 1600 px on its longest side, as a JPEG under 2 MB.
-  expect(await picture.evaluate((img: HTMLImageElement) => img.naturalHeight)).toBe(1600);
+  // At most 1600 px on its longest side, as a JPEG under 2 MB. The page keeps the picture's space
+  // before it loads, so this waits for it to load.
+  await expect
+    .poll(() => picture.evaluate((img: HTMLImageElement) => img.naturalHeight))
+    .toBe(1600);
   // The tall photo shows across the page at 16:9, not as tall as the screen.
   await expectShape(page, picture, 16 / 9);
   const { data: saved } = await poster.admin
