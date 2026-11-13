@@ -135,21 +135,23 @@ Tests sign in as a persona with the `signInAs` fixture in `tests/e2e/fixtures.ts
 
 ## Deployments
 
-| Environment | Deploys                                               | Address                                                                        |
-| ----------- | ----------------------------------------------------- | ------------------------------------------------------------------------------ |
-| Preview     | On every push to a pull request                       | `https://pr-<number>-faba-staging.zack-alvey.workers.dev`, commented on the PR |
-| Staging     | On every merge to `main`                              | <https://faba-staging.zack-alvey.workers.dev>                                  |
-| Production  | Not set up yet. A release tag will deploy it (FND-08) |                                                                                |
+| Environment | Deploys                                      | Address                                                                        |
+| ----------- | -------------------------------------------- | ------------------------------------------------------------------------------ |
+| Preview     | On every push to a pull request              | `https://pr-<number>-faba-staging.zack-alvey.workers.dev`, commented on the PR |
+| Staging     | On every merge to `main`                     | <https://faba-staging.zack-alvey.workers.dev>                                  |
+| Production  | On each published release, after an approval | Not set up yet (FND-09)                                                        |
 
-- **Staging** (`.github/workflows/deploy-staging.yml`) pushes new migrations to the staging Supabase project first, then deploys the `faba-staging` Worker, then runs `scripts/smoke-test.mjs` against it.
+- **Staging** (`.github/workflows/deploy-staging.yml`) builds, pushes new migrations to the staging Supabase project, deploys the `faba-staging` Worker, then runs `scripts/smoke-test.mjs` against it. The steps are in `.github/workflows/deploy.yml`, which production uses too.
+- **Production** (`.github/workflows/deploy-production.yml`) runs the same steps for a GitHub Release tagged `vX.Y.Z` from `main`, once one of the repository's admins approves it. See [the release runbook](docs/runbooks/release.md), which also covers rolling back.
 - **Previews** (`.github/workflows/preview.yml`) are versions of the `faba-staging` Worker, so they use the staging database. Migrations in a pull request don't reach its preview, so test them locally. Pull requests from forks and Dependabot get no preview.
 - Staging holds only synthetic data. Its free Supabase project pauses after a week without activity. Restore it from the Supabase dashboard.
 - **Sample data on staging:** run **Seed staging** from the Actions tab. It adds the five personas as accounts nobody can sign in to, and their 50 activities. Run it again to move the activities' dates forward.
-- To set a staging secret, run `npx wrangler secret put <NAME> --name faba-staging`. GitHub's `staging` environment holds the secrets the workflows use.
+- To set a staging secret, run `npx wrangler secret put <NAME> --env staging`. If it says the latest version isn't deployed, a preview is the latest version: run `npx wrangler versions secret put <NAME> --env staging` instead, and the next deploy of `main` carries the secret. GitHub's `staging` environment holds the secrets the workflows use.
 
 ## Database changes
 
 - Migrations are forward-only SQL files in `supabase/migrations/`. Never edit one that's already on `main`. Add a new one.
+- Name a new migration with a timestamp after the newest one on `main`, and check again before merging if others merged first. Staging and production won't apply a migration that sorts before one they already ran, so every deploy stops until it's renamed.
 - After adding or changing a migration, run `npx supabase db reset` to check that everything applies from zero, then `npm run db:types` and commit the regenerated types.
 - Add pgTAP tests in `supabase/tests/database/` for new tables, policies and functions.
 - Design document section 10 describes the schema, section 9.8 describes Row Level Security, and section 12.9 describes the database tests.
