@@ -1,6 +1,6 @@
 // Pictures for activities and groups (MEDIA-01). The pgTAP tests cover who can set and hide them, and
 // the unit tests cover the file checks.
-import type { Page } from '@playwright/test';
+import type { Locator, Page } from '@playwright/test';
 import { expect, expectAccessible, test } from './fixtures';
 
 // A 1x1 PNG, so the test needs no image file on disk.
@@ -28,12 +28,12 @@ async function makeActivity(poster: {
   return data!.id as string;
 }
 
-/** A photo as big as a phone's: 4000 by 3000 px of noise, as a high-quality JPEG over 2 MB. */
+/** A photo as big as a phone's, 3000 by 4000 px of noise, as a high-quality JPEG over 2 MB. */
 async function phonePhoto(page: Page): Promise<Buffer> {
   const base64 = await page.evaluate(async () => {
     const canvas = document.createElement('canvas');
-    canvas.width = 4000;
-    canvas.height = 3000;
+    canvas.width = 3000;
+    canvas.height = 4000;
     const context = canvas.getContext('2d')!;
     const pixels = context.createImageData(canvas.width, canvas.height);
     for (let i = 0; i < pixels.data.length; i++) pixels.data[i] = (i * 2654435761) % 251;
@@ -47,6 +47,14 @@ async function phonePhoto(page: Page): Promise<Buffer> {
     return btoa(binary);
   });
   return Buffer.from(base64, 'base64');
+}
+
+/** The picture fits the page's width at this shape, width over height. */
+async function expectShape(page: Page, picture: Locator, shape: number) {
+  const box = (await picture.boundingBox())!;
+  const page_ = await page.evaluate(() => document.body.clientWidth);
+  expect(box.width).toBeLessThanOrEqual(page_);
+  expect(Math.abs(box.height - box.width / shape)).toBeLessThanOrEqual(1);
 }
 
 test('an organizer adds a cover picture to an activity, and it shows on the page', async ({
@@ -84,8 +92,13 @@ test('a photo from a phone is made smaller on the device, and saves', async ({ p
   await expect(page.getByRole('status')).toHaveText('Picture saved. It shows on the activity.');
   const picture = page.getByRole('img', { name: 'The game table' });
   await expect(picture).toBeVisible();
-  // At most 1600 px on its longest side, as a JPEG under 2 MB.
-  expect(await picture.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(1600);
+  // At most 1600 px on its longest side, as a JPEG under 2 MB. The page keeps the picture's space
+  // before it loads, so this waits for it to load.
+  await expect
+    .poll(() => picture.evaluate((img: HTMLImageElement) => img.naturalHeight))
+    .toBe(1600);
+  // The tall photo shows across the page at 16:9, not as tall as the screen.
+  await expectShape(page, picture, 16 / 9);
   const { data: saved } = await poster.admin
     .from('images')
     .select('content_type, bytes')
@@ -93,6 +106,37 @@ test('a photo from a phone is made smaller on the device, and saves', async ({ p
     .single();
   expect(saved!.content_type).toBe('image/jpeg');
   expect(saved!.bytes).toBeLessThanOrEqual(TWO_MB);
+});
+
+test("a group's banner shows as a wide strip across the page", async ({ page, poster }) => {
+  const tag = crypto.randomUUID().slice(0, 6);
+  const { data: group } = await poster.admin
+    .from('groups')
+    .insert({
+      slug: `bakers-${tag}`,
+      name: `Bakers ${tag}`,
+      category_id: 'food',
+      owner_id: poster.id,
+    })
+    .select('id, slug')
+    .single();
+  await poster.admin
+    .from('group_members')
+    .insert({ group_id: group!.id, user_id: poster.id, role: 'owner' });
+
+  await page.goto(`/groups/${group!.slug}`);
+  await page.getByText('Change the banner').click();
+  await page.getByLabel('Picture (JPEG, PNG or WebP)').setInputFiles({
+    name: 'IMG_0043.jpg',
+    mimeType: 'image/jpeg',
+    buffer: await phonePhoto(page),
+  });
+  await page.getByLabel("Describe it for people who can't see it").fill('Loaves on a table');
+  await page.getByRole('button', { name: 'Save banner' }).click();
+  const banner = page.getByRole('img', { name: 'Loaves on a table' });
+  await expect(banner).toBeVisible();
+  await expectShape(page, banner, 3);
+  await expectAccessible(page);
 });
 
 test('a file that is not a picture is refused, and the form says why', async ({ page, poster }) => {

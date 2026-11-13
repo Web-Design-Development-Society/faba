@@ -9,6 +9,7 @@
 // join (GRP-05).
 import { actions } from 'astro:actions';
 import ActivityCard from '../../../components/ActivityCard.astro';
+import CoverPicture from '../../../components/CoverPicture.astro';
 import FollowButton from '../../../components/FollowButton.astro';
 import PictureUpload from '../../../components/PictureUpload.astro';
 import Status from '../../../components/Status.astro';
@@ -141,14 +142,7 @@ const members = group?.member_count ?? 0;
       {group.category && <p class="category">{group.category.name}</p>}
       <h1>{group.name}</h1>
       {group.banner && !group.banner.hidden_at && (
-        <figure class="banner">
-          <img src={`/api/media/${group.banner.id}`} alt={group.banner.alt} loading="lazy" />
-          {group.banner.uploaded_by !== user.id && (
-            <figcaption>
-              <a href={`/media/${group.banner.id}/report`}>Report picture</a>
-            </figcaption>
-          )}
-        </figure>
+        <CoverPicture image={group.banner} viewer={user.id} shape="banner" />
       )}
       {group.banner?.hidden_at && (
         <p class="hidden">
