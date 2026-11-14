@@ -1,6 +1,8 @@
 // Profile Actions. Each checks who's signed in, and Postgres checks every rule again (ADR-004).
 import { ActionError, defineAction } from 'astro:actions';
 import { z } from 'astro/zod';
+import { env } from 'cloudflare:workers';
+import { thumbKey } from '../lib/media';
 import { deleteAuthUser } from '../lib/server/admin';
 import { actionErrorFor } from '../lib/server/errors';
 import { accountDeletion, displayName, profileChanges } from '../lib/validation/profile';
@@ -49,7 +51,7 @@ export const profile = {
     accept: 'form',
     input: profileChanges,
     handler: async (
-      { faculty_type, email_visible, department, bio, interests, ...changes },
+      { faculty_type, email_visible, department, bio, interests, appearance, ...changes },
       { locals }
     ) => {
       const { supabase, user } = locals;
@@ -66,6 +68,7 @@ export const profile = {
         .from('profiles')
         .update({
           ...changes,
+          use_initials: appearance === 'initials',
           department: department || null,
           bio: bio || null,
           interests: [...new Set(interests)].filter((id) => offered.has(id)),
@@ -111,6 +114,12 @@ export const profile = {
 
       const { error } = await supabase.rpc('delete_my_account');
       if (error) throw new ActionError(actionErrorFor(error));
+
+      // Their photo goes from the bucket (UI-11). Its row goes with their profile.
+      const { data: photo } = await supabase.rpc('remove_profile_photo');
+      if (typeof photo === 'string') {
+        await (env as unknown as { MEDIA: MediaBucket }).MEDIA.delete([photo, thumbKey(photo)]);
+      }
 
       const { error: authError } = await deleteAuthUser(user.id);
       if (authError) {

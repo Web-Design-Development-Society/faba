@@ -43,6 +43,8 @@ export const FLASH_MESSAGES = {
   comment_unhidden: 'Comment unhidden.',
   cover_saved: 'Picture saved. It shows on the activity.',
   banner_saved: 'Banner saved. It shows on the group.',
+  photo_saved: 'Photo saved. It shows wherever your face does.',
+  photo_removed: 'Photo removed.',
   image_hidden: 'Picture hidden.',
   image_unhidden: 'Picture unhidden.',
   upload_missing: 'Choose a picture to upload.',

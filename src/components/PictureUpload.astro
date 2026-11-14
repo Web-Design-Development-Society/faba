@@ -1,11 +1,14 @@
 ---
-// Uploading a cover for an activity or a banner for a group (MEDIA-01). It posts to
+// Uploading a cover for an activity or a banner for a group (MEDIA-01), or the member's profile
+// photo (UI-11), which needs no description since it's their face, and a smaller small copy since
+// faces are small. It posts to
 // /api/media/upload, which comes back to this form (#picture) with the reason when it refuses the
 // picture, so the reason shows here, not just in the toast at the top of the page.
 // src/scripts/pictures.ts shrinks a big photo on the device first.
 interface Props {
-  target: 'activity' | 'group';
-  id: string;
+  target: 'activity' | 'group' | 'profile';
+  /** The activity's or group's id. A profile photo is always the member's own. */
+  id?: string;
   /** The page to come back to. */
   back: string;
   /** The submit button's words, such as Save picture. */
@@ -15,7 +18,8 @@ interface Props {
 }
 
 const { target, id, back, submit, error } = Astro.props;
-const prefix = target === 'group' ? 'banner' : 'cover';
+const prefix = { activity: 'cover', group: 'banner', profile: 'photo' }[target];
+const profile = target === 'profile';
 ---
 
 <form
@@ -25,16 +29,19 @@ const prefix = target === 'group' ? 'banner' : 'cover';
   enctype="multipart/form-data"
   class="stack"
   data-picture
+  data-thumb-side={profile ? 256 : undefined}
 >
   <input type="hidden" name="target" value={target} />
-  <input type="hidden" name="id" value={id} />
+  {id && <input type="hidden" name="id" value={id} />}
   <input type="hidden" name="back" value={back} />
   {error && (
     <p role="alert" id={`${prefix}-error`}>
       {error}
     </p>
   )}
-  <label for={`${prefix}-picture`}>Picture (JPEG, PNG or WebP)</label>
+  <label for={`${prefix}-picture`}>
+    {profile ? 'Photo (JPEG, PNG or WebP)' : 'Picture (JPEG, PNG or WebP)'}
+  </label>
   <input
     id={`${prefix}-picture`}
     name="picture"
@@ -49,8 +56,12 @@ const prefix = target === 'group' ? 'banner' : 'cover';
   </p>
   {/* The small copy for cards (UI-03), which src/scripts/pictures.ts makes. */}
   <input name="thumb" type="file" hidden data-thumb />
-  <label for={`${prefix}-alt`}>Describe it for people who can't see it</label>
-  <input id={`${prefix}-alt`} name="alt" type="text" maxlength="200" required />
+  {!profile && (
+    <>
+      <label for={`${prefix}-alt`}>Describe it for people who can't see it</label>
+      <input id={`${prefix}-alt`} name="alt" type="text" maxlength="200" required />
+    </>
+  )}
   <button>{submit}</button>
 </form>
 
@@ -61,7 +72,7 @@ const prefix = target === 'group' ? 'banner' : 'cover';
 <style>
   .hint {
     margin: 0;
-    color: #595959;
+    color: var(--muted);
     font-size: 0.875rem;
   }
   [role='alert'] {
