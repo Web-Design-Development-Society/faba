@@ -65,7 +65,7 @@ const [results, categories, tags] = await Promise.all([
         .order('created_at', { referencedTable: 'going' })
         .limit(FACES, { referencedTable: 'going' })
     : { data: null, error: null },
-  supabase.from('categories').select('id, name').eq('is_active', true).order('sort_order'),
+  supabase.from('categories').select('id, name, icon').eq('is_active', true).order('sort_order'),
   supabase.from('tags').select('id, name').eq('is_active', true).order('sort_order'),
 ]);
 
@@ -127,17 +127,16 @@ const matching = [
       [value ?? []].flat().map((one) => <input type="hidden" name={name} value={one} />)
     )}
   </form>
-  {q && categories.data?.length ? (
-    <FilterChips categories={categories.data} page="/search" query={Astro.url.searchParams} />
-  ) : null}
   {q && (
-    <MoreFilters
-      page="/search"
-      query={Astro.url.searchParams}
-      dates={dates}
-      more={{ spots: moreFilters.spots, tags: filters.tag }}
-      tags={tags.data ?? []}
-    />
+    <FilterChips categories={categories.data ?? []} page="/search" query={Astro.url.searchParams}>
+      <MoreFilters
+        page="/search"
+        query={Astro.url.searchParams}
+        dates={dates}
+        more={{ spots: moreFilters.spots, tags: filters.tag }}
+        tags={tags.data ?? []}
+      />
+    </FilterChips>
   )}
   <Status message={flash && FLASH_MESSAGES[flash]} />
   {rsvp?.error && <p role="alert">{rsvp.error.message}</p>}

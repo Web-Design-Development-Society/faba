@@ -1,4 +1,5 @@
-// Discover's category chips (ACT-06).
+// Discover's category chips (ACT-06), behind the Category button so nothing runs off a phone's
+// screen (UI-04).
 import type { Page } from '@playwright/test';
 import { expect, expectAccessible, test } from './fixtures';
 
@@ -6,8 +7,10 @@ const HOUR = 60 * 60 * 1000;
 
 // Other tests post at the same time, so each activity has a title of its own.
 const named = (title: string) => `${title} ${crypto.randomUUID().slice(0, 8)}`;
-const chip = (page: Page, name: string) =>
-  page.getByRole('navigation', { name: 'Filters' }).getByRole('link', { name, exact: true });
+const filters = (page: Page) => page.getByRole('navigation', { name: 'Filters' });
+const chip = (page: Page, name: string) => filters(page).getByRole('link', { name, exact: true });
+/** The Category button, a disclosure's summary. */
+const category = (page: Page) => filters(page).locator('summary');
 
 /** Whether every card in the feed is in `category`. */
 async function expectOnly(page: Page, category: string) {
@@ -28,24 +31,51 @@ test('a chip shows only its category, and says it is chosen', async ({ page, sig
   await host.post({ title: hike, starts_at: soon });
 
   await page.goto('/discover');
-  const chips = page.getByRole('navigation', { name: 'Filters' });
+  const chips = filters(page);
+  await expect(page.getByRole('heading', { name: 'Upcoming activities' })).toBeVisible();
   await expect(chips.getByRole('link').first()).toHaveText('All');
   await expect(chip(page, 'All')).toHaveAttribute('aria-current', 'page');
-  // The row scrolls sideways, and the page doesn't.
-  expect(await chips.getByRole('list').evaluate((row) => row.scrollWidth > row.clientWidth)).toBe(
-    true
-  );
+  // Every chip and button is on the screen: none runs off its edge, and nothing scrolls sideways.
+  const width = page.viewportSize()!.width;
+  for (const control of await chips
+    .locator('.chips:not(.panel) a:visible, summary:visible, button:visible')
+    .all()) {
+    const box = (await control.boundingBox())!;
+    expect(box.x + box.width).toBeLessThanOrEqual(width);
+  }
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth
     )
   ).toBe(0);
+  // More filters is outlined beside Category, not a filled button.
+  await expect(chips.getByRole('button', { name: 'More filters' })).toHaveCSS(
+    'background-color',
+    'rgb(255, 255, 255)'
+  );
+  // There's nothing to clear yet.
+  await expect(chips.getByRole('link', { name: 'Clear filters' })).toHaveCount(0);
 
+  await expect(category(page)).toHaveText('Category');
+  await category(page).click();
+  await expect(chip(page, 'Games')).toBeVisible();
+  await expectAccessible(page);
+  // Escape closes it, as a menu does, and Category keeps the focus.
+  await page.keyboard.press('Escape');
+  await expect(chip(page, 'Games')).toBeHidden();
+  await expect(category(page)).toBeFocused();
+  await category(page).click();
   await chip(page, 'Games').click();
   await expect(page).toHaveURL('/discover?cat=games');
   await expect(page).toHaveTitle('Games · Discover · FABA');
+  await expect(category(page)).toHaveText('Category: Games');
+  await category(page).click();
   await expect(chip(page, 'Games')).toHaveAttribute('aria-current', 'page');
   await expect(chips.locator('[aria-current]')).toHaveCount(1);
+  await expect(chips.getByRole('link', { name: 'Clear filters' })).toHaveAttribute(
+    'href',
+    '/discover'
+  );
   await expect(page.getByRole('link', { name: game })).toBeVisible();
   await expect(page.getByText(hike)).toHaveCount(0);
   await expectOnly(page, 'Games');
@@ -68,18 +98,12 @@ test('a category with nothing coming up invites the member to post one', async (
   await signInAs('member');
   // The sample data and the other tests have nothing in Other, the last chip.
   await page.goto('/discover?cat=other');
-  // The row scrolls sideways to the chosen chip. On a short screen, like the iPhone SE's, the row
-  // can start below the fold, under "Your next plan", so bring it up first. That scrolls the page,
-  // not the row, so the check below is still the row's own scroll.
-  await page
-    .getByRole('navigation', { name: 'Filters' })
-    .evaluate((nav) => nav.scrollIntoView({ block: 'center' }));
-  await expect(chip(page, 'Other')).toBeInViewport({ ratio: 1 });
+  // The Category button names the one that's chosen.
+  await expect(category(page)).toHaveText('Category: Other');
   await expect(page.getByText('Nothing matches Other.')).toBeVisible();
-  await expect(page.getByRole('link', { name: 'Clear filters' })).toHaveAttribute(
-    'href',
-    '/discover'
-  );
+  for (const link of await page.getByRole('link', { name: 'Clear filters' }).all()) {
+    await expect(link).toHaveAttribute('href', '/discover');
+  }
   await expectAccessible(page);
 
   await page.getByRole('link', { name: 'Post one' }).click();
@@ -123,8 +147,12 @@ test.describe('without JavaScript', () => {
   test('a chip is a link that filters the feed', async ({ page, signInAs }) => {
     await signInAs('member');
     await page.goto('/discover');
+    // Category opens without JavaScript.
+    await category(page).click();
     await chip(page, 'Outdoors').click();
     await expect(page).toHaveURL('/discover?cat=outdoors');
+    await expect(category(page)).toHaveText('Category: Outdoors');
+    await category(page).click();
     await expect(chip(page, 'Outdoors')).toHaveAttribute('aria-current', 'page');
     await expectOnly(page, 'Outdoors');
   });

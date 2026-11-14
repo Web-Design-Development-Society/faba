@@ -2,7 +2,8 @@
 // More filters (SRCH-02, SRCH-03, design document section 7.10): a sheet with a custom date range,
 // Has spots left and the curated tags. It's a GET form, so it works without JavaScript, and it
 // keeps the page's chips and words. Dates replace a date chip. The button counts the filters it
-// holds that are on, and Clear all, always in the sheet, takes every filter off.
+// holds that are on, and Clear all, always in the sheet, takes every filter off. It sits beside
+// Category, outlined like it (UI-04), in FilterChips' row.
 import Sheet from './Sheet.astro';
 
 interface Props {
@@ -27,7 +28,7 @@ const clear = new URLSearchParams([...query].filter(([name]) => ['q', 'past'].in
 ---
 
 {wrong && <p role="alert">Those dates don't work together. Pick a start on or before the end.</p>}
-<button type="button" commandfor="more-filters" command="show-modal">
+<button type="button" class="tool" commandfor="more-filters" command="show-modal">
   {on ? `More filters (${on})` : 'More filters'}
 </button>
 <Sheet id="more-filters" title="More filters">

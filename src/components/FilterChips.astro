@@ -1,14 +1,21 @@
 ---
-// The filter chips on Discover and Search (ACT-06, SRCH-02, design document section 7.10): All, the
-// date chips, then the categories. They're links, so they work without JavaScript and a filter can
-// be shared. A date chip keeps the category, and a category keeps the dates, as in
-// /discover?when=weekend&cat=outdoors. Tapping a chosen chip takes it off, and All takes them all
-// off. On Search they keep the words too. The row scrolls sideways. Chosen chips have aria-current
-// and a check, and src/scripts/feed.ts scrolls the first into view.
+// The filters on Discover and Search (ACT-06, SRCH-02, design document section 7.10). They're links,
+// so they work without JavaScript and a filter can be shared. A date chip keeps the category, and a
+// category keeps the dates, as in /discover?when=weekend&cat=outdoors. Tapping a chosen chip takes
+// it off, and All takes them all off. On Search they keep the words too. Chosen chips have
+// aria-current and a check.
+//
+// So that nothing runs off a phone's screen (UI-04), All and the date chips wrap onto another line,
+// and the categories are behind a Category button, which names the chosen one. It's a disclosure
+// (<details>), so it opens without JavaScript. The page's More filters goes in the slot beside it,
+// and Clear filters shows whenever a filter is on. On Search before searching (`browse`), every
+// chip shows, as a list to browse.
+import { isIcon } from '../lib/icons';
 import { WHENS } from '../lib/time';
+import Icon from './Icon.astro';
 
 interface Props {
-  categories: { id: string; name: string }[];
+  categories: { id: string; name: string; icon?: string }[];
   /** The page the chips filter, such as /discover. */
   page: string;
   /** The page's query, whose filters the chips change. */
@@ -21,6 +28,7 @@ const { categories, page, query, browse } = Astro.props;
 const custom = query.has('from') || query.has('to');
 const when = custom ? null : query.get('when');
 const cat = query.get('cat');
+const chosenCategory = browse ? undefined : categories.find(({ id }) => id === cat);
 
 // The page with `changes`, starting again from its first page.
 const link = (changes: Record<string, string | null>) => {
@@ -29,10 +37,11 @@ const link = (changes: Record<string, string | null>) => {
   for (const [name, value] of Object.entries(changes)) if (value) next.set(name, value);
   return next.size ? `${page}?${next}` : page;
 };
-const chips = [
+const all = !when && !custom && !cat && !query.has('spots') && !query.has('tag');
+const dates = [
   {
     name: 'All',
-    chosen: !when && !custom && !cat && !query.has('spots') && !query.has('tag'),
+    chosen: all,
     href: link({ when: null, from: null, to: null, cat: null, spots: null, tag: null }),
   },
   ...Object.entries(WHENS).map(([id, name]) => ({
@@ -40,17 +49,21 @@ const chips = [
     chosen: when === id,
     href: link({ when: when === id ? null : id, from: null, to: null }),
   })),
-  ...categories.map(({ id, name }) => ({
-    name,
-    chosen: cat === id,
-    href: link({ cat: cat === id ? null : id }),
-  })),
 ];
+const kinds = categories.map(({ id, name, icon }) => ({
+  name,
+  icon: icon && isIcon(icon) ? icon : undefined,
+  chosen: cat === id,
+  href: link({ cat: cat === id ? null : id }),
+}));
+// Every filter off, keeping only the search words.
+const kept = new URLSearchParams([...query].filter(([name]) => ['q', 'past'].includes(name)));
+const clear = kept.size ? `${page}?${kept}` : page;
 ---
 
-<nav aria-label="Filters">
-  <ul data-chips>
-    {chips.map(({ name, chosen, href }) => (
+<nav aria-label="Filters" class="filters">
+  <ul class="chips">
+    {(browse ? [...dates, ...kinds] : dates).map(({ name, chosen, href }) => (
       <li>
         <a href={href} aria-current={chosen && !browse ? 'page' : undefined}>
           {name}
@@ -58,22 +71,66 @@ const chips = [
       </li>
     ))}
   </ul>
+  {!browse && (
+    <div class="tools">
+      {kinds.length > 0 && (
+        <details class="category">
+          <summary class:list={{ on: !!chosenCategory }}>
+            {chosenCategory ? `Category: ${chosenCategory.name}` : 'Category'}
+          </summary>
+          <ul class="chips panel">
+            {kinds.map(({ name, icon, chosen, href }) => (
+              <li>
+                <a href={href} aria-current={chosen ? 'page' : undefined}>
+                  {icon && !chosen && <Icon name={icon} />}
+                  {name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+      <slot />
+      {!all && (
+        <a href={clear} class="clear">
+          Clear filters
+        </a>
+      )}
+    </div>
+  )}
 </nav>
 
+<script>
+  // The Category panel closes with Escape, or a tap anywhere else, as a menu does.
+  for (const details of document.querySelectorAll<HTMLDetailsElement>('details.category')) {
+    document.addEventListener('click', ({ target }) => {
+      if (details.open && !details.contains(target as Node)) details.open = false;
+    });
+    details.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || !details.open) return;
+      details.open = false;
+      details.querySelector('summary')?.focus();
+    });
+  }
+</script>
+
 <style>
-  /* Out to the screen's edges, so it's clear the row scrolls. The padding keeps focus rings in. */
-  ul {
+  .filters {
+    margin-top: 1rem;
+  }
+  /* The chips wrap, so none is cut off at the screen's edge. */
+  .chips {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
-    margin: 1rem -1rem 0;
-    padding: 0.25rem 1rem 0.5rem;
-    overflow-x: auto;
+    margin: 0;
+    padding: 0;
     list-style: none;
   }
-  a {
+  .chips a {
     display: inline-flex;
     align-items: center;
-    gap: 0.25rem;
+    gap: 0.375rem;
     min-height: 44px;
     padding: 0 1rem;
     color: var(--navy);
@@ -84,13 +141,94 @@ const chips = [
     border-radius: 999px;
   }
   /* FABA blue with a check (UI-02), so it isn't shown by color alone. */
-  [aria-current] {
+  .chips [aria-current] {
     font-weight: 600;
     color: white;
     background: var(--blue);
     border-color: var(--blue);
   }
-  [aria-current]::before {
+  .chips [aria-current]::before {
     content: '✓' / '';
+  }
+  /* Category, More filters and Clear filters, in a row that wraps. */
+  .tools {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+  }
+  /* A message from More filters takes its own line. */
+  .tools > :global(p) {
+    flex-basis: 100%;
+    margin: 0;
+  }
+  summary,
+  .tools :global(.tool) {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 44px;
+    padding: 0 1rem;
+    color: var(--navy);
+    font: inherit;
+    font-weight: 600;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+  summary {
+    list-style: none;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  /* A caret that turns when the panel is open. */
+  summary::after {
+    width: 0.5rem;
+    height: 0.5rem;
+    margin: -0.25rem 0 0 0.25rem;
+    content: '';
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+  }
+  .category[open] summary::after {
+    margin-top: 0.25rem;
+    transform: rotate(-135deg);
+  }
+  summary.on {
+    color: var(--blue);
+    border-color: var(--blue);
+  }
+  summary:hover,
+  .tools :global(.tool:hover) {
+    border-color: var(--blue);
+  }
+  /* The categories drop down under the row, over the feed's cards and their buttons, as a menu
+     would, and under the bottom bar, which comes later in the page. */
+  .panel {
+    position: absolute;
+    z-index: 2;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    left: 0;
+    padding: 0.75rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 24px rgb(15 31 61 / 18%);
+  }
+  .panel :global(.icon) {
+    color: var(--blue);
+  }
+  .clear {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 0.25rem;
+    font-weight: 600;
   }
 </style>

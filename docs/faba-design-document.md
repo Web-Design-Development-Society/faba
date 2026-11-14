@@ -2067,12 +2067,15 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 +------------------------------------+
 | FABA                          [Q]  |  <- search icon
 +------------------------------------+
-| YOUR NEXT PLAN                     |
+| Your next plan                     |
 | +--------------------------------+ |
 | | [hike] Sunrise hike, R Mountain| |
 | | Sat 7:00 AM . 12 going  [v In] | |
 | +--------------------------------+ |
-| (All)(This weekend)(Outdoors)(Ga>  |  <- chips scroll sideways
+| Upcoming activities                |
+| (All)(Today)(This week)            |  <- chips wrap (UI-04)
+| (This weekend)                     |
+| [Category v] [More filters]        |
 |                                    |
 | TODAY . TUE, OCT 21                |
 | +--------------------------------+ |
@@ -2225,6 +2228,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 
 - **Search** (Phase 2): the search icon opens a dedicated `/search` view with an autofocused input, recent searches (stored on the device), and popular categories. Submitting runs the search and shows results as standard cards with the same chips.
 - **Chips** (Phase 1 categories; Phase 2 adds Today, This week, This weekend, Online, Family-friendly). Applying a chip is one tap, the selected state has a visible check, and chips are links (`?when=weekend&cat=outdoors`).
+- **Fitting the screen** (UI-04): **All** and the date chips wrap onto another line rather than scrolling sideways. The categories are behind a **Category** button beside **More filters**, which names the chosen one ("Category: Outdoors"). It's a disclosure, so it opens without JavaScript, and it drops a panel of category chips over the feed that closes with Escape or a tap elsewhere. **Clear filters** shows whenever a filter is on. Discover's feed starts with an **Upcoming activities** heading, with each day as a label under it.
 - **More filters** (Phase 2): a bottom sheet holding the long tail of filters: date range, in person or online, has spots, free, and tags. **Show N results** is the sheet's primary button. The count is computed live when JavaScript is available, and appears as plain "Apply" without it.
 - **Combining filters:** filters combine with AND. The active filter count appears on the **Filters** button, and **Clear all** is always visible.
 

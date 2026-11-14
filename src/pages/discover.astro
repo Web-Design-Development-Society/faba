@@ -84,7 +84,7 @@ const [feed, plan, categories, tags, visit] = await Promise.all([
         .limit(1)
         .maybeSingle()
     : { data: null },
-  supabase.from('categories').select('id, name').eq('is_active', true).order('sort_order'),
+  supabase.from('categories').select('id, name, icon').eq('is_active', true).order('sort_order'),
   supabase.from('tags').select('id, name').eq('is_active', true).order('sort_order'),
   // When the member's previous visit ended, which is null on their first.
   supabase.rpc('record_visit'),
@@ -154,11 +154,24 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
 
   {plan.data && (
     <section aria-labelledby="plan">
-      <h2 id="plan">Your next plan</h2>
+      <h2 id="plan" class="section">
+        Your next plan
+      </h2>
       <ActivityCard activity={plan.data} viewer={user.id} now={now} faces={FACES} next />
     </section>
   )}
-  {chips && <FilterChips categories={chips} page="/discover" query={Astro.url.searchParams} />}
+  <h2 id="upcoming" class="section">
+    Upcoming activities
+  </h2>
+  <FilterChips categories={chips ?? []} page="/discover" query={Astro.url.searchParams}>
+    <MoreFilters
+      page="/discover"
+      query={Astro.url.searchParams}
+      dates={dates}
+      more={{ spots: moreFilters.spots, tags: filters.tag }}
+      tags={tags.data ?? []}
+    />
+  </FilterChips>
   {category && (
     <>
       {followed?.error && <p role="alert">{followed.error.message}</p>}
@@ -171,13 +184,6 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
       />
     </>
   )}
-  <MoreFilters
-    page="/discover"
-    query={Astro.url.searchParams}
-    dates={dates}
-    more={{ spots: moreFilters.spots, tags: filters.tag }}
-    tags={tags.data ?? []}
-  />
 
   {feed.error ? (
     <p role="alert">Activities couldn't load. Please try again.</p>
@@ -204,7 +210,7 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
     <div data-feed>
       {[...days].map(([date, group]) => (
         <section data-day={date} aria-labelledby={`day-${date}`}>
-          <h2 id={`day-${date}`}>{formatDay(date, now)}</h2>
+          <h3 id={`day-${date}`}>{formatDay(date, now)}</h3>
           <ul>
             {group.map((activity) => (
               <li id={`activity-${activity.id}`}>
@@ -261,9 +267,17 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
     color: var(--blue);
     border-color: var(--blue);
   }
-  h2 {
+  /* Your next plan and Upcoming activities head the page's two parts, as in the mockup (UI-04). */
+  .section {
+    margin: 1.5rem 0 0.75rem;
+    font-size: 1.375rem;
+    font-weight: 800;
+  }
+  /* Each day is a small label over its cards. */
+  h3 {
     margin: 1.5rem 0 0.5rem;
     font-size: 0.875rem;
+    color: var(--navy);
     text-transform: uppercase;
   }
   /* minmax(0, 1fr) keeps a card with a long place on one line from widening the column. */
