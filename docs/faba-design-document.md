@@ -1254,6 +1254,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   3. All filters are reflected in the URL.
 - **Dependencies:** RSVP-04 (for "has spots"); curated tags.
 - **Notes / edge cases:** Tags are a curated list managed by admins. Free-form tags are Won't Have Yet. An In person / Online filter returns if online activities do (ADR-017).
+- **Status:** Has spots left and tags were removed on 2026-11-14 by UI-09, which keeps only Category and Date. Tags are gone from the form and the activity page too, and their tables stay, unused.
 
 #### RSVP-04 · Capacity and "Full"
 
@@ -2122,9 +2123,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 | | Sat 7:00 AM . 12 going  [v In] | |
 | +--------------------------------+ |
 | Upcoming activities                |
-| (All)(Today)(This week)            |  <- chips wrap (UI-04)
-| (This weekend)                     |
-| [Category v] [More filters]        |
+| [Category v] [Date v]              |  <- the only filters (UI-09)
 |                                    |
 | TODAY . TUE, OCT 21                |
 | +--------------------------------+ |
@@ -2285,11 +2284,13 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 
 ### 7.10 Search and filters
 
-- **Search** (Phase 2): the search icon opens a dedicated `/search` view with an autofocused input, recent searches (stored on the device), and popular categories. Submitting runs the search and shows results as standard cards with the same chips.
-- **Chips** (Phase 1 categories; Phase 2 adds Today, This week, This weekend, Online, Family-friendly). Applying a chip is one tap, the selected state has a visible check, and chips are links (`?when=weekend&cat=outdoors`).
-- **Fitting the screen** (UI-04): **All** and the date chips wrap onto another line rather than scrolling sideways. The categories are behind a **Category** button beside **More filters**, which names the chosen one ("Category: Outdoors"). It's a disclosure, so it opens without JavaScript, and it drops a panel of category chips over the feed that closes with Escape or a tap elsewhere. **Clear filters** shows whenever a filter is on. Discover's feed starts with an **Upcoming activities** heading, with each day as a label under it.
-- **More filters** (Phase 2): a bottom sheet holding the long tail of filters: date range, in person or online, has spots, free, and tags. **Show N results** is the sheet's primary button. The count is computed live when JavaScript is available, and appears as plain "Apply" without it.
-- **Combining filters:** filters combine with AND. The active filter count appears on the **Filters** button, and **Clear all** is always visible.
+- **Search** (Phase 2): the search icon opens a dedicated `/search` view with an autofocused input, recent searches (stored on the device), and popular categories. Submitting runs the search and shows results as standard cards with the same filters.
+- **Filters** (UI-09): just two buttons, **Category** and **Date**, side by side. Each names what's chosen ("Category: Outdoors", "Date: This weekend") and opens a panel that drops down over the feed. They're disclosures, so they open without JavaScript, and they close with Escape or a tap elsewhere.
+  - **Category** has a chip for each category, with its icon.
+  - **Date** has **Any time**, **Today**, **This week** and **This weekend**, then **Pick dates** with From and To.
+  - The choices are links (`?when=weekend&cat=outdoors`, `?from=2026-11-20&to=2026-11-22`), so a filter can be shared. A chosen one is FABA blue with a check.
+- **Combining filters:** a category and dates combine with AND. **Clear filters** shows whenever a filter is on.
+- **Removed** (UI-09): the row of date pills (UI-04), and More filters' **Has spots left** and tags (SRCH-03). Older links with `?spots=` or `?tag=` ignore them.
 
 ### 7.11 Empty states
 
