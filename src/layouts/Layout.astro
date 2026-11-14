@@ -47,6 +47,8 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
         <img src="/brand/faba-mark.png" alt="" width="49" height="36" />
         <span>FABA</span>
       </a>
+      {/* The motto (UI-08), beside the link, so the link's name stays FABA. */}
+      <p class="motto">Bringing faculty together!</p>
     </header>
     <main id="content">
       <slot />
@@ -171,7 +173,19 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   .site {
     display: flex;
     align-items: center;
+    gap: 0.75rem;
     margin-bottom: 0.5rem;
+  }
+  /* Smaller and lighter than the wordmark. On a narrow phone it wraps onto a second line beside
+     it, and two lines are no taller than the logo's link. */
+  .motto {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    line-height: 1.25;
+    color: var(--muted);
   }
   .brand {
     display: inline-flex;
