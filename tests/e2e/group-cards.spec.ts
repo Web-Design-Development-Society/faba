@@ -69,8 +69,8 @@ test('each group is a card with its picture and the basics', async ({ page, post
   );
   await expectAccessible(page);
 
-  // The whole card opens the group, not just its name.
-  await card.getByText('Anyone can join').click();
+  // The whole card opens the group, not just its name: the name's link covers it.
+  await card.click({ position: { x: 20, y: 20 } });
   await expect(page).toHaveURL(`/groups/${mine!.slug}`);
 });
 
