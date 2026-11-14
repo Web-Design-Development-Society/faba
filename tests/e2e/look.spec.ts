@@ -34,3 +34,23 @@ test('selected things are FABA blue, and the bar keeps its five items', async ({
   await expect(page.getByRole('link', { name: 'Search' })).toBeVisible();
   await expectAccessible(page);
 });
+
+test('the motto is beside the logo, on the public pages too', async ({ page }) => {
+  for (const path of ['/about', '/guidelines']) {
+    await page.goto(path);
+    const header = page.locator('header.site');
+    const motto = header.getByText('Bringing faculty together!', { exact: true });
+    await expect(motto).toBeVisible();
+    // To the right of the mark and FABA, and not part of the link, whose name stays FABA.
+    const brand = header.getByRole('link', { name: 'FABA', exact: true });
+    const [link, words] = [(await brand.boundingBox())!, (await motto.boundingBox())!];
+    expect(words.x).toBeGreaterThanOrEqual(link.x + link.width);
+    expect(words.x + words.width).toBeLessThanOrEqual(page.viewportSize()!.width);
+    // Two lines on a narrow phone are no taller than the logo's link.
+    expect(words.height).toBeLessThanOrEqual(link.height);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
+    ).toBe(true);
+  }
+  await expectAccessible(page);
+});
