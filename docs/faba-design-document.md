@@ -2163,31 +2163,35 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 
 ```text
 +------------------------------------+
-| x  New activity                    |
+| New activity                       |
 +------------------------------------+
 | What are you doing?                |
-| [ Sunrise hike up the R          ] |
+| [ e.g., Mountain biking, Disc golf]|
 |                                    |
 | When?                              |
-| (Today)(Tomorrow)(This Sat)        |
-| [ Sat, Oct 25 ]  [ 7:00 AM ]       |
+| (Today)(Tomorrow)(This Saturday)   |
+| [[cal] Sat, Oct 25 |[clk] 7:00 AM] |
 |                                    |
-| Where?                [ ] Online   |
-| [ R Mountain trailhead           ] |
+| Where?                             |
+| [[pin] e.g., Hidden Valley Park  ] |
 |                                    |
 | Category                           |
-| (Outdoors)(Sports)(Games)(Food)>   |
+| (v Outdoors)(Sports & Fitness)     |
+| (Games)(Food & Socials) ...        |
 |                                    |
 | Details (optional)                 |
-| [                                ] |
+| [ Add anything helpful, such as  ] |
 |                                    |
-| > More options                     |
+| More options v                     |
+|                                    |
+| [ Cancel ]  [   Post activity   ]  |
 +------------------------------------+
-|        [   Post activity   ]       |  <- sticky, thumb zone
+| Discover  Plans  [ + ]  Alerts  Me |  <- Post is current (UI-06)
 +------------------------------------+
 ```
 
 - **One screen, not a wizard.** Wizards add taps and hide context. The form is short enough to scroll.
+- **Clear sections** (UI-06): each part is under a bold question, with no grey boxes. Text fields are full width with an example in them. The date and start time share one box with their icons, side by side, stacking under 360 px. Today, Tomorrow and This Saturday are outlined chips, and the categories are chips, each a radio button underneath. **Cancel** and **Post activity** end the form, and the bottom bar stays, with **＋ Post** as the current item. **Edit activity** uses the same layout, with **Save changes**.
 - **More options**, by phase:
   - **Phase 1:** end time, cost note, time zone.
   - **Phase 2:** spots (capacity), guests welcome, tags, details for attendees only.
