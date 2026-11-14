@@ -17,6 +17,7 @@ import BoardContact from '../../../components/BoardContact.astro';
 import CancelActivity from '../../../components/CancelActivity.astro';
 import CoverPicture from '../../../components/CoverPicture.astro';
 import GoingList from '../../../components/GoingList.astro';
+import Icon from '../../../components/Icon.astro';
 import Menu from '../../../components/Menu.astro';
 import ModerationAction from '../../../components/ModerationAction.astro';
 import ParticipationDisclaimer from '../../../components/ParticipationDisclaimer.astro';
@@ -27,6 +28,7 @@ import Status from '../../../components/Status.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { googleCalendarUrl } from '../../../lib/calendar';
 import { isFull } from '../../../lib/cards';
+import { categoryLook } from '../../../lib/categories';
 import { PHYSICAL_CATEGORIES } from '../../../lib/contact';
 import { linkify, mapsUrl } from '../../../lib/links';
 import { repeatsSentence } from '../../../lib/series';
@@ -180,7 +182,7 @@ const [{ data: activity }, { data: me }] = await Promise.all([
       visibility, group:groups(name, slug),
       series:activity_series(freq, start_date, until_date, subscribed:series_subscriptions(user_id)),
       private:activity_private_details(details),
-      category:categories(name),
+      category:categories(name, icon, color_token),
       tags:activity_tags(tag:tags(name, sort_order)),
       organizer:profiles!activities_organizer_id_fkey(id, display_name, avatar_url, use_initials, department, status),
       co_organizers:activity_co_organizers(member:profiles!activity_co_organizers_user_id_fkey!inner(id, display_name, avatar_url, use_initials, department)),
@@ -287,6 +289,7 @@ const addable = people.filter(
   ({ id }) => id !== activity?.organizer_id && !coOrganizers.some((c) => c.id === id)
 );
 const department = host?.department ? `· ${host.department}` : '';
+const look = activity?.category ? categoryLook(activity.category) : null;
 const url = new URL(Astro.url.pathname, Astro.url.origin).href;
 // Add to calendar (ACT-08), until it's cancelled or over. The .ics has the details for attendees
 // for a member going, and the Google Calendar link never has them.
@@ -407,7 +410,12 @@ const email = activity
       {activity.status === 'cancelled' && (
         <p class="banner">{withReason('Cancelled', activity.cancel_reason)}</p>
       )}
-      {activity.category && <p class="category">{activity.category.name}</p>}
+      {activity.category && look && (
+        <p class="category" style={`--tint: ${look.color}`}>
+          <Icon name={look.icon} />
+          {activity.category.name}
+        </p>
+      )}
       {activity.group && (
         <p class="group">
           <a href={`/groups/${activity.group.slug}`}>{activity.group.name}</a>
@@ -432,28 +440,107 @@ const email = activity
           {withReason('Picture hidden by a moderator', activity.cover.hidden_reason)}
         </p>
       )}
-      <p>
-        <time datetime={activity.starts_at}>
-          {formatRange(
-            new Date(activity.starts_at),
-            activity.ends_at ? new Date(activity.ends_at) : null
-          )}
-        </time>
-        {google && (
-          <>
-            {' · '}
-            <button type="button" class="link" commandfor="calendar" command="show-modal">
-              Add to calendar
+      {/* What, when, where and who at a glance, each with an icon (UI-05). Each link sits on its
+          own line under its row's words. */}
+      <div class="details card">
+        <div class="row">
+          <Icon name="calendar" />
+          <div>
+            <p>
+              <time datetime={activity.starts_at}>
+                {formatRange(
+                  new Date(activity.starts_at),
+                  activity.ends_at ? new Date(activity.ends_at) : null
+                )}
+              </time>
+            </p>
+            {activity.series && (
+              <p class="repeats">
+                {repeatsSentence(activity.series.freq, activity.series.start_date)}
+                {activity.series.until_date && ` through ${formatDate(activity.series.until_date)}`}
+              </p>
+            )}
+            {google && (
+              <p>
+                <button type="button" class="link" commandfor="calendar" command="show-modal">
+                  Add to calendar
+                </button>
+              </p>
+            )}
+          </div>
+        </div>
+        <div class="row">
+          <Icon name="pin" />
+          <div>
+            <p>{activity.location_name}</p>
+            <p>
+              <a
+                href={mapsUrl(
+                  activity.location_name,
+                  Astro.request.headers.get('user-agent') ?? ''
+                )}
+              >
+                Open in Maps
+              </a>
+            </p>
+            {activity.time_or_place_changed_at && (
+              <p class="updated">
+                Updated{' '}
+                <time datetime={activity.time_or_place_changed_at}>
+                  {formatAgo(new Date(activity.time_or_place_changed_at), new Date())}
+                </time>
+              </p>
+            )}
+          </div>
+        </div>
+        <div class="row">
+          <Icon name="people" />
+          <p class="going" data-going={activity.id} data-faces={FACES}>
+            <button type="button" commandfor="going" command="show-modal">
+              {people.slice(0, FACES).map((member) => (
+                <Avatar member={member} named mine={member.id === user.id} />
+              ))}
+              <span data-count>{activity.going_count}</span> going
+              <span
+                data-guest-total={activity.id}
+                data-value={activity.guest_total}
+                hidden={!activity.guest_total}
+              >
+                {` (+${activity.guest_total} ${activity.guest_total === 1 ? 'guest' : 'guests'})`}
+              </span>
+              <span data-maybe={activity.id} hidden={!activity.maybe_count}>
+                · <span data-count>{activity.maybe_count}</span> maybe
+              </span>
+              <span aria-hidden="true">›</span>
             </button>
-          </>
-        )}
-      </p>
-      {activity.series && (
-        <p class="repeats">
-          {repeatsSentence(activity.series.freq, activity.series.start_date)}
-          {activity.series.until_date && ` through ${formatDate(activity.series.until_date)}`}
-        </p>
-      )}
+          </p>
+        </div>
+        <div class="row">
+          {host?.status !== 'active' && <Icon name="user" />}
+          {host?.status === 'active' ? (
+            <p class="host">
+              <Avatar member={host} />
+              <span>
+                Hosted by <a href={`/people/${host.id}`}>{host.display_name}</a> {department}
+              </span>
+            </p>
+          ) : activity.organizer_id ? (
+            // Members can't read an organizer who isn't active (AUTH-05). Moderators see who it was.
+            <p>
+              Organizer no longer active
+              {host && (
+                <>
+                  {' '}
+                  · <a href={`/people/${host.id}`}>{host.display_name}</a>
+                </>
+              )}
+            </p>
+          ) : (
+            // Its organizer deleted their account (PROF-05).
+            <p>Hosted by Former member</p>
+          )}
+        </div>
+      </div>
       {/* A regular joins the whole series once, and leaves it the same way (REC-04). */}
       {activity.series && !hosting && !activity.hidden_at && (
         <form
@@ -489,20 +576,6 @@ const email = activity
           <p>Your calendar's copy won't change if the activity does.</p>
         </Sheet>
       )}
-      <p>
-        {activity.location_name} ·{' '}
-        <a href={mapsUrl(activity.location_name, Astro.request.headers.get('user-agent') ?? '')}>
-          Open in Maps
-        </a>
-      </p>
-      {activity.time_or_place_changed_at && (
-        <p class="updated">
-          Updated{' '}
-          <time datetime={activity.time_or_place_changed_at}>
-            {formatAgo(new Date(activity.time_or_place_changed_at), new Date())}
-          </time>
-        </p>
-      )}
       {activity.cost_note && <p>Cost: {activity.cost_note}</p>}
       {activity.tags.length > 0 && (
         <p>
@@ -513,25 +586,6 @@ const email = activity
             .join(' · ')}
         </p>
       )}
-      <p class="going" data-going={activity.id} data-faces={FACES}>
-        <button type="button" commandfor="going" command="show-modal">
-          {people.slice(0, FACES).map((member) => (
-            <Avatar member={member} named mine={member.id === user.id} />
-          ))}
-          <span data-count>{activity.going_count}</span> going
-          <span
-            data-guest-total={activity.id}
-            data-value={activity.guest_total}
-            hidden={!activity.guest_total}
-          >
-            {` (+${activity.guest_total} ${activity.guest_total === 1 ? 'guest' : 'guests'})`}
-          </span>
-          <span data-maybe={activity.id} hidden={!activity.maybe_count}>
-            · <span data-count>{activity.maybe_count}</span> maybe
-          </span>
-          <span aria-hidden="true">›</span>
-        </button>
-      </p>
       <Sheet id="going" title="Who's going">
         <GoingList
           activityId={activity.id}
@@ -618,28 +672,6 @@ const email = activity
           </section>
         )}
       </Sheet>
-      {host?.status === 'active' ? (
-        <p class="host">
-          <Avatar member={host} />
-          <span>
-            Hosted by <a href={`/people/${host.id}`}>{host.display_name}</a> {department}
-          </span>
-        </p>
-      ) : activity.organizer_id ? (
-        // Members can't read an organizer who isn't active (AUTH-05). Moderators see who it was.
-        <p>
-          Organizer no longer active
-          {host && (
-            <>
-              {' '}
-              · <a href={`/people/${host.id}`}>{host.display_name}</a>
-            </>
-          )}
-        </p>
-      ) : (
-        // Its organizer deleted their account (PROF-05).
-        <p>Hosted by Former member</p>
-      )}
       {handover && (
         <div class="handover">
           {people.length > 0 && (
@@ -680,17 +712,20 @@ const email = activity
         </div>
       )}
       {activity.description && (
-        <p class="description">
-          {linkify(activity.description).map(({ text, href }) =>
-            href ? (
-              <a href={href} rel="nofollow ugc noopener">
-                {text}
-              </a>
-            ) : (
-              text
-            )
-          )}
-        </p>
+        <section aria-labelledby="about">
+          <h2 id="about">Details</h2>
+          <p class="description">
+            {linkify(activity.description).map(({ text, href }) =>
+              href ? (
+                <a href={href} rel="nofollow ugc noopener">
+                  {text}
+                </a>
+              ) : (
+                text
+              )
+            )}
+          </p>
+        </section>
       )}
       {activity.has_private_details && (
         // After the member's answer changes, src/scripts/private-details.ts shows the details or
@@ -949,12 +984,13 @@ const email = activity
   .banner > :first-child {
     font-weight: 600;
   }
-  /* Add to calendar reads as a link beside the time, as Open in Maps does beside the place. It's
+  /* Add to calendar reads as a link under the time, as Open in Maps does under the place. It's
      at least 24 px tall (WCAG 2.2 target size). */
   .link {
     padding: 0.25rem 0;
     font: inherit;
-    color: LinkText;
+    font-weight: 400;
+    color: var(--blue);
     text-decoration: underline;
     background: none;
     border: 0;
@@ -993,11 +1029,60 @@ const email = activity
     border-left: 0.25rem solid #b54708;
     background: #fffaeb;
   }
+  /* The category as a chip with its icon, on a tint of its color (UI-05). */
   .category {
-    margin-bottom: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    margin: 0.5rem 0 0;
+    padding: 0.25rem 0.75rem;
     font-size: 0.875rem;
     font-weight: 600;
-    text-transform: uppercase;
+    color: var(--navy);
+    background: color-mix(in srgb, var(--tint) 16%, white);
+    border-radius: 999px;
+  }
+  /* When, where, who's going and the host, each a row with its icon (UI-05). The icons take the
+     same width as an avatar, so every row's words line up. */
+  .details {
+    margin: 1rem 0;
+    padding: 0 1rem;
+  }
+  .row {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+  }
+  .row + .row {
+    border-top: 1px solid var(--line);
+  }
+  .row > :global(svg.icon) {
+    margin: 0.125rem 0.375rem 0;
+    color: var(--blue);
+  }
+  .row > div {
+    display: grid;
+    gap: 0.125rem;
+    min-width: 0;
+  }
+  .row p {
+    margin: 0;
+  }
+  /* Each part after the details has a heading. */
+  section > h2 {
+    margin: 1.75rem 0 0.5rem;
+    font-size: 1.25rem;
+  }
+  /* The comment box is the page's width. */
+  .comments textarea {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 6rem;
+    padding: 0.5rem 0.75rem;
+    font: inherit;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
   }
   /* The avatars keep a gap before their words (UI-02). */
   .host {
@@ -1054,8 +1139,8 @@ const email = activity
     max-width: 40rem;
     margin: 0 auto;
     padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
-    background: white;
-    border-top: 1px solid #767676;
+    background: var(--card);
+    border-top: 1px solid var(--border);
   }
   :global(footer) {
     padding-bottom: calc(5rem + env(safe-area-inset-bottom));

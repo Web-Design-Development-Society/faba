@@ -1,4 +1,5 @@
 // An activity's page (ACT-02).
+import type { Locator } from '@playwright/test';
 import { addDays, rexburgDate, rexburgInstant } from '../../src/lib/time';
 import { expect, expectAccessible, test } from './fixtures';
 
@@ -160,4 +161,52 @@ test('a cancelled activity says why, and a hidden one is not available', async (
   expect(response?.status()).toBe(404);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Not available');
   await expect(page.getByText('Business opportunity')).toHaveCount(0);
+});
+
+test('the details card has a row for when, where, who and the host, each link on its own line', async ({
+  page,
+  signInAs,
+  host,
+}) => {
+  await signInAs('member');
+  const id = await host.post({
+    starts_at: rexburgInstant(tomorrow, '07:00').toISOString(),
+    location_name: 'Hidden Valley Park, north trailhead parking lot by the river',
+    description: 'Easy pace.',
+  });
+
+  await page.goto(`/activities/${id}`);
+  // The category is a chip with its icon, above the title (UI-05).
+  await expect(page.locator('.category svg')).toHaveCount(1);
+  await expect(page.locator('.category')).toHaveText('Outdoors');
+
+  const card = page.locator('.details');
+  await expect(card.locator('.row')).toHaveCount(4);
+  await expect(card.locator('.row > svg')).toHaveCount(3);
+  // Each link is under its row's words, never on a line by itself after a long place.
+  const below = async (words: string | RegExp, link: Locator) => {
+    const [a, b] = [(await card.getByText(words).boundingBox())!, (await link.boundingBox())!];
+    expect(b.y).toBeGreaterThanOrEqual(a.y + a.height - 1);
+    expect(b.x).toBeLessThanOrEqual(a.x + 1);
+  };
+  await below(/7:00\sAM$/, card.getByRole('button', { name: 'Add to calendar' }));
+  await below(
+    'Hidden Valley Park, north trailhead parking lot by the river',
+    card.getByRole('link', { name: 'Open in Maps' })
+  );
+  await expect(card.getByRole('button', { name: /1 going/ })).toBeVisible();
+  await expect(card.getByText('Hosted by')).toBeVisible();
+
+  // The description has its heading, and the comment box is the page's width.
+  await expect(page.getByRole('heading', { name: 'Details', level: 2 })).toBeVisible();
+  const box = page.getByLabel('Ask a question or leave a comment');
+  const [boxWidth, cardWidth] = [
+    (await box.boundingBox())!.width,
+    (await card.boundingBox())!.width,
+  ];
+  expect(Math.abs(boxWidth - cardWidth)).toBeLessThanOrEqual(1);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
+    true
+  );
+  await expectAccessible(page);
 });
