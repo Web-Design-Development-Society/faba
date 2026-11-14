@@ -48,7 +48,9 @@ const badges = [
         decoding="async"
       />
     ) : (
-      <Icon name={look.icon} size={36} />
+      <span class="mark">
+        <Icon name={look.icon} size={30} />
+      </span>
     )}
   </span>
   <div class="body">
@@ -97,7 +99,21 @@ const badges = [
     place-items: center;
     aspect-ratio: 3 / 1;
     color: var(--navy);
-    background: color-mix(in srgb, var(--tint) 18%, white);
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--tint) 32%, white),
+      color-mix(in srgb, var(--tint) 10%, white)
+    );
+  }
+  /* Without a banner, the category's icon in a white circle, so the strip looks finished. */
+  .mark {
+    display: grid;
+    place-items: center;
+    width: 3.75rem;
+    height: 3.75rem;
+    background: var(--card);
+    border-radius: 50%;
+    box-shadow: 0 2px 8px rgb(15 31 61 / 14%);
   }
   .picture img {
     width: 100%;
