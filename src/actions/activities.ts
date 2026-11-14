@@ -13,16 +13,6 @@ import {
 } from '../lib/validation/activity';
 import { newUpdate } from '../lib/validation/update';
 
-/** Sets activity `id`'s tags (SRCH-03). Returns its id. */
-async function setTags(locals: App.Locals, id: string, tags: string[]) {
-  const { error } = await locals.supabase.rpc('set_activity_tags', {
-    activity_id: id,
-    tag_ids: tags,
-  });
-  if (error) throw new ActionError(actionErrorFor(error));
-  return { id };
-}
-
 /** Saves `patch` to activity `id`, if it's still at `version` (ACT-04). Returns its id. */
 async function update(locals: App.Locals, id: string, version: number, patch: Json) {
   if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
@@ -38,14 +28,13 @@ async function update(locals: App.Locals, id: string, version: number, patch: Js
 
 export const activities = {
   /**
-   * Posting an activity (ACT-03), then its tags (SRCH-03). If the tags fail, posting again finds
-   * the activity by its idempotency key and sets them. Returns its id. One that repeats is a
-   * series, posted with its tags at once, and the id is its first date's (REC-01).
+   * Posting an activity (ACT-03). Returns its id. One that repeats is a series, and the id is its
+   * first date's (REC-01). Activities have no tags since UI-09.
    */
   create: defineAction({
     accept: 'form',
     input: newActivity,
-    handler: async ({ tags, repeats, until_date, ...activity }, { locals }) => {
+    handler: async ({ repeats, until_date, ...activity }, { locals }) => {
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
       if (repeats !== 'none') {
@@ -55,7 +44,6 @@ export const activities = {
           ...series,
           freq: repeats,
           until_date,
-          tag_ids: tags ?? [],
         });
         if (error) throw new ActionError(actionErrorFor(error));
         return { id };
@@ -63,7 +51,7 @@ export const activities = {
 
       const { data: id, error } = await locals.supabase.rpc('create_activity', activity);
       if (error) throw new ActionError(actionErrorFor(error));
-      return tags?.length ? setTags(locals, id, tags) : { id };
+      return { id };
     },
   }),
 
@@ -75,7 +63,7 @@ export const activities = {
   update: defineAction({
     accept: 'form',
     input: activityChanges,
-    handler: async ({ id, version, tags, scope, ...activity }, { locals }) => {
+    handler: async ({ id, version, scope, ...activity }, { locals }) => {
       const patch = {
         ...activity,
         description: activity.description ?? null,
@@ -94,14 +82,12 @@ export const activities = {
           activity_id: id,
           patch,
           expected_version: version,
-          tag_ids: tags ?? [],
         });
         if (error) throw new ActionError(actionErrorFor(error));
         return { id, scope };
       }
 
       await update(locals, id, version, patch);
-      await setTags(locals, id, tags ?? []);
       return { id, scope };
     },
   }),

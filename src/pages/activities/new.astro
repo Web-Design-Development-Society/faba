@@ -34,39 +34,34 @@ const failure = result?.error && !isInputError(result.error) ? result.error.mess
 // The activity to copy, which must be one of theirs that a moderator hasn't hidden. Only its
 // organizer can read its details for attendees, and they come too.
 const from = Astro.url.searchParams.get('from');
-const [
-  { data: categories, error: categoriesError },
-  { data: tags },
-  { data: original },
-  { data: organizing },
-] = await Promise.all([
-  Astro.locals.supabase
-    .from('categories')
-    .select('id, name, icon')
-    .eq('is_active', true)
-    .order('sort_order'),
-  Astro.locals.supabase.from('tags').select('id, name').eq('is_active', true).order('sort_order'),
-  from && !typed && /^[0-9a-f-]{36}$/i.test(from)
-    ? Astro.locals.supabase
-        .from('activities')
-        .select(
-          'id, title, description, location_name, cost_note, capacity, guests_allowed, max_guests_per_rsvp, category_id, group_id, visibility, activity_tags(tag_id), private:activity_private_details(details)'
-        )
-        .eq('id', from)
-        .eq('organizer_id', Astro.locals.user?.id ?? '')
-        .is('hidden_at', null)
-        .maybeSingle()
-    : { data: null },
-  // The groups they organize that take activities (GRP-03).
-  Astro.locals.supabase
-    .from('group_members')
-    .select('group:groups!inner(id, name)')
-    .eq('user_id', Astro.locals.user?.id ?? '')
-    .eq('status', 'active')
-    .in('role', ['owner', 'organizer'])
-    .is('group.archived_at', null)
-    .is('group.hidden_at', null),
-]);
+const [{ data: categories, error: categoriesError }, { data: original }, { data: organizing }] =
+  await Promise.all([
+    Astro.locals.supabase
+      .from('categories')
+      .select('id, name, icon')
+      .eq('is_active', true)
+      .order('sort_order'),
+    from && !typed && /^[0-9a-f-]{36}$/i.test(from)
+      ? Astro.locals.supabase
+          .from('activities')
+          .select(
+            'id, title, description, location_name, cost_note, capacity, guests_allowed, max_guests_per_rsvp, category_id, group_id, visibility, private:activity_private_details(details)'
+          )
+          .eq('id', from)
+          .eq('organizer_id', Astro.locals.user?.id ?? '')
+          .is('hidden_at', null)
+          .maybeSingle()
+      : { data: null },
+    // The groups they organize that take activities (GRP-03).
+    Astro.locals.supabase
+      .from('group_members')
+      .select('group:groups!inner(id, name)')
+      .eq('user_id', Astro.locals.user?.id ?? '')
+      .eq('status', 'active')
+      .in('role', ['owner', 'organizer'])
+      .is('group.archived_at', null)
+      .is('group.hidden_at', null),
+  ]);
 const groups = (organizing ?? [])
   .map(({ group }) => group)
   .toSorted((a, b) => a.name.localeCompare(b.name));
@@ -126,17 +121,7 @@ const back = referrer ?? (original ? `/activities/${original.id}` : '/discover')
     {shown('copied_from_id') && (
       <input type="hidden" name="copied_from_id" value={shown('copied_from_id')} />
     )}
-    <ActivityFields
-      value={shown}
-      errors={fields}
-      categories={categories ?? []}
-      tags={tags ?? []}
-      chosen={
-        typed?.getAll('tags').map(String) ??
-        original?.activity_tags.map(({ tag_id }) => tag_id) ??
-        []
-      }
-    >
+    <ActivityFields value={shown} errors={fields} categories={categories ?? []}>
       <fieldset slot="more" class="repeats">
         <legend>Repeats</legend>
         <p>

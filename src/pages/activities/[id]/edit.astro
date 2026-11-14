@@ -41,16 +41,15 @@ if (restore && !restore.error) {
 
 // Every category, so an activity keeps one that's no longer offered. Only its organizer, members
 // going and moderators can read its details for attendees (ACT-09).
-const [{ data: activity }, { data: categories }, { data: tags }] = await Promise.all([
+const [{ data: activity }, { data: categories }] = await Promise.all([
   supabase
     .from('activities')
     .select(
-      'id, title, description, starts_at, ends_at, location_name, cost_note, capacity, guests_allowed, max_guests_per_rsvp, category_id, organizer_id, version, status, series_id, series_detached, activity_tags(tag_id), private:activity_private_details(details), co_organizers:activity_co_organizers(user_id)'
+      'id, title, description, starts_at, ends_at, location_name, cost_note, capacity, guests_allowed, max_guests_per_rsvp, category_id, organizer_id, version, status, series_id, series_detached, private:activity_private_details(details), co_organizers:activity_co_organizers(user_id)'
     )
     .eq('id', Astro.params.id!)
     .maybeSingle(),
   supabase.from('categories').select('id, name, icon, is_active').order('sort_order'),
-  supabase.from('tags').select('id, name, is_active').order('sort_order'),
 ]);
 // The organizer and co-organizers can edit (ACT-10).
 const mine =
@@ -92,11 +91,6 @@ const started = startsAt <= new Date();
 const inSeries = !!activity?.series_id && !started;
 const detached = inSeries && !!activity?.series_detached;
 const offered = categories?.filter((c) => c.is_active || c.id === activity?.category_id) ?? [];
-// Its tags, or what was typed, and the tags offered, with any it keeps that no longer are.
-const chosen = typed
-  ? typed.getAll('tags').map(String)
-  : (activity?.activity_tags.map(({ tag_id }) => tag_id) ?? []);
-const offeredTags = tags?.filter((t) => t.is_active || chosen.includes(t.id)) ?? [];
 const back = `/activities/${Astro.params.id}`;
 ---
 
@@ -149,13 +143,7 @@ const back = `/activities/${Astro.params.id}`;
             <PrivateDetailsField value={value('private_details')} errors={fields.private_details} />
           </>
         ) : (
-          <ActivityFields
-            value={value}
-            errors={fields}
-            categories={offered}
-            tags={offeredTags}
-            chosen={chosen}
-          />
+          <ActivityFields value={value} errors={fields} categories={offered} />
         )}
         {detached && <p>This date was changed on its own, so changes to the series skip it.</p>}
         {inSeries && !detached && (

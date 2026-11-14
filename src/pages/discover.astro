@@ -9,14 +9,13 @@ import { actions } from 'astro:actions';
 import ActivityCard from '../components/ActivityCard.astro';
 import Avatar from '../components/Avatar.astro';
 import DiscoverSwitch from '../components/DiscoverSwitch.astro';
-import FilterChips from '../components/FilterChips.astro';
+import Filters from '../components/Filters.astro';
 import Icon from '../components/Icon.astro';
 import FollowButton from '../components/FollowButton.astro';
-import MoreFilters from '../components/MoreFilters.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
 import { CARD, FACES } from '../lib/cards';
-import { filterQuery, nextPage, readCursor, readDates, readMore } from '../lib/feed';
+import { filterQuery, nextPage, readCursor, readDates } from '../lib/feed';
 import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../lib/server/flash';
 import { formatDay, rexburgDate, WHENS } from '../lib/time';
 
@@ -45,9 +44,8 @@ const cursor = readCursor(Astro.url.searchParams);
 const firstPage = !cursor.after_id;
 const cat = Astro.url.searchParams.get('cat') || undefined;
 const dates = readDates(Astro.url.searchParams, now);
-const moreFilters = readMore(Astro.url.searchParams);
 
-const [feed, plan, categories, tags, visit] = await Promise.all([
+const [feed, plan, categories, visit] = await Promise.all([
   // One more than a page says whether there's another.
   supabase
     .rpc('get_feed', {
@@ -56,8 +54,6 @@ const [feed, plan, categories, tags, visit] = await Promise.all([
       page_size: PAGE + 1,
       starts_from: dates.starts_from,
       starts_before: dates.starts_before,
-      has_spots: moreFilters.spots,
-      tag_ids: moreFilters.tags,
     })
     .select(CARD)
     .eq('going.status', 'going')
@@ -85,7 +81,6 @@ const [feed, plan, categories, tags, visit] = await Promise.all([
         .maybeSingle()
     : { data: null },
   supabase.from('categories').select('id, name, icon').eq('is_active', true).order('sort_order'),
-  supabase.from('tags').select('id, name').eq('is_active', true).order('sort_order'),
   // When the member's previous visit ended, which is null on their first.
   supabase.rpc('record_visit'),
 ]);
@@ -106,15 +101,12 @@ const { data: following } = category
       .eq('target_id', category.id)
       .maybeSingle()
   : { data: null };
-// The tags asked for that are offered, which are the ones the database used.
-const chosenTags = tags.data?.filter(({ id }) => moreFilters.tags.includes(id)) ?? [];
+// A category and dates (UI-09). Has spots left and tags in older links are ignored.
 const filters = {
   cat: category?.id,
   when: dates.when,
   from: dates.from,
   to: dates.to,
-  spots: moreFilters.spots ? '1' : undefined,
-  tag: chosenTags.map(({ id }) => id),
 };
 const kept = filterQuery(filters);
 const here = kept ? `/discover?${kept}` : '/discover';
@@ -124,8 +116,6 @@ const matching = [
   dates.when && WHENS[dates.when].toLowerCase(),
   dates.from && `from ${formatDay(dates.from, now)}`,
   dates.to && `${dates.from ? 'to' : 'until'} ${formatDay(dates.to, now)}`,
-  moreFilters.spots && 'with spots left',
-  chosenTags.length && `tagged ${chosenTags.map(({ name }) => name).join(', ')}`,
 ]
   .filter(Boolean)
   .join(' ');
@@ -163,15 +153,7 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
   <h2 id="upcoming" class="section">
     Upcoming activities
   </h2>
-  <FilterChips categories={chips ?? []} page="/discover" query={Astro.url.searchParams}>
-    <MoreFilters
-      page="/discover"
-      query={Astro.url.searchParams}
-      dates={dates}
-      more={{ spots: moreFilters.spots, tags: filters.tag }}
-      tags={tags.data ?? []}
-    />
-  </FilterChips>
+  <Filters categories={chips ?? []} page="/discover" query={Astro.url.searchParams} dates={dates} />
   {category && (
     <>
       {followed?.error && <p role="alert">{followed.error.message}</p>}

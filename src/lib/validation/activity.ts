@@ -13,7 +13,6 @@ export const ACTIVITY = {
   privateDetails: { max: 500 },
   cancelReason: { max: 200 },
   capacity: { min: 1, max: 500 },
-  tags: { max: 3 },
   guests: { max: 5, suggested: 3 },
   monthsAhead: 12,
 };
@@ -161,11 +160,6 @@ export const newActivity = z
       .string()
       .trim()
       .max(ACTIVITY.privateDetails.max, `Use ${ACTIVITY.privateDetails.max} characters or fewer.`)
-      .optional(),
-    // SRCH-03. set_activity_tags() checks they're offered.
-    tags: z
-      .array(z.string())
-      .max(ACTIVITY.tags.max, `Pick up to ${ACTIVITY.tags.max} tags.`)
       .optional(),
     // ACT-07. The activity it's a copy of, kept for analytics only.
     copied_from_id: z.uuid().optional(),

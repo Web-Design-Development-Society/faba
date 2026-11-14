@@ -1,0 +1,356 @@
+---
+// The filters on Discover and Search (ACT-06, SRCH-02, design document section 7.10): just two
+// buttons, Category and Date (UI-09). Each names what's chosen, such as "Category: Outdoors" or
+// "Date: This weekend", and opens a panel that drops down under them. They're disclosures
+// (<details>), so they open without JavaScript, and with it they close with Escape or a tap
+// elsewhere, and opening one closes the other.
+//
+// Category's panel has a chip for each category. Date's has Any time, Today, This week and This
+// weekend, then Pick dates with From and To. The choices are links, and Pick dates is a GET form,
+// so a filter can be shared. A date keeps the category, and a category keeps the dates, as in
+// /discover?when=weekend&cat=outdoors. On Search they keep the words too. Clear filters shows
+// whenever a filter is on.
+//
+// On Search before searching (`browse`), the categories show as chips to browse instead.
+import { isIcon } from '../lib/icons';
+import { formatDay, WHENS, type When } from '../lib/time';
+import Icon from './Icon.astro';
+
+interface Props {
+  categories: { id: string; name: string; icon?: string }[];
+  /** The page the filters filter, such as /discover. */
+  page: string;
+  /** The page's query, whose filters these change. */
+  query: URLSearchParams;
+  /** The dates that are on, as readDates() read them. */
+  dates?: { when?: When; from?: string; to?: string };
+  /** True for links to Discover's categories, as on Search before searching. */
+  browse?: boolean;
+}
+
+const { categories, page, query, dates = {}, browse } = Astro.props;
+const now = new Date();
+const cat = query.get('cat');
+const chosenCategory = categories.find(({ id }) => id === cat);
+
+// The page with `changes`, starting again from its first page.
+const link = (changes: Record<string, string | null>) => {
+  const next = new URLSearchParams(query);
+  for (const name of ['after', 'id', 'spots', 'tag', ...Object.keys(changes)]) next.delete(name);
+  for (const [name, value] of Object.entries(changes)) if (value) next.set(name, value);
+  return next.size ? `${page}?${next}` : page;
+};
+const kinds = categories.map(({ id, name, icon }) => ({
+  name,
+  icon: icon && isIcon(icon) ? icon : undefined,
+  chosen: !browse && cat === id,
+  href: browse ? `/discover?cat=${encodeURIComponent(id)}` : link({ cat: cat === id ? null : id }),
+}));
+
+const picked = !!(dates.from || dates.to);
+const anyTime = !dates.when && !picked;
+const whens = [
+  {
+    name: 'Any time',
+    chosen: anyTime,
+    href: link({ when: null, from: null, to: null }),
+  },
+  ...Object.entries(WHENS).map(([id, name]) => ({
+    name,
+    chosen: dates.when === id,
+    href: link({ when: id, from: null, to: null }),
+  })),
+];
+const dateLabel = dates.when
+  ? WHENS[dates.when]
+  : dates.from && dates.to
+    ? dates.from === dates.to
+      ? formatDay(dates.from, now)
+      : `${formatDay(dates.from, now)} to ${formatDay(dates.to, now)}`
+    : dates.from
+      ? `From ${formatDay(dates.from, now)}`
+      : dates.to
+        ? `Until ${formatDay(dates.to, now)}`
+        : null;
+// Dates in the link that readDates() couldn't use, such as an end before the start.
+const wrong = !picked && (query.get('from') || query.get('to'));
+// Pick dates keeps the page's other filters and words.
+const kept = [...query].filter(
+  ([name]) => !['from', 'to', 'when', 'after', 'id', 'spots', 'tag'].includes(name)
+);
+// Every filter off, keeping only the search words.
+const words = new URLSearchParams([...query].filter(([name]) => ['q', 'past'].includes(name)));
+const clear = words.size ? `${page}?${words}` : page;
+const on = !!chosenCategory || !anyTime;
+---
+
+{browse ? (
+  <nav aria-label="Categories">
+    <ul class="chips">
+      {kinds.map(({ name, icon, href }) => (
+        <li>
+          <a href={href}>
+            {icon && <Icon name={icon} />}
+            {name}
+          </a>
+        </li>
+      ))}
+    </ul>
+  </nav>
+) : (
+  <nav aria-label="Filters" class="filters">
+    {wrong && (
+      <p role="alert">Those dates don't work together. Pick a start on or before the end.</p>
+    )}
+    <div class="tools">
+      {kinds.length > 0 && (
+        <details class="menu" data-menu>
+          <summary class:list={{ on: !!chosenCategory }}>
+            {chosenCategory ? `Category: ${chosenCategory.name}` : 'Category'}
+          </summary>
+          <ul class="chips panel">
+            {kinds.map(({ name, icon, chosen, href }) => (
+              <li>
+                <a href={href} aria-current={chosen ? 'page' : undefined}>
+                  {icon && !chosen && <Icon name={icon} />}
+                  {name}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+      <details class="menu" data-menu>
+        <summary class:list={{ on: !anyTime }}>{dateLabel ? `Date: ${dateLabel}` : 'Date'}</summary>
+        <div class="panel">
+          <ul class="whens">
+            {whens.map(({ name, chosen, href }) => (
+              <li>
+                <a href={href} aria-current={chosen ? 'page' : undefined}>
+                  {name}
+                </a>
+              </li>
+            ))}
+          </ul>
+          <form method="get" action={page} class="pick" data-pick-dates>
+            {kept.map(([name, value]) => (
+              <input type="hidden" name={name} value={value} />
+            ))}
+            <fieldset>
+              <legend>Pick dates</legend>
+              <p>
+                <label for="filter-from">From</label>
+                <input id="filter-from" type="date" name="from" value={dates.from} />
+              </p>
+              <p>
+                <label for="filter-to">To</label>
+                <input id="filter-to" type="date" name="to" value={dates.to} />
+              </p>
+            </fieldset>
+            <button>Show activities</button>
+          </form>
+        </div>
+      </details>
+      {on && (
+        <a href={clear} class="clear">
+          Clear filters
+        </a>
+      )}
+    </div>
+  </nav>
+)}
+
+<script>
+  // A panel closes with Escape, or a tap anywhere else, as a menu does, and opening one closes the
+  // other.
+  const menus = [...document.querySelectorAll<HTMLDetailsElement>('details[data-menu]')];
+  document.addEventListener('click', ({ target }) => {
+    for (const menu of menus) if (menu.open && !menu.contains(target as Node)) menu.open = false;
+  });
+  for (const menu of menus) {
+    menu.addEventListener('toggle', () => {
+      if (menu.open) for (const other of menus) if (other !== menu) other.open = false;
+    });
+    menu.addEventListener('keydown', (event) => {
+      if (event.key !== 'Escape' || !menu.open) return;
+      menu.open = false;
+      menu.querySelector('summary')?.focus();
+    });
+  }
+  // Dates left empty stay out of the link. Without JavaScript they're in it, and readDates()
+  // ignores them.
+  for (const form of document.querySelectorAll<HTMLFormElement>('[data-pick-dates]')) {
+    form.addEventListener('formdata', ({ formData }) => {
+      for (const name of ['from', 'to']) if (!formData.get(name)) formData.delete(name);
+    });
+  }
+</script>
+
+<style>
+  .filters {
+    margin-top: 0.75rem;
+  }
+  .filters > p {
+    margin: 0 0 0.5rem;
+  }
+  /* Category, Date and Clear filters, in one row that wraps on a narrow phone. */
+  .tools {
+    position: relative;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 44px;
+    padding: 0 1rem;
+    color: var(--navy);
+    font-weight: 600;
+    list-style: none;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  /* A caret that turns when the panel is open. */
+  summary::after {
+    width: 0.5rem;
+    height: 0.5rem;
+    margin: -0.25rem 0 0 0.25rem;
+    content: '';
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+  }
+  .menu[open] summary::after {
+    margin-top: 0.25rem;
+    transform: rotate(-135deg);
+  }
+  /* What's chosen is FABA blue, and its name is in the button, so it isn't color alone. */
+  summary.on {
+    color: var(--blue);
+    border-color: var(--blue);
+  }
+  summary:hover {
+    border-color: var(--blue);
+  }
+  /* The panels drop down under the row, over the feed's cards and their buttons, as a menu
+     would, and under the bottom bar, which comes later in the page. */
+  .panel {
+    position: absolute;
+    z-index: 2;
+    top: calc(100% + 0.5rem);
+    right: 0;
+    left: 0;
+    padding: 0.75rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: 0 8px 24px rgb(15 31 61 / 18%);
+  }
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .chips a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 44px;
+    padding: 0 1rem;
+    color: var(--navy);
+    white-space: nowrap;
+    text-decoration: none;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+  }
+  .chips :global(.icon) {
+    color: var(--blue);
+  }
+  /* FABA blue with a check (UI-02), so it isn't shown by color alone. */
+  .chips [aria-current],
+  .whens [aria-current] {
+    font-weight: 600;
+    color: white;
+    background: var(--blue);
+    border-color: var(--blue);
+  }
+  .chips [aria-current]::before,
+  .whens [aria-current]::before {
+    content: '✓' / '';
+  }
+  /* The dates are a short list, one to a line. */
+  .whens {
+    display: grid;
+    gap: 0.25rem;
+    margin: 0 0 0.75rem;
+    padding: 0;
+    list-style: none;
+  }
+  .whens a {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0 0.75rem;
+    color: var(--navy);
+    text-decoration: none;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+  }
+  .whens a:hover {
+    border-color: var(--blue);
+  }
+  .pick fieldset {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    margin: 0 0 0.75rem;
+    padding: 0.75rem 0 0;
+    border: 0;
+    border-top: 1px solid var(--line);
+  }
+  .pick legend {
+    float: left;
+    width: 100%;
+    margin-bottom: 0.25rem;
+    padding: 0;
+    font-weight: 600;
+    color: var(--navy);
+  }
+  .pick p {
+    display: grid;
+    flex: 1;
+    gap: 0.25rem;
+    min-width: 8rem;
+    margin: 0;
+  }
+  .pick input {
+    min-height: 44px;
+    padding: 0 0.5rem;
+    font: inherit;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .pick button {
+    width: 100%;
+  }
+  .clear {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 0.25rem;
+    font-weight: 600;
+  }
+</style>

@@ -10,12 +10,11 @@ import { actions } from 'astro:actions';
 import ActivityCard from '../components/ActivityCard.astro';
 import Avatar from '../components/Avatar.astro';
 import Back from '../components/Back.astro';
-import FilterChips from '../components/FilterChips.astro';
-import MoreFilters from '../components/MoreFilters.astro';
+import Filters from '../components/Filters.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
 import { CARD, FACES } from '../lib/cards';
-import { filterQuery, nextPage, readCursor, readDates, readMore } from '../lib/feed';
+import { filterQuery, nextPage, readCursor, readDates } from '../lib/feed';
 import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../lib/server/flash';
 import { formatDay, rexburgDate, WHENS } from '../lib/time';
 
@@ -39,11 +38,10 @@ const q = (Astro.url.searchParams.get('q') ?? '').trim().slice(0, MAX_QUERY);
 const past = Astro.url.searchParams.get('past') === '1';
 const cat = Astro.url.searchParams.get('cat') || undefined;
 const dates = readDates(Astro.url.searchParams, now);
-const moreFilters = readMore(Astro.url.searchParams);
 const cursor = readCursor(Astro.url.searchParams);
 const firstPage = !cursor.after_id;
 
-const [results, categories, tags] = await Promise.all([
+const [results, categories] = await Promise.all([
   // One more than a page says whether there's another.
   q
     ? supabase
@@ -55,8 +53,6 @@ const [results, categories, tags] = await Promise.all([
           category: cat,
           starts_from: dates.starts_from,
           starts_before: dates.starts_before,
-          has_spots: moreFilters.spots,
-          tag_ids: moreFilters.tags,
         })
         .select(CARD)
         .eq('going.status', 'going')
@@ -66,19 +62,15 @@ const [results, categories, tags] = await Promise.all([
         .limit(FACES, { referencedTable: 'going' })
     : { data: null, error: null },
   supabase.from('categories').select('id, name, icon').eq('is_active', true).order('sort_order'),
-  supabase.from('tags').select('id, name').eq('is_active', true).order('sort_order'),
 ]);
 
 const category = categories.data?.find(({ id }) => id === cat);
-// The tags asked for that are offered, which are the ones the database used.
-const chosenTags = tags.data?.filter(({ id }) => moreFilters.tags.includes(id)) ?? [];
+// A category and dates (UI-09). Has spots left and tags in older links are ignored.
 const filters = {
   cat: category?.id,
   when: dates.when,
   from: dates.from,
   to: dates.to,
-  spots: moreFilters.spots ? '1' : undefined,
-  tag: chosenTags.map(({ id }) => id),
 };
 const activities = results.data?.slice(0, PAGE) ?? [];
 const more =
@@ -94,8 +86,6 @@ const matching = [
   dates.when && WHENS[dates.when].toLowerCase(),
   dates.from && `from ${formatDay(dates.from, now)}`,
   dates.to && `${dates.from ? 'to' : 'until'} ${formatDay(dates.to, now)}`,
-  moreFilters.spots && 'with spots left',
-  chosenTags.length && `tagged ${chosenTags.map(({ name }) => name).join(', ')}`,
 ]
   .filter(Boolean)
   .join(' ');
@@ -128,15 +118,12 @@ const matching = [
     )}
   </form>
   {q && (
-    <FilterChips categories={categories.data ?? []} page="/search" query={Astro.url.searchParams}>
-      <MoreFilters
-        page="/search"
-        query={Astro.url.searchParams}
-        dates={dates}
-        more={{ spots: moreFilters.spots, tags: filters.tag }}
-        tags={tags.data ?? []}
-      />
-    </FilterChips>
+    <Filters
+      categories={categories.data ?? []}
+      page="/search"
+      query={Astro.url.searchParams}
+      dates={dates}
+    />
   )}
   <Status message={flash && FLASH_MESSAGES[flash]} />
   {rsvp?.error && <p role="alert">{rsvp.error.message}</p>}
@@ -150,7 +137,7 @@ const matching = [
       {categories.data?.length ? (
         <section aria-labelledby="browse">
           <h2 id="browse">Browse</h2>
-          <FilterChips
+          <Filters
             categories={categories.data}
             page="/discover"
             query={new URLSearchParams()}

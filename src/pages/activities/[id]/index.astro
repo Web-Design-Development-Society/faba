@@ -183,7 +183,6 @@ const [{ data: activity }, { data: me }] = await Promise.all([
       series:activity_series(freq, start_date, until_date, subscribed:series_subscriptions(user_id)),
       private:activity_private_details(details),
       category:categories(name, icon, color_token),
-      tags:activity_tags(tag:tags(name, sort_order)),
       organizer:profiles!activities_organizer_id_fkey(id, display_name, avatar_url, use_initials, department, status),
       co_organizers:activity_co_organizers(member:profiles!activity_co_organizers_user_id_fkey!inner(id, display_name, avatar_url, use_initials, department)),
       mine:rsvps(status, guest_count, mute:activity_mutes(muted_at)),
@@ -577,15 +576,6 @@ const email = activity
         </Sheet>
       )}
       {activity.cost_note && <p>Cost: {activity.cost_note}</p>}
-      {activity.tags.length > 0 && (
-        <p>
-          {activity.tags
-            .map(({ tag }) => tag)
-            .toSorted((a, b) => a.sort_order - b.sort_order)
-            .map(({ name }) => name)
-            .join(' · ')}
-        </p>
-      )}
       <Sheet id="going" title="Who's going">
         <GoingList
           activityId={activity.id}
