@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-09`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-10`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                          |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                  |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                          |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-09 |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-10 |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02         |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02, PERF-01, A11Y-01 |
 
@@ -2050,6 +2050,30 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - This replaces UI-04's date pills and SRCH-03's Has spots left and tags. Mark SRCH-03, and sections 7.4 and 7.10, to match.
   - Following a category (NOTIF-09) stays, and so does **Post** starting in the chosen category.
   - The quick dates aren't lost. They move from pills on the page into the Date list.
+  - Size: M, one developer, including the tests.
+
+#### UI-10 · Group cards
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want each group in Discover → Groups to be a card with its picture and the basics, so that I can tell at a glance which groups to look at.
+- **Acceptance criteria:**
+  - Each group is a white card, like an activity card (UI-03), and the whole card opens the group.
+  - A card shows, in order:
+    - a picture across the top of the card at 3:1, the shape of a group's banner: its banner, or a strip in its category's tint with the category's icon when it has none. The picture's label is the category's name.
+    - the group's name, in bold, in up to 2 lines
+    - rows, each with an icon: its category, how many members it has ("24 members"), and who can join ("Anyone can join" or "Ask to join")
+    - the start of its description, in up to 2 lines
+  - A group the member is in says **You're in**, and one they've asked to join says **Requested**, as a badge with words, not color alone. A league says **League**.
+  - The banner on a card loads its small copy on a phone and the full picture on a wider screen (`srcset`), and only when it's near the screen. A banner a moderator hid isn't shown, and its card shows the category's strip.
+  - The cards stay in the order they're in now, by name, and **Start a group** and **Start a league** stay at the top.
+  - On a 320 px phone, the name and rows aren't squeezed into a narrow column, and nothing scrolls sideways.
+  - The E2E tests check, at 320 px, 412 px and desktop, that a card has its picture, name, member count and who can join, that a banner comes from its small copy on a phone, that nothing scrolls sideways, and that the axe checks pass.
+- **Dependencies:** UI-03, MEDIA-01.
+- **Notes / edge cases:**
+  - A group's banner is a wide strip on its own page (MEDIA-01), so the card shows it the same shape, across the top, rather than cut to a square like an activity's picture.
+  - Most groups have no banner yet, so the category strip is what most cards show at first. It should look finished, not empty.
+  - A group's next activity could go on its card later, but it needs a query for each group, so it's left out for now.
+  - Update section 7.3's description of Groups.
   - Size: M, one developer, including the tests.
 
 ### 6.10 Won't Have Yet
