@@ -29,7 +29,7 @@ test('a new member goes through Welcome to the page they asked for', async ({
   await page.getByRole('button', { name: "Let's go" }).click();
   await expect(page).toHaveURL('/discover?cat=games');
   await page.goto('/me');
-  await expect(page.getByText("You're signed in as Nia N.")).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Nia N.', exact: true })).toBeVisible();
 
   // Welcome doesn't come back.
   await page.goto('/welcome');
