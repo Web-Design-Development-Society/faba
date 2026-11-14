@@ -49,7 +49,7 @@ const [{ data: activity }, { data: categories }, { data: tags }] = await Promise
     )
     .eq('id', Astro.params.id!)
     .maybeSingle(),
-  supabase.from('categories').select('id, name, is_active').order('sort_order'),
+  supabase.from('categories').select('id, name, icon, is_active').order('sort_order'),
   supabase.from('tags').select('id, name, is_active').order('sort_order'),
 ]);
 // The organizer and co-organizers can edit (ACT-10).
@@ -181,7 +181,12 @@ const back = `/activities/${Astro.params.id}`;
             <p role="status" data-weekday-warning />
           </fieldset>
         )}
-        <button type="submit">Save</button>
+        <div class="buttons">
+          <a href={back} class="cancel">
+            Cancel
+          </a>
+          <button type="submit">Save changes</button>
+        </div>
       </form>
       <div class="activity-status">
         {activity.status === 'published' ? (
@@ -206,6 +211,32 @@ const back = `/activities/${Astro.params.id}`;
 </script>
 
 <style>
+  /* Cancel and Save changes end the form, side by side, as on New activity (UI-06). */
+  .buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+  .buttons > * {
+    display: grid;
+    flex: 1;
+    place-items: center;
+    min-height: 48px;
+  }
+  .cancel {
+    font-weight: 600;
+    color: var(--navy);
+    text-decoration: none;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .cancel:hover {
+    border-color: var(--blue);
+  }
+  .buttons button {
+    flex: 1.6;
+  }
   .scope {
     margin-block: 1rem;
   }

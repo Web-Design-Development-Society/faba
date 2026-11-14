@@ -42,7 +42,7 @@ const [
 ] = await Promise.all([
   Astro.locals.supabase
     .from('categories')
-    .select('id, name')
+    .select('id, name, icon')
     .eq('is_active', true)
     .order('sort_order'),
   Astro.locals.supabase.from('tags').select('id, name').eq('is_active', true).order('sort_order'),
@@ -89,9 +89,21 @@ const suggested: Record<string, string | undefined> = {
   visibility: original?.visibility ?? 'members',
 };
 const shown = (name: string) => value(name) ?? suggested[name];
+// Cancel goes back where the member came from on FABA, or to Discover (UI-06).
+const referrer = (() => {
+  try {
+    const from = new URL(Astro.request.headers.get('referer') ?? '');
+    return from.origin === Astro.url.origin && !from.pathname.startsWith('/activities/new')
+      ? from.pathname + from.search
+      : null;
+  } catch {
+    return null;
+  }
+})();
+const back = referrer ?? (original ? `/activities/${original.id}` : '/discover');
 ---
 
-<Layout title="New activity">
+<Layout title="New activity" tab="post">
   <h1>New activity</h1>
   {failure && <p role="alert">{failure}</p>}
   {categoriesError && <p role="alert">The categories couldn't load. Please try again.</p>}
@@ -212,7 +224,12 @@ const shown = (name: string) => value(name) ?? suggested[name];
         </fieldset>
       </fieldset>
     )}
-    <button type="submit">Post activity</button>
+    <div class="buttons">
+      <a href={back} class="cancel">
+        Cancel
+      </a>
+      <button type="submit">Post activity</button>
+    </div>
   </form>
 </Layout>
 
@@ -221,6 +238,32 @@ const shown = (name: string) => value(name) ?? suggested[name];
 </script>
 
 <style>
+  /* Cancel and Post activity end the form, side by side (UI-06). */
+  .buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+  .buttons > * {
+    display: grid;
+    flex: 1;
+    place-items: center;
+    min-height: 48px;
+  }
+  .cancel {
+    font-weight: 600;
+    color: var(--navy);
+    text-decoration: none;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .cancel:hover {
+    border-color: var(--blue);
+  }
+  .buttons button {
+    flex: 1.6;
+  }
   .group label {
     display: flex;
     align-items: center;

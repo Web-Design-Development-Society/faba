@@ -4,14 +4,15 @@
 // channel, and links the public pages (INFO-01, ADR-016). The main screens have the bottom
 // navigation (design document section 7.3): Discover, Plans, Post, Alerts and Me. Alerts shows the
 // unread count (NOTIF-01), which src/scripts/unread.ts keeps current. Detail and form pages don't
-// have it, so their own sticky actions keep the bottom of the screen.
+// have it, so their own sticky actions keep the bottom of the screen, except New activity, which
+// has it with Post as the current item (UI-06).
 import Icon from '../components/Icon.astro';
 import { badge } from '../lib/notifications';
 
 interface Props {
   title: string;
   /** The bottom navigation's current item, for the main screens. */
-  tab?: 'discover' | 'plans' | 'alerts' | 'me';
+  tab?: 'discover' | 'plans' | 'post' | 'alerts' | 'me';
   /** Where Post goes, such as with Discover's category. */
   post?: string;
 }
@@ -70,7 +71,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
           <Icon name="calendar" size={24} />
           Plans
         </a>
-        <a href={post} class="post">
+        <a href={post} class="post" aria-current={current('post')}>
           <span class="circle">
             <Icon name="plus" size={28} />
           </span>

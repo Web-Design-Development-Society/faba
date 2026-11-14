@@ -2,9 +2,15 @@
 // The fields that the create and edit forms share (ACT-03, ACT-04, design document section 7.7),
 // with each field's value and error. src/scripts/activity-form.ts adds the extras. The `more` slot
 // adds a form's own fields to More options, such as the create form's Repeats (REC-01).
+//
+// The form reads as sections under bold questions (UI-06). Every text field is the form's width,
+// with an example in it. When has the date and start time in one box, side by side, each with its
+// icon, and the categories are chips, each a radio button underneath.
+import { isIcon } from '../lib/icons';
 import { quickDates, rexburgDate } from '../lib/time';
 import { ACTIVITY, latestStart } from '../lib/validation/activity';
 import FieldError from './FieldError.astro';
+import Icon from './Icon.astro';
 import PrivateDetailsField from './PrivateDetailsField.astro';
 
 interface Props {
@@ -12,7 +18,7 @@ interface Props {
   value: (name: string) => string | undefined;
   /** Each field's errors, by name. */
   errors: Record<string, string[] | undefined>;
-  categories: { id: string; name: string }[];
+  categories: { id: string; name: string; icon?: string }[];
   /** The tags to offer (SRCH-03), and the ones chosen. */
   tags: { id: string; name: string }[];
   chosen: string[];
@@ -49,13 +55,14 @@ const moreOptions =
     required
     minlength={ACTIVITY.title.min}
     maxlength={ACTIVITY.title.max}
+    placeholder="e.g., Mountain biking, Disc golf, Hiking"
     {...invalid('title')}
   />
   <FieldError name="title" errors={errors.title} />
 </p>
-<fieldset>
+<fieldset class="when">
   <legend>When?</legend>
-  <p data-quick-dates hidden>
+  <p class="quick" data-quick-dates hidden>
     <button type="button" data-date={today}>
       Today
     </button>
@@ -66,71 +73,89 @@ const moreOptions =
       This Saturday
     </button>
   </p>
-  <label for="date">Date</label>
-  <input
-    type="date"
-    id="date"
-    name="date"
-    value={value('date')}
-    min={rexburgDate(now)}
-    max={rexburgDate(latestStart(now))}
-    required
-    {...invalid('date')}
-  />
+  <div class="datetime">
+    <label class="part" for="date">
+      <Icon name="calendar" />
+      <span class="visually-hidden">Date</span>
+      <input
+        type="date"
+        id="date"
+        name="date"
+        value={value('date')}
+        min={rexburgDate(now)}
+        max={rexburgDate(latestStart(now))}
+        required
+        {...invalid('date')}
+      />
+    </label>
+    <label class="part" for="start_time">
+      <Icon name="clock" />
+      <span class="visually-hidden">Start time</span>
+      <input
+        type="time"
+        id="start_time"
+        name="start_time"
+        value={value('start_time')}
+        required
+        {...invalid('start_time')}
+      />
+    </label>
+  </div>
   <FieldError name="date" errors={errors.date} />
-  <label for="start_time">Start time</label>
-  <input
-    type="time"
-    id="start_time"
-    name="start_time"
-    value={value('start_time')}
-    required
-    {...invalid('start_time')}
-  />
   <FieldError name="start_time" errors={errors.start_time} />
 </fieldset>
-<p>
-  <label for="location_name">Where?</label>
-  <br />
-  <input
-    id="location_name"
-    name="location_name"
-    value={value('location_name')}
-    required
-    maxlength={ACTIVITY.place.max}
-    {...invalid('location_name')}
-  />
+<p class="field">
+  <label class="question" for="location_name">
+    Where?
+  </label>
+  <span class="with-icon">
+    <Icon name="pin" />
+    <input
+      id="location_name"
+      name="location_name"
+      value={value('location_name')}
+      required
+      maxlength={ACTIVITY.place.max}
+      placeholder="e.g., Hidden Valley Park"
+      {...invalid('location_name')}
+    />
+  </span>
   <FieldError name="location_name" errors={errors.location_name} />
 </p>
-<fieldset {...invalid('category_id')}>
+<fieldset class="categories" {...invalid('category_id')}>
   <legend>Category</legend>
-  {categories.map(({ id, name }) => (
-    <label>
-      <input
-        type="radio"
-        name="category_id"
-        value={id}
-        checked={id === value('category_id')}
-        required
-      />
-      {name}
-    </label>
-  ))}
+  <div class="pills">
+    {categories.map(({ id, name, icon }) => (
+      <label class="pill">
+        <input
+          type="radio"
+          name="category_id"
+          value={id}
+          checked={id === value('category_id')}
+          required
+        />
+        {icon && isIcon(icon) && <Icon name={icon} />}
+        {name}
+      </label>
+    ))}
+  </div>
   <FieldError name="category_id" errors={errors.category_id} />
 </fieldset>
-<p>
-  <label for="description">Details (optional)</label>
-  <br />
+<p class="field">
+  <label class="question" for="description">
+    Details (optional)
+  </label>
   <textarea
     id="description"
     name="description"
-    rows="4"
+    rows="3"
     maxlength={ACTIVITY.description.max}
+    placeholder="Add anything helpful, such as what to bring, the route, or a weather plan."
     {...invalid('description')}
   >{value('description')}</textarea>
   <FieldError name="description" errors={errors.description} />
 </p>
-<details open={moreOptions}>
+<details class="more" open={moreOptions}>
   <summary>More options</summary>
   <p>
     <label for="end_time">End time</label>
@@ -226,28 +251,240 @@ const moreOptions =
 </details>
 
 <style>
-  /* What the activity is, the field everything else hangs on, so it's the biggest on the form. */
-  .title label {
+  /* Each section's question is bold, and What are you doing? is the biggest (UI-06). */
+  .title label,
+  .question,
+  legend {
     display: block;
-    margin-bottom: 0.25rem;
+    margin-bottom: 0.375rem;
+    padding: 0;
     font-size: 1.125rem;
     font-weight: 700;
     color: var(--navy);
   }
-  .title input {
+  /* No grey boxes: a fieldset groups its choices for screen readers, without a border. */
+  fieldset {
+    min-width: 0;
+    margin: 0 0 1.25rem;
+    padding: 0;
+    border: 0;
+  }
+  .title,
+  .field {
+    margin: 0 0 1.25rem;
+  }
+  /* Every text field is the form's width, at least 48 px tall, with a border at 4.5:1. */
+  .title input,
+  .field input,
+  .field textarea,
+  .datetime {
     box-sizing: border-box;
     width: 100%;
-    min-height: 3.25rem;
-    padding: 0.5rem 0.75rem;
     font: inherit;
-    font-size: 1.25rem;
-    /* 4.5:1 on white, so the box itself stands out (WCAG 1.4.11 asks for 3:1). */
-    border: 2px solid #767676;
+    background: var(--card);
+    border: 2px solid var(--border);
     border-radius: var(--radius);
   }
-  .title input:focus-visible {
+  .title input {
+    min-height: 3.25rem;
+    padding: 0.5rem 0.75rem;
+    font-size: 1.25rem;
+  }
+  .field input {
+    min-height: 3rem;
+    padding: 0.5rem 0.75rem;
+  }
+  .field textarea {
+    display: block;
+    padding: 0.625rem 0.75rem;
+    resize: vertical;
+  }
+  ::placeholder {
+    color: #6b7280; /* 4.8:1 on white */
+    opacity: 1;
+  }
+  .title input:focus-visible,
+  .field input:focus-visible,
+  .field textarea:focus-visible,
+  .datetime:focus-within {
     border-color: var(--blue);
     outline: 3px solid var(--blue);
     outline-offset: 2px;
+  }
+  .datetime input:focus-visible {
+    outline: none;
+  }
+  /* A field with an icon inside it, such as Where's pin. */
+  .with-icon {
+    position: relative;
+    display: block;
+  }
+  .with-icon :global(.icon) {
+    position: absolute;
+    top: 50%;
+    left: 0.75rem;
+    color: var(--blue);
+    transform: translateY(-50%);
+    pointer-events: none;
+  }
+  .with-icon input {
+    padding-left: 2.5rem;
+  }
+  /* Today, Tomorrow and This Saturday are outlined chips, not buttons that look like Post. */
+  .quick {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0 0 0.5rem;
+  }
+  .quick button {
+    min-height: 44px;
+    padding: 0 1rem;
+    color: var(--navy);
+    font-weight: 600;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+  }
+  .quick button:hover {
+    border-color: var(--blue);
+  }
+  /* The date and start time in one box, side by side, each with its icon. */
+  .datetime {
+    display: flex;
+    overflow: hidden;
+  }
+  .part {
+    display: flex;
+    flex: 1;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0;
+    min-height: 3rem;
+    padding: 0 0.75rem;
+    cursor: pointer;
+  }
+  .part + .part {
+    border-left: 1px solid var(--line);
+  }
+  .part :global(.icon) {
+    color: var(--blue);
+  }
+  .part input {
+    position: relative;
+    flex: 1;
+    min-width: 0;
+    min-height: 2.75rem;
+    padding: 0;
+    font: inherit;
+    color: var(--ink);
+    background: none;
+    border: 0;
+  }
+  /* Chrome's own calendar and clock icons would repeat the ones beside the fields, so they're
+     invisible and stretched over the field: a tap anywhere on it opens the picker. */
+  .part input::-webkit-calendar-picker-indicator {
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+    opacity: 0;
+    cursor: pointer;
+  }
+  /* On a narrow phone, they stack. */
+  @media (max-width: 359px) {
+    .datetime {
+      flex-direction: column;
+    }
+    .part + .part {
+      border-top: 1px solid var(--line);
+      border-left: 0;
+    }
+  }
+  /* The categories are chips that wrap. Each is a radio button, stretched invisibly over its chip
+     so a tap anywhere on it chooses it, and the chosen one is FABA blue with a check. */
+  .pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .pill {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 44px;
+    padding: 0 1rem;
+    color: var(--navy);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+  }
+  .pill input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .pill :global(.icon) {
+    color: var(--blue);
+  }
+  .pill:has(input:checked) {
+    font-weight: 600;
+    color: white;
+    background: var(--blue);
+    border-color: var(--blue);
+  }
+  .pill:has(input:checked)::before {
+    content: '✓' / '';
+  }
+  .pill:has(input:checked) :global(.icon) {
+    display: none;
+  }
+  .pill:has(input:focus-visible) {
+    outline: 3px solid var(--blue);
+    outline-offset: 2px;
+  }
+  /* More options' own questions are smaller than the form's. */
+  .more legend {
+    font-size: 1rem;
+  }
+  .more summary {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    font-weight: 600;
+    color: var(--navy);
+    list-style: none;
+    cursor: pointer;
+  }
+  .more summary::-webkit-details-marker {
+    display: none;
+  }
+  /* A caret that turns when More options is open. */
+  .more summary::after {
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-top: -0.25rem;
+    content: '';
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+  }
+  .more[open] summary::after {
+    margin-top: 0.25rem;
+    transform: rotate(-135deg);
+  }
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 </style>
