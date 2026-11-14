@@ -56,3 +56,27 @@ test('the form reads as sections, fits the screen, and keeps the bottom bar', as
   );
   await expectAccessible(page);
 });
+
+test('activities have no tags, on the form or the page (UI-09)', async ({ page, poster }) => {
+  await page.goto('/activities/new');
+  await page.getByText('More options').click();
+  await expect(page.getByRole('group', { name: 'Tags' })).toHaveCount(0);
+
+  // Even one tagged before tags were removed shows none.
+  const { data } = await poster.admin
+    .from('activities')
+    .insert({
+      organizer_id: poster.id,
+      category_id: 'family',
+      title: 'Story time',
+      starts_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      location_name: 'Library',
+    })
+    .select('id')
+    .single();
+  await poster.admin
+    .from('activity_tags')
+    .insert({ activity_id: data!.id, tag_id: 'family-friendly' });
+  await page.goto(`/activities/${data!.id}`);
+  await expect(page.getByText('Family-friendly')).toHaveCount(0);
+});

@@ -12,7 +12,7 @@ export function readCursor(params: URLSearchParams) {
   return parsed.success ? { after_starts_at: parsed.data.after, after_id: parsed.data.id } : {};
 }
 
-/** A page's filters, where a filter can have more than one value, such as tags (SRCH-03). */
+/** A page's filters, such as its category and dates. A filter can have more than one value. */
 export type Filters = Record<string, string | string[] | undefined>;
 
 /** The page's `filters` that are set, as a query, such as `cat=outdoors&when=weekend`. */
@@ -32,18 +32,6 @@ export function nextPage(last: { starts_at: string; id: string }, filters: Filte
   const query = new URLSearchParams({ after: last.starts_at, id: last.id });
   const kept = filterQuery(filters);
   return kept ? `?${query}&${kept}` : `?${query}`;
-}
-
-/**
- * More filters' other filters in a link (SRCH-03): ?spots=1 for activities with spots left, and a
- * tag for each tag asked for, as in ?tag=free&tag=family-friendly, as get_feed() and
- * search_activities() take them. They leave out a tag that isn't offered, and so should the page.
- */
-export function readMore(params: URLSearchParams) {
-  return {
-    spots: params.get('spots') === '1',
-    tags: [...new Set(params.getAll('tag'))].filter((tag) => /^[a-z][a-z0-9-]*$/.test(tag)),
-  };
 }
 
 const dates = z

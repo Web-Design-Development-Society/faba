@@ -1,5 +1,5 @@
-// Discover's category chips (ACT-06), behind the Category button so nothing runs off a phone's
-// screen (UI-04).
+// Discover's category chips (ACT-06), behind the Category button beside Date, the only two filters
+// (UI-04, UI-09).
 import type { Page } from '@playwright/test';
 import { expect, expectAccessible, test } from './fixtures';
 
@@ -9,8 +9,9 @@ const HOUR = 60 * 60 * 1000;
 const named = (title: string) => `${title} ${crypto.randomUUID().slice(0, 8)}`;
 const filters = (page: Page) => page.getByRole('navigation', { name: 'Filters' });
 const chip = (page: Page, name: string) => filters(page).getByRole('link', { name, exact: true });
-/** The Category button, a disclosure's summary. */
-const category = (page: Page) => filters(page).locator('summary');
+/** The Category and Date buttons, each a disclosure's summary. */
+const category = (page: Page) => filters(page).locator('summary', { hasText: /^Category/ });
+const date = (page: Page) => filters(page).locator('summary', { hasText: /^Date/ });
 
 /** Whether every card in the feed is in `category`. */
 async function expectOnly(page: Page, category: string) {
@@ -33,13 +34,14 @@ test('a chip shows only its category, and says it is chosen', async ({ page, sig
   await page.goto('/discover');
   const chips = filters(page);
   await expect(page.getByRole('heading', { name: 'Upcoming activities' })).toBeVisible();
-  await expect(chips.getByRole('link').first()).toHaveText('All');
-  await expect(chip(page, 'All')).toHaveAttribute('aria-current', 'page');
-  // Every chip and button is on the screen: none runs off its edge, and nothing scrolls sideways.
+  // Just Category and Date: no pills on the page, and nothing else to tap.
+  await expect(chips.locator('summary')).toHaveText(['Category', 'Date']);
+  await expect(chips.getByRole('link', { name: 'All', exact: true })).toHaveCount(0);
+  await expect(chips.getByRole('link', { name: 'This weekend' })).toHaveCount(0);
+  await expect(chips.getByRole('button', { name: /More filters/ })).toHaveCount(0);
+  // Both are on the screen, and nothing scrolls sideways.
   const width = page.viewportSize()!.width;
-  for (const control of await chips
-    .locator('.chips:not(.panel) a:visible, summary:visible, button:visible')
-    .all()) {
+  for (const control of await chips.locator('summary').all()) {
     const box = (await control.boundingBox())!;
     expect(box.x + box.width).toBeLessThanOrEqual(width);
   }
@@ -48,11 +50,6 @@ test('a chip shows only its category, and says it is chosen', async ({ page, sig
       () => document.documentElement.scrollWidth - document.documentElement.clientWidth
     )
   ).toBe(0);
-  // More filters is outlined beside Category, not a filled button.
-  await expect(chips.getByRole('button', { name: 'More filters' })).toHaveCSS(
-    'background-color',
-    'rgb(255, 255, 255)'
-  );
   // There's nothing to clear yet.
   await expect(chips.getByRole('link', { name: 'Clear filters' })).toHaveCount(0);
 
@@ -60,10 +57,14 @@ test('a chip shows only its category, and says it is chosen', async ({ page, sig
   await category(page).click();
   await expect(chip(page, 'Games')).toBeVisible();
   await expectAccessible(page);
-  // Escape closes it, as a menu does, and Category keeps the focus.
+  // Escape closes it, as a menu does, and Category keeps the focus. Opening Date closes it too.
   await page.keyboard.press('Escape');
   await expect(chip(page, 'Games')).toBeHidden();
   await expect(category(page)).toBeFocused();
+  await category(page).click();
+  await date(page).click();
+  await expect(chip(page, 'Games')).toBeHidden();
+  await expect(chip(page, 'This weekend')).toBeVisible();
   await category(page).click();
   await chip(page, 'Games').click();
   await expect(page).toHaveURL('/discover?cat=games');
@@ -71,7 +72,7 @@ test('a chip shows only its category, and says it is chosen', async ({ page, sig
   await expect(category(page)).toHaveText('Category: Games');
   await category(page).click();
   await expect(chip(page, 'Games')).toHaveAttribute('aria-current', 'page');
-  await expect(chips.locator('[aria-current]')).toHaveCount(1);
+  await expect(chips.locator('.chips [aria-current]')).toHaveCount(1);
   await expect(chips.getByRole('link', { name: 'Clear filters' })).toHaveAttribute(
     'href',
     '/discover'
@@ -86,7 +87,7 @@ test('a chip shows only its category, and says it is chosen', async ({ page, sig
   );
   await expectAccessible(page);
 
-  await chip(page, 'All').click();
+  await chips.getByRole('link', { name: 'Clear filters' }).click();
   await expect(page).toHaveURL('/discover');
   await expect(page.getByRole('link', { name: hike })).toBeVisible();
 });
@@ -138,7 +139,7 @@ test('a category that is not offered shows them all', async ({ page, signInAs })
   // Online is turned off for now (ADR-017).
   await page.goto('/discover?cat=online');
   await expect(page).toHaveURL('/discover');
-  await expect(chip(page, 'All')).toHaveAttribute('aria-current', 'page');
+  await expect(category(page)).toHaveText('Category');
 });
 
 test.describe('without JavaScript', () => {

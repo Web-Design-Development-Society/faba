@@ -23,8 +23,11 @@ test('selected things are FABA blue, and the bar keeps its five items', async ({
     .getByRole('navigation', { name: 'Discover' })
     .getByRole('link', { name: 'Activities' });
   await expect(activities).toHaveCSS('background-color', BLUE);
-  const all = page.getByRole('navigation', { name: 'Filters' }).getByRole('link', { name: 'All' });
-  await expect(all).toHaveCSS('background-color', BLUE);
+  // Any time, the date chosen until another is, is FABA blue in the Date list.
+  const filters = page.getByRole('navigation', { name: 'Filters' });
+  await filters.locator('summary', { hasText: /^Date/ }).click();
+  await expect(filters.getByRole('link', { name: 'Any time' })).toHaveCSS('background-color', BLUE);
+  await page.keyboard.press('Escape');
 
   // The mark and the wordmark go to Discover, and Search is an icon button with its name.
   await expect(page.getByRole('link', { name: 'FABA' })).toHaveAttribute('href', '/discover');

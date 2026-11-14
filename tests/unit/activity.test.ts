@@ -137,12 +137,8 @@ describe('newActivity', () => {
     });
   });
 
-  it('takes up to 3 tags', () => {
-    expect(newActivity.parse({ ...valid, tags: ['free', 'accessible'] }).tags).toEqual([
-      'free',
-      'accessible',
-    ]);
-    expect(errors({ tags: ['a', 'b', 'c', 'd'] })).toEqual({ tags: 'Pick up to 3 tags.' });
+  it('leaves out tags, which activities no longer have (UI-09)', () => {
+    expect(newActivity.parse({ ...valid, tags: ['free'] })).not.toHaveProperty('tags');
   });
 
   it('takes details for attendees, trimmed', () => {

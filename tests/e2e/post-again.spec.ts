@@ -24,7 +24,6 @@ test('the organizer posts a past activity again, with a new date', async ({ page
   await poster.admin
     .from('activity_private_details')
     .insert({ activity_id: original!.id, details: 'Room 204' });
-  await poster.admin.from('activity_tags').insert({ activity_id: original!.id, tag_id: 'free' });
 
   await page.goto(`/activities/${original!.id}`);
   await page.getByRole('link', { name: 'Post again' }).click();
@@ -39,7 +38,6 @@ test('the organizer posts a past activity again, with a new date', async ({ page
   await expect(page.getByLabel('Cost')).toHaveValue('Free');
   await expect(page.getByLabel('Spots')).toHaveValue('12');
   await expect(page.getByLabel('Details for attendees only')).toHaveValue('Room 204');
-  await expect(page.getByRole('checkbox', { name: 'Free' })).toBeChecked();
   // Everything but the date and times, which start from the suggestion.
   await expect(page.getByLabel('End time')).toHaveValue('');
   await expect(page.getByLabel('Date', { exact: true })).not.toHaveValue('');
