@@ -29,9 +29,13 @@ test('a member adds a photo, sees it everywhere, and removes it', async ({
     const bytes = new Uint8Array(await blob.arrayBuffer());
     return btoa(String.fromCharCode(...bytes));
   });
-  // No Google photo and no upload yet: initials, and nothing to choose between.
-  await expect(page.getByRole('img', { name: 'Pat Poster' })).toHaveText('PP');
-  await expect(page.getByRole('group', { name: 'How you appear' })).toHaveCount(0);
+  // The test accounts have a photo from Google, which shows until one is uploaded.
+  const appearance = page.getByRole('group', { name: 'How you appear' });
+  await expect(appearance.getByRole('radio', { name: 'My Google photo' })).toBeChecked();
+  await expect(page.getByRole('img', { name: 'Pat Poster' })).not.toHaveAttribute(
+    'src',
+    /^\/api\/media\//
+  );
 
   await page.getByText('Add a photo').click();
   // A face needs no description: it's the member's name.
@@ -50,9 +54,7 @@ test('a member adds a photo, sees it everywhere, and removes it', async ({
   await expect(photo).toHaveAttribute('src', /^\/api\/media\/[0-9a-f-]{36}\?size=thumb$/);
   // Its small copy, made for faces.
   await expect.poll(() => photo.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(256);
-  await expect(
-    page.getByRole('group', { name: 'How you appear' }).getByRole('radio', { name: 'My photo' })
-  ).toBeChecked();
+  await expect(appearance.getByRole('radio', { name: 'My photo' })).toBeChecked();
 
   // On Me, and on the card of what Pat's going to.
   await page.goto('/me');
@@ -67,10 +69,14 @@ test('a member adds a photo, sees it everywhere, and removes it', async ({
     /^\/api\/media\//
   );
 
-  // Removing it goes back to initials.
+  // Removing it goes back to the Google photo.
   await page.goto('/me/edit');
   await page.getByRole('button', { name: 'Remove photo' }).click();
   await expect(page.getByRole('status')).toHaveText('Photo removed.');
-  await expect(page.getByRole('img', { name: 'Pat Poster' })).toHaveText('PP');
+  await expect(page.getByRole('img', { name: 'Pat Poster' })).not.toHaveAttribute(
+    'src',
+    /^\/api\/media\//
+  );
+  await expect(appearance.getByRole('radio', { name: 'My Google photo' })).toBeChecked();
   await expect(page.getByRole('button', { name: 'Remove photo' })).toHaveCount(0);
 });
