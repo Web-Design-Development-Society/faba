@@ -5,6 +5,11 @@
 // bold and have a dot, not just a color. Tapping one marks it read and opens its activity, and an
 // activity that's gone, or hidden, opens "not available". Mark all read is at the top. It all works
 // without JavaScript.
+//
+// All | Unread switches between every alert and the new ones (?show=unread). Each alert is a card
+// (UI-07): its type's icon on a soft blue tile, the activity's or group's name in bold, the sentence
+// that says what happened, how long ago, and a chevron. The sentence comes first for screen
+// readers, after "Unread", and the name is drawn above it.
 import { actions } from 'astro:actions';
 import Icon from '../components/Icon.astro';
 import Status from '../components/Status.astro';
@@ -31,6 +36,7 @@ const failed = opened?.error ?? readAll?.error;
 const flash = takeFlash(Astro.cookies);
 
 const now = new Date();
+const onlyUnread = Astro.url.searchParams.get('show') === 'unread';
 const cursor = readCursor(Astro.url.searchParams);
 let query = supabase
   .from('notifications')
@@ -39,6 +45,7 @@ let query = supabase
   .order('created_at', { ascending: false })
   .order('id', { ascending: false })
   .limit(PAGE + 1);
+if (onlyUnread) query = query.is('read_at', null);
 if (cursor.after_id) {
   query = query.or(
     `created_at.lt."${cursor.after_starts_at}",and(created_at.eq."${cursor.after_starts_at}",id.lt.${cursor.after_id})`
@@ -68,13 +75,14 @@ const posted = new Map<string, PostedUpdate>(
   updates?.map(({ id, body, author }) => [id, { author: author?.display_name ?? null, body }])
 );
 const last = shown.at(-1);
-const more =
+const next =
   last && data!.length > PAGE ? nextPage({ starts_at: last.created_at, id: last.id }) : null;
+const more = next && onlyUnread ? `${next}&show=unread` : next;
 const groups = [
   { name: 'New', items: shown.filter(({ read_at }) => !read_at) },
   { name: 'Earlier', items: shown.filter(({ read_at }) => read_at) },
 ].filter(({ items }) => items.length > 0);
-const unread = groups[0]?.name === 'New';
+const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
 ---
 
 <Layout title="Alerts" tab="alerts">
@@ -86,13 +94,25 @@ const unread = groups[0]?.name === 'New';
       </form>
     )}
   </header>
+  <nav class="switch" aria-label="Show">
+    <a href="/notifications" aria-current={onlyUnread ? undefined : 'page'}>
+      All
+    </a>
+    <a href="/notifications?show=unread" aria-current={onlyUnread ? 'page' : undefined}>
+      Unread
+    </a>
+  </nav>
   <Status message={flash && FLASH_MESSAGES[flash]} />
   {failed && <p role="alert">{failed.message}</p>}
 
   {error ? (
     <p role="alert">Your alerts couldn't load. Please try again.</p>
   ) : shown.length === 0 ? (
-    <p class="empty">You're all caught up. We'll let you know when plans change.</p>
+    <p class="empty">
+      {onlyUnread
+        ? "You're all caught up."
+        : "You're all caught up. We'll let you know when plans change."}
+    </p>
   ) : (
     groups.map(({ name, items }) => (
       <section aria-labelledby={`alerts-${name}`}>
@@ -117,7 +137,7 @@ const unread = groups[0]?.name === 'New';
                     </span>
                     <span class="text">
                       <span class="summary">
-                        {!notification.read_at && <span class="dot">Unread: </span>}
+                        {!notification.read_at && <span class="unread-label">Unread: </span>}
                         {summary}
                       </span>
                       <span class="title">
@@ -129,6 +149,7 @@ const unread = groups[0]?.name === 'New';
                         {formatAgo(new Date(notification.created_at), now)}
                       </time>
                     </span>
+                    <Icon name="chevron" class="chevron" />
                   </button>
                 </form>
               </li>
@@ -160,62 +181,122 @@ const unread = groups[0]?.name === 'New';
     background: none;
     border: 0;
   }
+  /* All | Unread, like Discover's Activities | Groups (UI-07). */
+  .switch {
+    display: flex;
+    margin: 0.5rem 0;
+    overflow: hidden;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .switch a {
+    display: grid;
+    flex: 1;
+    place-items: center;
+    min-height: 44px;
+    color: var(--navy);
+    text-decoration: none;
+  }
+  .switch a + a {
+    border-left: 1px solid var(--border);
+  }
+  .switch [aria-current] {
+    font-weight: 700;
+    color: white;
+    background: var(--blue);
+  }
   h2 {
     margin: 1.5rem 0 0.5rem;
     font-size: 0.875rem;
     text-transform: uppercase;
   }
   ul {
+    display: grid;
+    gap: 0.75rem;
     margin: 0;
     padding: 0;
     list-style: none;
   }
+  /* Each alert is a card, and the whole card is one button. */
   li button {
     display: flex;
+    align-items: center;
     gap: 0.75rem;
     width: 100%;
     min-height: 44px;
-    padding: 0.75rem 0;
+    padding: 0.875rem 0.75rem 0.875rem 1rem;
     font: inherit;
+    font-weight: 400;
     color: inherit;
     text-align: left;
-    background: none;
-    border: 0;
-    border-bottom: 1px solid #767676;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  li button:hover {
+    border-color: var(--blue);
+  }
+  /* An unread alert has a blue left edge, a dot and a bold name, so it isn't shown by color alone. */
+  .unread button {
+    border-left: 0.3125rem solid var(--blue);
   }
   /* The type's line icon on a soft blue tile (UI-02). */
   .tile {
     display: grid;
     flex: none;
     place-items: center;
-    width: 2.5rem;
-    height: 2.5rem;
+    align-self: flex-start;
+    width: 2.75rem;
+    height: 2.75rem;
     color: var(--blue);
     background: var(--blue-soft);
     border-radius: 0.5rem;
   }
+  /* The name is drawn first, above what happened, which screen readers hear first. */
   .text {
     display: grid;
+    flex: 1;
+    gap: 0.125rem;
+    min-width: 0;
   }
-  .unread .summary,
+  .title {
+    order: -1;
+    font-weight: 600;
+    color: var(--navy);
+  }
   .unread .title {
-    font-weight: 700;
+    font-weight: 800;
   }
-  /* A dot for sighted people, and "Unread:" for screen readers. */
-  .dot {
+  .unread .title::before {
     display: inline-block;
     width: 0.5rem;
     height: 0.5rem;
     margin-right: 0.5rem;
-    overflow: hidden;
     vertical-align: middle;
-    color: transparent;
+    content: '';
     background: var(--blue);
     border-radius: 50%;
   }
+  /* The sentence wraps to as many lines as it needs. */
+  .summary {
+    overflow-wrap: anywhere;
+  }
+  .unread-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
   time {
     font-size: 0.875rem;
-    color: #595959;
+    color: var(--muted);
+  }
+  button :global(.chevron) {
+    color: var(--muted);
   }
   .empty {
     margin-top: 2rem;
