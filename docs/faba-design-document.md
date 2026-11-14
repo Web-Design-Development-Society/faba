@@ -2219,8 +2219,9 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 
 ### 7.9 Notification center (Phase 2)
 
-- **Layout:** a reverse-chronological list grouped as **New** (unread) and **Earlier**. Each row shows a type icon, a one-line summary, the activity title, and relative time.
-- **Unread treatment:** a bold title plus a dot, not color alone.
+- **Layout:** a reverse-chronological list grouped as **New** (unread) and **Earlier**. **All | Unread** at the top shows every alert or only the new ones (`?show=unread`).
+- **Cards** (UI-07): each alert is a card with its type's line icon on a soft blue tile, the activity's or group's name in bold, the sentence that says what happened (which wraps as far as it needs), the relative time, and a chevron. Screen readers hear the sentence first, after "Unread", and the name is drawn above it.
+- **Unread treatment:** a blue left edge, a dot and a bolder name, not color alone.
 - **Tapping a row** marks it read and opens the target. A long press or the overflow menu offers **Mute this activity**.
 - **Mark all read** is a text button at the top right.
 - **Copy examples:**
