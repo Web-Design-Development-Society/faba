@@ -2,6 +2,7 @@
 // light and dark themes with every axe rule for WCAG 2.0 and 2.2 at AA, at every impact level, and
 // checks that a 320 px screen has no sideways scroll (design document section 7.14).
 import AxeBuilder from '@axe-core/playwright';
+import { LEAGUES } from '../../src/lib/features';
 import { expect, test } from './fixtures';
 
 const RULES = ['wcag2a', 'wcag2aa', 'wcag21aa', 'wcag22aa'];
@@ -70,7 +71,7 @@ test('member pages pass in both themes, and reflow at 320 px', async ({
     '/me/notifications',
     '/notifications',
     '/calendar',
-    '/leagues/new',
+    ...(LEAGUES ? ['/leagues/new'] : []),
     `/activities/${activity!.id}`,
     `/activities/${activity!.id}/edit`,
     '/groups/new',

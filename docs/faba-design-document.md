@@ -1658,6 +1658,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 #### LEAG-01 · Create a league and season
 
 - **Role:** Member (becomes League organizer) · **Priority:** Must · **Phase:** 4
+- **Status:** On hold since 2026-11-14 (ADR-018). Built, and switched off in `src/lib/features.ts`.
 - **Story:** As a league organizer, I want to set up a season with dates and a format.
 - **Acceptance criteria:**
   - A league is a group with `kind = league`.
@@ -1668,6 +1669,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 #### LEAG-02 · Register for a season
 
 - **Role:** Member · **Priority:** Must · **Phase:** 4
+- **Status:** On hold since 2026-11-14 (ADR-018). Built, and switched off in `src/lib/features.ts`.
 - **Story:** As a member, I want to sign up as a player or free agent.
 - **Acceptance criteria:**
   - **Join season** offers Player or Free agent, with an optional note.
@@ -1678,6 +1680,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 #### LEAG-03 · Teams and rosters
 
 - **Role:** League organizer · **Priority:** Must · **Phase:** 4
+- **Status:** On hold since 2026-11-14 (ADR-018). Built, and switched off in `src/lib/features.ts`.
 - **Story:** As an organizer, I want to create teams and assign players.
 - **Acceptance criteria:**
   - Teams have a name, color, and captain.
@@ -1688,6 +1691,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 #### LEAG-04 · Schedule games
 
 - **Role:** League organizer · **Priority:** Should · **Phase:** 4
+- **Status:** On hold since 2026-11-14 (ADR-018). Built, and switched off in `src/lib/features.ts`.
 - **Story:** As an organizer, I want to generate a round-robin schedule.
 - **Acceptance criteria:**
   - **Generate round robin** takes the start date, weekday, time, and place, and creates game activities (with byes for odd team counts).
@@ -1698,6 +1702,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 #### LEAG-05 · Scores and standings
 
 - **Role:** Captain / League organizer · **Priority:** Should · **Phase:** 4
+- **Status:** On hold since 2026-11-14 (ADR-018). Built, and switched off in `src/lib/features.ts`.
 - **Story:** As a captain, I want to report a score, and everyone wants to see standings.
 - **Acceptance criteria:**
   - A captain reports the score. The opposing captain or the organizer confirms it.
@@ -1709,6 +1714,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 #### LEAG-06 · Request a substitute
 
 - **Role:** Captain · **Priority:** Could · **Phase:** 4
+- **Status:** On hold since 2026-11-14 (ADR-018). Built, and switched off in `src/lib/features.ts`.
 - **Story:** As a captain, I want to ask free agents to sub for a game.
 - **Acceptance criteria:**
   - **Need a sub** on a game notifies the season's free agents.
@@ -1719,6 +1725,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 #### LEAG-07 · Game availability
 
 - **Role:** Member (player) · **Priority:** Should · **Phase:** 4
+- **Status:** On hold since 2026-11-14 (ADR-018). Built, and switched off in `src/lib/features.ts`.
 - **Story:** As a player, I want to say whether I can play each game, so that my captain knows if we have enough players.
 - **Acceptance criteria:**
   - On game activities, the RSVP choices become **Can play** and **Can't play**.
@@ -1730,6 +1737,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 #### LEAG-08 · Individual ladder
 
 - **Role:** League organizer · **Priority:** Should · **Phase:** 4
+- **Status:** On hold since 2026-11-14 (ADR-018). Built, and switched off in `src/lib/features.ts`.
 - **Story:** As an organizer of a one-on-one sport or game, I want to run a season for individual players instead of teams.
 - **Acceptance criteria:**
   - A season with the individual-ladder format registers players, not teams.
@@ -1809,6 +1817,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 #### LEAG-09 · Playoff brackets
 
 - **Role:** League organizer · **Priority:** Could · **Phase:** 6
+- **Status:** On hold since 2026-11-14 (ADR-018). Built, and switched off in `src/lib/features.ts`.
 - **Story:** As a league organizer, I want to run a playoff bracket at the end of a season.
 - **Acceptance criteria:**
   - Seeds come from the final standings.
@@ -2123,17 +2132,17 @@ These targets are acceptance criteria for UX reviews.
 
 A **bottom navigation bar** on phones. It grows by phase, but never past 5 items.
 
-| Phase       | Items                                                                                                      |
-| ----------- | ---------------------------------------------------------------------------------------------------------- |
-| 1           | **Discover** · **＋ Post** · **Me**                                                                        |
-| 2           | **Discover** · **Plans** · **＋ Post** · **Alerts** (badge) · **Me**                                       |
-| 3 and later | Same 5 items. **Discover** gains a segmented control, **Activities \| Groups**. Leagues live inside Groups |
+| Phase       | Items                                                                                                                                 |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 1           | **Discover** · **＋ Post** · **Me**                                                                                                   |
+| 2           | **Discover** · **Plans** · **＋ Post** · **Alerts** (badge) · **Me**                                                                  |
+| 3 and later | Same 5 items. **Discover** gains a segmented control, **Activities \| Groups**. Leagues live inside Groups, and are on hold (ADR-018) |
 
 - The center **＋** is visually prominent. It is the only filled button in the bar.
 - The **Alerts** badge shows the unread count (displayed as "9+" above 9).
 - The top app bar is minimal: the FABA mark and wordmark (which return to Home), the motto "Bringing faculty together!" beside them (UI-08), and a **search** icon. Detail pages show **Back** and an overflow (⋯) menu.
 - Moderators get a **Moderation** entry inside **Me**, not in the bottom bar.
-- **Groups** (Phase 3, GRP-01): a list of groups that aren't archived, by name, each a card (UI-10) with its banner across the top, or its category's tint and icon, then its name, its category, how many members it has, whether anyone can join, and the start of its description. Badges say **You're in**, **Requested** or **League**. **Start a group** at the top opens a form with the name, category, description and who can join (anyone, or people the organizers approve). The new group's page is at `/groups/<slug>`, an address made from its name, and says "You started this group". A member can start 3 groups in any 30 days. Each group shows how many active members it has (GRP-02). Its page has **Join** for an open group, or **Request to join** for an approval group, which tells its organizers in Alerts ("Dana Smith asked to join") and leaves the member waiting until an organizer approves them (GRP-05). **Withdraw request** takes the request back, and **Leave group** is there for every member but the owner, who hands the group on first. The page lists the group's activities that are coming up, and its organizers have **Post an activity**, which opens Create with the group chosen (GRP-03). Its **Updates** come last, newest first, for its members: the organizers' one-way posts, up to 500 characters and 3 a day, which every member gets in Alerts. Each has **Report**, and moderators hide them as they do an activity's (GRP-04). They're kept in `activity_updates`, each row belonging to an activity or a group. The member count opens the group's **Members**, for its members and moderators: its owner, then its organizers, then everyone else (GRP-05). Its organizers see how many are asking to join, and **Approve** or **Decline** each, quietly for a decline. An approved member hears "You're in the group" in Alerts, and a join request in Alerts opens Members. Organizers **Remove** members, and the owner also removes organizers and makes members organizers and back. The owner can't be removed or step down: **Hand on this group** picks one of its members as the new owner, who hears "You own this group now", and the old owner stays on as an organizer, free to leave. A moderator can hand on any group, such as one whose owner left FABA, with a reason that goes to the audit log as `transfer_group`.
+- **Groups** (Phase 3, GRP-01): a list of groups that aren't archived, by name, each a card (UI-10) with its banner across the top, or its category's tint and icon, then its name, its category, how many members it has, whether anyone can join, and the start of its description. Badges say **You're in** or **Requested**, and **League** while leagues are on (ADR-018). **Start a group** at the top opens a form with the name, category, description and who can join (anyone, or people the organizers approve). The new group's page is at `/groups/<slug>`, an address made from its name, and says "You started this group". A member can start 3 groups in any 30 days. Each group shows how many active members it has (GRP-02). Its page has **Join** for an open group, or **Request to join** for an approval group, which tells its organizers in Alerts ("Dana Smith asked to join") and leaves the member waiting until an organizer approves them (GRP-05). **Withdraw request** takes the request back, and **Leave group** is there for every member but the owner, who hands the group on first. The page lists the group's activities that are coming up, and its organizers have **Post an activity**, which opens Create with the group chosen (GRP-03). Its **Updates** come last, newest first, for its members: the organizers' one-way posts, up to 500 characters and 3 a day, which every member gets in Alerts. Each has **Report**, and moderators hide them as they do an activity's (GRP-04). They're kept in `activity_updates`, each row belonging to an activity or a group. The member count opens the group's **Members**, for its members and moderators: its owner, then its organizers, then everyone else (GRP-05). Its organizers see how many are asking to join, and **Approve** or **Decline** each, quietly for a decline. An approved member hears "You're in the group" in Alerts, and a join request in Alerts opens Members. Organizers **Remove** members, and the owner also removes organizers and makes members organizers and back. The owner can't be removed or step down: **Hand on this group** picks one of its members as the new owner, who hears "You own this group now", and the old owner stays on as an organizer, free to leave. A moderator can hand on any group, such as one whose owner left FABA, with a reason that goes to the audit log as `transfer_group`.
 
 ### 7.4 Home (Discover)
 
@@ -3674,6 +3683,7 @@ Each ADR has its own file in [`docs/adr/`](adr/README.md). ADRs 001 to 013 are t
 | 015 | Any `byui.edu` account can join; no faculty attestation or allow-list                                                       | Accepted                                                       |
 | 016 | FABA runs independently of BYU-Idaho: no IT, branding, risk-management, or policy approvals                                 | Accepted                                                       |
 | 017 | Phase 1 serves in-person Rexburg activities only; no "Online" activities or "based in" field                                | Accepted                                                       |
+| 018 | Leagues are on hold; FABA starts with basic groups. Leagues are switched off in `src/lib/features.ts`, not removed          | Accepted                                                       |
 
 ---
 

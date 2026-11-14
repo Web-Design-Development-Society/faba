@@ -1,6 +1,10 @@
 // Leagues and seasons (LEAG-01). The pgTAP tests cover who can start a season, one active season
 // at a time, and ladders being one person.
+import { LEAGUES } from '../../src/lib/features';
 import { expect, expectAccessible, test } from './fixtures';
+
+// Leagues are on hold (ADR-018), so these run only when src/lib/features.ts turns them back on.
+test.skip(!LEAGUES, 'Leagues are on hold (ADR-018).');
 
 test('a member starts a league, and starts its first season', async ({ page, poster }) => {
   // The poster fixture signs in a fresh account, with its own group quota.

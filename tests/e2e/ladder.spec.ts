@@ -1,6 +1,10 @@
 // The individual ladder (LEAG-08). The pgTAP tests cover entering players as teams of one, and that
 // a ladder is scheduled between two players. Written while E2E is paused; not yet run.
+import { LEAGUES } from '../../src/lib/features';
 import { expect, expectAccessible, test } from './fixtures';
+
+// Leagues are on hold (ADR-018), so these run only when src/lib/features.ts turns them back on.
+test.skip(!LEAGUES, 'Leagues are on hold (ADR-018).');
 
 test('an organizer enters the players of a ladder, and schedules their games', async ({
   page,

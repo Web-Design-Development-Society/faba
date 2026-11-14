@@ -14,9 +14,12 @@ import LeagueSchedule from '../../../components/LeagueSchedule.astro';
 import LeagueStandings from '../../../components/LeagueStandings.astro';
 import LeaguePlayoffs from '../../../components/LeaguePlayoffs.astro';
 import Layout from '../../../layouts/Layout.astro';
+import { LEAGUES } from '../../../lib/features';
 import { FLASH_MESSAGES, setFlash, takeFlash } from '../../../lib/server/flash';
 import { formatDate } from '../../../lib/time';
 
+// Not found while leagues are on hold (ADR-018).
+if (!LEAGUES) return new Response('Not found.', { status: 404 });
 const { supabase, user } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
 const slug = Astro.params.slug!;

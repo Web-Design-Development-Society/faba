@@ -1,4 +1,5 @@
 import { describe as group, expect, it } from 'vitest';
+import { LEAGUES } from '../../src/lib/features';
 import { isIcon } from '../../src/lib/icons';
 import {
   badge,
@@ -270,9 +271,15 @@ group('new activities I follow', () => {
 group('preferences', () => {
   it('lets a member turn every type off except cancellations', () => {
     expect(PREFERENCE_TYPES).toEqual(
-      Object.keys(TYPES).filter((type) => type !== 'activity_cancelled')
+      Object.keys(TYPES).filter(
+        (type) => type !== 'activity_cancelled' && (LEAGUES || type !== 'sub_needed')
+      )
     );
     expect(PREFERENCE_TYPES).not.toContain('activity_cancelled');
     expect(PREFERENCE_TYPES).toContain('new_attendees');
+  });
+
+  it("leaves out a league's sub requests while leagues are on hold (ADR-018)", () => {
+    expect(PREFERENCE_TYPES.includes('sub_needed')).toBe(LEAGUES);
   });
 });

@@ -16,6 +16,7 @@ import PictureUpload from '../../../components/PictureUpload.astro';
 import Status from '../../../components/Status.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { CARD, FACES, historySince } from '../../../lib/cards';
+import { LEAGUES } from '../../../lib/features';
 import { linkify } from '../../../lib/links';
 import { FLASH_MESSAGES, pictureRefusal, setFlash, takeFlash } from '../../../lib/server/flash';
 import { formatAgo } from '../../../lib/time';
@@ -240,7 +241,7 @@ const members = group?.member_count ?? 0;
           )}
         </p>
       )}
-      {group.kind === 'league' && (
+      {LEAGUES && group.kind === 'league' && (
         <p>
           <a href={`/groups/${group.slug}/seasons`}>Seasons</a>
         </p>
