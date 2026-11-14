@@ -2122,15 +2122,19 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 +------------------------------------+
 | <  Back                     [...]  |  <- Share, Mute, Report
 +------------------------------------+
-| OUTDOORS                           |
+| ([mtn] Outdoors)                   |  <- category chip
 | Sunrise hike up the R              |
-| Sat, Oct 25 . 7:00-9:30 AM  Cal >  |
-| [pin] R Mountain trailhead  Maps > |
+| +--------------------------------+ |
+| | [cal] Sat, Oct 25 . 7:00-9:30 AM| |
+| |       Add to calendar          | |
+| | [pin] R Mountain trailhead     | |
+| |       Open in Maps             | |
+| | [ppl] (o)(o)(o) 12 going . 2 maybe > |
+| | (o) Hosted by Dana Smith, Biology | |
+| +--------------------------------+ |
 | Free . Guests welcome              |
 |                                    |
-| (o)(o)(o)(o) 12 going . 2 maybe  > |
-| Hosted by Dana Smith, Biology    > |
-|                                    |
+| DETAILS                            |
 | Easy pace, about 3 miles round     |
 | trip. Bring water and a headlamp.  |
 |                                    |
@@ -2146,6 +2150,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 ```
 
 - The order of information follows the questions people ask: **what → when → where → who → details**.
+- **At a glance** (UI-05): when, where, who's going and the host are rows in one card, each with an icon (the host's with their avatar). **Add to calendar** and **Open in Maps** sit on their own lines under the time and the place. The category is a chip with its icon above the title. The details, **For attendees**, **Updates** and **Questions and comments** follow, each under a heading.
 - **Maps >** opens the platform maps app with the place text as the query. There is no embedded map, which saves JavaScript, data, and privacy.
 - **Cal >** is **Add to calendar** (ACT-08), beside the time as **Maps** is beside the place, so it's there for organizers too, whose sticky bar is full. It opens a sheet with **Download for Apple Calendar or Outlook** (the `.ics` in section 8.13) and **Open in Google Calendar**, and says the calendar's copy won't change if the activity does. It's hidden once the activity is over.
 - **Organizer view:** the sticky bar shows **Edit** and **Post update** instead of RSVP. Their own RSVP state shows as "You're hosting".
