@@ -1,6 +1,10 @@
 // Playoff brackets (LEAG-09). The pgTAP tests cover seeding, the round order and the champion. This
 // checks the page: the round robin comes first, and the bracket waits for it.
+import { LEAGUES } from '../../src/lib/features';
 import { expect, expectAccessible, test } from './fixtures';
+
+// Leagues are on hold (ADR-018), so these run only when src/lib/features.ts turns them back on.
+test.skip(!LEAGUES, 'Leagues are on hold (ADR-018).');
 
 test('the playoff bracket waits until the regular season is scored', async ({ page, poster }) => {
   // The poster fixture signs in a fresh account, with its own group quota.

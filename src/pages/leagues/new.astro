@@ -6,7 +6,10 @@ import { actions, isInputError } from 'astro:actions';
 import Back from '../../components/Back.astro';
 import FieldError from '../../components/FieldError.astro';
 import Layout from '../../layouts/Layout.astro';
+import { LEAGUES } from '../../lib/features';
 
+// Not found while leagues are on hold (ADR-018).
+if (!LEAGUES) return new Response('Not found.', { status: 404 });
 const { supabase, user } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
 

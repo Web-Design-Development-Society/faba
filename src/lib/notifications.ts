@@ -2,6 +2,7 @@
 // notification center's words. A notification stores data, and this writes the words. The stories
 // that make each type can make its line more specific from the payload, such as NOTIF-02's old and
 // new times.
+import { LEAGUES } from './features';
 import type { IconName } from './icons';
 import { formatClock, formatWhen, rexburgDate } from './time';
 
@@ -26,8 +27,13 @@ export const TYPES: Record<string, { icon: IconName; summary: string }> = {
   report_received: { icon: 'flag', summary: 'New report to review' },
 };
 
-/** The types a member can turn off under Me → Notifications (NOTIF-10). Cancellations always come. */
-export const PREFERENCE_TYPES = Object.keys(TYPES).filter((type) => type !== 'activity_cancelled');
+/**
+ * The types a member can turn off under Me → Notifications (NOTIF-10). Cancellations always come.
+ * A league's sub requests are left out while leagues are on hold (ADR-018).
+ */
+export const PREFERENCE_TYPES = Object.keys(TYPES).filter(
+  (type) => type !== 'activity_cancelled' && (LEAGUES || type !== 'sub_needed')
+);
 
 /**
  * The types that push to a member's devices before they choose (NOTIF-20): urgent changes to plans

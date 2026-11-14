@@ -23,6 +23,7 @@ Each file records one decision: the context, what we decided, and what follows f
 | [015](015-any-byui-account-can-join.md)                   | Any `byui.edu` account can join; no faculty attestation                    | Accepted                     |
 | [016](016-independent-of-byu-idaho.md)                    | FABA runs independently of BYU-Idaho                                       | Accepted                     |
 | [017](017-rexburg-only-for-now.md)                        | Phase 1 serves in-person Rexburg activities only                           | Accepted                     |
+| [018](018-leagues-on-hold.md)                             | Leagues are on hold; FABA starts with basic groups                         | Accepted                     |
 
 ADRs 001 to 013 come from section 13.2 of the design document. ADRs 014 to 017 record the Phase 0 answers to its [unresolved questions](../faba-design-document.md#unresolved-questions-to-answer-before-development) (FND-02).
 

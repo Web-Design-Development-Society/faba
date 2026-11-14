@@ -1,5 +1,6 @@
 // Group cards in Discover → Groups (UI-10). Each project runs at its own width, so this checks a
 // 320 px iPhone SE, a 412 px Pixel and a desktop.
+import { LEAGUES } from '../../src/lib/features';
 import { expect, expectAccessible, test } from './fixtures';
 
 // Other tests make groups at the same time, so each has a name of its own.
@@ -58,7 +59,8 @@ test('each group is a card with its picture and the basics', async ({ page, post
   const other = page.getByRole('article').filter({ hasText: league });
   await expect(other.getByRole('listitem')).toHaveText([
     'Requested',
-    'League',
+    // No League badge while leagues are on hold (ADR-018).
+    ...(LEAGUES ? ['League'] : []),
     'Sports & Fitness',
     '1 member',
     'Ask to join',

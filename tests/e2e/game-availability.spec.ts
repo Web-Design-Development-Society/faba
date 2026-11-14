@@ -1,6 +1,10 @@
 // Game availability (LEAG-07). The pgTAP tests cover who can answer for a game, and that the answer
 // is the RSVP. Written while E2E is paused; not yet run.
+import { LEAGUES } from '../../src/lib/features';
 import { expect, expectAccessible, test } from './fixtures';
+
+// Leagues are on hold (ADR-018), so these run only when src/lib/features.ts turns them back on.
+test.skip(!LEAGUES, 'Leagues are on hold (ADR-018).');
 
 test('a player on a team says they can play a game, and it is in Plans', async ({
   page,

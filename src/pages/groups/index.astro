@@ -7,6 +7,7 @@ import DiscoverSwitch from '../../components/DiscoverSwitch.astro';
 import GroupCard from '../../components/GroupCard.astro';
 import Status from '../../components/Status.astro';
 import Layout from '../../layouts/Layout.astro';
+import { LEAGUES } from '../../lib/features';
 import { FLASH_MESSAGES, takeFlash } from '../../lib/server/flash';
 
 const { supabase, user } = Astro.locals;
@@ -27,7 +28,7 @@ const { data: groups, error } = await supabase
   <header class="top">
     <h1>Discover</h1>
     <a href="/groups/new">Start a group</a>
-    <a href="/leagues/new">Start a league</a>
+    {LEAGUES && <a href="/leagues/new">Start a league</a>}
   </header>
   <DiscoverSwitch current="groups" />
   <Status message={flash && FLASH_MESSAGES[flash]} />

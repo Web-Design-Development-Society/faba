@@ -1,6 +1,7 @@
 // League Actions (LEAG-01). Each checks who's signed in, and Postgres checks the league, who runs it,
-// and every rule again (ADR-004).
+// and every rule again (ADR-004). While leagues are on hold (ADR-018), each refuses first.
 import { ActionError, defineAction } from 'astro:actions';
+import { LEAGUES } from '../lib/features';
 import { actionErrorFor } from '../lib/server/errors';
 import {
   assignment,
@@ -24,12 +25,18 @@ import {
   withdrawal,
 } from '../lib/validation/league';
 
+/** Refuses while leagues are on hold (src/lib/features.ts). */
+function onHold() {
+  if (!LEAGUES) throw new ActionError({ code: 'NOT_FOUND', message: 'Leagues are on hold.' });
+}
+
 export const leagues = {
   /** Starting a league, which returns its slug (LEAG-01). */
   create: defineAction({
     accept: 'form',
     input: newLeague,
     handler: async ({ name, category_id, description, join_policy }, { locals }) => {
+      onHold();
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
       const { data: slug, error } = await locals.supabase.rpc('create_league', {
@@ -48,6 +55,7 @@ export const leagues = {
     accept: 'form',
     input: newSeason,
     handler: async (season, { locals }) => {
+      onHold();
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
       const { data, error } = await locals.supabase.rpc('create_season', {
@@ -74,6 +82,7 @@ export const leagues = {
     accept: 'form',
     input: newRegistration,
     handler: async ({ season_id, kind, note }, { locals }) => {
+      onHold();
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
       const { error } = await locals.supabase.rpc('join_season', { season_id, kind, note });
@@ -87,6 +96,7 @@ export const leagues = {
     accept: 'form',
     input: withdrawal,
     handler: async ({ season_id }, { locals }) => {
+      onHold();
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
       const { error } = await locals.supabase.rpc('withdraw_from_season', { season_id });
@@ -100,6 +110,7 @@ export const leagues = {
     accept: 'form',
     input: newTeam,
     handler: async ({ season_id, name, color }, { locals }) => {
+      onHold();
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
       const { data, error } = await locals.supabase.rpc('create_team', { season_id, name, color });
@@ -113,6 +124,7 @@ export const leagues = {
     accept: 'form',
     input: teamEdit,
     handler: async ({ team_id, name, color, captain_id }, { locals }) => {
+      onHold();
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
       const { error } = await locals.supabase.rpc('update_team', {
@@ -131,6 +143,7 @@ export const leagues = {
     accept: 'form',
     input: assignment,
     handler: async ({ season_id, user_id, team_id }, { locals }) => {
+      onHold();
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
       const { error } = await locals.supabase.rpc('assign_player', {
@@ -148,6 +161,7 @@ export const leagues = {
     accept: 'form',
     input: newSchedule,
     handler: async ({ season_id, first_day, weekday, starts_time, place }, { locals }) => {
+      onHold();
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
       const { data, error } = await locals.supabase.rpc('schedule_round_robin', {
@@ -167,6 +181,7 @@ export const leagues = {
     accept: 'form',
     input: gameEdit,
     handler: async ({ game_id, day, starts_time, place }, { locals }) => {
+      onHold();
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
       const { error } = await locals.supabase.rpc('update_game', {
@@ -185,6 +200,7 @@ export const leagues = {
     accept: 'form',
     input: scoreReport,
     handler: async ({ game_id, home_score, away_score }, { locals }) => {
+      onHold();
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
       const { error } = await locals.supabase.rpc('report_score', {
@@ -202,6 +218,7 @@ export const leagues = {
     accept: 'form',
     input: scoreConfirmation,
     handler: async ({ game_id }, { locals }) => {
+      onHold();
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
       const { error } = await locals.supabase.rpc('confirm_score', { game_id });
@@ -215,6 +232,7 @@ export const leagues = {
     accept: 'form',
     input: scoreOverride,
     handler: async ({ game_id, home_score, away_score, reason }, { locals }) => {
+      onHold();
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
       const { error } = await locals.supabase.rpc('override_score', {
@@ -233,6 +251,7 @@ export const leagues = {
     accept: 'form',
     input: forfeit,
     handler: async ({ game_id, forfeit_team_id }, { locals }) => {
+      onHold();
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
       const { error } = await locals.supabase.rpc('forfeit_game', {
@@ -249,6 +268,7 @@ export const leagues = {
     accept: 'form',
     input: subRequest,
     handler: async ({ game_id }, { locals }) => {
+      onHold();
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
       const { data, error } = await locals.supabase.rpc('request_sub', { game_id });
@@ -262,6 +282,7 @@ export const leagues = {
     accept: 'form',
     input: subAcceptance,
     handler: async ({ request_id }, { locals }) => {
+      onHold();
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
       const { error } = await locals.supabase.rpc('accept_sub', { request_id });
@@ -275,6 +296,7 @@ export const leagues = {
     accept: 'form',
     input: availability,
     handler: async ({ game_id, can_play }, { locals }) => {
+      onHold();
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
       const { error } = await locals.supabase.rpc('set_game_availability', { game_id, can_play });
@@ -288,6 +310,7 @@ export const leagues = {
     accept: 'form',
     input: ladderEntry,
     handler: async ({ season_id }, { locals }) => {
+      onHold();
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
       const { data, error } = await locals.supabase.rpc('enter_ladder', { season_id });
@@ -301,6 +324,7 @@ export const leagues = {
     accept: 'form',
     input: newBracket,
     handler: async ({ season_id, size, first_day, starts_time, place }, { locals }) => {
+      onHold();
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
       const { data, error } = await locals.supabase.rpc('create_playoffs', {
@@ -320,6 +344,7 @@ export const leagues = {
     accept: 'form',
     input: bracketAdvance,
     handler: async ({ season_id }, { locals }) => {
+      onHold();
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
       const { data, error } = await locals.supabase.rpc('advance_playoffs', { season_id });

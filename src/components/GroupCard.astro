@@ -6,6 +6,7 @@
 // it has (GRP-02), who can join, and the start of its description. Badges with words say when the
 // member is in it, has asked to join, or it's a league.
 import { categoryLook } from '../lib/categories';
+import { LEAGUES } from '../lib/features';
 import { excerpt } from '../lib/notifications';
 import Icon from './Icon.astro';
 
@@ -32,7 +33,7 @@ const members = group.member_count ?? 0;
 const badges = [
   group.my_membership === 'active' && "You're in",
   group.my_membership === 'pending' && 'Requested',
-  group.kind === 'league' && 'League',
+  LEAGUES && group.kind === 'league' && 'League',
 ].filter((badge): badge is string => !!badge);
 ---
 
