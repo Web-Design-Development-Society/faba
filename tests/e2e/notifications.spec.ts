@@ -86,7 +86,7 @@ test('each alert is a card, and Unread shows only the new ones', async ({ page, 
   await expect(card).toHaveCSS('border-left-color', 'rgb(11, 91, 211)');
   const [name, sentence] = [
     (await card.getByText('Sunrise hike up the R').boundingBox())!,
-    (await card.getByText(/^Reminder: today at/).boundingBox())!,
+    (await card.getByText(/Reminder: today at/).boundingBox())!,
   ];
   expect(name.y).toBeLessThan(sentence.y);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
