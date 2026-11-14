@@ -36,9 +36,10 @@ test('each group is a card with its picture and the basics', async ({ page, post
     })
     .select('id')
     .single();
+  // Rows inserted together need the same columns, or a missing one is null.
   await host.admin.from('group_members').insert([
-    { group_id: theirs!.id, user_id: host.id, role: 'owner' },
-    { group_id: theirs!.id, user_id: poster.id, status: 'pending' },
+    { group_id: theirs!.id, user_id: host.id, role: 'owner', status: 'active' },
+    { group_id: theirs!.id, user_id: poster.id, role: 'member', status: 'pending' },
   ]);
 
   await page.goto('/groups');
