@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-07`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-08`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                          |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                  |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                          |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-07 |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-08 |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02         |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02, PERF-01, A11Y-01 |
 
@@ -2001,6 +2001,24 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - Today an alert is a plain row: an emoji, the sentence in bold, then the activity's name, with a line between rows.
   - The sentences are the ones `describe()` already writes from what each alert stores, falling back to the type's label, such as "Time or place changed". The mockup's wording is only an example.
   - Update section 7.9.
+
+#### UI-08 · The motto beside the logo
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want to see FABA's motto, "Bringing faculty together!", beside the logo, so that what FABA is for is clear at a glance.
+- **Acceptance criteria:**
+  - The header shows "Bringing faculty together!" to the right of the FABA mark and wordmark, on every page that has the header, signed in or not.
+  - The motto is text, not part of the logo's image, so it's sharp at any size, it's read by screen readers, and the words can change without new artwork.
+  - It's smaller and lighter than the wordmark, in the page's font, and meets 4.5:1 contrast on the page's background.
+  - The logo's link to Discover keeps "FABA" as its name. The motto sits beside the link, not inside it.
+  - On a 320 px phone, the mark, the wordmark and the motto fit in the header without scrolling sideways. The motto may wrap onto a second line beside the wordmark, and the header doesn't grow taller than the mark.
+  - The E2E tests check, at 320 px, 412 px and desktop, that the motto is visible beside the logo, that nothing scrolls sideways, and that the axe checks pass.
+- **Dependencies:** UI-02.
+- **Notes / edge cases:**
+  - The mockups show the logo without a motto. This follows UI-02's header: the mark, then FABA, then the motto.
+  - Like the logo, the motto doesn't use the university's name, so the "unofficial" footer disclaimer stays (risk R-POL-1).
+  - The home-screen icons (PWA-01) stay as they are. The motto is too small to read on an icon.
+  - Size: S, one developer, including the tests.
 
 ### 6.10 Won't Have Yet
 
