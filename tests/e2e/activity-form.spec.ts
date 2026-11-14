@@ -32,7 +32,7 @@ test('the form reads as sections, fits the screen, and keeps the bottom bar', as
 
   // The date and start time sit side by side in one box, and stack on a narrow phone.
   const [date, time] = [
-    (await page.getByLabel('Date').boundingBox())!,
+    (await page.getByLabel('Date', { exact: true }).boundingBox())!,
     (await page.getByLabel('Start time').boundingBox())!,
   ];
   if (page.viewportSize()!.width < 360) expect(time.y).toBeGreaterThan(date.y + date.height - 1);

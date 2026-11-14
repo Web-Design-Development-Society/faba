@@ -371,6 +371,7 @@ const moreOptions =
     color: var(--blue);
   }
   .part input {
+    position: relative;
     flex: 1;
     min-width: 0;
     min-height: 2.75rem;
@@ -379,6 +380,16 @@ const moreOptions =
     color: var(--ink);
     background: none;
     border: 0;
+  }
+  /* Chrome's own calendar and clock icons would repeat the ones beside the fields, so they're
+     invisible and stretched over the field: a tap anywhere on it opens the picker. */
+  .part input::-webkit-calendar-picker-indicator {
+    position: absolute;
+    inset: 0;
+    width: auto;
+    height: auto;
+    opacity: 0;
+    cursor: pointer;
   }
   /* On a narrow phone, they stack. */
   @media (max-width: 359px) {
@@ -444,10 +455,29 @@ const moreOptions =
   .more summary {
     display: flex;
     align-items: center;
+    gap: 0.5rem;
     min-height: 44px;
     font-weight: 600;
     color: var(--navy);
+    list-style: none;
     cursor: pointer;
+  }
+  .more summary::-webkit-details-marker {
+    display: none;
+  }
+  /* A caret that turns when More options is open. */
+  .more summary::after {
+    width: 0.5rem;
+    height: 0.5rem;
+    margin-top: -0.25rem;
+    content: '';
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+  }
+  .more[open] summary::after {
+    margin-top: 0.25rem;
+    transform: rotate(-135deg);
   }
   .visually-hidden {
     position: absolute;
