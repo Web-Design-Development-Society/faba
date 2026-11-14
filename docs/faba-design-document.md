@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-08`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-09`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                          |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                  |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                          |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-08 |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-09 |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02         |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02, PERF-01, A11Y-01 |
 
@@ -2019,6 +2019,37 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - Like the logo, the motto doesn't use the university's name, so the "unofficial" footer disclaimer stays (risk R-POL-1).
   - The home-screen icons (PWA-01) stay as they are. The motto is too small to read on an icon.
   - Size: S, one developer, including the tests.
+
+#### UI-09 · Simpler filters
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want just a couple of clear filters, so that finding an activity doesn't start with a wall of buttons.
+- **Acceptance criteria:**
+  - Discover and Search show two filter buttons side by side, **Category** and **Date**, and no row of pills. **All**, **Today**, **This week** and **This weekend** are no longer on the page.
+  - Each button names what's chosen, such as "Category: Outdoors" or "Date: This weekend". With nothing chosen, Discover shows everything coming up, as **All** did.
+  - **Date** replaces **More filters**. It opens a short list:
+    - **Any time**, the default
+    - **Today**, **This week** and **This weekend**, the quick dates that were pills
+    - **Pick dates**, with **From** and **To**
+  - **Category** works as it does now (UI-04).
+  - Both open the same way: a panel that drops down under the buttons, works without JavaScript, and closes with Escape or a tap elsewhere.
+  - **Clear filters** shows beside them whenever a filter is on.
+  - **Has spots left** and the tag filters are gone. A full activity still says Full on its card.
+  - **Tags are removed everywhere:**
+    - the **Tags** choice in the New and Edit activity forms' More options
+    - the line of tags on an activity's page
+    - the tags in More filters
+
+    The `tags` and `activity_tags` tables stay, unused, so tags could come back.
+
+  - **Links from before keep working:** `?when=`, `?from=` and `?to=` still filter. `?spots=` and `?tag=` are ignored, so those links show everything.
+  - The E2E tests check, at 320 px, 412 px and desktop, that only the two buttons show, that each names its choice, and that nothing scrolls sideways.
+- **Dependencies:** UI-04.
+- **Notes / edge cases:**
+  - This replaces UI-04's date pills and SRCH-03's Has spots left and tags. Mark SRCH-03, and sections 7.4 and 7.10, to match.
+  - Following a category (NOTIF-09) stays, and so does **Post** starting in the chosen category.
+  - The quick dates aren't lost. They move from pills on the page into the Date list.
+  - Size: M, one developer, including the tests.
 
 ### 6.10 Won't Have Yet
 
