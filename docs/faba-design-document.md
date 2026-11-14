@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-10`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-11`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                          |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                  |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                          |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-10 |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-11 |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02         |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02, PERF-01, A11Y-01 |
 
@@ -2084,6 +2084,47 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - A group's next activity could go on its card later, but it needs a query for each group, so it's left out for now.
   - Update section 7.3's description of Groups.
   - Size: M, one developer, including the tests.
+
+#### UI-11 · A profile photo, a cleaner profile form, and a livelier Me
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want to add my own photo and keep my profile up to date easily on my phone, and I want Me to look like a polished profile page, so that colleagues recognize me and FABA feels professional.
+- **Acceptance criteria:**
+  - **A profile photo:**
+    - Edit profile lets a member choose how they appear: **My photo**, **My Google photo** (when Google gave one) or **Initials**.
+    - **My photo** uploads a JPEG, PNG or WebP. It's shrunk on the device, with a small copy, and its location data is left out, as cover pictures are (MEDIA-01, UI-03).
+    - No description is asked for. A photo's text alternative is the member's name, as avatars have now.
+    - **Remove photo** goes back to the Google photo or initials.
+    - The photo shows wherever the member's face does: activity cards, who's going, Hosted by, their profile page, and Me. Only signed-in members can see it, through the same rules as other pictures.
+    - It can be reported with the member's profile, and a moderator can hide it. A hidden photo shows the member's initials instead (MOD-08).
+  - **A cleaner profile form**, laid out like the New activity form (UI-06):
+    - The photo comes first: a large round preview, with **Change photo** and **Remove photo** under it.
+    - Then sections under bold questions: **Display name**, **Department** (with the departments others use as suggestions), **Short bio**, **Interests**, **Faculty type** and **Email**.
+    - Every text field is full width and at least 48 px tall, with an example in it. There are no grey boxes.
+    - **Interests** and **Faculty type** are chips, each a checkbox or radio button underneath. The chosen ones are FABA blue with a check.
+    - **Faculty type** says it's private: only the member and moderators see it.
+    - **Show my email to members** is a switch with its own line of explanation.
+    - The form ends with **Cancel** and **Save changes** side by side, and the bottom bar shows with **Me** as the current item.
+    - It still works without JavaScript, and errors show beside their fields.
+  - **A livelier Me:**
+    - A profile card at the top has the member's photo (or initials) in a large circle, their name, their department, their bio, and their interests as chips.
+    - **Edit profile** is an outlined button on the card, and **See my profile** opens the page other members see.
+    - Under it, the settings are rows in a card, each with an icon and a chevron: **Notifications**, **Calendar feed**, and **Open reports** for moderators.
+    - **Calendar feed** opens its own section or page, so its link and buttons don't crowd Me.
+    - **Sign out** sits last among the settings, and **Delete account** stays at the bottom, apart from everything else (PROF-05).
+  - On a 320 px phone, Me and Edit profile don't scroll sideways, and every control is at least 44 px.
+  - The E2E tests check at 320 px, 412 px and desktop:
+    - uploading, choosing and removing a photo
+    - that the photo shows on Me, on the member's profile and on a card's faces
+    - the form's chips and Save changes
+    - the axe checks on both pages
+- **Dependencies:** UI-02, UI-06, MEDIA-01, MOD-08.
+- **Notes / edge cases:**
+  - Today an avatar is the Google photo (`avatar_url`) or initials (`use_initials`). An uploaded photo needs a `profiles` column pointing at its row in `images`, set and cleared through Postgres functions like `set_activity_cover()`. Upload, small copies and serving (`/api/media`) already exist.
+  - A photo replaced or removed should leave the bucket, unlike today's covers, so a member's old photos aren't kept.
+  - Update the privacy notice: FABA now stores a photo the member uploads, until they remove it or delete their account (PROF-05).
+  - Update PROF-02 and PROF-03, and section 7.3's note on Me, to match.
+  - Size: L, one developer, including the tests. It could be split into the photo and the two pages.
 
 ### 6.10 Won't Have Yet
 
