@@ -1,6 +1,6 @@
 # Checks every pull request and every push to main (FND-07, design document section 11.5).
 # The jobs run in parallel. E2E runs the end-to-end and accessibility tests (Playwright with axe)
-# against local Supabase: at one size on pull requests, and at all three on main.
+# against local Supabase: at one size on pull requests, and on main at all three, one job each.
 # preview.yml deploys each pull request, and deploy-staging.yml deploys main.
 name: CI
 
@@ -106,15 +106,21 @@ jobs:
       - run: npm run build
 
   e2e:
-    name: E2E
+    name: ${{ matrix.name }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     # A pull request runs every test at one size, Pixel 7 in Chromium, since FABA is for phones
-    # first. After a merge, main runs them at all three sizes. A newer merge cancels a run that's
-    # still going, so merging several pull requests in a row runs them once.
+    # first. Its job is called E2E, the check main's branch protection asks for. After a merge,
+    # main runs them at all three sizes, each in its own job at the same time: all three in one
+    # job grew past its 10 minutes. A newer merge cancels a run that's still going, so merging
+    # several pull requests in a row runs them once.
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(github.event_name == 'pull_request' && '[{"name":"E2E","project":"mobile","browser":"chromium"}]' || '[{"name":"E2E (desktop)","project":"desktop","browser":"chromium"},{"name":"E2E (mobile)","project":"mobile","browser":"chromium"},{"name":"E2E (iPhone SE)","project":"iphone-se","browser":"webkit"}]') }}
     env:
-      BROWSERS: ${{ github.event_name == 'pull_request' && 'chromium' || 'chromium webkit' }}
-      PROJECTS: ${{ github.event_name == 'pull_request' && '--project=mobile' || '' }}
+      BROWSERS: ${{ matrix.browser }}
+      PROJECTS: --project=${{ matrix.project }}
     steps:
       # As in the Database job.
       - name: Keep Supabase's ports free
@@ -164,6 +170,6 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v7
         with:
-          name: playwright-report
+          name: playwright-report-${{ matrix.project }}
           path: playwright-report/
           retention-days: 7

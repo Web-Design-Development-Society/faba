@@ -129,7 +129,7 @@ The end-to-end tests in `tests/e2e/` drive FABA with [Playwright](https://playwr
 
 They build FABA and run the built Worker with `astro preview` on port 4329, so a dev server on 4321 can keep running. Add `--ui` (`npm run test:e2e -- --ui`) to watch them step by step, or `--project iphone-se` to run one size (`desktop`, `mobile` or `iphone-se`). After a failure, `npx playwright show-report` opens the report with a trace of each failed test.
 
-In CI, a pull request runs every test at one size, `mobile`, and `main` runs them at all three after a merge. So before opening a pull request, run the tests you added or changed at all three sizes (`npm run test:e2e -- tests/e2e/updates.spec.ts`). If a run fails, the report is attached to it as `playwright-report`.
+In CI, a pull request runs every test at one size, `mobile`, in the E2E job. After a merge, `main` runs them at all three, in three jobs at once: E2E (desktop), E2E (mobile) and E2E (iPhone SE). So before opening a pull request, run the tests you added or changed at all three sizes (`npm run test:e2e -- tests/e2e/updates.spec.ts`). If a run fails, the report is attached to it as `playwright-report`, or on `main` as `playwright-report-<size>`.
 
 Tests sign in as a persona with the `signInAs` fixture in `tests/e2e/fixtures.ts`, which uses the persona's password instead of Google. Sign-in tests stop at the redirect to Google. Call `expectAccessible(page)` on each new page or state a test visits.
 
