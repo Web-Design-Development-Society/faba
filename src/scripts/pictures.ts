@@ -4,7 +4,7 @@
 // redrawn as a JPEG at most 1600 px on its longest side. Redrawing also leaves out what the photo
 // carried about itself, such as where it was taken. A small picture uploads as it is.
 //
-// Every picture also gets a small copy, at most 320 px, which cards show so Discover doesn't
+// Every picture also gets a small copy, at most 640 px, which cards show so Discover doesn't
 // download whole photos (UI-03).
 //
 // Without JavaScript, or when the browser can't read the file, it uploads as it is, and the server

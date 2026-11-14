@@ -90,13 +90,13 @@ test("a card shows its cover's small copy", async ({ page, poster }) => {
     .select('id')
     .single();
 
-  // A 600 by 400 picture, drawn in the page, so the test needs no file on disk.
+  // A 1200 by 800 picture, drawn in the page, so the test needs no file on disk.
   await page.goto(`/activities/${data!.id}`);
   const base64 = await page.evaluate(async () => {
-    const canvas = Object.assign(document.createElement('canvas'), { width: 600, height: 400 });
+    const canvas = Object.assign(document.createElement('canvas'), { width: 1200, height: 800 });
     const context = canvas.getContext('2d')!;
     context.fillStyle = '#2e7d32';
-    context.fillRect(0, 0, 600, 400);
+    context.fillRect(0, 0, 1200, 800);
     const blob = await new Promise<Blob>((resolve) =>
       canvas.toBlob((made) => resolve(made!), 'image/png')
     );
@@ -119,5 +119,5 @@ test("a card shows its cover's small copy", async ({ page, poster }) => {
   await expect(picture).toHaveAttribute('src', /\?size=thumb$/);
   // It loads when it's near the screen.
   await picture.scrollIntoViewIfNeeded();
-  await expect.poll(() => picture.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(320);
+  await expect.poll(() => picture.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(640);
 });

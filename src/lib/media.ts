@@ -8,10 +8,14 @@ export const ALT_MAX = 200;
 /** The longest side a picture keeps when the device shrinks it before upload (src/scripts/pictures.ts). */
 export const MAX_SIDE = 1600;
 
-/** The longest side of a picture's small copy, which cards show (UI-03). */
-export const THUMB_SIDE = 320;
+/**
+ * The longest side of a picture's small copy, which cards show: an activity's square (UI-03) and a
+ * group's banner across its card (UI-10), which on a phone is about 340 px wide on a screen two or
+ * three times as dense.
+ */
+export const THUMB_SIDE = 640;
 
-/** The most a small copy weighs. At 320 px, a JPEG is usually 20 to 40 KB. */
+/** The most a small copy weighs. At 640 px, a JPEG is usually 40 to 100 KB. */
 export const THUMB_MAX_BYTES = 200 * 1024;
 
 /** Where a picture's small copy is kept in the bucket, beside the picture. */
