@@ -70,6 +70,8 @@ test('each alert is a card, and Unread shows only the new ones', async ({ page, 
       recipient_id: poster.id,
       type: 'rsvp_confirmed',
       activity_id: id,
+      // Rows inserted together need the same columns, or a missing one is null.
+      payload: {},
       created_at: minutesAgo(30),
       read_at: minutesAgo(20),
     },
