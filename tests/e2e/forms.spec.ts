@@ -18,13 +18,14 @@ async function expectPhoneFriendly(page: Page) {
       'main input:not([type="hidden"], [type="checkbox"], [type="radio"], [type="file"]), main textarea, main select'
     );
     for (const field of fields) {
-      if (!visible(field)) continue;
+      // Inside a closed panel, such as More options or Date, it isn't on the screen.
+      if (!visible(field) || field.closest('details:not([open])')) continue;
       const box = field.getBoundingClientRect();
       const style = getComputedStyle(field);
       if (box.height < 43.5) found.push(`${name(field)} is ${box.height}px tall`);
       if (parseFloat(style.fontSize) < 16) found.push(`${name(field)} has ${style.fontSize} text`);
-      // The date and time share a box (UI-06), so each is part of the width.
-      if (!field.closest('.datetime') && box.width < main * 0.6) {
+      // A pair shares the width: the date and time (UI-06), or a date range's From and To (UI-09).
+      if (!field.closest('.datetime, .pick') && box.width < main * 0.6) {
         found.push(`${name(field)} is ${Math.round(box.width)}px of ${Math.round(main)}px`);
       }
     }
@@ -33,9 +34,10 @@ async function expectPhoneFriendly(page: Page) {
         found.push(`${link.textContent?.trim()} is too short to tap`);
       }
     }
+    // A grey box around a group of choices. A divider above one is fine.
     for (const fieldset of document.querySelectorAll('main fieldset')) {
-      if (visible(fieldset) && getComputedStyle(fieldset).borderTopStyle !== 'none') {
-        found.push(`a fieldset has a ${getComputedStyle(fieldset).borderTopStyle} border`);
+      if (visible(fieldset) && getComputedStyle(fieldset).borderLeftStyle !== 'none') {
+        found.push(`a fieldset has a ${getComputedStyle(fieldset).borderLeftStyle} border`);
       }
     }
     if (document.documentElement.scrollWidth > window.innerWidth)

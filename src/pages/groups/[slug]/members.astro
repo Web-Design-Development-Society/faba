@@ -144,8 +144,8 @@ const everyone = active.filter(({ role }) => role === 'member');
                         <input type="hidden" name="user_id" value={person.id} />
                         <input type="hidden" name="role" value="member" />
                         {/* The visible words start the name, then whose it is (WCAG 2.5.3). */}
-                        <button class="secondary">
-                          Make member<span class="visually-hidden">: {person.name}</span>
+                        <button class="secondary" aria-label={`Make member: ${person.name}`}>
+                          Make member
                         </button>
                       </form>
                       <form method="post" action={actions.groups.remove.queryString}>
@@ -183,8 +183,8 @@ const everyone = active.filter(({ role }) => role === 'member');
                             <input type="hidden" name="group_id" value={group.id} />
                             <input type="hidden" name="user_id" value={person.id} />
                             <input type="hidden" name="role" value="organizer" />
-                            <button class="secondary">
-                              Make organizer<span class="visually-hidden">: {person.name}</span>
+                            <button class="secondary" aria-label={`Make organizer: ${person.name}`}>
+                              Make organizer
                             </button>
                           </form>
                         )}
@@ -253,13 +253,5 @@ const everyone = active.filter(({ role }) => role === 'member');
   }
   .primary {
     font-weight: 600;
-  }
-  .visually-hidden {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    overflow: hidden;
-    clip-path: inset(50%);
-    white-space: nowrap;
   }
 </style>
