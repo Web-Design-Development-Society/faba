@@ -48,6 +48,7 @@ if (!update) Astro.response.status = 404;
       <h1>Report this update</h1>
       <blockquote>{update.body}</blockquote>
       <ReportForm
+        back={`/activities/${update.activity.id}#updates`}
         type="activity_update"
         id={update.id}
         mine={update.author_id === user.id}

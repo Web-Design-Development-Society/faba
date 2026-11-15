@@ -361,6 +361,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   }
   /* A hint under its question. */
   :where(.hint) {
+    display: block;
     margin: 0 0 0.5rem;
     color: var(--muted);
   }
