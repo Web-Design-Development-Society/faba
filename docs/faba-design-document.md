@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-11`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-12`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                          |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                  |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                          |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-11 |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-12 |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02         |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02, PERF-01, A11Y-01 |
 
@@ -2126,6 +2126,51 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - Update the privacy notice: FABA now stores a photo the member uploads, until they remove it or delete their account (PROF-05).
   - Update PROF-02 and PROF-03, and section 7.3's note on Me, to match.
   - Size: L, one developer, including the tests. It could be split into the photo and the two pages.
+
+#### UI-12 · Forms and buttons made for phones
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member on my phone, I want every form to have fields I can tap and read easily, buttons that don't swamp the screen, and actions that look like buttons, so that posting, starting a group or reporting something is as easy as New activity.
+- **Acceptance criteria:**
+  - **One form style for the whole app**, set in one place, so every form has the look New activity has (UI-06) and a new form gets it without extra work:
+    - Text fields, text areas, selects, and date, time and number fields are full width, at least 48 px tall, with 16 px text, so iOS doesn't zoom in. They have a border at 4.5:1 and a clear focus ring.
+    - Labels and legends are bold questions above their fields. Hints are in muted text under the label, and errors under the field.
+    - Fieldsets have no grey boxes.
+    - Short choices, such as categories or a report's reason, are chips that wrap. Long ones are full-width rows. Either way, each is at least 44 px.
+    - A text area starts at least 3 lines tall.
+  - **Buttons in proportion:**
+    - Every button is the same height as a field (48 px), with modest padding and 16 px text, so it no longer outweighs the fields.
+    - A form's main action is FABA blue. Others, such as **Cancel**, are outlined. Destructive ones, such as **Delete account** or **Remove photo**, are outlined in red.
+    - On a phone, **Cancel** and the main action sit side by side, as on New activity, and a lone main action is full width.
+  - **Links that look like buttons:**
+    - An action link that stands on its own, rather than inside a sentence, looks like an outlined button at least 44 px tall. Examples are **Post an activity**, **Post update**, **Edit**, **Show more**, **Clear filters**, **Post one**, **Browse activities**, **See my profile**, **Show all**, a group's member count, and Report links.
+    - It stays a link to screen readers, because it still goes somewhere. Only its look changes.
+    - Links inside sentences, such as in a description or "Hosted by Dana Smith", stay underlined text, as do the footer's links. Back links keep their chevron (UI-02).
+  - **Every form gets the style:**
+    - Start a group
+    - Post an update, to an activity or a group
+    - the Report forms (activity, member, update, comment, group and picture)
+    - Delete account
+    - Hand on this group, and approving, declining and removing members
+    - Search
+    - Welcome
+    - Me → Notifications
+    - the comment box
+    - the RSVP sheet's guests
+    - the Cancel activity sheet
+    - the moderation and admin forms
+  - On a 320 px phone, no form scrolls sideways, and every control is at least 44 px.
+  - **An E2E test visits every form page** at 320 px, 412 px and desktop. It checks that:
+    - text fields are at least 44 px tall, at least 16 px, and as wide as their form
+    - standalone action links are at least 44 px tall and drawn as buttons
+    - nothing scrolls sideways
+    - the axe checks pass
+- **Dependencies:** UI-02, UI-06.
+- **Notes / edge cases:**
+  - Today each page styles its own form, so some fields are the browser's default size: about 24 px tall and narrower than the screen, as on Start a group and Report. Meanwhile the global button style makes every button large and blue.
+  - Shared classes in the layout (a `.button` for links, with outlined and red variants) and a shared field style replace each page's own. UI-06's New activity and UI-11's profile form move onto them.
+  - Start a league is on hold (ADR-018), and gets the style if leagues come back.
+  - Size: L, one developer, including the tests.
 
 ### 6.10 Won't Have Yet
 
