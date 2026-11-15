@@ -154,8 +154,14 @@ const matching = [
         <p>
           Nothing {past ? '' : 'coming up '}matches <em>{matching}</em>.
         </p>
-        {!past && <a href={withPast}>Include past activities</a>}
-        <a href="/discover">Back to Discover</a>
+        {!past && (
+          <a href={withPast} class="button">
+            Include past activities
+          </a>
+        )}
+        <a href="/discover" class="button">
+          Back to Discover
+        </a>
       </div>
     ) : (
       <p>That's everything.</p>
@@ -177,7 +183,7 @@ const matching = [
     </div>
   )}
   {more && (
-    <a class="more" href={`/search${more}`} data-more>
+    <a class="more button" href={`/search${more}`} data-more>
       Show more
     </a>
   )}
@@ -203,12 +209,9 @@ const matching = [
   .field input {
     flex: 1;
     min-width: 0;
-    min-height: 44px;
-    font: inherit;
   }
   .field button {
-    min-height: 44px;
-    padding: 0 1rem;
+    min-height: 48px;
   }
   .past {
     display: inline-flex;
@@ -236,18 +239,18 @@ const matching = [
     min-height: 44px;
   }
   .empty {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
     margin-top: 2rem;
     text-align: center;
   }
-  .empty a,
-  .more {
-    display: inline-grid;
-    place-items: center;
-    min-height: 44px;
-    padding: 0 1rem;
+  .empty p {
+    flex-basis: 100%;
   }
   .more {
-    display: grid;
+    display: flex;
     margin-top: 1rem;
   }
 </style>

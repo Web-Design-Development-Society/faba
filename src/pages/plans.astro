@@ -84,12 +84,16 @@ const activities = data ?? [];
       {segment === 'going' ? (
         <>
           <p>No plans yet. Find something fun.</p>
-          <a href="/discover">Browse activities</a>
+          <a href="/discover" class="button primary">
+            Browse activities
+          </a>
         </>
       ) : segment === 'organizing' ? (
         <>
           <p>You're not organizing anything coming up.</p>
-          <a href="/activities/new">Post an activity</a>
+          <a href="/activities/new" class="button">
+            Post an activity
+          </a>
         </>
       ) : (
         <p>Activities you've been to or organized will show here.</p>
@@ -158,8 +162,6 @@ const activities = data ?? [];
     text-align: center;
   }
   .empty a {
-    display: inline-grid;
-    place-items: center;
-    min-height: 44px;
+    margin: 0.25rem;
   }
 </style>

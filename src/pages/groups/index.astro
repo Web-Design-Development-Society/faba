@@ -27,8 +27,14 @@ const { data: groups, error } = await supabase
 <Layout title="Groups · Discover" tab="discover">
   <header class="top">
     <h1>Discover</h1>
-    <a href="/groups/new">Start a group</a>
-    {LEAGUES && <a href="/leagues/new">Start a league</a>}
+    <a href="/groups/new" class="button primary">
+      Start a group
+    </a>
+    {LEAGUES && (
+      <a href="/leagues/new" class="button">
+        Start a league
+      </a>
+    )}
   </header>
   <DiscoverSwitch current="groups" />
   <Status message={flash && FLASH_MESSAGES[flash]} />
@@ -38,7 +44,9 @@ const { data: groups, error } = await supabase
   ) : !groups?.length ? (
     <div class="empty">
       <p>No groups yet. Start one around something you love.</p>
-      <a href="/groups/new">Start a group</a>
+      <a href="/groups/new" class="button primary">
+        Start a group
+      </a>
     </div>
   ) : (
     <ul class="groups">
@@ -56,12 +64,6 @@ const { data: groups, error } = await supabase
     display: flex;
     align-items: center;
     justify-content: space-between;
-  }
-  .top a,
-  .empty a {
-    display: inline-grid;
-    place-items: center;
-    min-height: 44px;
   }
   /* minmax(0, 1fr) keeps a card with a long name from widening the column. */
   .groups {

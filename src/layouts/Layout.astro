@@ -235,7 +235,8 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
      somewhere, so it stays a link to screen readers (UI-12). Red is for what removes or deletes. */
   button.secondary,
   button.danger,
-  a.button {
+  a.button,
+  summary.button {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -253,8 +254,15 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     border-radius: var(--radius);
     cursor: pointer;
   }
+  summary.button {
+    list-style: none;
+  }
+  summary.button::-webkit-details-marker {
+    display: none;
+  }
   button.secondary:hover,
-  a.button:hover {
+  a.button:hover,
+  summary.button:hover {
     background: var(--card);
     border-color: var(--blue);
   }
@@ -358,6 +366,11 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     margin: 0 0 1.25rem;
     padding: 0;
     border: 0;
+  }
+  /* A sheet's actions are full width, one under another, in thumb reach (section 7.16). */
+  :where(dialog form:not(.close) > button) {
+    width: 100%;
+    margin-top: 0.5rem;
   }
   /* A hint under its question. */
   :where(.hint) {

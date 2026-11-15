@@ -61,10 +61,12 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
       </ul>
     )}
     <p class="links">
-      <a href="/me/edit" class="outline">
+      <a href="/me/edit" class="button">
         Edit profile
       </a>
-      <a href={`/people/${user.id}`}>See my profile</a>
+      <a href={`/people/${user.id}`} class="button">
+        See my profile
+      </a>
     </p>
   </section>
 
@@ -117,7 +119,9 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
 
   {/* Away from everything else (PROF-05). */}
   <p class="delete">
-    <a href="/me/delete">Delete account</a>
+    <a href="/me/delete" class="button danger">
+      Delete account
+    </a>
   </p>
 </Layout>
 
@@ -189,22 +193,6 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
     gap: 0.5rem 1rem;
     margin-top: 0.75rem !important;
   }
-  .links a {
-    display: inline-grid;
-    place-items: center;
-    min-height: 44px;
-  }
-  .outline {
-    padding: 0 1.25rem;
-    font-weight: 600;
-    color: var(--navy);
-    text-decoration: none;
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-  }
-  .outline:hover {
-    border-color: var(--blue);
-  }
   /* Each setting is a row with its icon, and a chevron when it opens somewhere. */
   .settings {
     display: grid;
@@ -257,11 +245,5 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
   .delete {
     margin-top: 2rem;
     text-align: center;
-  }
-  .delete a {
-    display: inline-grid;
-    place-items: center;
-    min-height: 44px;
-    color: #b42318;
   }
 </style>

@@ -152,7 +152,7 @@ const on = !!chosenCategory || !anyTime;
         </div>
       </details>
       {on && (
-        <a href={clear} class="clear">
+        <a href={clear} class="clear button">
           Clear filters
         </a>
       )}
@@ -345,12 +345,5 @@ const on = !!chosenCategory || !anyTime;
   }
   .pick button {
     width: 100%;
-  }
-  .clear {
-    display: inline-flex;
-    align-items: center;
-    min-height: 44px;
-    padding: 0 0.25rem;
-    font-weight: 600;
   }
 </style>

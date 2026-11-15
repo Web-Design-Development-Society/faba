@@ -175,13 +175,19 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
         <p>
           Nothing matches <em>{matching}</em>.
         </p>
-        <a href="/discover">Clear filters</a>
-        <a href={post}>Post one</a>
+        <a href="/discover" class="button">
+          Clear filters
+        </a>
+        <a href={post} class="button primary">
+          Post one
+        </a>
       </div>
     ) : firstPage ? (
       <div class="empty">
         <p>It's quiet right now. Be the one who gets people together.</p>
-        <a href="/activities/new">Post the first activity</a>
+        <a href="/activities/new" class="button primary">
+          Post the first activity
+        </a>
       </div>
     ) : (
       <p>
@@ -211,7 +217,7 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
     </div>
   )}
   {more && (
-    <a class="more" href={`/discover${more}`} data-more>
+    <a class="more button" href={`/discover${more}`} data-more>
       Show more
     </a>
   )}
@@ -275,15 +281,11 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
     margin-top: 2rem;
     text-align: center;
   }
-  .empty a,
-  .more {
-    display: inline-grid;
-    place-items: center;
-    min-height: 44px;
-    padding: 0 1rem;
+  .empty a {
+    margin: 0.25rem;
   }
   .more {
-    display: grid;
+    display: flex;
     margin-top: 1rem;
   }
 </style>

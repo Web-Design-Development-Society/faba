@@ -90,7 +90,7 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
     <h1>Alerts</h1>
     {unread && (
       <form method="post" action={actions.notifications.readAll.queryString}>
-        <button>Mark all read</button>
+        <button class="secondary">Mark all read</button>
       </form>
     )}
   </header>
@@ -160,7 +160,7 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
     ))
   )}
   {more && (
-    <a class="more" href={`/notifications${more}`}>
+    <a class="more button" href={`/notifications${more}`}>
       Show more
     </a>
   )}
@@ -171,15 +171,6 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
     display: flex;
     align-items: center;
     justify-content: space-between;
-  }
-  .top button {
-    min-height: 44px;
-    padding: 0;
-    font: inherit;
-    color: inherit;
-    text-decoration: underline;
-    background: none;
-    border: 0;
   }
   /* All | Unread, like Discover's Activities | Groups (UI-07). */
   .switch {
@@ -303,9 +294,7 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
     text-align: center;
   }
   .more {
-    display: grid;
-    place-items: center;
-    min-height: 44px;
+    display: flex;
     margin-top: 1rem;
   }
 </style>

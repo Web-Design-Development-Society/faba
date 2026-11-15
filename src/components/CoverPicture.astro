@@ -17,7 +17,9 @@ const { image, viewer, shape } = Astro.props;
   <img src={`/api/media/${image.id}`} alt={image.alt} />
   {image.uploaded_by !== viewer && (
     <figcaption>
-      <a href={`/media/${image.id}/report`}>Report picture</a>
+      <a href={`/media/${image.id}/report`} class="button">
+        Report picture
+      </a>
     </figcaption>
   )}
 </figure>
@@ -40,8 +42,7 @@ const { image, viewer, shape } = Astro.props;
   figcaption {
     font-size: 0.875rem;
   }
-  figcaption a {
-    display: inline-block;
-    padding: 0.5rem 0;
+  figcaption {
+    margin-top: 0.5rem;
   }
 </style>

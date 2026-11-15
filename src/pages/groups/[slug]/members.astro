@@ -117,7 +117,9 @@ const everyone = active.filter(({ role }) => role === 'member');
                         <input type="hidden" name="group_id" value={group.id} />
                         <input type="hidden" name="user_id" value={person.id} />
                         <input type="hidden" name="pending" value="true" />
-                        <button aria-label={`Decline ${person.name}`}>Decline</button>
+                        <button class="secondary" aria-label={`Decline ${person.name}`}>
+                          Decline
+                        </button>
                       </form>
                     </div>
                   </li>
@@ -141,12 +143,16 @@ const everyone = active.filter(({ role }) => role === 'member');
                         <input type="hidden" name="group_id" value={group.id} />
                         <input type="hidden" name="user_id" value={person.id} />
                         <input type="hidden" name="role" value="member" />
-                        <button aria-label={`Make ${person.name} a member`}>Make member</button>
+                        <button class="secondary" aria-label={`Make ${person.name} a member`}>
+                          Make member
+                        </button>
                       </form>
                       <form method="post" action={actions.groups.remove.queryString}>
                         <input type="hidden" name="group_id" value={group.id} />
                         <input type="hidden" name="user_id" value={person.id} />
-                        <button aria-label={`Remove ${person.name}`}>Remove</button>
+                        <button class="danger" aria-label={`Remove ${person.name}`}>
+                          Remove
+                        </button>
                       </form>
                     </div>
                   )}
@@ -176,7 +182,10 @@ const everyone = active.filter(({ role }) => role === 'member');
                             <input type="hidden" name="group_id" value={group.id} />
                             <input type="hidden" name="user_id" value={person.id} />
                             <input type="hidden" name="role" value="organizer" />
-                            <button aria-label={`Make ${person.name} an organizer`}>
+                            <button
+                              class="secondary"
+                              aria-label={`Make ${person.name} an organizer`}
+                            >
                               Make organizer
                             </button>
                           </form>
@@ -184,7 +193,9 @@ const everyone = active.filter(({ role }) => role === 'member');
                         <form method="post" action={actions.groups.remove.queryString}>
                           <input type="hidden" name="group_id" value={group.id} />
                           <input type="hidden" name="user_id" value={person.id} />
-                          <button aria-label={`Remove ${person.name}`}>Remove</button>
+                          <button class="danger" aria-label={`Remove ${person.name}`}>
+                            Remove
+                          </button>
                         </form>
                       </div>
                     )}
@@ -195,7 +206,7 @@ const everyone = active.filter(({ role }) => role === 'member');
           </section>
           {(owner || moderator) && (
             <p>
-              <a class="hand-on" href={`/groups/${group.slug}/owner`}>
+              <a class="hand-on button" href={`/groups/${group.slug}/owner`}>
                 Hand on this group
               </a>
             </p>
@@ -223,7 +234,7 @@ const everyone = active.filter(({ role }) => role === 'member');
     gap: 0.5rem;
     min-height: 44px;
     padding: 0.25rem 0;
-    border-bottom: 1px solid #767676;
+    border-bottom: 1px solid var(--line);
   }
   li > span > a {
     display: inline-block;
@@ -231,7 +242,7 @@ const everyone = active.filter(({ role }) => role === 'member');
   }
   .role {
     font-size: 0.875rem;
-    color: #595959;
+    color: var(--muted);
   }
   .actions {
     display: flex;
@@ -244,10 +255,5 @@ const everyone = active.filter(({ role }) => role === 'member');
   }
   .primary {
     font-weight: 600;
-  }
-  .hand-on {
-    display: inline-grid;
-    place-items: center;
-    min-height: 44px;
   }
 </style>

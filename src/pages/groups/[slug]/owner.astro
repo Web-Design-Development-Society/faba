@@ -78,7 +78,7 @@ const picked = typed?.get('user_id')?.toString();
               ? 'The new owner manages its members and organizers. Its owner now stays on as an organizer.'
               : "The new owner manages its members and organizers. You'll stay on as an organizer, and can leave the group after."}
           </p>
-          <fieldset aria-describedby={fields.user_id ? 'user_id-error' : undefined}>
+          <fieldset class="rows" aria-describedby={fields.user_id ? 'user_id-error' : undefined}>
             <legend>New owner</legend>
             {choices.map((person) => (
               <label>
@@ -108,14 +108,18 @@ const picked = typed?.get('user_id')?.toString();
                 aria-invalid={fields.reason ? 'true' : undefined}
                 aria-describedby={fields.reason ? 'reason-hint reason-error' : 'reason-hint'}
               >{typed?.get('reason')?.toString() ?? ''}</textarea>
-              <br />
               <span id="reason-hint" class="hint">
                 It goes to the audit log.
               </span>
               <FieldError name="reason" errors={fields.reason} />
             </p>
           )}
-          <button type="submit">Make them the owner</button>
+          <div class="form-actions">
+            <a href={`/groups/${group.slug}/members`} class="button">
+              Cancel
+            </a>
+            <button type="submit">Make them the owner</button>
+          </div>
         </form>
       )}
     </>
@@ -123,32 +127,7 @@ const picked = typed?.get('user_id')?.toString();
 </Layout>
 
 <style>
-  fieldset {
-    margin: 0 0 1rem;
-    padding: 0;
-    border: 0;
-  }
-  legend {
-    font-weight: 600;
-  }
-  fieldset label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    min-height: 44px;
-  }
-  .role,
-  .hint {
-    font-size: 0.875rem;
-    color: #595959;
-  }
-  textarea {
-    box-sizing: border-box;
-    width: 100%;
-    font: inherit;
-  }
-  button {
-    min-height: 44px;
-    padding: 0 1rem;
+  .role {
+    color: var(--muted);
   }
 </style>
