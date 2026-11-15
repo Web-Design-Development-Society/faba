@@ -4,8 +4,6 @@ import { z } from 'astro/zod';
 export const GROUP = {
   name: { min: 3, max: 60 },
   description: { max: 1000 },
-  /** Groups a member can start in 30 days. */
-  perMonth: 3,
 } as const;
 
 /** The Start a group form's fields. The output is create_group()'s arguments. */

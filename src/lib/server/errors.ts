@@ -284,10 +284,6 @@ const KNOWN: Record<string, { code: ActionErrorCode; message: string }> = {
     message: "The group's owner stays its owner until they hand it on.",
   },
   INVALID_GROUP_ROLE: { code: 'BAD_REQUEST', message: 'Choose a role.' },
-  GROUP_QUOTA_EXCEEDED: {
-    code: 'TOO_MANY_REQUESTS',
-    message: 'You can start up to 3 groups a month. Try again later.',
-  },
   NOT_ADMIN: { code: 'FORBIDDEN', message: 'Only board admins can do that.' },
   NOT_BOARD_ACTIVITY: {
     code: 'BAD_REQUEST',
