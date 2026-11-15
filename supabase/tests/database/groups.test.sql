@@ -129,11 +129,10 @@ SELECT results_eq(
   'a name with no letters or numbers gets a plain address'
 );
 
-SELECT throws_ok(
+SELECT results_eq(
   $$select public.create_group('Book club', 'learning')$$,
-  'P0001',
-  'GROUP_QUOTA_EXCEEDED',
-  'a fourth in 30 days is too many'
+  $$values ('book-club')$$,
+  'a fourth in 30 days is fine: there''s no limit (GRP-06)'
 );
 
 SELECT pg_temp.sign_in('4');
@@ -191,7 +190,7 @@ SET LOCAL ROLE authenticated;
 
 SELECT results_eq(
   $$select slug from public.groups where owner_id = 'c0000000-0000-4000-8000-000000000421' order by slug$$,
-  $$values ('group'), ('trail-runners')$$,
+  $$values ('book-club'), ('group'), ('trail-runners')$$,
   'other members read groups, but not a hidden one'
 );
 
@@ -204,7 +203,7 @@ SELECT pg_temp.sign_in('3');
 
 SELECT results_eq(
   $$select count(*)::integer from public.groups where owner_id = 'c0000000-0000-4000-8000-000000000421'$$,
-  $$values (3)$$,
+  $$values (4)$$,
   'moderators read a hidden one'
 );
 
