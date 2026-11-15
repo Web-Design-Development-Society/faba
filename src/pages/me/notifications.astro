@@ -48,7 +48,7 @@ const pushes = (type: string) => pushChoice.get(type) ?? PUSH_DEFAULT_TYPES.incl
   {failure && <p role="alert">{failure}</p>}
   <Status message={result && !result.error ? 'Saved.' : undefined} />
   <form method="post" action={actions.notifications.savePreferences.queryString}>
-    <fieldset>
+    <fieldset class="rows">
       <legend>Tell me about</legend>
       {PREFERENCE_TYPES.map((type) => (
         <label class="toggle">
@@ -60,7 +60,9 @@ const pushes = (type: string) => pushChoice.get(type) ?? PUSH_DEFAULT_TYPES.incl
         <Icon name="x" /> Cancelled: always on
       </p>
     </fieldset>
-    <button type="submit">Save</button>
+    <div class="form-actions">
+      <button type="submit">Save</button>
+    </div>
   </form>
 
   {pushReady && (
@@ -91,10 +93,10 @@ const pushes = (type: string) => pushChoice.get(type) ?? PUSH_DEFAULT_TYPES.incl
         <p data-push-message="failed" role="alert" hidden>
           Push couldn't be turned on. Please try again.
         </p>
-        <button type="button" data-push-on hidden>
+        <button type="button" class="secondary" data-push-on hidden>
           Turn on for this device
         </button>
-        <button type="button" data-push-off hidden>
+        <button type="button" class="secondary" data-push-off hidden>
           Turn off for this device
         </button>
       </div>
@@ -104,7 +106,7 @@ const pushes = (type: string) => pushChoice.get(type) ?? PUSH_DEFAULT_TYPES.incl
           {pushFailure && <p role="alert">{pushFailure}</p>}
           <Status message={pushResult && !pushResult.error ? 'Saved.' : undefined} />
           <form method="post" action={actions.notifications.savePushPreferences.queryString}>
-            <fieldset>
+            <fieldset class="rows">
               <legend>Push to my devices</legend>
               {PREFERENCE_TYPES.map((type) => (
                 <label class="toggle">
@@ -117,7 +119,9 @@ const pushes = (type: string) => pushChoice.get(type) ?? PUSH_DEFAULT_TYPES.incl
               </p>
             </fieldset>
             <p class="always">A type that's off in the app above doesn't push either.</p>
-            <button type="submit">Save push settings</button>
+            <div class="form-actions">
+              <button type="submit">Save push settings</button>
+            </div>
           </form>
         </>
       ) : null}
@@ -133,28 +137,10 @@ const pushes = (type: string) => pushChoice.get(type) ?? PUSH_DEFAULT_TYPES.incl
   section {
     margin-top: 2rem;
   }
-  fieldset {
-    margin: 0 0 1rem;
-    padding: 0;
-    border: 0;
-  }
-  legend {
-    font-weight: 600;
-  }
-  .toggle {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    min-height: 44px;
-  }
   .always {
     display: flex;
     align-items: center;
     gap: 0.5rem;
     color: var(--muted);
-  }
-  button {
-    min-height: 44px;
-    padding: 0 1rem;
   }
 </style>

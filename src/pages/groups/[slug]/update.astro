@@ -69,37 +69,26 @@ const failure = result?.error && !isInputError(result.error) ? result.error.mess
               id="body"
               name="body"
               rows="5"
+              placeholder="What members should know, such as a change of plan."
               maxlength={UPDATE_MAX}
               required
               aria-invalid={fields.body ? 'true' : undefined}
               aria-describedby={fields.body ? 'body-hint body-error' : 'body-hint'}
             >{typed?.get('body')?.toString() ?? ''}</textarea>
-            <br />
-            <span id="body-hint">
+            <span id="body-hint" class="hint">
               Up to {UPDATE_MAX} characters, and {GROUP_UPDATES_PER_DAY} updates a day. Every member
               gets it in Alerts.
             </span>
             <FieldError name="body" errors={fields.body} />
           </p>
-          <button type="submit">Post update</button>
+          <div class="form-actions">
+            <a href={`/groups/${slug}`} class="button">
+              Cancel
+            </a>
+            <button type="submit">Post update</button>
+          </div>
         </form>
       )}
     </>
   )}
 </Layout>
-
-<style>
-  textarea {
-    box-sizing: border-box;
-    width: 100%;
-    font: inherit;
-  }
-  #body-hint {
-    font-size: 0.875rem;
-    color: #595959;
-  }
-  button {
-    min-height: 44px;
-    padding: 0 1rem;
-  }
-</style>

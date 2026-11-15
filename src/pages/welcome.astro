@@ -46,20 +46,23 @@ formAction.searchParams.set('next', next);
       {fields.display_name && <span id="display_name-error">{fields.display_name[0]}</span>}
     </p>
     {member.avatar_url && (
-      <p>
-        <img
-          src={member.avatar_url}
-          alt="Your Google photo"
-          width="64"
-          height="64"
-          referrerpolicy="no-referrer"
-        />
-        <br />
-        <label>
-          <input type="checkbox" name="use_initials" checked={member.use_initials} /> Use initials
-          instead
-        </label>
-      </p>
+      <>
+        <p>
+          <img
+            src={member.avatar_url}
+            alt="Your Google photo"
+            width="64"
+            height="64"
+            referrerpolicy="no-referrer"
+          />
+        </p>
+        <p class="rows">
+          <label>
+            <input type="checkbox" name="use_initials" checked={member.use_initials} /> Use initials
+            instead
+          </label>
+        </p>
+      </>
     )}
     <h2>Community guidelines</h2>
     <ul>
@@ -68,19 +71,23 @@ formAction.searchParams.set('next', next);
       ))}
     </ul>
     <p>
-      <a href="/guidelines">Read the full guidelines</a>
+      <a href="/guidelines" class="button">
+        Read the full guidelines
+      </a>
     </p>
-    <p>
+    <p class="rows">
       <label>
         <input type="checkbox" name="agree" required /> I agree to the community guidelines
       </label>
       {fields.agree && <span>{fields.agree[0]}</span>}
     </p>
-    <button type="submit">Let's go</button>
+    <div class="form-actions">
+      <button type="submit">Let's go</button>
+    </div>
   </form>
   <p>
-    <small>
-      <a href="/me">Add more to your profile later</a>
-    </small>
+    <a href="/me" class="button">
+      Add more to your profile later
+    </a>
   </p>
 </Layout>

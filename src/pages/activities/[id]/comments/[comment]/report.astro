@@ -49,6 +49,7 @@ if (!comment) Astro.response.status = 404;
       <h1>Report this comment</h1>
       <blockquote>{comment.body}</blockquote>
       <ReportForm
+        back={`/activities/${comment.activity.id}#comments`}
         type="comment"
         id={comment.id}
         mine={comment.author_id === user.id}

@@ -2463,6 +2463,8 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 - **Placement:** primary actions sit in the bottom third of the screen: the sticky action bar, bottom navigation, and bottom sheets. There are no essential controls in the top corners, except **Back**.
 - **Gestures:** no gestures are required. Swipes (for example, swipe to mark read) are optional shortcuts with visible equivalents.
 - **Typing:** inputs use the right keyboard (`inputmode="url"` for links), and the form scrolls the focused field above the keyboard.
+- **Forms** (UI-12): one style in the layout gives every form full-width fields, 48 px tall, with 16 px text so iOS doesn't zoom in, bold questions, no grey boxes, short choices as chips (`.choices`) and long ones as rows (`.rows`). A form ends with **Cancel** beside its main action (`.form-actions`). Buttons are as tall as a field: the main action FABA blue, others outlined (`.secondary`), and what removes or deletes outlined in red (`.danger`).
+- **Links on their own** (UI-12) look like outlined buttons (`a.button`) but stay links. Links inside a sentence, the footer's links, and Back keep their own look.
 
 ### 7.16 Responsive behavior on larger screens
 

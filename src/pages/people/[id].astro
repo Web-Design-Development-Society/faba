@@ -137,7 +137,10 @@ const mine = profile?.id === user.id;
       )}
       {mine && (
         <p>
-          This is how other members see you. <a href="/me/edit">Edit profile</a>
+          This is how other members see you.{' '}
+          <a href="/me/edit" class="button">
+            Edit profile
+          </a>
         </p>
       )}
 

@@ -43,6 +43,7 @@ if (!activity) Astro.response.status = 404;
       <Back href={`/activities/${activity.id}`}>Back to {activity.title}</Back>
       <h1>Report this activity</h1>
       <ReportForm
+        back={`/activities/${activity.id}`}
         type="activity"
         id={activity.id}
         mine={activity.organizer_id === user.id}

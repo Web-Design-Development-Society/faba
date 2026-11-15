@@ -58,11 +58,12 @@ const { data: categories, error: categoriesError } = await supabase
         required
         minlength={GROUP.name.min}
         maxlength={GROUP.name.max}
+        placeholder="e.g., Rexburg Trail Runners"
         {...invalid('name')}
       />
       <FieldError name="name" errors={errors.name} />
     </p>
-    <fieldset {...invalid('category_id')}>
+    <fieldset class="choices" {...invalid('category_id')}>
       <legend>Category</legend>
       {categories?.map(({ id, name }) => (
         <label>
@@ -86,11 +87,12 @@ const { data: categories, error: categoriesError } = await supabase
         name="description"
         rows="4"
         maxlength={GROUP.description.max}
+        placeholder="What you do together, and how often."
         {...invalid('description')}
       >{value('description')}</textarea>
       <FieldError name="description" errors={errors.description} />
     </p>
-    <fieldset {...invalid('join_policy')}>
+    <fieldset class="rows" {...invalid('join_policy')}>
       <legend>Who can join?</legend>
       <label>
         <input type="radio" name="join_policy" value="open" checked={policy === 'open'} />
@@ -103,26 +105,11 @@ const { data: categories, error: categoriesError } = await supabase
       <FieldError name="join_policy" errors={errors.join_policy} />
     </fieldset>
     <p class="hint">You can start up to {GROUP.perMonth} groups a month.</p>
-    <button type="submit">Start group</button>
+    <div class="form-actions">
+      <a href="/groups" class="button">
+        Cancel
+      </a>
+      <button type="submit">Start group</button>
+    </div>
   </form>
 </Layout>
-
-<style>
-  fieldset label {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    min-height: 44px;
-  }
-  input:not([type='radio']),
-  textarea {
-    width: 100%;
-  }
-  .hint {
-    font-size: 0.875rem;
-    color: #595959;
-  }
-  button[type='submit'] {
-    min-height: 44px;
-  }
-</style>

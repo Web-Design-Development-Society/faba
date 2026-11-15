@@ -15,12 +15,10 @@ const { value, errors } = Astro.props;
 
 <p>
   <label for="private_details">Details for attendees only</label>
-  <br />
-  <span id="private_details-hint">
+  <span id="private_details-hint" class="hint">
     Such as an exact address, a gate code or a meeting link. Only the people going, and moderators,
     can see them.
   </span>
-  <br />
   <textarea
     id="private_details"
     name="private_details"

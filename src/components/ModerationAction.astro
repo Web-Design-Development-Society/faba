@@ -28,7 +28,7 @@ interface Props {
 const { id, label, title, action, fields, confirm, cancel, templates } = Astro.props;
 ---
 
-<button type="button" commandfor={id} command="show-modal">
+<button type="button" class="secondary" commandfor={id} command="show-modal">
   {label}
 </button>
 <Sheet id={id} title={title}>
@@ -64,13 +64,6 @@ const { id, label, title, action, fields, confirm, cancel, templates } = Astro.p
     <button type="submit">{confirm}</button>
   </form>
   <form method="dialog">
-    <button>{cancel}</button>
+    <button class="secondary">{cancel}</button>
   </form>
 </Sheet>
-
-<style>
-  button {
-    min-height: 44px;
-    padding: 0 1rem;
-  }
-</style>

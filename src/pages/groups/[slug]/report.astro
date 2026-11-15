@@ -42,6 +42,7 @@ if (!group) Astro.response.status = 404;
       <Back href={`/groups/${group.slug}`}>Back to {group.name}</Back>
       <h1>Report this group</h1>
       <ReportForm
+        back={`/groups/${group.slug}`}
         type="group"
         id={group.id}
         mine={group.owner_id === user.id}

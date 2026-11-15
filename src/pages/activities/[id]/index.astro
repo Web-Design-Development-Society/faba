@@ -461,7 +461,7 @@ const email = activity
             )}
             {google && (
               <p>
-                <button type="button" class="link" commandfor="calendar" command="show-modal">
+                <button type="button" class="secondary" commandfor="calendar" command="show-modal">
                   Add to calendar
                 </button>
               </p>
@@ -478,6 +478,7 @@ const email = activity
                   activity.location_name,
                   Astro.request.headers.get('user-agent') ?? ''
                 )}
+                class="button"
               >
                 Open in Maps
               </a>
@@ -564,10 +565,12 @@ const email = activity
         <Sheet id="calendar" title="Add to calendar">
           <ul class="calendars">
             <li>
-              <a href={`/activities/${activity.id}.ics`}>Download for Apple Calendar or Outlook</a>
+              <a href={`/activities/${activity.id}.ics`} class="button">
+                Download for Apple Calendar or Outlook
+              </a>
             </li>
             <li>
-              <a href={google} target="_blank" rel="noopener">
+              <a href={google} target="_blank" rel="noopener" class="button">
                 Open in Google Calendar
               </a>
             </li>
@@ -584,7 +587,7 @@ const email = activity
           me={people.length < LIST ? me : null}
         />
         {activity.going_count > LIST && (
-          <a class="all" href={`/activities/${activity.id}/going`}>
+          <a class="all button" href={`/activities/${activity.id}/going`}>
             Show all
           </a>
         )}
@@ -592,7 +595,7 @@ const email = activity
           <section class="manage-attendees">
             <h3>Manage attendees</h3>
             <p>
-              <a href={`/activities/${activity.id}/attendees.csv`} download>
+              <a href={`/activities/${activity.id}/attendees.csv`} download class="button">
                 Export CSV
               </a>{' '}
               (names only)
@@ -607,7 +610,7 @@ const email = activity
                       <form method="post" action={actions.rsvps.removeAttendee.queryString}>
                         <input type="hidden" name="activity_id" value={activity.id} />
                         <input type="hidden" name="user_id" value={member.id} />
-                        <button>Take {member.display_name} off the list</button>
+                        <button class="danger">Take {member.display_name} off the list</button>
                       </form>
                     </li>
                   ))}
@@ -636,7 +639,7 @@ const email = activity
                     <form method="post" action={actions.activities.removeCoOrganizer.queryString}>
                       <input type="hidden" name="activity_id" value={activity.id} />
                       <input type="hidden" name="user_id" value={co.id} />
-                      <button>Remove {co.display_name}</button>
+                      <button class="danger">Remove {co.display_name}</button>
                     </form>
                   </li>
                 ))}
@@ -652,7 +655,7 @@ const email = activity
                       <form method="post" action={actions.activities.addCoOrganizer.queryString}>
                         <input type="hidden" name="activity_id" value={activity.id} />
                         <input type="hidden" name="user_id" value={member.id} />
-                        <button>Make {member.display_name} a co-organizer</button>
+                        <button class="secondary">Make {member.display_name} a co-organizer</button>
                       </form>
                     </li>
                   ))}
@@ -832,7 +835,7 @@ const email = activity
                 {comment.author_id === user.id && (
                   <form method="post" action={actions.comments.remove.queryString}>
                     <input type="hidden" name="comment_id" value={comment.id} />
-                    <button>Delete my comment</button>
+                    <button class="danger">Delete my comment</button>
                   </form>
                 )}
                 {comment.hidden_at && moderator && (
@@ -882,10 +885,18 @@ const email = activity
           <>
             <p>You're hosting</p>
             <span class="hosting">
-              {!activity.hidden_at && <a href={`/activities/${activity.id}/update`}>Post update</a>}
-              <a href={`/activities/${activity.id}/edit`}>Edit</a>
+              {!activity.hidden_at && (
+                <a href={`/activities/${activity.id}/update`} class="button">
+                  Post update
+                </a>
+              )}
+              <a href={`/activities/${activity.id}/edit`} class="button primary">
+                Edit
+              </a>
               {!open && !activity.hidden_at && (
-                <a href={`/activities/new?from=${activity.id}`}>Post again</a>
+                <a href={`/activities/new?from=${activity.id}`} class="button">
+                  Post again
+                </a>
               )}
             </span>
           </>
@@ -974,17 +985,10 @@ const email = activity
   .banner > :first-child {
     font-weight: 600;
   }
-  /* Add to calendar reads as a link under the time, as Open in Maps does under the place. It's
-     at least 24 px tall (WCAG 2.2 target size). */
-  .link {
-    padding: 0.25rem 0;
-    font: inherit;
-    font-weight: 400;
-    color: var(--blue);
-    text-decoration: underline;
-    background: none;
-    border: 0;
-    cursor: pointer;
+  /* Add to calendar and Open in Maps are outlined buttons under the time and the place (UI-12). */
+  .row .secondary,
+  .row .button {
+    margin-top: 0.25rem;
   }
   .calendars {
     margin: 0;
@@ -992,9 +996,8 @@ const email = activity
     list-style: none;
   }
   .calendars a {
-    display: flex;
-    align-items: center;
-    min-height: 44px;
+    width: 100%;
+    margin-top: 0.5rem;
   }
   .handover {
     display: flex;
@@ -1094,9 +1097,7 @@ const email = activity
     cursor: pointer;
   }
   .all {
-    display: inline-grid;
-    place-items: center;
-    min-height: 44px;
+    margin-top: 0.5rem;
   }
   .description {
     white-space: pre-line;
@@ -1138,20 +1139,22 @@ const email = activity
   .actions p {
     margin: 0;
   }
-  .actions button,
-  .actions a {
-    display: inline-grid;
-    place-items: center;
+  .actions button {
     min-width: 8rem;
-    min-height: 44px;
   }
-  /* Post update, Edit and Post again side by side, which fit beside "You're hosting" at 320 px. */
+  /* Post update, Edit and Post again side by side, beside "You're hosting", which wraps first on a
+     narrow phone (UI-12). */
+  .actions > p {
+    flex: 1;
+    min-width: 0;
+  }
   .hosting {
     display: flex;
-    gap: 1rem;
+    flex: none;
+    gap: 0.5rem;
   }
-  .actions .hosting a {
-    min-width: 44px;
+  .hosting .button {
+    padding: 0 0.875rem;
   }
   .updates ul {
     margin: 0;

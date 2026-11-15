@@ -15,7 +15,7 @@ interface Props {
 const { activityId, inSeries } = Astro.props;
 ---
 
-<button type="button" class="destructive" commandfor="cancel" command="show-modal">
+<button type="button" class="danger" commandfor="cancel" command="show-modal">
   {inSeries ? 'Cancel this date' : 'Cancel activity'}
 </button>
 <Sheet id="cancel" title={inSeries ? 'Cancel this date?' : 'Cancel this activity?'}>
@@ -28,25 +28,11 @@ const { activityId, inSeries } = Astro.props;
       <br />
       <textarea id="reason" name="reason" rows="2" maxlength={ACTIVITY.cancelReason.max}></textarea>
     </p>
-    <button type="submit" class="destructive">
+    <button type="submit" class="danger">
       Yes, cancel it
     </button>
   </form>
   <form method="dialog">
-    <button>No, keep it</button>
+    <button class="secondary">No, keep it</button>
   </form>
 </Sheet>
-
-<style>
-  button {
-    min-height: 44px;
-    padding: 0 1rem;
-  }
-  /* No background, since the red is too dark on WebKit's grey buttons. */
-  .destructive {
-    color: #b42318;
-    background: none;
-    border: 1px solid currentColor;
-    border-radius: 0.5rem;
-  }
-</style>

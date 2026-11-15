@@ -16,7 +16,7 @@ const id = Astro.params.id!;
 const [{ data: image }, { data: report }] = await Promise.all([
   supabase
     .from('images')
-    .select('id, alt, uploaded_by, activity_id, group:groups(slug)')
+    .select('id, alt, uploaded_by, activity_id, profile_id, group:groups(slug)')
     .eq('id', id)
     .is('hidden_at', null)
     .maybeSingle(),
@@ -29,9 +29,12 @@ const [{ data: image }, { data: report }] = await Promise.all([
     .maybeSingle(),
 ]);
 if (!image) Astro.response.status = 404;
+// What it's on: an activity, a group, or a member's profile (UI-11).
 const back = image?.activity_id
   ? `/activities/${image.activity_id}`
-  : `/groups/${image?.group?.slug ?? ''}`;
+  : image?.profile_id
+    ? `/people/${image.profile_id}`
+    : `/groups/${image?.group?.slug ?? ''}`;
 const result = Astro.getActionResult(actions.reports.create);
 if (result && !result.error) {
   setFlash(Astro.cookies, Astro.url, 'reported');
@@ -45,14 +48,12 @@ if (result && !result.error) {
       <h1>Report this picture</h1>
       <p>{image.alt}</p>
       <ReportForm
+        back={back}
         type="image"
         id={image.id}
         mine={image.uploaded_by === user.id}
         reported={!!report}
       />
-      <p>
-        <a href={back}>Back</a>
-      </p>
     </>
   ) : (
     <>

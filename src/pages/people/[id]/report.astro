@@ -43,6 +43,7 @@ if (!profile) Astro.response.status = 404;
       <Back href={`/people/${profile.id}`}>Back to {profile.display_name}</Back>
       <h1>Report this member</h1>
       <ReportForm
+        back={`/people/${profile.id}`}
         type="profile"
         id={profile.id}
         mine={profile.id === user.id}
