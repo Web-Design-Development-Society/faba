@@ -215,11 +215,13 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   a {
     color: var(--blue);
   }
+  /* A form's main action: FABA blue, as tall as a field, with modest padding (UI-12). */
   button {
     min-height: 44px;
-    padding: 0 1rem;
+    padding: 0 1.25rem;
     color: white;
     font: inherit;
+    font-size: 1rem;
     font-weight: 600;
     background: var(--blue);
     border: 0;
@@ -228,6 +230,193 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   }
   button:hover {
     background: var(--blue-dark);
+  }
+  /* The other actions, outlined, and a link that stands on its own looks the same: it still goes
+     somewhere, so it stays a link to screen readers (UI-12). Red is for what removes or deletes. */
+  button.secondary,
+  button.danger,
+  a.button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    box-sizing: border-box;
+    min-height: 44px;
+    padding: 0 1.25rem;
+    color: var(--navy);
+    font: inherit;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+  button.secondary:hover,
+  a.button:hover {
+    background: var(--card);
+    border-color: var(--blue);
+  }
+  button.danger,
+  a.button.danger {
+    color: #b42318;
+    border-color: #b42318;
+  }
+  button.danger:hover,
+  a.button.danger:hover {
+    background: #fef3f2;
+  }
+  a.button.primary {
+    color: white;
+    background: var(--blue);
+    border-color: var(--blue);
+  }
+  a.button.primary:hover {
+    background: var(--blue-dark);
+  }
+  /* A form's buttons: Cancel and the main action side by side, the main one wider (UI-06). */
+  .form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+  .form-actions > * {
+    flex: 1;
+    min-height: 48px;
+  }
+  .form-actions > button:not(.secondary, .danger) {
+    flex: 1.6;
+  }
+
+  /* Forms made for phones (UI-12), in one place, at the lowest priority (:where), so a page's own
+     style still wins where it needs something else. A field is the form's width, 48 px tall, with
+     16 px text, so iOS doesn't zoom in, and a border at 4.5:1. */
+  :where(
+    input:not(
+      [type='checkbox'],
+      [type='radio'],
+      [type='file'],
+      [type='hidden'],
+      [type='range'],
+      [type='color'],
+      [type='submit'],
+      [type='button'],
+      [type='image'],
+      [type='reset']
+    ),
+    select,
+    textarea
+  ) {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 48px;
+    padding: 0.5rem 0.75rem;
+    font: inherit;
+    font-size: 1rem;
+    color: var(--ink);
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+  }
+  /* About 3 lines to start. */
+  :where(textarea) {
+    min-height: 6.5rem;
+    resize: vertical;
+  }
+  :where(input, select, textarea):focus-visible {
+    border-color: var(--blue);
+  }
+  :where(input[type='checkbox'], input[type='radio']) {
+    width: 1.25rem;
+    height: 1.25rem;
+    margin: 0;
+    accent-color: var(--blue);
+  }
+  :where(input[type='file']) {
+    max-width: 100%;
+    font: inherit;
+  }
+  ::placeholder {
+    color: #6b7280; /* 4.8:1 on white */
+    opacity: 1;
+  }
+  /* A question above its field, and no grey boxes around a group of choices. */
+  :where(label[for], legend) {
+    display: block;
+    margin-bottom: 0.375rem;
+    padding: 0;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  :where(label[for] + br, legend + br) {
+    display: none;
+  }
+  :where(fieldset) {
+    min-width: 0;
+    margin: 0 0 1.25rem;
+    padding: 0;
+    border: 0;
+  }
+  /* A hint under its question. */
+  :where(.hint) {
+    margin: 0 0 0.5rem;
+    color: var(--muted);
+  }
+  /* Short choices are chips that wrap, each a radio button or checkbox stretched invisibly over
+     it, and the chosen one FABA blue with a check. */
+  :where(.choices label) {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 44px;
+    margin: 0 0.5rem 0.5rem 0;
+    padding: 0 1rem;
+    color: var(--navy);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  :where(.choices label input) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+  }
+  :where(.choices label:has(input:checked)) {
+    font-weight: 600;
+    color: white;
+    background: var(--blue);
+    border-color: var(--blue);
+  }
+  :where(.choices label:has(input:checked))::before {
+    content: '✓' / '';
+  }
+  :where(.choices label:has(input:focus-visible)) {
+    outline: 3px solid var(--blue);
+    outline-offset: 2px;
+  }
+  /* Long choices are full-width rows, with the radio button or checkbox showing. */
+  :where(.rows label) {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 48px;
+    margin: 0 0 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+  :where(.rows label:has(input:checked)) {
+    border-color: var(--blue);
+    box-shadow: inset 0 0 0 1px var(--blue);
   }
   footer {
     margin-top: 3rem;
