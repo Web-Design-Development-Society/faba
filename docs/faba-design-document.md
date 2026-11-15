@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-12`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-13`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                          |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                  |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                          |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-12 |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-13 |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02         |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02, PERF-01, A11Y-01 |
 
@@ -2171,6 +2171,30 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - Shared classes in the layout (a `.button` for links, with outlined and red variants) and a shared field style replace each page's own. UI-06's New activity and UI-11's profile form move onto them.
   - Start a league is on hold (ADR-018), and gets the style if leagues come back.
   - Size: L, one developer, including the tests.
+
+#### UI-13 · No date shortcuts on the activity form
+
+- **Role:** Activity organizer · **Priority:** Should · **Phase:** 6
+- **Story:** As an organizer, I want **When?** to be just a date and a time, so that I set them in one place and don't wonder what a shortcut did.
+- **Acceptance criteria:**
+  - New activity and Edit activity no longer have **Today**, **Tomorrow** and **This Saturday**. **When?** is the date and the start time in one box, with their calendar and clock icons, as UI-06 laid them out.
+  - The date and time are the browser's own fields (`<input type="date">` and `<input type="time">`). On a phone, tapping the date opens its calendar, and tapping the time opens its time picker.
+  - **The rest of When? stays:**
+    - New activity still starts with a suggested date and time (section 7.7), and Post again (ACT-07) still asks for a new date and time.
+    - The date can be from today to 12 months ahead. A start that has passed, or an end before the start, is still caught before posting and again on the server.
+    - Repeats still names the date's day and weekday (REC-01), and the local draft still keeps the date.
+  - Nothing else in the form moves, and no gap is left where the shortcuts were.
+  - Discover's Date filter (UI-09) is a different control and keeps its choices.
+  - The E2E tests pick a date by filling the date field. A check confirms that New activity and Edit activity have no Today, Tomorrow or This Saturday buttons, and the axe checks pass.
+- **Dependencies:** ACT-03, UI-06.
+- **Notes / edge cases:**
+  - Today **When?** has two ways to pick a date: the shortcut chips, and the date field under them. A shortcut sets only the date, not the time, and nothing shows that it was tapped. The chips also look like the category chips further down, which do stay chosen. The phone's calendar is one tap away anyway.
+  - The shortcuts' code goes:
+    - their markup and style in `ActivityFields.astro`
+    - their click handler in `activity-form.ts`
+    - `quickDates()` in `lib/time.ts`, with its unit test
+  - Mark ACT-03's criterion 3 and UI-06's line about the chips as replaced. Take the chips out of section 7.7's sketch and its **Clear sections** bullet.
+  - Size: S, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
 
