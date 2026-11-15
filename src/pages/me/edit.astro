@@ -1,12 +1,16 @@
 ---
-// Editing my profile (PROF-02): the display name, photo or initials, department, a short bio,
+// Editing my profile (PROF-02, UI-11): my photo, uploaded or Google's, or initials, then the display
+// name, department, a short bio,
 // interests, a private faculty type, and whether to show my email (PROF-04). It works without JavaScript: when a save fails, the form
 // comes back with what was typed and an error under each field. Saving returns to Me with "Saved."
 import { actions, isInputError } from 'astro:actions';
+import Avatar from '../../components/Avatar.astro';
 import Back from '../../components/Back.astro';
 import FieldError from '../../components/FieldError.astro';
+import PictureUpload from '../../components/PictureUpload.astro';
+import Status from '../../components/Status.astro';
 import Layout from '../../layouts/Layout.astro';
-import { setFlash } from '../../lib/server/flash';
+import { FLASH_MESSAGES, pictureRefusal, setFlash, takeFlash } from '../../lib/server/flash';
 import { DISPLAY_NAME, FACULTY_TYPES, PROFILE } from '../../lib/validation/profile';
 
 const { supabase, user } = Astro.locals;
@@ -22,7 +26,9 @@ const [{ data: profile }, { data: personal }, { data: categories }, { data: othe
   await Promise.all([
     supabase
       .from('profiles')
-      .select('display_name, avatar_url, use_initials, department, bio, interests')
+      .select(
+        'display_name, avatar_url, google_avatar_url, photo_image_id, use_initials, department, bio, interests'
+      )
       .eq('id', user.id)
       .single(),
     supabase
@@ -42,7 +48,13 @@ const departments = [...new Set(others?.map(({ department }) => department!))].s
 const typed = result?.error ? await Astro.request.formData() : undefined;
 const text = (name: 'display_name' | 'department' | 'bio') =>
   typed ? (typed.get(name)?.toString() ?? '') : (profile?.[name] ?? '');
-const useInitials = typed ? typed.has('use_initials') : profile?.use_initials;
+const useInitials = typed ? typed.get('appearance') === 'initials' : profile?.use_initials;
+// The photo the member uploaded, or Google's, which they can show instead of initials (UI-11).
+const hasPhoto = !!profile?.photo_image_id;
+const photoName = hasPhoto ? 'My photo' : profile?.google_avatar_url ? 'My Google photo' : null;
+// Saving or removing a photo comes back here, and a refused one says why beside its form.
+const flash = takeFlash(Astro.cookies);
+const pictureError = pictureRefusal(flash);
 const interests = typed ? typed.getAll('interests') : (profile?.interests ?? []);
 const facultyType = typed ? typed.get('faculty_type') : personal?.faculty_type;
 const emailVisible = typed ? typed.has('email_visible') : personal?.email_visible;
@@ -55,14 +67,53 @@ const invalid = (name: string) =>
   fields[name] ? { 'aria-invalid': 'true' as const, 'aria-describedby': `${name}-error` } : {};
 ---
 
-<Layout title="Edit profile">
+<Layout title="Edit profile" tab="me">
   <Back href="/me">Back to Me</Back>
   <h1>Edit profile</h1>
+  <Status message={flash && !pictureError ? FLASH_MESSAGES[flash] : undefined} />
   {failure && <p role="alert">{failure}</p>}
-  <form method="post" action={actions.profile.update.queryString}>
-    <p>
-      <label for="display_name">Display name</label>
-      <br />
+
+  {/* The photo comes first: what others see, and changing it (UI-11). */}
+  <section class="photo card" aria-labelledby="photo-heading">
+    <h2 id="photo-heading">Photo</h2>
+    <div class="current">
+      {profile && <Avatar member={profile} named large />}
+      <p>
+        Members see{' '}
+        {useInitials ? 'your initials' : (photoName?.replace('My', 'your') ?? 'your initials')}.
+      </p>
+    </div>
+    <details class="change" open={pictureError ? true : undefined}>
+      <summary>{hasPhoto ? 'Change photo' : 'Add a photo'}</summary>
+      <PictureUpload target="profile" back="/me/edit" submit="Save photo" error={pictureError} />
+    </details>
+    {hasPhoto && (
+      <form method="post" action="/api/media/remove-photo" class="remove">
+        <button class="secondary">Remove photo</button>
+      </form>
+    )}
+  </section>
+
+  <form method="post" action={actions.profile.update.queryString} class="profile" data-profile>
+    {photoName && (
+      <fieldset class="field">
+        <legend>How you appear</legend>
+        <div class="pills">
+          <label class="pill">
+            <input type="radio" name="appearance" value="photo" checked={!useInitials} />
+            {photoName}
+          </label>
+          <label class="pill">
+            <input type="radio" name="appearance" value="initials" checked={useInitials} />
+            Initials
+          </label>
+        </div>
+      </fieldset>
+    )}
+    <p class="field">
+      <label class="question" for="display_name">
+        Display name
+      </label>
       <input
         id="display_name"
         name="display_name"
@@ -71,34 +122,22 @@ const invalid = (name: string) =>
         minlength={DISPLAY_NAME.min}
         maxlength={DISPLAY_NAME.max}
         autocomplete="name"
+        placeholder="e.g., Dana Smith"
         {...invalid('display_name')}
       />
       <FieldError name="display_name" errors={fields.display_name} />
     </p>
-    {profile?.avatar_url && (
-      <p>
-        <img
-          src={profile.avatar_url}
-          alt="Your Google photo"
-          width="64"
-          height="64"
-          referrerpolicy="no-referrer"
-        />
-        <br />
-        <label>
-          <input type="checkbox" name="use_initials" checked={useInitials} /> Use initials instead
-        </label>
-      </p>
-    )}
-    <p>
-      <label for="department">Department (optional)</label>
-      <br />
+    <p class="field">
+      <label class="question" for="department">
+        Department (optional)
+      </label>
       <input
         id="department"
         name="department"
         list="departments"
         value={text('department')}
         maxlength={PROFILE.department.max}
+        placeholder="e.g., Mathematics"
         {...invalid('department')}
       />
       <datalist id="departments">
@@ -108,39 +147,48 @@ const invalid = (name: string) =>
       </datalist>
       <FieldError name="department" errors={fields.department} />
     </p>
-    <p>
-      <label for="bio">Short bio (optional)</label>
-      <br />
+    <p class="field">
+      <label class="question" for="bio">
+        Short bio (optional)
+      </label>
       <textarea
         id="bio"
         name="bio"
         rows="3"
         maxlength={PROFILE.bio.max}
+        placeholder="A line or two about you, such as what you teach and what you like to do."
         {...invalid('bio')}
       >{text('bio')}</textarea>
       <FieldError name="bio" errors={fields.bio} />
     </p>
-    <fieldset class="chips">
+    <fieldset class="field">
       <legend>Interests (optional)</legend>
-      {categories?.map(({ id, name }) => (
-        <label>
-          <input type="checkbox" name="interests" value={id} checked={interests.includes(id)} />
-          {name}
-        </label>
-      ))}
+      <div class="pills">
+        {categories?.map(({ id, name }) => (
+          <label class="pill">
+            <input type="checkbox" name="interests" value={id} checked={interests.includes(id)} />
+            {name}
+          </label>
+        ))}
+      </div>
     </fieldset>
-    <fieldset aria-describedby="faculty_type-hint">
+    <fieldset class="field" aria-describedby="faculty_type-hint">
       <legend>Faculty type (optional)</legend>
-      <p id="faculty_type-hint">Only used for anonymous totals. Never shown to others.</p>
-      {Object.entries(FACULTY_TYPES).map(([value, label]) => (
-        <label>
-          <input type="radio" name="faculty_type" value={value} checked={facultyType === value} />
-          {label}
-        </label>
-      ))}
+      <p id="faculty_type-hint" class="hint">
+        Only used for anonymous totals. Never shown to others.
+      </p>
+      <div class="pills">
+        {Object.entries(FACULTY_TYPES).map(([value, label]) => (
+          <label class="pill">
+            <input type="radio" name="faculty_type" value={value} checked={facultyType === value} />
+            {label}
+          </label>
+        ))}
+      </div>
     </fieldset>
-    <p>
-      <label>
+    <div class="field email">
+      <span class="question">Email</span>
+      <label class="switch">
         <input
           type="checkbox"
           name="email_visible"
@@ -149,44 +197,215 @@ const invalid = (name: string) =>
         />
         Show my email on my profile
       </label>
-      <span id="email_visible-hint">
+      <p id="email_visible-hint" class="hint">
         {personal?.email}. Only signed-in members see it. Moderators can always see it.
-      </span>
-    </p>
-    <button type="submit">Save</button>
+      </p>
+    </div>
+    <div class="buttons">
+      <a href="/me" class="cancel">
+        Cancel
+      </a>
+      <button type="submit">Save changes</button>
+    </div>
   </form>
 </Layout>
 
 <style>
-  fieldset {
-    margin: 1rem 0;
+  /* The look of New activity's form (UI-06): bold questions, full-width fields, chips. */
+  .card {
+    margin: 1rem 0 1.5rem;
+    padding: 1rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
   }
-  fieldset label {
+  .photo h2 {
+    margin: 0 0 0.75rem;
+    font-size: 1.125rem;
+  }
+  .current {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    min-height: 44px;
+    gap: 1rem;
   }
-  .chips {
+  .current p {
+    margin: 0;
+    color: var(--muted);
+  }
+  /* A large, round photo, as others will see it. */
+  .current :global(.avatar) {
+    width: 6rem;
+    height: 6rem;
+    font-size: 2rem;
+  }
+  .change {
+    margin-top: 0.75rem;
+  }
+  .change summary {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-weight: 600;
+    color: var(--blue);
+    cursor: pointer;
+  }
+  .remove {
+    margin-top: 0.25rem;
+  }
+  .secondary,
+  .cancel {
+    display: inline-grid;
+    place-items: center;
+    min-height: 44px;
+    padding: 0 1rem;
+    font: inherit;
+    font-weight: 600;
+    color: var(--navy);
+    text-decoration: none;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    cursor: pointer;
+  }
+  .secondary:hover,
+  .cancel:hover {
+    border-color: var(--blue);
+  }
+  fieldset {
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+  .field {
+    margin: 0 0 1.25rem;
+  }
+  .question,
+  legend {
+    display: block;
+    margin-bottom: 0.375rem;
+    padding: 0;
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--navy);
+  }
+  .field input:not([type='checkbox'], [type='radio']),
+  .field textarea {
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.5rem 0.75rem;
+    font: inherit;
+    background: var(--card);
+    border: 2px solid var(--border);
+    border-radius: var(--radius);
+  }
+  ::placeholder {
+    color: #6b7280; /* 4.8:1 on white */
+    opacity: 1;
+  }
+  .hint {
+    margin: 0 0 0.5rem;
+    color: var(--muted);
+  }
+  .email .hint {
+    margin: 0.25rem 0 0;
+  }
+  /* Chips that wrap, each a checkbox or radio button stretched invisibly over it. */
+  .pills {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
   }
-  .chips legend {
-    margin-bottom: 0.5rem;
-  }
-  .chips label {
+  .pill {
+    position: relative;
     display: inline-flex;
-    padding: 0 0.75rem;
-    border: 1px solid #767676;
-    border-radius: 999px;
-  }
-  .chips label:has(:checked) {
-    font-weight: 600;
-    border-width: 2px;
-  }
-  button {
+    align-items: center;
+    gap: 0.375rem;
     min-height: 44px;
     padding: 0 1rem;
+    color: var(--navy);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+  }
+  .pill input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .pill:has(input:checked) {
+    font-weight: 600;
+    color: white;
+    background: var(--blue);
+    border-color: var(--blue);
+  }
+  .pill:has(input:checked)::before {
+    content: '✓' / '';
+  }
+  .pill:has(input:focus-visible) {
+    outline: 3px solid var(--blue);
+    outline-offset: 2px;
+  }
+  /* A switch, drawn over the checkbox, which stays for keyboards and screen readers. */
+  .switch {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 44px;
+    cursor: pointer;
+  }
+  .switch input {
+    position: relative;
+    flex: none;
+    width: 3rem;
+    height: 1.75rem;
+    margin: 0;
+    appearance: none;
+    background: #767676;
+    border-radius: 999px;
+    cursor: pointer;
+  }
+  .switch input::after {
+    position: absolute;
+    top: 0.1875rem;
+    left: 0.1875rem;
+    width: 1.375rem;
+    height: 1.375rem;
+    content: '';
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.15s;
+  }
+  .switch input:checked {
+    background: var(--blue);
+  }
+  .switch input:checked::after {
+    transform: translateX(1.25rem);
+  }
+  .switch input:focus-visible {
+    outline: 3px solid var(--blue);
+    outline-offset: 2px;
+  }
+  /* Cancel and Save changes end the form, side by side (UI-06). */
+  .buttons {
+    display: flex;
+    gap: 0.75rem;
+    margin-top: 1.5rem;
+  }
+  .buttons > * {
+    display: grid;
+    flex: 1;
+    place-items: center;
+    min-height: 48px;
+  }
+  .buttons button {
+    flex: 1.6;
   }
 </style>

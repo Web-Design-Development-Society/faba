@@ -22,7 +22,7 @@ describe('displayName', () => {
 describe('profileChanges', () => {
   const form = {
     display_name: ' Elle ',
-    use_initials: false,
+    appearance: 'photo',
     department: ' Mathematics ',
     bio: '',
     interests: ['outdoors', 'games'],
@@ -42,11 +42,22 @@ describe('profileChanges', () => {
     expect(
       profileChanges.parse({
         display_name: 'Elle',
-        use_initials: true,
+        appearance: 'initials',
         interests: [],
         email_visible: false,
       })
-    ).toEqual({ display_name: 'Elle', use_initials: true, interests: [], email_visible: false });
+    ).toEqual({
+      display_name: 'Elle',
+      appearance: 'initials',
+      interests: [],
+      email_visible: false,
+    });
+  });
+
+  it('shows the photo unless initials are chosen (UI-11)', () => {
+    expect(
+      profileChanges.parse({ display_name: 'Elle', interests: [], email_visible: false }).appearance
+    ).toBe('photo');
   });
 
   it.each([

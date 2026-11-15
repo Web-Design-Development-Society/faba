@@ -26,7 +26,8 @@ export const displayName = z
 /** Editing the profile (PROF-02, PROF-04). A field left empty is undefined, which the Action clears. */
 export const profileChanges = z.object({
   display_name: displayName,
-  use_initials: z.boolean(),
+  /** How the member appears (UI-11): their photo, uploaded or Google's, or their initials. */
+  appearance: z.enum(['photo', 'initials']).default('photo'),
   department: z
     .string()
     .trim()

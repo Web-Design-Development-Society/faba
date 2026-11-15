@@ -11,6 +11,12 @@ import {
 } from './fixtures';
 
 test('a member edits their profile, and Me shows it', async ({ page, poster }) => {
+  // A Google photo, so the member can choose it or initials.
+  const google = 'https://lh3.googleusercontent.com/a/pat';
+  await poster.admin
+    .from('profiles')
+    .update({ avatar_url: google, google_avatar_url: google })
+    .eq('id', poster.id);
   await page.goto('/me');
   await page.getByRole('link', { name: 'Edit profile' }).click();
   await expect(page).toHaveURL('/me/edit');
@@ -19,7 +25,9 @@ test('a member edits their profile, and Me shows it', async ({ page, poster }) =
   await expect(page.locator('#departments option[value="Mathematics"]')).toHaveCount(1);
 
   await page.getByLabel('Display name').fill('Pat P.');
-  await page.getByLabel('Use initials instead').check();
+  const appearance = page.getByRole('group', { name: 'How you appear' });
+  await expect(appearance.getByRole('radio', { name: 'My Google photo' })).toBeChecked();
+  await appearance.getByRole('radio', { name: 'Initials' }).check();
   await page.getByLabel('Department (optional)').fill('Mathematics');
   await page.getByLabel('Short bio (optional)').fill('Hikes on Saturdays.');
   const interests = page.getByRole('group', { name: 'Interests (optional)' });
@@ -35,14 +43,19 @@ test('a member edits their profile, and Me shows it', async ({ page, poster }) =
 
   await expect(page).toHaveURL('/me');
   await expect(page.getByRole('status')).toHaveText('Saved.');
-  await expect(page.getByText("You're signed in as Pat P.")).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Pat P.', exact: true })).toBeVisible();
   await expect(page.getByText('Mathematics', { exact: true })).toBeVisible();
   await expect(page.getByText('Hikes on Saturdays.')).toBeVisible();
-  await expect(page.getByText('Interests: Outdoors, Games')).toBeVisible();
+  await expect(page.getByRole('list', { name: 'Interests' }).getByRole('listitem')).toHaveText([
+    'Outdoors',
+    'Games',
+  ]);
+  // Initials, not the Google photo.
+  await expect(page.getByRole('img', { name: 'Pat P.' })).toHaveText('PP');
 
   // The form shows what was saved.
   await page.getByRole('link', { name: 'Edit profile' }).click();
-  await expect(page.getByLabel('Use initials instead')).toBeChecked();
+  await expect(appearance.getByRole('radio', { name: 'Initials' })).toBeChecked();
   await expect(interests.getByLabel('Outdoors')).toBeChecked();
   await expect(interests.getByLabel('Sports & Fitness')).not.toBeChecked();
   await expect(facultyType.getByLabel('Part-time')).toBeChecked();
@@ -57,7 +70,7 @@ test('a member edits their profile, and Me shows it', async ({ page, poster }) =
 test('each field says what is wrong, and keeps what was typed', async ({ page, poster }) => {
   await page.goto('/me/edit');
   // The server's checks, past the browser's.
-  await page.locator('form').evaluate((form: HTMLFormElement) => {
+  await page.locator('form[data-profile]').evaluate((form: HTMLFormElement) => {
     form.noValidate = true;
     form.querySelector('#bio')!.removeAttribute('maxlength');
   });

@@ -117,7 +117,9 @@ const [
     .in('id', targets('comment')),
   supabase
     .from('images')
-    .select('id, alt, hidden_at, activity:activities(id, title), group:groups(slug, name)')
+    .select(
+      'id, alt, hidden_at, activity:activities(id, title), group:groups(slug, name), profile:profiles!images_profile_id_fkey(id, display_name)'
+    )
     .in('id', targets('image')),
   moderator
     ? supabase
@@ -141,8 +143,17 @@ const preview = (type: string, id: string) => {
     };
   }
   if (type === 'image') {
-    // A picture on an activity or a group (MEDIA-01). Hiding it doesn't hide what it's on.
+    // A picture on an activity or a group (MEDIA-01), or a member's photo (UI-11). Hiding it
+    // doesn't hide what it's on, and a hidden photo shows the member's initials.
     const picture = pictures?.find((i) => i.id === id);
+    if (picture?.profile) {
+      return {
+        kind: `Photo of ${picture.profile.display_name}`,
+        href: `/people/${picture.profile.id}`,
+        name: picture.alt,
+        actionable: !picture.hidden_at,
+      };
+    }
     const place = picture?.activity?.title ?? picture?.group?.name;
     return {
       kind: place ? `Picture on ${place}` : 'Picture',

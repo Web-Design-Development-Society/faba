@@ -41,8 +41,14 @@ async function redraw(
   return blob && blob.size <= max ? new File([blob], name, { type: 'image/jpeg' }) : null;
 }
 
-/** The picture redrawn smaller, or null when it's fine as it is, and its small copy for cards. */
-async function prepare(file: File): Promise<{ picture: File | null; thumb: File | null }> {
+/**
+ * The picture redrawn smaller, or null when it's fine as it is, and its small copy for cards, at
+ * most `side` px. A profile photo's is smaller, since faces are small (UI-11).
+ */
+async function prepare(
+  file: File,
+  side = THUMB_SIDE
+): Promise<{ picture: File | null; thumb: File | null }> {
   const bitmap = await createImageBitmap(file);
   try {
     const name = file.name.replace(/\.[^.]*$/, '') || 'picture';
@@ -51,7 +57,7 @@ async function prepare(file: File): Promise<{ picture: File | null; thumb: File 
       big || file.size > MAX_BYTES || !KEPT.includes(file.type)
         ? await redraw(bitmap, MAX_SIDE, MAX_BYTES, `${name}.jpg`)
         : null;
-    const thumb = await redraw(bitmap, THUMB_SIDE, THUMB_MAX_BYTES, `${name}-small.jpg`);
+    const thumb = await redraw(bitmap, side, THUMB_MAX_BYTES, `${name}-small.jpg`);
     return { picture, thumb };
   } finally {
     bitmap.close();
@@ -80,7 +86,7 @@ for (const form of document.querySelectorAll<HTMLFormElement>('form[data-picture
       button.textContent = 'Getting the picture ready…';
     }
     try {
-      const { picture, thumb } = await prepare(file);
+      const { picture, thumb } = await prepare(file, Number(form.dataset.thumbSide) || undefined);
       if (picture) choose(input, picture);
       const small = form.querySelector<HTMLInputElement>('input[data-thumb]');
       if (thumb && small) choose(small, thumb);

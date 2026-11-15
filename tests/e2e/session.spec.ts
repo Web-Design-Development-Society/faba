@@ -18,7 +18,7 @@ test('an expired session refreshes without asking to sign in again', async ({
   await writeSession(context, baseURL!, expired(session));
 
   await page.goto('/me');
-  await expect(page.getByText("You're signed in as Maya Member.")).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Maya Member', exact: true })).toBeVisible();
 
   // The middleware swapped the refresh token for a new one and saved the new session.
   const refreshed = await readSession(context, baseURL!);
@@ -48,11 +48,11 @@ test("after signing out, Back doesn't show private pages", async ({ page, signIn
   await signInAs('member');
   const response = await page.goto('/me');
   expect(response?.headers()['cache-control']).toBe('private, no-store');
-  await expect(page.getByText("You're signed in as Maya Member.")).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Maya Member', exact: true })).toBeVisible();
 
   await page.getByRole('button', { name: 'Sign out' }).click();
   await expect(page).toHaveURL('/');
   await page.goBack();
   await expect(page).toHaveURL('/auth/login?next=%2Fme');
-  await expect(page.getByText("You're signed in as")).toHaveCount(0);
+  await expect(page.getByText('Signed in with')).toHaveCount(0);
 });

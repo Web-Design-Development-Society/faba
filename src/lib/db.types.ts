@@ -795,6 +795,7 @@ export type Database = {
           hidden_by: string | null;
           hidden_reason: string | null;
           id: string;
+          profile_id: string | null;
           r2_key: string;
           uploaded_by: string | null;
         };
@@ -810,6 +811,7 @@ export type Database = {
           hidden_by?: string | null;
           hidden_reason?: string | null;
           id?: string;
+          profile_id?: string | null;
           r2_key: string;
           uploaded_by?: string | null;
         };
@@ -824,6 +826,7 @@ export type Database = {
           hidden_by?: string | null;
           hidden_reason?: string | null;
           id?: string;
+          profile_id?: string | null;
           r2_key?: string;
           uploaded_by?: string | null;
         };
@@ -845,6 +848,13 @@ export type Database = {
           {
             foreignKeyName: 'images_hidden_by_fkey';
             columns: ['hidden_by'];
+            isOneToOne: false;
+            referencedRelation: 'profiles';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'images_profile_id_fkey';
+            columns: ['profile_id'];
             isOneToOne: false;
             referencedRelation: 'profiles';
             referencedColumns: ['id'];
@@ -1529,10 +1539,12 @@ export type Database = {
           created_at: string;
           department: string | null;
           display_name: string;
+          google_avatar_url: string | null;
           guidelines_accepted_at: string | null;
           guidelines_version: number | null;
           id: string;
           interests: string[];
+          photo_image_id: string | null;
           public_email: string | null;
           role: string;
           status: string;
@@ -1547,10 +1559,12 @@ export type Database = {
           created_at?: string;
           department?: string | null;
           display_name: string;
+          google_avatar_url?: string | null;
           guidelines_accepted_at?: string | null;
           guidelines_version?: number | null;
           id: string;
           interests?: string[];
+          photo_image_id?: string | null;
           public_email?: string | null;
           role?: string;
           status?: string;
@@ -1564,10 +1578,12 @@ export type Database = {
           created_at?: string;
           department?: string | null;
           display_name?: string;
+          google_avatar_url?: string | null;
           guidelines_accepted_at?: string | null;
           guidelines_version?: number | null;
           id?: string;
           interests?: string[];
+          photo_image_id?: string | null;
           public_email?: string | null;
           role?: string;
           status?: string;
@@ -1575,7 +1591,15 @@ export type Database = {
           updated_at?: string;
           use_initials?: boolean;
         };
-        Relationships: [];
+        Relationships: [
+          {
+            foreignKeyName: 'profiles_photo_image_id_fkey';
+            columns: ['photo_image_id'];
+            isOneToOne: false;
+            referencedRelation: 'images';
+            referencedColumns: ['id'];
+          },
+        ];
       };
       push_subscriptions: {
         Row: {
@@ -2113,6 +2137,7 @@ export type Database = {
       remove_attendee: { Args: { activity_id: string; user_id: string }; Returns: undefined };
       remove_co_organizer: { Args: { activity_id: string; user_id: string }; Returns: undefined };
       remove_group_member: { Args: { group_id: string; user_id: string }; Returns: undefined };
+      remove_profile_photo: { Args: Record<PropertyKey, never>; Returns: string };
       remove_push_subscription: { Args: { endpoint: string }; Returns: undefined };
       report_content: {
         Args: { note?: string; reason: string; target_id: string; target_type: string };
@@ -2242,6 +2267,10 @@ export type Database = {
         Returns: undefined;
       };
       set_notification_preferences: { Args: { off: string[] }; Returns: undefined };
+      set_profile_photo: {
+        Args: { bytes: number; content_type: string; r2_key: string };
+        Returns: string;
+      };
       set_push_preferences: {
         Args: { turned_off: string[]; turned_on: string[] };
         Returns: undefined;

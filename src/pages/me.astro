@@ -3,7 +3,13 @@
 // replaced Phase 1's My activities here (HIST-02). Edit profile opens the profile form (PROF-02),
 // which comes back here. Moderators see how many reports are open, which opens the queue (MOD-02).
 // Delete account is at the bottom, away from everything else (PROF-05).
+//
+// The member's profile is a card at the top (UI-11): their photo in a large circle, their name,
+// department, bio and interests, with Edit profile and See my profile. The settings are rows with
+// icons under it, then the calendar feed in its own card.
 import { actions, isInputError } from 'astro:actions';
+import Avatar from '../components/Avatar.astro';
+import Icon from '../components/Icon.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
 import { FLASH_MESSAGES, takeFlash } from '../lib/server/flash';
@@ -20,7 +26,11 @@ const feedError = feed?.error && !isInputError(feed.error) ? feed.error.message 
 const moderator =
   member?.status === 'active' && (member.role === 'moderator' || member.role === 'admin');
 const [{ data: profile }, { data: categories }, open, { count: hasFeed }] = await Promise.all([
-  supabase.from('profiles').select('department, bio, interests').eq('id', user.id).single(),
+  supabase
+    .from('profiles')
+    .select('display_name, avatar_url, use_initials, department, bio, interests')
+    .eq('id', user.id)
+    .single(),
   supabase.from('categories').select('id, name').order('sort_order'),
   moderator
     ? supabase.from('reports').select('id', { count: 'exact', head: true }).eq('status', 'open')
@@ -35,25 +45,57 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
 
 <Layout title="Me" tab="me">
   <h1>Me</h1>
-  <p>You're signed in as {member?.display_name ?? user.email}.</p>
-  {profile?.department && <p>{profile.department}</p>}
-  {profile?.bio && <p class="bio">{profile.bio}</p>}
-  {interests.length > 0 && <p>Interests: {interests.map(({ name }) => name).join(', ')}</p>}
-  <p>
-    <a href="/me/edit">Edit profile</a>
-  </p>
-  <p>
-    <a href="/me/notifications">Notifications</a>
-  </p>
-  {typeof open?.count === 'number' && (
-    <p>
-      <a href="/mod">Open reports: {open.count}</a>
-    </p>
-  )}
   <Status message={flash && FLASH_MESSAGES[flash]} />
 
-  <section aria-labelledby="calendar-feed">
-    <h2 id="calendar-feed">Calendar feed</h2>
+  <section class="card profile" aria-labelledby="my-name">
+    {profile && <Avatar member={profile} named large />}
+    <h2 id="my-name">{profile?.display_name ?? member?.display_name ?? user.email}</h2>
+    <p class="signed-in">Signed in with {user.email}</p>
+    {profile?.department && <p class="department">{profile.department}</p>}
+    {profile?.bio && <p class="bio">{profile.bio}</p>}
+    {interests.length > 0 && (
+      <ul class="interests" aria-label="Interests">
+        {interests.map(({ name }) => (
+          <li>{name}</li>
+        ))}
+      </ul>
+    )}
+    <p class="links">
+      <a href="/me/edit" class="outline">
+        Edit profile
+      </a>
+      <a href={`/people/${user.id}`}>See my profile</a>
+    </p>
+  </section>
+
+  <nav class="card settings" aria-label="Settings">
+    <a href="/me/notifications">
+      <Icon name="bell" />
+      <span>Notifications</span>
+      <Icon name="chevron" class="chevron" />
+    </a>
+    <a href="#calendar-feed">
+      <Icon name="calendar" />
+      <span>Calendar feed</span>
+      <Icon name="chevron" class="chevron" />
+    </a>
+    {typeof open?.count === 'number' && (
+      <a href="/mod">
+        <Icon name="flag" />
+        <span>Open reports: {open.count}</span>
+        <Icon name="chevron" class="chevron" />
+      </a>
+    )}
+    <form method="post" action="/auth/logout">
+      <button type="submit">
+        <Icon name="back" />
+        <span>Sign out</span>
+      </button>
+    </form>
+  </nav>
+
+  <section class="card" id="calendar-feed" aria-labelledby="calendar-feed-heading">
+    <h2 id="calendar-feed-heading">Calendar feed</h2>
     <p>
       Your going activities, in your phone or computer calendar. Anyone with the link can read them,
       so keep it private.
@@ -73,22 +115,153 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
     {hasFeed && !feed ? <p>Resetting makes a new link, and the old one stops working.</p> : null}
   </section>
 
-  <form method="post" action="/auth/logout">
-    <button type="submit">Sign out</button>
-  </form>
-  <p>
+  {/* Away from everything else (PROF-05). */}
+  <p class="delete">
     <a href="/me/delete">Delete account</a>
   </p>
 </Layout>
 
 <style>
-  form {
-    margin-top: 2rem;
+  .card {
+    margin: 1rem 0;
+    padding: 1rem;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+  }
+  /* The profile, centered, with the photo large and round (UI-11). */
+  .profile {
+    display: grid;
+    justify-items: center;
+    gap: 0.25rem;
+    padding: 1.5rem 1rem;
+    text-align: center;
+  }
+  .profile :global(.avatar) {
+    width: 6rem;
+    height: 6rem;
+    margin-bottom: 0.5rem;
+    font-size: 2rem;
+    box-shadow: 0 0 0 4px var(--blue-soft);
+  }
+  .profile h2 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+  .profile p {
+    margin: 0;
+  }
+  .signed-in,
+  .department {
+    color: var(--muted);
+  }
+  .department {
+    font-weight: 600;
   }
   .bio {
+    max-width: 30rem;
+    margin-top: 0.5rem !important;
     white-space: pre-line;
+  }
+  .interests {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.375rem;
+    margin: 0.5rem 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .interests li {
+    padding: 0.125rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--blue);
+    background: var(--blue-soft);
+    border-radius: 999px;
+  }
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: 0.5rem 1rem;
+    margin-top: 0.75rem !important;
+  }
+  .links a {
+    display: inline-grid;
+    place-items: center;
+    min-height: 44px;
+  }
+  .outline {
+    padding: 0 1.25rem;
+    font-weight: 600;
+    color: var(--navy);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .outline:hover {
+    border-color: var(--blue);
+  }
+  /* Each setting is a row with its icon, and a chevron when it opens somewhere. */
+  .settings {
+    display: grid;
+    padding: 0;
+  }
+  .settings a,
+  .settings button {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
+    min-height: 52px;
+    padding: 0 1rem;
+    font: inherit;
+    font-weight: 400;
+    color: var(--ink);
+    text-align: left;
+    text-decoration: none;
+    background: none;
+    border: 0;
+    border-radius: 0;
+  }
+  .settings > * + * {
+    border-top: 1px solid var(--line);
+  }
+  .settings span {
+    flex: 1;
+  }
+  .settings :global(.icon) {
+    color: var(--blue);
+  }
+  .settings :global(.chevron) {
+    color: var(--muted);
+  }
+  .settings a:hover,
+  .settings button:hover {
+    background: var(--blue-soft);
+  }
+  .settings form {
+    margin: 0;
+  }
+  #calendar-feed h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.125rem;
   }
   .link code {
     overflow-wrap: anywhere;
+  }
+  .delete {
+    margin-top: 2rem;
+    text-align: center;
+  }
+  .delete a {
+    display: inline-grid;
+    place-items: center;
+    min-height: 44px;
+    color: #b42318;
   }
 </style>
