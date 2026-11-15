@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-12`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-12`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -652,7 +652,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | Search                 |                  |                    | SRCH-01 to SRCH-03          |                                    |                    |          |                          |
 | Notifications          |                  |                    | NOTIF-01 to NOTIF-08        | NOTIF-09, NOTIF-10                 |                    | NOTIF-13 | NOTIF-19, NOTIF-20       |
 | Moderation             |                  | MOD-01 to MOD-06   | MOD-07                      | MOD-08                             |                    |          |                          |
-| Groups / recurring     |                  |                    |                             | GRP-01 to GRP-05, REC-01 to REC-04 |                    |          |                          |
+| Groups / recurring     |                  |                    |                             | GRP-01 to GRP-05, REC-01 to REC-04 |                    |          | GRP-06                   |
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                          |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                  |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                          |
@@ -2171,6 +2171,26 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - Shared classes in the layout (a `.button` for links, with outlined and red variants) and a shared field style replace each page's own. UI-06's New activity and UI-11's profile form move onto them.
   - Start a league is on hold (ADR-018), and gets the style if leagues come back.
   - Size: L, one developer, including the tests.
+
+#### GRP-06 · No limit on starting groups
+
+- **Role:** Member (becomes Group organizer) · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want to start a group whenever I have a reason to, so that a new club or team isn't held up by a monthly limit.
+- **Acceptance criteria:**
+  - A member can start as many groups as they like. `create_group()` no longer counts the groups they started in the last 30 days, and `GROUP_QUOTA_EXCEEDED` and its message are gone.
+  - Start a group no longer says "You can start up to 3 groups a month."
+  - **The other safeguards stay:**
+    - Only active members who have accepted the guidelines can start a group.
+    - A double tap still makes one group (its idempotency key).
+    - Every group still has an address of its own.
+    - Groups can still be reported, and moderators can still hide them (MOD-08).
+  - The pgTAP tests check that a fourth group in 30 days is allowed, where they checked it was refused.
+- **Dependencies:** GRP-01.
+- **Notes / edge cases:**
+  - This replaces GRP-01's "at most 3 groups per month". Mark GRP-01, and drop the limit from section 7.3 and the per-user quotas in section 9.10.
+  - The limit was there against spam. FABA's sign-in is limited to `byui.edu` accounts, and reports and moderation handle a bad group. If spam groups appear, a limit can come back, set higher.
+  - Leagues are on hold (ADR-018). If they come back, Start a league follows the same rule.
+  - Size: S, one developer, including the tests.
 
 ### 6.10 Won't Have Yet
 
