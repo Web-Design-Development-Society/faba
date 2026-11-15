@@ -4,10 +4,11 @@
 // adds a form's own fields to More options, such as the create form's Repeats (REC-01).
 //
 // The form reads as sections under bold questions (UI-06). Every text field is the form's width,
-// with an example in it. When has the date and start time in one box, side by side, each with its
-// icon, and the categories are chips, each a radio button underneath.
+// with an example in it. When is just the date and start time, the browser's own calendar and time
+// picker, in one box, side by side, each with its icon (UI-13). The categories are chips, each a
+// radio button underneath.
 import { isIcon } from '../lib/icons';
-import { quickDates, rexburgDate } from '../lib/time';
+import { rexburgDate } from '../lib/time';
 import { ACTIVITY, latestStart } from '../lib/validation/activity';
 import FieldError from './FieldError.astro';
 import Icon from './Icon.astro';
@@ -26,7 +27,6 @@ const invalid = (name: string) =>
   errors[name] ? { 'aria-invalid': 'true' as const, 'aria-describedby': `${name}-error` } : {};
 
 const now = new Date();
-const { today, tomorrow, saturday } = quickDates(now);
 const moreOptions =
   (value('repeats') ?? 'none') !== 'none' ||
   !!errors.repeats ||
@@ -57,17 +57,6 @@ const moreOptions =
 </p>
 <fieldset class="when">
   <legend>When?</legend>
-  <p class="quick" data-quick-dates hidden>
-    <button type="button" data-date={today}>
-      Today
-    </button>
-    <button type="button" data-date={tomorrow}>
-      Tomorrow
-    </button>
-    <button type="button" data-date={saturday}>
-      This Saturday
-    </button>
-  </p>
   <div class="datetime">
     <label class="part" for="date">
       <Icon name="calendar" />
@@ -311,25 +300,6 @@ const moreOptions =
   }
   .with-icon input {
     padding-left: 2.5rem;
-  }
-  /* Today, Tomorrow and This Saturday are outlined chips, not buttons that look like Post. */
-  .quick {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin: 0 0 0.5rem;
-  }
-  .quick button {
-    min-height: 44px;
-    padding: 0 1rem;
-    color: var(--navy);
-    font-weight: 600;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 999px;
-  }
-  .quick button:hover {
-    border-color: var(--blue);
   }
   /* The date and start time in one box, side by side, each with its icon. */
   .datetime {

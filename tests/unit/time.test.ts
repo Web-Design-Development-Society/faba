@@ -7,7 +7,6 @@ import {
   formatRange,
   formatSoon,
   isOver,
-  quickDates,
   rexburgDate,
   rexburgInstant,
   rexburgTime,
@@ -23,18 +22,6 @@ describe('addDays', () => {
     ['2026-11-07', 7, '2026-11-14'],
   ])('%s plus %i is %s', (date, days, moved) => {
     expect(addDays(date, days)).toBe(moved);
-  });
-});
-
-describe('quickDates', () => {
-  it.each([
-    ['a Monday', '2026-11-02T17:00:00Z', '2026-11-02', '2026-11-03', '2026-11-07'],
-    ['a Saturday', '2026-11-07T17:00:00Z', '2026-11-07', '2026-11-08', '2026-11-07'],
-    ['a Sunday', '2026-11-08T17:00:00Z', '2026-11-08', '2026-11-09', '2026-11-14'],
-    // 10:30 on Friday evening in Rexburg is already Saturday in UTC.
-    ['a late Friday', '2026-11-07T05:30:00Z', '2026-11-06', '2026-11-07', '2026-11-07'],
-  ])('on %s', (_, now, today, tomorrow, saturday) => {
-    expect(quickDates(new Date(now))).toEqual({ today, tomorrow, saturday });
   });
 });
 

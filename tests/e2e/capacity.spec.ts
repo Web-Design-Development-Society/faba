@@ -1,12 +1,13 @@
 // Capacity and "Full" (RSVP-04). The pgTAP tests cover the rules, and this checks them through the
 // app and under load.
+import { addDays, rexburgDate } from '../../src/lib/time';
 import { expect, expectAccessible, test } from './fixtures';
 
 test('an organizer posts with a number of spots', async ({ page, poster }) => {
   await page.goto('/activities/new');
   await page.getByLabel('What are you doing?').fill('Board game night');
   await page.getByLabel('Start time').fill('19:00');
-  await page.getByRole('button', { name: 'Tomorrow' }).click();
+  await page.getByLabel('Date', { exact: true }).fill(addDays(rexburgDate(new Date()), 1));
   await page.getByLabel('Where?').fill('Library');
   await page.getByRole('radio', { name: 'Games' }).check();
   await page.getByText('More options').click();

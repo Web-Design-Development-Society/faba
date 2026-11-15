@@ -1,6 +1,7 @@
 // Details for attendees only (ACT-09): the organizer and members going read them, and everyone else
 // sees a note instead. They're never in the page or an Action's response for anyone else. The pgTAP
 // tests cover who reads them through the Data API, moderators and hidden activities.
+import { addDays, rexburgDate } from '../../src/lib/time';
 import { expect, expectAccessible, test } from './fixtures';
 
 const LINK = 'https://meet.example.com/hike';
@@ -14,7 +15,7 @@ test('the organizer adds details for attendees, sees them, and takes them off', 
 }) => {
   await page.goto('/activities/new');
   await page.getByLabel('What are you doing?').fill('Board game night');
-  await page.getByRole('button', { name: 'Tomorrow' }).click();
+  await page.getByLabel('Date', { exact: true }).fill(addDays(rexburgDate(new Date()), 1));
   await page.getByLabel('Start time').fill('19:00');
   await page.getByLabel('Where?').fill('My place, near campus');
   await page.getByRole('radio', { name: 'Games' }).check();

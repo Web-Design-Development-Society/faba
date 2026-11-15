@@ -1036,7 +1036,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
      - Place (up to 120 characters). There are no online activities for now (ADR-017).
      - Category.
   2. Optional fields: description (up to 2,000 characters). Under **More options**: end time, cost note (up to 60 characters).
-  3. Quick date picks (Today, Tomorrow, This Saturday) and native date and time inputs.
+  3. Native date and time inputs, which open the phone's own calendar and time picker. UI-13 removed the quick date picks (Today, Tomorrow, This Saturday) on 2026-11-15.
   4. Validation runs on both client and server. The start must be in the future and no more than 12 months ahead, and the end must be after the start.
   5. On success, the organizer is redirected to the new activity, sees a "Posted!" toast, and is automatically going.
   6. A member can create at most 10 activities per 24 hours. Exceeding it shows a friendly message.
@@ -1976,7 +1976,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - Each field shows an example as placeholder text, such as "e.g., Mountain biking, Disc golf, Hiking" or "e.g., Hidden Valley Park". The labels stay visible.
   - **When?**:
     - The date and the start time sit side by side in one bordered control, with calendar and clock icons. Under 360 px they stack.
-    - **Today**, **Tomorrow** and **This Saturday** become outlined chips above it, not solid blue buttons that look like the form's main button.
+    - **Today**, **Tomorrow** and **This Saturday** become outlined chips above it, not solid blue buttons that look like the form's main button. UI-13 removed them on 2026-11-15.
   - **Where?** has a pin icon inside its field.
   - **Category** choices are pill-shaped chips that wrap onto more lines. Each is a radio button underneath, and the chosen one is FABA blue with a check.
   - **Details** is full width and 3 lines tall to start. Its hint suggests what to add: what to bring, the route, or a weather plan.
@@ -2383,7 +2383,6 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 | [ e.g., Mountain biking, Disc golf]|
 |                                    |
 | When?                              |
-| (Today)(Tomorrow)(This Saturday)   |
 | [[cal] Sat, Oct 25 |[clk] 7:00 AM] |
 |                                    |
 | Where?                             |
@@ -2405,7 +2404,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 ```
 
 - **One screen, not a wizard.** Wizards add taps and hide context. The form is short enough to scroll.
-- **Clear sections** (UI-06): each part is under a bold question, with no grey boxes. Text fields are full width with an example in them. The date and start time share one box with their icons, side by side, stacking under 360 px. Today, Tomorrow and This Saturday are outlined chips, and the categories are chips, each a radio button underneath. **Cancel** and **Post activity** end the form, and the bottom bar stays, with **＋ Post** as the current item. **Edit activity** uses the same layout, with **Save changes**.
+- **Clear sections** (UI-06): each part is under a bold question, with no grey boxes. Text fields are full width with an example in them. The date and start time share one box with their icons, side by side, stacking under 360 px. There are no date shortcuts (UI-13): the browser's own calendar and time picker are all **When?** needs. The categories are chips, each a radio button underneath. **Cancel** and **Post activity** end the form, and the bottom bar stays, with **＋ Post** as the current item. **Edit activity** uses the same layout, with **Save changes**.
 - **More options**, by phase:
   - **Phase 1:** end time, cost note, time zone.
   - **Phase 2:** spots (capacity), guests welcome, tags, details for attendees only.
