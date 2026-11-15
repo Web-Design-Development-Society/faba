@@ -39,7 +39,7 @@ test('the owner approves a request, makes an organizer, and hands the group on',
   const { data: notifications } = await member.from('notifications').select('type, group_id');
   expect(notifications).toEqual([{ type: 'group_join_approved', group_id: group!.id }]);
 
-  await page.getByRole('button', { name: 'Make Crowd Member 1 an organizer' }).click();
+  await page.getByRole('button', { name: 'Make organizer: Crowd Member 1' }).click();
   await expect(page.getByRole('status')).toHaveText("They're an organizer now.");
   await expect(page.getByRole('region', { name: 'Organizers' })).toContainText('Crowd Member 1');
 
