@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-14`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-15`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-14           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-15           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2258,6 +2258,41 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - first, the tokens, the font, the paper, the bottom bar and Discover
     - then the other pages
   - Size: L, one developer, including the tests.
+
+#### UI-15 · Alert cards on torn paper
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want my alerts to look like the rest of FABA, so that Alerts feels like part of the same app and new alerts still stand out.
+- **Acceptance criteria:**
+  - **Each alert is a piece of torn white paper,** like an activity's card (UI-14). That replaces UI-07's white card with a border, rounded corners and a shadow.
+  - **The name is in the display face, in capitals,** like an activity's title, with the capitals coming from CSS. The sentence that says what happened and the time ago stay in the system font. The name is still drawn above the sentence, and screen readers still hear the sentence first.
+  - **The type's icon sits in a square tile outlined in navy,** like the bottom bar's (UI-14).
+  - **Unread alerts:**
+    - An unread alert is on light-blue paper (`--sky`), and a read one on white.
+    - It keeps its dot before the name, so unread isn't shown by color alone.
+    - Screen readers still hear "Unread" first.
+    - The light-blue paper and the dot replace UI-07's blue left edge. A torn edge replaces the borders, so there's no left border left to color.
+  - **What stays:**
+    - Each card is still one button that marks the alert read and opens it, at least 44 px tall, with a visible focus ring.
+    - The sentence wraps as far as it needs, and nothing is cut off.
+    - **All | Unread**, the **New** and **Earlier** headings, **Mark all read**, **Show more** and the empty state stay as they are.
+    - The cards stay straight, not tilted, as in every list (UI-14).
+  - **On hover,** the chevron turns FABA blue and the name is underlined, since there's no border left to color.
+  - **In high contrast,** the paper gives way to a plain border, as everywhere else, and the unread dot still shows.
+  - At 320 px, 412 px and desktop, nothing scrolls sideways and the axe checks pass.
+  - **Tests:**
+    - The alerts E2E test checks that an unread card is on light-blue paper with its dot, and a read one on white paper with none, where it checked the blue left edge.
+    - The high-contrast test (UI-14) covers an alert card too.
+- **Dependencies:** UI-07, UI-14.
+- **Notes / edge cases:**
+  - **Use UI-14's tokens:** `background: var(--fill-white)` with `border-image: var(--torn-white) 16 / 14px round`, and `--fill-sky` and `--torn-sky` for unread.
+  - **Watch two things from UI-14:**
+    - The cards must stay tall enough for the torn edges' tiles, which an alert card is.
+    - The dot is a background color, which high contrast replaces. It needs `forced-color-adjust: none`, or a shape such as a border, to keep showing.
+  - **Mark these when it's built:**
+    - UI-07's "a blue left edge, a dot and a bold name"
+    - section 7.9's **Cards** and **Unread treatment** bullets
+  - Size: S, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
 
