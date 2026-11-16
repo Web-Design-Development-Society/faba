@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-13`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-13`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02`, `OPS-03`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -641,24 +641,24 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 ### 6.2 Story index
 
-| Area                   | Phase 0          | Phase 1            | Phase 2                     | Phase 3                            | Phase 4            | Phase 5  | Phase 6                  |
-| ---------------------- | ---------------- | ------------------ | --------------------------- | ---------------------------------- | ------------------ | -------- | ------------------------ |
-| Foundation             | FND-02 to FND-11 |                    |                             |                                    |                    |          |                          |
-| Auth                   |                  | AUTH-01 to AUTH-05 |                             |                                    |                    |          |                          |
-| Profiles               |                  | PROF-01 to PROF-05 |                             |                                    |                    |          |                          |
-| Public pages           |                  | INFO-01            |                             |                                    |                    |          |                          |
-| Activities             |                  | ACT-01 to ACT-06   | ACT-07 to ACT-09, ACT-11    | ACT-10                             |                    |          | ACT-12                   |
-| RSVP                   |                  | RSVP-01 to RSVP-03 | RSVP-04 to RSVP-06, RSVP-08 | RSVP-07, RSVP-09                   |                    |          |                          |
-| Search                 |                  |                    | SRCH-01 to SRCH-03          |                                    |                    |          |                          |
-| Notifications          |                  |                    | NOTIF-01 to NOTIF-08        | NOTIF-09, NOTIF-10                 |                    | NOTIF-13 | NOTIF-19, NOTIF-20       |
-| Moderation             |                  | MOD-01 to MOD-06   | MOD-07                      | MOD-08                             |                    |          |                          |
-| Groups / recurring     |                  |                    |                             | GRP-01 to GRP-05, REC-01 to REC-04 |                    |          | GRP-06                   |
-| History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                          |
-| Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                  |
-| Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                          |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-13 |
-| Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02         |
-| Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02, PERF-01, A11Y-01 |
+| Area                   | Phase 0          | Phase 1            | Phase 2                     | Phase 3                            | Phase 4            | Phase 5  | Phase 6                          |
+| ---------------------- | ---------------- | ------------------ | --------------------------- | ---------------------------------- | ------------------ | -------- | -------------------------------- |
+| Foundation             | FND-02 to FND-11 |                    |                             |                                    |                    |          |                                  |
+| Auth                   |                  | AUTH-01 to AUTH-05 |                             |                                    |                    |          |                                  |
+| Profiles               |                  | PROF-01 to PROF-05 |                             |                                    |                    |          |                                  |
+| Public pages           |                  | INFO-01            |                             |                                    |                    |          |                                  |
+| Activities             |                  | ACT-01 to ACT-06   | ACT-07 to ACT-09, ACT-11    | ACT-10                             |                    |          | ACT-12                           |
+| RSVP                   |                  | RSVP-01 to RSVP-03 | RSVP-04 to RSVP-06, RSVP-08 | RSVP-07, RSVP-09                   |                    |          |                                  |
+| Search                 |                  |                    | SRCH-01 to SRCH-03          |                                    |                    |          |                                  |
+| Notifications          |                  |                    | NOTIF-01 to NOTIF-08        | NOTIF-09, NOTIF-10                 |                    | NOTIF-13 | NOTIF-19, NOTIF-20               |
+| Moderation             |                  | MOD-01 to MOD-06   | MOD-07                      | MOD-08                             |                    |          |                                  |
+| Groups / recurring     |                  |                    |                             | GRP-01 to GRP-05, REC-01 to REC-04 |                    |          | GRP-06                           |
+| History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                  |
+| Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                          |
+| Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                  |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-13         |
+| Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                 |
+| Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02, OPS-03, PERF-01, A11Y-01 |
 
 ### 6.3 Phase 0 stories
 
@@ -2216,6 +2216,30 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - The limit was there against spam. FABA's sign-in is limited to `byui.edu` accounts, and reports and moderation handle a bad group. If spam groups appear, a limit can come back, set higher.
   - Leagues are on hold (ADR-018). If they come back, Start a league follows the same rule.
   - Size: S, one developer, including the tests.
+
+#### OPS-03 · Fix the minimatch security alert
+
+- **Role:** Technical owner · **Priority:** Should · **Phase:** 6
+- **Story:** As a technical owner, I want the open Dependabot alert for `minimatch` fixed, so that the alert list is empty and the next real alert stands out.
+- **Acceptance criteria:**
+  - Dependabot alert 1 is closed as fixed, not dismissed. It's GHSA-g3hv-75wg-m249 (CVE-2026-118764), of medium severity: a crafted glob pattern can make `minimatch` take a very long time.
+  - Every copy of `minimatch` in `package-lock.json` is 11.0.1 or later, and `npm ls minimatch --all` shows no 10.x.
+  - **How:**
+    - ESLint goes to 10.15.0 or later. ESLint and `@eslint/config-array` already ask for `minimatch` ^11.0.5 there.
+    - typescript-eslint is different. Even its latest, 8.72.2, has `@typescript-eslint/typescript-estree` asking for `minimatch` ^10.2.2. An `overrides` entry in `package.json` gives it ^11.0.5 instead. A note beside it says why, and to remove it once typescript-eslint asks for 11 itself.
+  - **ESLint still checks what it did before.** `npm run lint` and the commit hook pass. A deliberate type-aware error in a `.ts` file and in an `.astro` file is still reported, so the override hasn't broken how typescript-eslint reads files.
+  - Every CI check passes.
+  - Nothing members use changes. `minimatch` is a development dependency only, so the Worker that's deployed is the same.
+- **Dependencies:** none.
+- **Notes / edge cases:**
+  - **The real risk is low.** Only ESLint and typescript-eslint use `minimatch`. They run on maintainers' computers and in CI, with FABA's own config's patterns, and they aren't in the Worker that serves members. Fixing it still matters, so that old alerts don't hide a new one.
+  - `minimatch` 11's only breaking change for FABA is dropping Node 18. FABA needs Node 22 or later, and CI runs 24.
+  - **Why Dependabot didn't fix it:**
+    - Its security updates are off for the repository.
+    - Its weekly updates can't move `minimatch` past typescript-eslint's ^10 range anyway.
+  - **If `minimatch` 11 breaks typescript-eslint,** don't force it. With the technical owner's OK, dismiss the alert as a tolerable risk, linking this story. Then come back when typescript-eslint updates.
+  - Sections 9.14 and 12.8 say CI runs `npm audit` and fails on high severity, but `ci.yml` has no such step. That's separate from this story.
+  - Size: S, one developer, including the checks.
 
 ### 6.10 Won't Have Yet
 
