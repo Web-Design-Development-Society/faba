@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-13`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02`, `OPS-03`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-13`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -641,24 +641,24 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 ### 6.2 Story index
 
-| Area                   | Phase 0          | Phase 1            | Phase 2                     | Phase 3                            | Phase 4            | Phase 5  | Phase 6                          |
-| ---------------------- | ---------------- | ------------------ | --------------------------- | ---------------------------------- | ------------------ | -------- | -------------------------------- |
-| Foundation             | FND-02 to FND-11 |                    |                             |                                    |                    |          |                                  |
-| Auth                   |                  | AUTH-01 to AUTH-05 |                             |                                    |                    |          |                                  |
-| Profiles               |                  | PROF-01 to PROF-05 |                             |                                    |                    |          |                                  |
-| Public pages           |                  | INFO-01            |                             |                                    |                    |          |                                  |
-| Activities             |                  | ACT-01 to ACT-06   | ACT-07 to ACT-09, ACT-11    | ACT-10                             |                    |          | ACT-12                           |
-| RSVP                   |                  | RSVP-01 to RSVP-03 | RSVP-04 to RSVP-06, RSVP-08 | RSVP-07, RSVP-09                   |                    |          |                                  |
-| Search                 |                  |                    | SRCH-01 to SRCH-03          |                                    |                    |          |                                  |
-| Notifications          |                  |                    | NOTIF-01 to NOTIF-08        | NOTIF-09, NOTIF-10                 |                    | NOTIF-13 | NOTIF-19, NOTIF-20               |
-| Moderation             |                  | MOD-01 to MOD-06   | MOD-07                      | MOD-08                             |                    |          |                                  |
-| Groups / recurring     |                  |                    |                             | GRP-01 to GRP-05, REC-01 to REC-04 |                    |          | GRP-06                           |
-| History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                  |
-| Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                          |
-| Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                  |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-13         |
-| Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                 |
-| Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02, OPS-03, PERF-01, A11Y-01 |
+| Area                   | Phase 0          | Phase 1            | Phase 2                     | Phase 3                            | Phase 4            | Phase 5  | Phase 6                            |
+| ---------------------- | ---------------- | ------------------ | --------------------------- | ---------------------------------- | ------------------ | -------- | ---------------------------------- |
+| Foundation             | FND-02 to FND-11 |                    |                             |                                    |                    |          |                                    |
+| Auth                   |                  | AUTH-01 to AUTH-05 |                             |                                    |                    |          |                                    |
+| Profiles               |                  | PROF-01 to PROF-05 |                             |                                    |                    |          |                                    |
+| Public pages           |                  | INFO-01            |                             |                                    |                    |          |                                    |
+| Activities             |                  | ACT-01 to ACT-06   | ACT-07 to ACT-09, ACT-11    | ACT-10                             |                    |          | ACT-12                             |
+| RSVP                   |                  | RSVP-01 to RSVP-03 | RSVP-04 to RSVP-06, RSVP-08 | RSVP-07, RSVP-09                   |                    |          |                                    |
+| Search                 |                  |                    | SRCH-01 to SRCH-03          |                                    |                    |          |                                    |
+| Notifications          |                  |                    | NOTIF-01 to NOTIF-08        | NOTIF-09, NOTIF-10                 |                    | NOTIF-13 | NOTIF-19, NOTIF-20                 |
+| Moderation             |                  | MOD-01 to MOD-06   | MOD-07                      | MOD-08                             |                    |          |                                    |
+| Groups / recurring     |                  |                    |                             | GRP-01 to GRP-05, REC-01 to REC-04 |                    |          | GRP-06                             |
+| History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
+| Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
+| Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-13           |
+| Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
+| Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
 ### 6.3 Phase 0 stories
 
@@ -2240,6 +2240,35 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - **If `minimatch` 11 breaks typescript-eslint,** don't force it. With the technical owner's OK, dismiss the alert as a tolerable risk, linking this story. Then come back when typescript-eslint updates.
   - Sections 9.14 and 12.8 say CI runs `npm audit` and fails on high severity, but `ci.yml` has no such step. That's separate from this story.
   - Size: S, one developer, including the checks.
+
+#### OPS-04 · Fix the ESLint import rule for Supabase clients
+
+- **Role:** Technical owner · **Priority:** Should · **Phase:** 6
+- **Story:** As a technical owner, I want both of the lint rules that guard the Supabase clients to work, so that a page can't quietly make a client that skips Row Level Security.
+- **Acceptance criteria:**
+  - **The `createClient` rule checks every file it's meant to.** Importing `createClient` from `@supabase/supabase-js` is an error in every `.ts` and `.astro` file under `src`, except `src/lib/server/admin.ts` and the push sender, `src/lib/server/push/send.ts`. The message says to use the request client from `src/lib/server/supabase.ts`.
+  - **The secret-key rule still works.** Importing `server/admin` is an error everywhere under `src` except `src/actions/profile.ts`, the account-deletion Action.
+  - **Neither rule replaces the other.** A file that both rules apply to gets both.
+  - **Nothing outside `src` changes.** The tests and scripts can still make their own clients.
+  - **Type imports stay allowed.** `import type { SupabaseClient } from '@supabase/supabase-js'` is still fine everywhere.
+  - **A unit test checks the rules** with ESLint's Node API, on code at representative paths:
+    - a page, an Action, a component and `src/actions/profile.ts` are flagged for `createClient`
+    - `admin.ts`, the push sender and a test file are not
+    - a page is flagged for `server/admin`, and `profile.ts` is not
+    - a type import is not flagged
+  - `npm run lint` passes with no change to any file in `src`, since nothing breaks the rules today.
+  - Section 9.6's **Admin client** bullet names both rules and their exceptions.
+- **Dependencies:** PROF-05, NOTIF-20.
+- **Notes / edge cases:**
+  - **The bug:**
+    - `eslint.config.js` has two blocks for `src/**/*.{ts,astro}` that both set `no-restricted-imports`. In ESLint's flat config, when two blocks set the same rule for a file, the later one's settings replace the earlier one's. They don't add up.
+    - NOTIF-20 added the `createClient` block on 2026-11-12, above PROF-05's secret-key block. So the secret-key block replaces it in every file but `profile.ts`, the one file the secret-key block skips.
+    - So far nothing has slipped through. Only `admin.ts` and the push sender import `createClient`, and both are allowed to.
+  - **Two ways to fix it:**
+    - Put both restrictions in one `no-restricted-imports` entry, then add blocks after it for the exceptions, each repeating the rule with only the part that applies to it.
+    - Or move one restriction to `@typescript-eslint/no-restricted-imports`, which is a separate rule, so the two can't replace each other. If so, check that it runs on `.astro` files too.
+  - OPS-03 found this while checking that the `minimatch` update didn't change what ESLint reports.
+  - Size: S, one developer, including the test.
 
 ### 6.10 Won't Have Yet
 
