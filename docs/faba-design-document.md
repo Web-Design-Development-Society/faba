@@ -1883,10 +1883,10 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 - **Role:** Member · **Priority:** Should · **Phase:** 6
 - **Story:** As a member, I want FABA to look consistent, in FABA blue with clear icons, so that I can find my way around at a glance.
 - **Acceptance criteria:**
-  - Every selected state is FABA blue (`--blue`) with white text: the **Activities | Groups** control, chosen chips, and the center **＋ Post** button. Nothing in the app's frame is black.
-  - The bottom bar keeps its five items in the same order: **Discover**, **Plans**, **＋ Post**, **Alerts** and **Me**. Each has a line icon above its label. **＋ Post** is a blue circle with "Post" under it. The current tab is blue, with a bolder label and an underline, so it isn't shown by color alone. The Alerts badge stays.
+  - Every selected state is FABA blue (`--blue`) with white text: the **Activities | Groups** control, chosen chips, and the center **＋ Post** button. Nothing in the app's frame is black. (UI-14 made **＋ Post** a navy square on 2026-11-16.)
+  - The bottom bar keeps its five items in the same order: **Discover**, **Plans**, **＋ Post**, **Alerts** and **Me**. Each has a line icon above its label. **＋ Post** is a blue circle with "Post" under it. The current tab is blue, with a bolder label and an underline, so it isn't shown by color alone. The Alerts badge stays. (UI-14 put each icon in a square tile, the current one light blue and underlined, and made **＋ Post** a navy square.)
   - One small set of line icons lives in one component (`src/components/Icon.astro`) as inline SVG: search, back, calendar, clock, pin, people, bell, check, arrows, chevron, plus, and one for each category. They're 20 to 24 px, in navy or blue. An icon beside text is hidden from screen readers. An icon-only button, such as Search or Back, has an accessible name. These icons replace the emoji now used for categories and alerts.
-  - Pages sit on a soft blue-gray background, and content sits on white cards with a 1 px border, a soft shadow and the shared radius.
+  - Pages sit on a soft blue-gray background, and content sits on white cards with a 1 px border, a soft shadow and the shared radius. (UI-14 replaced these with torn paper on FABA blue on 2026-11-16.)
   - The header shows the logo with the FABA wordmark beside it. **Search** is an outlined square icon button beside the page's heading. Detail pages show a back chevron. Each is at least 44 px.
   - Body text is at least 16 px, and secondary text at least 14 px. Text meets 4.5:1 contrast, and controls and borders meet 3:1.
   - Small fixes seen while comparing the mockups:
@@ -1914,7 +1914,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - The title wraps by words, never one word per line.
     - The day and time show in full on one line, worded as section 7.5 says, such as "Tomorrow 6:30 PM".
     - A place too long for its line ends with an ellipsis. The full place is on the activity's page.
-  - A card still has at most one status badge (Cancelled, Full, Board activity or New), and **Your next plan** keeps its blue edge.
+  - A card still has at most one status badge (Cancelled, Full, Board activity or New), and **Your next plan** keeps its blue edge. (UI-14 put it on light blue paper instead.)
   - The whole card except the button still opens the activity. A chevron at the right shows this, hidden from screen readers.
   - Discover, Plans, Search and group pages all use the same card.
   - The E2E tests check, at 320 px and 412 px, that the time row isn't cut off and that nothing scrolls sideways.
@@ -2431,17 +2431,17 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 
 ### 7.5 Activity cards
 
-| Element               | Rule                                                                                                                                                |
-| --------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Date badge            | The month and day in a FABA blue badge, at the top left                                                                                             |
-| Picture               | The cover's small copy (MEDIA-01), or the category's line icon on a tint of its color. Its label is the category's name                             |
-| Category color stripe | Always shown down the left edge, except on **Your next plan**, which is FABA blue. Color is never the only signal                                   |
-| Title                 | Up to 2 lines, truncated with an ellipsis                                                                                                           |
-| When                  | A row with a calendar icon. Relative for the next 6 days ("Tomorrow 6:30 PM", "Sat 7:00 AM"), absolute after that ("Nov 3, 6:30 PM"). Never cut off |
-| Where                 | A row with a pin icon. Short place text or "Online". At most 1 line, ending with an ellipsis                                                        |
-| Social proof          | Along the bottom: up to 3 avatars, overlapping a little, plus "8 going". "+3 guests" appears only in details                                        |
-| Status                | One badge at most, in priority order: Cancelled → Full → Board activity → New                                                                       |
-| Action                | **I'm in** / **✓ Going** at the right of the bottom row, 44 px tall. The whole card (except the button) opens details, which a chevron shows        |
+| Element        | Rule                                                                                                                                                |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Date badge     | The month and day in a FABA blue badge, at the top left, in the display face (UI-14)                                                                |
+| Picture        | The cover's small copy (MEDIA-01), or the category's line icon on a tint of its color. Its label is the category's name                             |
+| Category color | The picture's tint. UI-14's torn paper edges replaced the stripe down the left edge. Color is never the only signal                                 |
+| Title          | Up to 2 lines, in the display face in capitals (UI-14), truncated with an ellipsis                                                                  |
+| When           | A row with a calendar icon. Relative for the next 6 days ("Tomorrow 6:30 PM", "Sat 7:00 AM"), absolute after that ("Nov 3, 6:30 PM"). Never cut off |
+| Where          | A row with a pin icon. Short place text or "Online". At most 1 line, ending with an ellipsis                                                        |
+| Social proof   | Along the bottom: up to 3 avatars, overlapping a little, plus "8 going". "+3 guests" appears only in details                                        |
+| Status         | One badge at most, in priority order: Cancelled → Full → Board activity → New                                                                       |
+| Action         | **I'm in** / **✓ Going** at the right of the bottom row, 44 px tall. The whole card (except the button) opens details, which a chevron shows        |
 
 - **Layout** (UI-03): a card is laid out for its own width. Wider than 24rem, the time and place sit beside the date and picture. On a phone, they take the card's whole width under the title, so a 320 px screen never squeezes them into a narrow column.
 
@@ -2637,8 +2637,9 @@ The same HTML serves all widths. CSS (container queries and media queries) handl
 
 ### 7.17 Visual and content style
 
-- **Fonts:** a system font stack, with no web-font download.
-- **Themes:** light and dark mode follow the OS setting.
+- **Fonts:** a system font stack for text. One self-hosted display face, Anton (SIL Open Font License, 18 KB for Latin), is for headings, card titles, tabs, filter labels, badges and the bottom bar's labels, in capitals by CSS (UI-14). It's preloaded, with fallbacks sized to it, and no font service is used.
+- **Look:** cut paper (UI-14, `mockups/discover_collage.webp`). FABA blue with a faint texture is behind everything. Each page's content is on one torn paper sheet, and cards, tabs and the main pages' headings are pieces of torn paper on it. A few things tilt, by 2 degrees at most. Text is always on solid paper or solid blue, and in high-contrast mode the paper gives way to plain borders.
+- **Themes:** light and dark mode follow the OS setting. (So far FABA has only the light theme.)
 - **Color:** a warm primary color and a distinct, accessible color plus icon for each category.
 - **Icons:** an inline SVG sprite, without an icon font.
 - **Voice:** first-name friendly and inclusive. Avoid official-sounding language. The footer on every page reads: _"FABA is an informal faculty social space, not an official BYU-Idaho communication channel."_

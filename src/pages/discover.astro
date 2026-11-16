@@ -143,7 +143,7 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
   {rsvp?.error && <p role="alert">{rsvp.error.message}</p>}
 
   {plan.data && (
-    <section aria-labelledby="plan">
+    <section class="plan" aria-labelledby="plan">
       <h2 id="plan" class="section">
         Your next plan
       </h2>
@@ -235,21 +235,17 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
 </script>
 
 <style>
-  .top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  /* An outlined square icon button beside the heading (UI-02). */
+  /* A square icon button beside the heading (UI-02), outlined in navy like the bar's tiles. */
   .search {
     display: grid;
+    flex: none;
     place-items: center;
     width: 48px;
     height: 48px;
     color: var(--navy);
     background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border: 2px solid var(--navy);
+    border-radius: 0.5rem;
   }
   .search:hover {
     color: var(--blue);
@@ -258,13 +254,26 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
   /* Your next plan and Upcoming activities head the page's two parts, as in the mockup (UI-04). */
   .section {
     margin: 1.5rem 0 0.75rem;
-    font-size: 1.375rem;
-    font-weight: 800;
+    font-size: 1.875rem;
+  }
+  /* Your next plan is on a piece of light blue paper, with its card on it. */
+  .plan {
+    margin-top: 1rem;
+    padding: 0.25rem 0.75rem 0.875rem;
+    border: 1px solid transparent;
+    background: var(--fill-sky);
+    border-image: var(--torn-sky) 16 / 14px round;
+  }
+  .plan .section {
+    margin: 0.5rem 0 0.625rem;
   }
   /* Each day is a small label over its cards. */
   h3 {
     margin: 1.5rem 0 0.5rem;
-    font-size: 0.875rem;
+    font-family: var(--display);
+    font-size: 1.0625rem;
+    font-weight: 400;
+    letter-spacing: 0.04em;
     color: var(--navy);
     text-transform: uppercase;
   }

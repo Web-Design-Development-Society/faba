@@ -23,6 +23,7 @@
   },
   "dependencies": {
     "@astrojs/cloudflare": "^14.4.6",
+    "@fontsource/anton": "^5.3.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.119.0",
     "astro": "^7.4.8"

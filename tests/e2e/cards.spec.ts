@@ -5,7 +5,6 @@ import { formatSoon } from '../../src/lib/time';
 import { expect, expectAccessible, test } from './fixtures';
 
 const HOUR = 60 * 60 * 1000;
-const BLUE = 'rgb(11, 91, 211)';
 // Other tests post at the same time, so each activity has a title of its own.
 const named = (title: string) => `${title} ${crypto.randomUUID().slice(0, 8)}`;
 // Intl's spaces before AM and PM differ between Node and the Worker.
@@ -61,7 +60,7 @@ test('a card shows the whole time, the place on one line, and I’m in under the
   await expectAccessible(page);
 });
 
-test('your next plan has a blue edge', async ({ page, poster, host }) => {
+test('your next plan is on light blue paper', async ({ page, poster, host }) => {
   const title = named('Disc golf');
   const id = await host.post({
     title,
@@ -71,9 +70,14 @@ test('your next plan has a blue edge', async ({ page, poster, host }) => {
   await host.admin.from('rsvps').insert({ activity_id: id, user_id: poster.id, status: 'going' });
 
   await page.goto('/discover');
-  const plan = page.getByRole('region', { name: 'Your next plan' }).getByRole('article');
+  const region = page.getByRole('region', { name: 'Your next plan' });
+  const plan = region.getByRole('article');
   await expect(plan).toContainText(title);
-  await expect(plan).toHaveCSS('border-left-color', BLUE);
+  // Its card is white paper on a piece of light blue paper (UI-14).
+  const paper = (element: typeof region) =>
+    element.evaluate((el) => getComputedStyle(el).borderImageSource.match(/%23([0-9a-f]{6})/)?.[1]);
+  expect(await paper(region)).toBe('cfe1fa');
+  expect(await paper(plan)).toBe('ffffff');
 });
 
 test("a card shows its cover's small copy", async ({ page, poster }) => {
