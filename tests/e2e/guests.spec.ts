@@ -1,4 +1,5 @@
 // Bringing guests (RSVP-06). The pgTAP tests cover the rules and the counts.
+import { addDays, rexburgDate } from '../../src/lib/time';
 import { expect, expectAccessible, test } from './fixtures';
 
 test('a member going says how many guests they are bringing', async ({ page, signInAs, host }) => {
@@ -43,7 +44,7 @@ test('an organizer welcomes guests when posting', async ({ page, poster }) => {
   await page.goto('/activities/new');
   await page.getByLabel('What are you doing?').fill('Family picnic');
   await page.getByLabel('Start time').fill('12:00');
-  await page.getByRole('button', { name: 'Tomorrow' }).click();
+  await page.getByLabel('Date', { exact: true }).fill(addDays(rexburgDate(new Date()), 1));
   await page.getByLabel('Where?').fill('Porter Park');
   await page.getByRole('radio', { name: 'Food & Socials' }).check();
   await page.getByText('More options').click();

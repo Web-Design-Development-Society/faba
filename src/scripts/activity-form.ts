@@ -1,6 +1,6 @@
-// The activity form's extras with JavaScript (ACT-03, ACT-04): quick date picks, checking the time
-// rules before posting, naming the date's day and weekday in Repeats (REC-01), and restoring the
-// create form's draft. The form works without them, and the server checks everything again.
+// The activity form's extras with JavaScript (ACT-03, ACT-04): checking the time rules before
+// posting, naming the date's day and weekday in Repeats (REC-01), and restoring the create form's
+// draft. The form works without them, and the server checks everything again.
 import { monthlyLabels, weekdayWarning, type Freq } from '../lib/series';
 import { rexburgInstant } from '../lib/time';
 import { clearDraft, loadDraft, saveDraft } from './activity-draft';
@@ -11,15 +11,6 @@ if (form) enhance(form);
 function enhance(form: HTMLFormElement) {
   const input = (name: string) => form.elements.namedItem(name) as HTMLInputElement;
   const [date, start, end] = [input('date'), input('start_time'), input('end_time')];
-
-  const picks = form.querySelector<HTMLElement>('[data-quick-dates]')!;
-  picks.hidden = false;
-  picks.addEventListener('click', (event) => {
-    const pick = (event.target as Element).closest<HTMLButtonElement>('button[data-date]');
-    if (!pick) return;
-    date.value = pick.dataset.date!;
-    date.dispatchEvent(new Event('input', { bubbles: true }));
-  });
 
   // A series' monthly choices name the date's day and weekday, such as "Monthly on the 2nd
   // Tuesday", and its last date comes on or after it (REC-01).

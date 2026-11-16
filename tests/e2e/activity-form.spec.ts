@@ -1,9 +1,9 @@
-// The New activity form's layout (UI-06). Each project runs at its own width, so this checks a
-// 320 px iPhone SE, a 412 px Pixel and a desktop. create-activity.spec.ts covers posting.
+// The New activity form's layout (UI-06), and When? on New and Edit (UI-13). Each project runs at
+// its own width, so this checks a 320 px iPhone SE, a 412 px Pixel and a desktop.
+// create-activity.spec.ts covers posting.
 import { expect, expectAccessible, test } from './fixtures';
 
 const BLUE = 'rgb(11, 91, 211)';
-const WHITE = 'rgb(255, 255, 255)';
 
 test('the form reads as sections, fits the screen, and keeps the bottom bar', async ({
   page,
@@ -38,9 +38,6 @@ test('the form reads as sections, fits the screen, and keeps the bottom bar', as
   if (page.viewportSize()!.width < 360) expect(time.y).toBeGreaterThan(date.y + date.height - 1);
   else expect(Math.abs(time.y - date.y)).toBeLessThanOrEqual(2);
 
-  // The quick dates are outlined chips, not filled buttons.
-  await expect(page.getByRole('button', { name: 'Tomorrow' })).toHaveCSS('background-color', WHITE);
-
   // A category is a chip: tapping its name chooses it, and it turns FABA blue.
   const games = page.getByRole('radio', { name: 'Games' });
   await page.locator('.pill', { hasText: 'Games' }).click();
@@ -55,6 +52,33 @@ test('the form reads as sections, fits the screen, and keeps the bottom bar', as
     true
   );
   await expectAccessible(page);
+});
+
+test('When? is just a date and a time, on New and Edit (UI-13)', async ({ page, poster }) => {
+  const { data } = await poster.admin
+    .from('activities')
+    .insert({
+      organizer_id: poster.id,
+      category_id: 'games',
+      title: 'Board game night',
+      starts_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      location_name: 'Library',
+    })
+    .select('id')
+    .single();
+
+  for (const path of ['/activities/new', `/activities/${data!.id}/edit`]) {
+    await page.goto(path);
+    // No shortcuts: the browser's own calendar and time picker are all there is.
+    const when = page.getByRole('group', { name: 'When?' });
+    await expect(when.getByRole('button')).toHaveCount(0);
+    for (const name of ['Today', 'Tomorrow', 'This Saturday']) {
+      await expect(page.getByRole('button', { name, exact: true })).toHaveCount(0);
+    }
+    await expect(when.getByLabel('Date', { exact: true })).toHaveAttribute('type', 'date');
+    await expect(when.getByLabel('Start time')).toHaveAttribute('type', 'time');
+    await expectAccessible(page);
+  }
 });
 
 test('activities have no tags, on the form or the page (UI-09)', async ({ page, poster }) => {

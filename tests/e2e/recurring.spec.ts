@@ -60,15 +60,15 @@ test('the monthly choices name the chosen date', async ({ page, signInAs }) => {
   await signInAs('member');
   await page.goto('/activities/new');
   await page.getByText('More options').click();
-  await page.getByRole('button', { name: 'This Saturday' }).click();
-  const saturday = await page.getByLabel('Date', { exact: true }).inputValue();
+  const date = addDays(rexburgDate(new Date()), 10);
+  await page.getByLabel('Date', { exact: true }).fill(date);
   await expect(
-    page.getByRole('option', { name: `Monthly on the ${ordinalDay(saturday)}` })
+    page.getByRole('option', { name: `Monthly on the ${ordinalDay(date)}` })
   ).toBeAttached();
   await expect(
-    page.getByRole('option', { name: `Monthly on the ${nthWeekday(saturday)}` })
+    page.getByRole('option', { name: `Monthly on the ${nthWeekday(date)}` })
   ).toBeAttached();
-  await expect(page.getByLabel('Last date')).toHaveAttribute('min', saturday);
+  await expect(page.getByLabel('Last date')).toHaveAttribute('min', date);
 });
 
 test.describe('without JavaScript', () => {

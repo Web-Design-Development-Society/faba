@@ -1,6 +1,6 @@
 // Posting an activity (ACT-03).
 import type { Page } from '@playwright/test';
-import { quickDates, rexburgDate } from '../../src/lib/time';
+import { addDays, rexburgDate } from '../../src/lib/time';
 import { expect, expectAccessible, test } from './fixtures';
 
 /** Fills in the required fields, starting at `startTime` on the suggested day. */
@@ -77,19 +77,11 @@ test('the daily limit has a friendly message', async ({ page, poster }) => {
   await expectAccessible(page);
 });
 
-test('quick picks set the date, and the time rules are checked before posting', async ({
-  page,
-  signInAs,
-}) => {
+test('the time rules are checked before posting', async ({ page, signInAs }) => {
   await signInAs('member');
   await page.goto('/activities/new');
-  const { today, tomorrow, saturday } = quickDates(new Date());
-  await page.getByRole('button', { name: 'Tomorrow' }).click();
-  await expect(page.getByLabel('Date', { exact: true })).toHaveValue(tomorrow);
-  await page.getByRole('button', { name: 'This Saturday' }).click();
-  await expect(page.getByLabel('Date', { exact: true })).toHaveValue(saturday);
-  await page.getByRole('button', { name: 'Today' }).click();
-  await expect(page.getByLabel('Date', { exact: true })).toHaveValue(today);
+  const today = rexburgDate(new Date());
+  await page.getByLabel('Date', { exact: true }).fill(today);
 
   // Midnight today has always passed, so the browser stops the post.
   await fillRequired(page, '00:00');
@@ -100,7 +92,7 @@ test('quick picks set the date, and the time rules are checked before posting', 
     'Pick a time in the future.'
   );
 
-  await page.getByRole('button', { name: 'Tomorrow' }).click();
+  await page.getByLabel('Date', { exact: true }).fill(addDays(today, 1));
   await page.getByLabel('Start time').fill('07:00');
   await page.getByText('More options').click();
   await page.getByLabel('End time').fill('06:00');
