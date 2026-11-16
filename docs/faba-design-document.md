@@ -601,7 +601,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Web Push** as a channel. The delivery pipeline already supports it, and installed PWAs on iOS 16.4+ and Android support it.
 - **Image uploads** for activity covers and group banners, using Cloudflare Images or R2, with moderation.
 - **Comments** on activities (flat, moderated), if Phase 3 feedback supports them.
-- **A clearer look** from the 2026 mockups (`mockups/discover.webp`, `mockups/new_activity_and_alerts.webp`): FABA blue and icons throughout, cards that show the whole time and place, filters that fit the screen, an easier activity page and form, and alerts as cards.
+- **A clearer look** from the 2026 mockups (`mockups/discover.webp`, `mockups/new_activity_and_alerts.webp`): FABA blue and icons throughout, cards that show the whole time and place, filters that fit the screen, an easier activity page and form, and alerts as cards. Then a bolder cut-paper look (`mockups/discover_collage.webp`, UI-14): heavy condensed capitals, torn paper on FABA blue, and stickers.
 - **Playoff brackets** for leagues.
 - **Data retention automation**, and a data export ("download my data").
 - **Performance:** query review with `pg_stat_statements`, edge caching of non-personalized fragments, Smart Placement tuning.
@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-13`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-14`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-13           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-14           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2196,6 +2196,68 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - `quickDates()` in `lib/time.ts`, with its unit test
   - Mark ACT-03's criterion 3 and UI-06's line about the chips as replaced. Take the chips out of section 7.7's sketch and its **Clear sections** bullet.
   - Size: S, one developer, including the tests.
+
+#### UI-14 · A bold cut-paper look
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want FABA to look bold and playful, like a poster on the faculty lounge board, so that it feels like a social space worth opening and not another campus system.
+- **Acceptance criteria:**
+  - **Display type:**
+    - Page headings, section headings, card titles, the **Activities | Groups** tabs, filter labels, badges and the bottom bar's labels use one heavy, condensed display face, in capitals.
+    - The capitals come from CSS (`text-transform: uppercase`), so the HTML, screen readers and the tests keep the words as written.
+    - Everything else stays in the system font and in sentence case, at least 16 px. That includes descriptions, comments, details, form fields, hints and messages, so long text is never in capitals.
+    - Page headings are big. **Discover** spans most of a 412 px screen and still fits on one line at 320 px.
+    - The face is one self-hosted, Latin-only `woff2` file under the SIL Open Font License (such as Anton or Bebas Neue), 30 KB at most. It's preloaded, with `font-display: swap` and fallback metrics, so the page doesn't jump when it arrives.
+  - **Paper and torn edges:**
+    - The page's background is FABA blue with a faint paper texture. Content sits on paper panels, off-white or light blue, with torn edges. These replace UI-02's white cards with soft shadows.
+    - Torn edges are made in CSS (`clip-path`, or an SVG mask), and the texture is one small tiled image or an inline SVG filter. Together they're 15 KB at most, and they have no text in them.
+    - Text always sits on solid paper or solid blue, never on the texture or across a torn edge. Navy on paper and white on blue meet 4.5:1, and controls and borders meet 3:1.
+    - A few things tilt, by 2 degrees at most: the page heading's strip, the **Activities | Groups** tabs and badges. Fields, the cards in a list and the bottom bar stay straight, so lists read cleanly and taps land where they look.
+  - **Discover, as in the mockup.** The order and content stay as they are today (UI-03, UI-04, UI-09).
+    - The header is the logo, the FABA wordmark and the motto (UI-08), on a torn white strip.
+    - **Discover** is in big capitals, with **Search** a square button beside it.
+    - **Activities | Groups** are two torn-paper tabs. The current one is FABA blue with white text, and the other is light blue with navy text.
+    - **Your next plan** and **Upcoming activities** are big section headings.
+    - **Cards:**
+      - the date block (month over day) in FABA blue at the left edge
+      - the cover's small copy
+      - the title in display capitals
+      - then the time, the place and who's going, with a chevron
+    - **You're hosting** is a blue sticker with a few burst lines, tilted slightly.
+    - The **Category** and **Date** filters are bordered boxes with a chevron, with their labels in display capitals.
+  - **The bottom bar:**
+    - Each item is an icon in a rounded square tile, with its label in display capitals under it.
+    - The current item's tile is filled light blue. It's still marked by more than color, with `aria-current` and a bolder label.
+    - **＋ Post** is a navy square with a white plus, raised a little above the bar. This replaces UI-02's blue circle.
+  - **Every page follows**, through the layout, the shared tokens and the shared components, not page by page. That covers Plans, Groups and a group's page, an activity's page, Alerts, Me, every form (UI-12), Search, Welcome, and the moderation and admin pages. Their structure and wording don't change.
+  - **Accessibility:**
+    - In high-contrast mode (`forced-colors: active`), the texture and torn edges drop away and plain borders show.
+    - Focus rings stay visible on paper and on blue.
+    - Every control is still at least 44 px, and nothing scrolls sideways at 320 px.
+    - The axe checks pass at 320 px, 412 px and desktop.
+  - **Performance:** Discover, an activity's page and New activity stay within section 12.10's budgets on throttled 4G:
+    - CSS at most 25 KB gzipped
+    - Largest Contentful Paint under 2 seconds
+    - Cumulative Layout Shift under 0.1
+  - **Tests:**
+    - The existing E2E tests pass unchanged, since they find things by role and name, which don't change.
+    - A new E2E test checks that **Discover**'s heading is in the display face, in capitals by CSS only, and that its text in the page is still "Discover".
+    - The PR shows Discover at 412 px beside the mockup.
+- **Dependencies:** UI-02, UI-03, UI-08, UI-09, UI-10, UI-12.
+- **Notes / edge cases:**
+  - Mockup: `mockups/discover_collage.webp`. It's a small screenshot (313 × 607 px), so build from its look, not its pixels.
+  - **This changes earlier decisions.** Mark them when it's built:
+    - **Section 7.17** says "a system font stack, with no web-font download". The display face is the one exception, for short display text only.
+    - **UI-02** says white cards with a soft shadow on a blue-gray page, a blue circle for **＋ Post**, and "nothing in the app's frame is black". The paper panels and the navy Post square replace those.
+  - **Limits on the capitals and condensed face:**
+    - Capitals are harder to read in long runs, which is why only short labels use them.
+    - A condensed face is hard to read when it's small. Labels in it are no smaller than the text they replace.
+  - **Dark mode:** section 7.17 says themes follow the phone's setting, but FABA only has a light theme today. This look is light too, and a dark version would be a separate story.
+  - **The security policy** (`default-src 'self'`) allows a self-hosted font and texture. Nothing comes from a font service.
+  - **It can ship in two PRs:**
+    - first, the tokens, the font, the paper, the bottom bar and Discover
+    - then the other pages
+  - Size: L, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
 
