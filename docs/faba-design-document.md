@@ -2936,7 +2936,12 @@ faba/
 ### 9.6 Supabase integration and data access pattern
 
 - **Per-request client:** middleware creates a `createServerClient` from `@supabase/ssr` with `getAll` and `setAll` cookie adapters over `Astro.cookies` and the request headers, and stores it on `Astro.locals.supabase`. Every page and Action uses this client, so it carries the user's session.
-- **Admin client:** `src/lib/server/admin.ts` creates a secret-key client. It may be imported only by the account-deletion Action. Enforce this with an ESLint `no-restricted-imports` rule. Remember that the secret key **bypasses RLS**.
+- **Admin client:** `src/lib/server/admin.ts` creates a secret-key client. It may be imported only by the account-deletion Action. The push sender (`src/lib/server/push/send.ts`, NOTIF-20) makes its own, since it runs outside any request. Remember that the secret key **bypasses RLS**.
+  - **ESLint's `no-restricted-imports` enforces both rules (OPS-04).**
+    - Importing `server/admin` is an error everywhere in `src` except the account-deletion Action.
+    - Importing `createClient` from `@supabase/supabase-js` is an error everywhere in `src` except those two files.
+  - Both rules are in one entry. In flat config, a later block's setting for the same rule replaces an earlier one's, so separate blocks would cancel each other out.
+  - `tests/unit/lint-rules.test.ts` runs them on code at the paths that matter.
 - **Typed queries:** generate `db.types.ts` with `supabase gen types typescript` in CI, and fail the build if it drifts from the migrations.
 - **Reads:**
   - The Data API's query builder, on tables and on views marked `security_invoker = true` so RLS applies.
