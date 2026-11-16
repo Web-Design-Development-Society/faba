@@ -167,36 +167,6 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
 </Layout>
 
 <style>
-  .top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-  }
-  /* All | Unread, like Discover's Activities | Groups (UI-07). */
-  .switch {
-    display: flex;
-    margin: 0.5rem 0;
-    overflow: hidden;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-  }
-  .switch a {
-    display: grid;
-    flex: 1;
-    place-items: center;
-    min-height: 44px;
-    color: var(--navy);
-    text-decoration: none;
-  }
-  .switch a + a {
-    border-left: 1px solid var(--border);
-  }
-  .switch [aria-current] {
-    font-weight: 700;
-    color: white;
-    background: var(--blue);
-  }
   h2 {
     margin: 1.5rem 0 0.5rem;
     font-size: 0.875rem;

@@ -64,7 +64,7 @@ const activities = data ?? [];
 
 <Layout title={segment === 'going' ? 'Plans' : `${SEGMENTS[segment]} · Plans`} tab="plans">
   <h1>Plans</h1>
-  <nav aria-label="Plans" class="segments">
+  <nav aria-label="Plans" class="switch">
     {Object.entries(SEGMENTS).map(([id, name]) => (
       <a
         href={id === 'going' ? '/plans' : `/plans?show=${id}`}
@@ -127,27 +127,6 @@ const activities = data ?? [];
 </script>
 
 <style>
-  .segments {
-    display: flex;
-    overflow: hidden;
-    margin-bottom: 1rem;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-  }
-  .segments a {
-    display: grid;
-    flex: 1;
-    place-items: center;
-    min-height: 44px;
-    color: var(--navy);
-    text-decoration: none;
-  }
-  .segments [aria-current] {
-    font-weight: 600;
-    color: white;
-    background: var(--blue);
-  }
   /* minmax(0, 1fr) keeps a card with a long place on one line from widening the column. */
   ul {
     display: grid;
