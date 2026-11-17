@@ -15,12 +15,12 @@ test('a member going says how many guests they are bringing', async ({ page, sig
   await expectAccessible(page);
   await sheet.getByRole('button', { name: 'Save guests' }).click();
   await expect(page.getByRole('status')).toHaveText("You're going with 2 guests.");
-  const count = page.getByRole('button', { name: /2 going \(\+2 guests\)$/ });
-  await expect(count).toBeVisible();
+  const count = page.getByRole('region', { name: "Who's going" }).locator('.going');
+  await expect(count).toHaveText('2 going (+2 guests)', { useInnerText: true });
 
   // It's saved.
   await page.reload();
-  await expect(count).toBeVisible();
+  await expect(count).toHaveText('2 going (+2 guests)', { useInnerText: true });
   await page.getByRole('button', { name: '✓ Going' }).click();
   await expect(guests).toHaveValue('2');
 });

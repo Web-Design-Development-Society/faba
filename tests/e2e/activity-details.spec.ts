@@ -1,5 +1,4 @@
 // An activity's page (ACT-02).
-import type { Locator } from '@playwright/test';
 import { addDays, rexburgDate, rexburgInstant } from '../../src/lib/time';
 import { expect, expectAccessible, test } from './fixtures';
 
@@ -37,12 +36,13 @@ test('a member sees what, when, where and who on one screen', async ({ page, sig
   );
   await expect(page.getByText('Cost: Free')).toBeVisible();
   await expect(page.getByText('2 going')).toBeVisible();
-  await expect(page.getByRole('img', { name: 'Hana Host' })).toBeVisible();
-  await expect(page.getByRole('img', { name: 'Ada Admin' })).toHaveText('AA');
-  await expect(page.getByRole('link', { name: 'Hana Host' })).toHaveAttribute(
-    'href',
-    `/people/${host.id}`
-  );
+  // Everyone going is on the page (UI-21), each with their face or initials beside their name.
+  const who = page.getByRole('region', { name: "Who's going" });
+  await expect(who.getByRole('link', { name: 'Hana Host' })).toBeVisible();
+  await expect(who.getByRole('listitem').filter({ hasText: 'Ada Admin' })).toContainText('AA');
+  await expect(
+    page.getByText('Hosted by').getByRole('link', { name: 'Hana Host' })
+  ).toHaveAttribute('href', `/people/${host.id}`);
   // The full stop ends the sentence, not the address.
   await expect(page.getByRole('link', { name: 'https://example.com/r-trail' })).toHaveAttribute(
     'href',
@@ -163,7 +163,7 @@ test('a cancelled activity says why, and a hidden one is not available', async (
   await expect(page.getByText('Business opportunity')).toHaveCount(0);
 });
 
-test('the details card has a row for when, where, who and the host, each link on its own line', async ({
+test('the time and place are big with their links at the right, then the details, then who is going', async ({
   page,
   signInAs,
   host,
@@ -180,25 +180,43 @@ test('the details card has a row for when, where, who and the host, each link on
   await expect(page.locator('.category svg')).toHaveCount(1);
   await expect(page.locator('.category')).toHaveText('Outdoors');
 
+  // When, where and the host, with no icons (UI-21).
   const card = page.locator('.details');
-  await expect(card.locator('.row')).toHaveCount(4);
-  await expect(card.locator('.row > svg')).toHaveCount(3);
-  // Each link is under its row's words, never on a line by itself after a long place.
-  const below = async (words: string | RegExp, link: Locator) => {
-    const [a, b] = [(await card.getByText(words).boundingBox())!, (await link.boundingBox())!];
-    expect(b.y).toBeGreaterThanOrEqual(a.y + a.height - 1);
-    expect(b.x).toBeLessThanOrEqual(a.x + 1);
-  };
-  await below(/7:00\sAM$/, card.getByRole('button', { name: 'Add to calendar' }));
-  await below(
-    'Hidden Valley Park, north trailhead parking lot by the river',
-    card.getByRole('link', { name: 'Open in Maps' })
-  );
-  await expect(card.getByRole('button', { name: /1 going/ })).toBeVisible();
+  await expect(card.locator('.row')).toHaveCount(3);
+  await expect(card.locator('svg')).toHaveCount(0);
+  const time = card.getByText(/7:00\sAM$/);
+  const place = card.getByText('Hidden Valley Park, north trailhead parking lot by the river');
+  for (const big of [time, place]) {
+    const size = await big.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+    expect(size).toBeGreaterThanOrEqual(20);
+  }
+  // Add to calendar and Open in Maps are quiet words at the right of their rows, 44 px tall.
+  const cardBox = (await card.boundingBox())!;
+  for (const [words, link] of [
+    [time, card.getByRole('button', { name: 'Add to calendar' })],
+    [place, card.getByRole('link', { name: 'Open in Maps' })],
+  ] as const) {
+    const [a, b] = [(await words.boundingBox())!, (await link.boundingBox())!];
+    expect(b.x).toBeGreaterThan(a.x + a.width - 1);
+    expect(cardBox.x + cardBox.width - (b.x + b.width)).toBeLessThan(24);
+    expect(b.height).toBeGreaterThanOrEqual(44);
+    await expect(link).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+    await expect(link).toHaveCSS('border-top-style', 'none');
+  }
   await expect(card.getByText('Hosted by')).toBeVisible();
 
-  // The description has its heading, and the comment box is the page's width.
-  await expect(page.getByRole('heading', { name: 'Details', level: 2 })).toBeVisible();
+  // The details come after the place, and everyone going after the details, with no tap needed.
+  const details = page.getByRole('heading', { name: 'Details', level: 2 });
+  const who = page.getByRole('region', { name: "Who's going" });
+  const [detailsBox, whoBox] = [(await details.boundingBox())!, (await who.boundingBox())!];
+  expect(detailsBox.y).toBeGreaterThan(cardBox.y + cardBox.height);
+  expect(whoBox.y).toBeGreaterThan(detailsBox.y);
+  await expect(who.locator('.going')).toHaveText('1 going', { useInnerText: true });
+  await expect(who.getByRole('link', { name: 'Hana Host' })).toBeVisible();
+  // Only those who can manage attendees have the button for it.
+  await expect(who.getByRole('button', { name: 'Manage attendees' })).toHaveCount(0);
+
+  // The comment box is the page's width.
   const box = page.getByLabel('Ask a question or leave a comment');
   const [boxWidth, cardWidth] = [
     (await box.boundingBox())!.width,

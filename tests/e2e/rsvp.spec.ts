@@ -25,7 +25,9 @@ test("I'm in shows at once, and Undo takes it back", async ({ page, poster, host
 
   await expect(page.getByRole('button', { name: '✓ Going' })).toBeFocused();
   await expect(page.getByText('2 going')).toBeVisible();
-  await expect(page.getByRole('img', { name: 'Pat Poster' })).toBeVisible();
+  await expect(
+    page.getByRole('region', { name: "Who's going" }).getByRole('link', { name: 'Pat Poster' })
+  ).toBeVisible();
   const status = page.getByRole('status');
   await expect(status).toContainText("You're going.");
   await expect(page).toHaveURL(`/activities/${id}`);
@@ -35,7 +37,9 @@ test("I'm in shows at once, and Undo takes it back", async ({ page, poster, host
   await status.getByRole('button', { name: 'Undo' }).click();
   await expect(page.getByRole('button', { name: "I'm in" })).toBeFocused();
   await expect(page.getByText('1 going')).toBeVisible();
-  await expect(page.getByRole('img', { name: 'Pat Poster' })).toHaveCount(0);
+  await expect(
+    page.getByRole('region', { name: "Who's going" }).getByRole('link', { name: 'Pat Poster' })
+  ).toHaveCount(0);
   await expect(status).toHaveText('Undone.');
   await expect.poll(() => statusOf(host.admin, id, poster.id)).toBe('not_going');
 });
@@ -81,7 +85,9 @@ test("if I'm in can't be saved, it goes back and says why", async ({ page, poste
   );
   await expect(page.getByRole('button', { name: "I'm in" })).toBeVisible();
   await expect(page.getByText('1 going')).toBeVisible();
-  await expect(page.getByRole('img', { name: 'Pat Poster' })).toHaveCount(0);
+  await expect(
+    page.getByRole('region', { name: "Who's going" }).getByRole('link', { name: 'Pat Poster' })
+  ).toHaveCount(0);
   expect(await statusOf(host.admin, id, poster.id)).toBeNull();
 });
 
@@ -108,7 +114,9 @@ test("✓ Going opens a sheet, and Can't make it takes the member off the list",
   await expect(sheet).toBeHidden();
   await expect(page.getByRole('button', { name: "I'm in" })).toBeFocused();
   await expect(page.getByText('1 going')).toBeVisible();
-  await expect(page.getByRole('img', { name: 'Pat Poster' })).toHaveCount(0);
+  await expect(
+    page.getByRole('region', { name: "Who's going" }).getByRole('link', { name: 'Pat Poster' })
+  ).toHaveCount(0);
   await expect(page.getByRole('status')).toHaveText("You're not going.");
   await expect.poll(() => statusOf(host.admin, id, poster.id)).toBe('not_going');
 });
@@ -175,7 +183,9 @@ test.describe('without JavaScript', () => {
     await expect(page.getByRole('status')).toHaveText("You're going.");
     await expect(page.getByText('✓ Going')).toBeVisible();
     await expect(page.getByText('2 going')).toBeVisible();
-    await expect(page.getByRole('img', { name: 'Pat Poster' })).toBeVisible();
+    await expect(
+      page.getByRole('region', { name: "Who's going" }).getByRole('link', { name: 'Pat Poster' })
+    ).toBeVisible();
     expect(await statusOf(host.admin, id, poster.id)).toBe('going');
 
     // Reloading doesn't post again, and the message has gone.
@@ -214,7 +224,9 @@ test.describe('without JavaScript', () => {
     await expect(page.getByRole('status')).toHaveText("You're not going.");
     await expect(page.getByRole('button', { name: "I'm in" })).toBeVisible();
     await expect(page.getByText('1 going')).toBeVisible();
-    await expect(page.getByRole('img', { name: 'Pat Poster' })).toHaveCount(0);
+    await expect(
+      page.getByRole('region', { name: "Who's going" }).getByRole('link', { name: 'Pat Poster' })
+    ).toHaveCount(0);
     expect(await statusOf(host.admin, id, poster.id)).toBe('not_going');
   });
 

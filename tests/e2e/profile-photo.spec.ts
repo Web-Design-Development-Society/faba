@@ -64,10 +64,13 @@ test('a member adds a photo, sees it everywhere, and removes it', async ({
     /^\/api\/media\//
   );
   await page.goto(`/activities/${id}`);
-  await expect(page.getByRole('img', { name: 'Pat Poster' }).first()).toHaveAttribute(
-    'src',
-    /^\/api\/media\//
-  );
+  await expect(
+    page
+      .getByRole('region', { name: "Who's going" })
+      .getByRole('listitem')
+      .filter({ hasText: 'Pat Poster' })
+      .locator('img')
+  ).toHaveAttribute('src', /^\/api\/media\//);
 
   // Removing it goes back to the Google photo.
   await page.goto('/me/edit');

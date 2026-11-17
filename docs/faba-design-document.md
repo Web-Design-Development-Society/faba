@@ -1111,7 +1111,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 - **Role:** Member · **Priority:** Must · **Phase:** 1 · **Size:** M
 - **Story:** As a member, I want to see who else is going, so that I can join people I know or meet new colleagues.
 - **Acceptance criteria**
-  1. The going count plus up to 3 avatars appear on cards. On the detail page, tapping them opens the full attendee list (avatar, name, department), with the organizer first.
+  1. The going count plus up to 3 avatars appear on cards. On the detail page, tapping them opens the full attendee list (avatar, name, department), with the organizer first. (UI-17 left only the count on cards, and UI-21 lists everyone going on the detail page, with no tap.)
   2. The list contains only active members with `going` status. Suspended or deleted members are excluded.
   3. The list is visible only to members (RLS).
 - **Dependencies:** RSVP-01.
@@ -1959,6 +1959,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - **Who's going:** the avatars, and "12 going · 2 maybe ›".
     - **Hosted by:** the host's avatar and name.
   - A row's link sits on its own line under the row's text, so it never wraps onto a line by itself after a long place.
+  - (UI-21 changed the card on 2026-11-17: no icons, the time and place bigger, **Add to calendar** and **Open in Maps** as quiet words at the right of their rows, and who's going listed on the page after the details, not a row in the card.)
   - The details, **For attendees**, the safety note, **Updates**, and **Questions and comments** follow as sections with headings.
   - The comment box is full width.
   - The sticky bar keeps **I'm in**, or **Edit** and **Post update** for an organizer, styled as UI-02's buttons.
@@ -2691,14 +2692,12 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 | ([mtn] Outdoors)                   |  <- category chip
 | Sunrise hike up the R              |
 | +--------------------------------+ |
-| | [cal] Sat, Oct 25 . 7:00-9:30 AM| |
-| |       Add to calendar          | |
-| | [pin] R Mountain trailhead     | |
-| |       Open in Maps             | |
-| | [ppl] (o)(o)(o) 12 going . 2 maybe > |
+| | Sat, Oct 25 . 7:00-9:30 AM     | |
+| |                Add to calendar | |
+| | R Mountain trailhead           | |
+| |                   Open in Maps | |
 | | (o) Hosted by Dana Smith, Biology | |
 | +--------------------------------+ |
-| Free . Guests welcome              |
 |                                    |
 | DETAILS                            |
 | Easy pace, about 3 miles round     |
@@ -2708,6 +2707,12 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 | [lock] Exact location shared with  |
 | attendees after you RSVP.          |
 |                                    |
+| WHO'S GOING     [Manage attendees] |
+| 12 going . 2 maybe                 |
+| (o) Dana Smith  Organizer          |
+| (o) Lee Park, History              |
+| ...                                |
+|                                    |
 | UPDATES                            |
 | Dana, 2h ago: Parking is at the... |
 +------------------------------------+
@@ -2715,8 +2720,8 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 +------------------------------------+
 ```
 
-- The order of information follows the questions people ask: **what → when → where → who → details**.
-- **At a glance** (UI-05): when, where, who's going and the host are rows in one card, each with an icon (the host's with their avatar). **Add to calendar** and **Open in Maps** sit on their own lines under the time and the place. The category is a chip with its icon above the title. The details, **For attendees**, **Updates** and **Questions and comments** follow, each under a heading.
+- The order of information follows the questions people ask: **what → when → where → who → details**. (Since UI-21, the details come before the list of who's going, and the host stays in the card.)
+- **At a glance** (UI-05): when, where, who's going and the host are rows in one card, each with an icon (the host's with their avatar). **Add to calendar** and **Open in Maps** sit on their own lines under the time and the place. The category is a chip with its icon above the title. The details, **For attendees**, **Updates** and **Questions and comments** follow, each under a heading. (UI-21: the time and place are 1.25rem text with no icons, **Add to calendar** and **Open in Maps** are quiet words in the darker FABA blue at the right of their rows, and everyone going is listed on the page under **Who's going**, after the details. **Manage attendees** opens a sheet with the attendee list tools and co-organizers, for those who can manage them.)
 - **Maps >** opens the platform maps app with the place text as the query. There is no embedded map, which saves JavaScript, data, and privacy.
 - **Cal >** is **Add to calendar** (ACT-08), beside the time as **Maps** is beside the place, so it's there for organizers too, whose sticky bar is full. It opens a sheet with **Download for Apple Calendar or Outlook** (the `.ics` in section 8.13) and **Open in Google Calendar**, and says the calendar's copy won't change if the activity does. It's hidden once the activity is over.
 - **Organizer view:** the sticky bar shows **Edit** and **Post update** instead of RSVP. Their own RSVP state shows as "You're hosting".
