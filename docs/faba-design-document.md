@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-17`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-18`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-17           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-18           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2387,6 +2387,28 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - UI-03's layout criteria
     - section 7.5's Date badge, When, Where, Social proof and Action rows, and its Layout note
   - Size: M, one developer, including the tests.
+
+#### UI-18 · No banners on the main tabs
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want the main tabs to start with their content, not a big banner, so that I see more of what matters on a phone and the page is less busy.
+- **Acceptance criteria:**
+  - **Discover, Plans, Alerts and Me lose their banners,** the big page heading on a tilted white strip (UI-14). The bottom bar's highlighted item already says which page it is.
+  - **Discover's Groups half loses its banner too,** since it's the same **Discover** banner, so switching between Activities and Groups doesn't make it come and go.
+  - **Each page keeps its heading for screen readers,** hidden on screen. The page still has a title to jump to, and its headings keep their order.
+  - **What sat beside a banner stays, at the right of its row:** Discover's **Search** button, and Alerts' **Mark all read**.
+  - **New activity keeps its banner,** and so does every other page that has one, such as About and Edit profile.
+  - At 320 px, 412 px and desktop, nothing scrolls sideways and the axe checks pass.
+  - **Tests:**
+    - The look test checks that Discover's heading is there for screen readers but takes no room on screen, and that New activity's banner is still on its strip.
+    - The high-contrast test checks New activity's banner, since Discover no longer has one.
+- **Dependencies:** UI-14, UI-16.
+- **Notes / edge cases:**
+  - **Why:** on a phone, the banner took the top of every main page, above the content, while the bottom bar already shows where the member is.
+  - **Mark these when it's built:**
+    - UI-14's criteria about big page headings and Discover's header
+    - section 7.17
+  - Size: S, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
 
