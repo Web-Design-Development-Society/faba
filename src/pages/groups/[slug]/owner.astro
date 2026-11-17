@@ -1,5 +1,5 @@
 ---
-// Handing a group on (GRP-05), from its members. Its owner picks one of its members, who becomes the
+// Handing a group on (GRP-05), from Manage members on its page (UI-23). Its owner picks one of its members, who becomes the
 // owner, and stays on as an organizer, so they can leave it after. A moderator can do it too, such
 // as for a group whose owner left FABA, with a reason that goes to the audit log. The new owner
 // hears it's theirs. It works without JavaScript.
@@ -16,7 +16,7 @@ const { slug } = Astro.params;
 const result = Astro.getActionResult(actions.groups.transfer);
 if (result && !result.error) {
   setFlash(Astro.cookies, Astro.url, 'group_handed_on');
-  return Astro.redirect(`/groups/${slug}/members`, 303);
+  return Astro.redirect(`/groups/${slug}`, 303);
 }
 
 const { data: group } = await supabase
@@ -63,7 +63,7 @@ const picked = typed?.get('user_id')?.toString();
     </>
   ) : (
     <>
-      <Back href={`/groups/${group.slug}/members`}>Back to members</Back>
+      <Back href={`/groups/${group.slug}`}>Back to {group.name}</Back>
       <h1>Hand on {group.name}</h1>
       {!owner && !moderator ? (
         <p>Only the group's owner can hand it on.</p>
@@ -115,7 +115,7 @@ const picked = typed?.get('user_id')?.toString();
             </p>
           )}
           <div class="form-actions">
-            <a href={`/groups/${group.slug}/members`} class="button">
+            <a href={`/groups/${group.slug}`} class="button">
               Cancel
             </a>
             <button type="submit">Make them the owner</button>

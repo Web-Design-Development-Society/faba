@@ -76,7 +76,6 @@ test('member pages pass in both themes, and reflow at 320 px', async ({
     `/activities/${activity!.id}/edit`,
     '/groups/new',
     `/groups/${group!.slug}`,
-    `/groups/${group!.slug}/members`,
   ];
 
   const found: string[] = [];

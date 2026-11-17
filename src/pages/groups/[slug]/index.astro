@@ -5,20 +5,28 @@
 // upcoming activities follow, and its organizers have Post an activity (GRP-03). RLS leaves out the
 // members-only ones for anyone outside the group. Its updates come last, newest first, for its
 // members, and its organizers have Post update (GRP-04). Each can be reported. Its members and
-// moderators open who's in it from the member count, and its organizers see how many are asking to
-// join (GRP-05).
+// moderators see who's in it after Coming up (UI-23), and those who can manage it have Manage
+// members, a sheet with who's asking to join, roles, removing and handing it on (GRP-05).
 import { actions } from 'astro:actions';
 import ActivityCard from '../../../components/ActivityCard.astro';
+import Avatar from '../../../components/Avatar.astro';
 import Back from '../../../components/Back.astro';
 import CoverPicture from '../../../components/CoverPicture.astro';
 import FollowButton from '../../../components/FollowButton.astro';
 import PictureUpload from '../../../components/PictureUpload.astro';
+import Sheet from '../../../components/Sheet.astro';
 import Status from '../../../components/Status.astro';
 import Layout from '../../../layouts/Layout.astro';
 import { CARD, historySince } from '../../../lib/cards';
 import { LEAGUES } from '../../../lib/features';
 import { linkify } from '../../../lib/links';
-import { FLASH_MESSAGES, pictureRefusal, setFlash, takeFlash } from '../../../lib/server/flash';
+import {
+  type Flash,
+  FLASH_MESSAGES,
+  pictureRefusal,
+  setFlash,
+  takeFlash,
+} from '../../../lib/server/flash';
 import { formatAgo } from '../../../lib/time';
 
 const { supabase, user, member } = Astro.locals;
@@ -34,7 +42,28 @@ if (leave && !leave.error) {
   setFlash(Astro.cookies, Astro.url, leave.data.pending ? 'withdrawn' : 'left');
   return Astro.redirect(Astro.url.pathname, 303);
 }
-const failure = (join?.error ?? leave?.error)?.message;
+// Managing its members, from the sheet (GRP-05, UI-23).
+const approve = Astro.getActionResult(actions.groups.approve);
+const remove = Astro.getActionResult(actions.groups.remove);
+const setRole = Astro.getActionResult(actions.groups.setRole);
+const managed: Flash | null =
+  approve && !approve.error
+    ? 'approved'
+    : remove && !remove.error
+      ? remove.data.pending
+        ? 'declined'
+        : 'removed'
+      : setRole && !setRole.error
+        ? setRole.data.role === 'organizer'
+          ? 'made_organizer'
+          : 'made_member'
+        : null;
+if (managed) {
+  setFlash(Astro.cookies, Astro.url, managed);
+  return Astro.redirect(`${Astro.url.pathname}#members`, 303);
+}
+const failure = (join?.error ?? leave?.error ?? approve?.error ?? remove?.error ?? setRole?.error)
+  ?.message;
 const flash = takeFlash(Astro.cookies);
 // A refused banner says why next to its form, not in the toast (MEDIA-01).
 const pictureError = pictureRefusal(flash);
@@ -101,14 +130,32 @@ const withReason = (label: string, reason: string | null) =>
   reason ? `${label}. Reason: ${reason}` : label;
 const moderator =
   member?.status === 'active' && (member.role === 'moderator' || member.role === 'admin');
-const { count: asking } =
-  group && organizer
+// Who's in it, for its members and moderators. RLS lets them read them all, and anyone else only
+// their own, so anyone else sees just the count.
+const { data: rows } =
+  group && (me || moderator)
     ? await supabase
         .from('group_members')
-        .select('user_id', { count: 'exact', head: true })
+        .select(
+          'user_id, role, status, profile:profiles!group_members_user_id_fkey(id, display_name, avatar_url, use_initials, department, status)'
+        )
         .eq('group_id', group.id)
-        .eq('status', 'pending')
-    : { count: 0 };
+    : { data: null };
+const people = (rows ?? [])
+  .filter(({ profile }) => profile?.status === 'active')
+  .map(({ role, status, profile }) => ({ ...profile!, role, status }))
+  .sort((a, b) => a.display_name.localeCompare(b.display_name));
+const requests = organizer ? people.filter(({ status }) => status === 'pending') : [];
+const asking = requests.length;
+const active = people.filter(({ status }) => status === 'active');
+// The owner, then its organizers, then everyone else, each by name.
+const rank = { owner: 0, organizer: 1, member: 2 } as Record<string, number>;
+const listed = active.toSorted((a, b) => rank[a.role] - rank[b.role]);
+const owner = me?.role === 'owner';
+const organizers = active.filter(({ role }) => role === 'organizer');
+const others = active.filter(({ role, id }) => role === 'member' && id !== user.id);
+// Manage members is for its organizers, and for moderators, who can hand it on.
+const manage = organizer || moderator;
 const mine = group?.owner_id === user.id;
 const membership = group?.my_membership ?? null;
 // Whether the member follows the group (NOTIF-09). Only active members can, so only they see it.
@@ -158,22 +205,14 @@ const members = group?.member_count ?? 0;
         </details>
       )}
       <p>
-        {me || moderator ? (
-          <a href={`/groups/${group.slug}/members`} class="button">
-            {members} {members === 1 ? 'member' : 'members'}
-          </a>
-        ) : (
-          <>
-            {members} {members === 1 ? 'member' : 'members'}
-          </>
-        )}{' '}
-        · {group.join_policy === 'open' ? 'Anyone can join' : 'Ask to join'}
+        {members} {members === 1 ? 'member' : 'members'} ·{' '}
+        {group.join_policy === 'open' ? 'Anyone can join' : 'Ask to join'}
         {!!asking && (
           <>
             {' · '}
-            <a href={`/groups/${group.slug}/members`} class="button">
+            <button type="button" class="quiet" commandfor="manage" command="show-modal">
               {asking} asking to join
-            </a>
+            </button>
           </>
         )}
       </p>
@@ -272,6 +311,144 @@ const members = group?.member_count ?? 0;
           <p>Nothing planned yet.</p>
         )}
       </section>
+      {/* Everyone in it, on its page (UI-23), like who's going to an activity (UI-21). */}
+      {listed.length > 0 && (
+        <section id="members" aria-labelledby="members-heading" class="members">
+          <header>
+            <h2 id="members-heading">Members</h2>
+            {manage && (
+              <button type="button" class="quiet" commandfor="manage" command="show-modal">
+                Manage members
+              </button>
+            )}
+          </header>
+          <ul class="people">
+            {listed.map((person) => (
+              <li>
+                <Avatar member={person} />
+                <span>
+                  <a href={`/people/${person.id}`}>{person.display_name}</a>
+                  {person.role === 'owner' && <span class="badge">Owner</span>}
+                  {person.role === 'organizer' && <span class="badge">Organizer</span>}
+                  {person.department && <span class="department">{person.department}</span>}
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {/* Approving, roles, removing and handing it on, for those who can (GRP-05). Postgres checks
+          every rule again. */}
+      {manage && (
+        <Sheet id="manage" title="Manage members">
+          {requests.length > 0 && (
+            <section aria-labelledby="requests" class="manage">
+              <h3 id="requests">Asking to join</h3>
+              <ul>
+                {requests.map((person) => (
+                  <li>
+                    <span>{person.display_name}</span>
+                    <div class="actions">
+                      {!group.archived_at && (
+                        <form method="post" action={actions.groups.approve.queryString}>
+                          <input type="hidden" name="group_id" value={group.id} />
+                          <input type="hidden" name="user_id" value={person.id} />
+                          <button aria-label={`Approve ${person.display_name}`}>Approve</button>
+                        </form>
+                      )}
+                      <form method="post" action={actions.groups.remove.queryString}>
+                        <input type="hidden" name="group_id" value={group.id} />
+                        <input type="hidden" name="user_id" value={person.id} />
+                        <input type="hidden" name="pending" value="true" />
+                        <button class="secondary" aria-label={`Decline ${person.display_name}`}>
+                          Decline
+                        </button>
+                      </form>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {owner && organizers.length > 0 && (
+            <section aria-labelledby="organizers" class="manage">
+              <h3 id="organizers">Organizers</h3>
+              <ul>
+                {organizers.map((person) => (
+                  <li>
+                    <span>{person.display_name}</span>
+                    <div class="actions">
+                      <form method="post" action={actions.groups.setRole.queryString}>
+                        <input type="hidden" name="group_id" value={group.id} />
+                        <input type="hidden" name="user_id" value={person.id} />
+                        <input type="hidden" name="role" value="member" />
+                        {/* The visible words start the name, then whose it is (WCAG 2.5.3). */}
+                        <button
+                          class="secondary"
+                          aria-label={`Make member: ${person.display_name}`}
+                        >
+                          Make member
+                        </button>
+                      </form>
+                      <form method="post" action={actions.groups.remove.queryString}>
+                        <input type="hidden" name="group_id" value={group.id} />
+                        <input type="hidden" name="user_id" value={person.id} />
+                        <button class="danger" aria-label={`Remove ${person.display_name}`}>
+                          Remove
+                        </button>
+                      </form>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {organizer && others.length > 0 && (
+            <section aria-labelledby="everyone" class="manage">
+              <h3 id="everyone">Members</h3>
+              <ul>
+                {others.map((person) => (
+                  <li>
+                    <span>{person.display_name}</span>
+                    <div class="actions">
+                      {owner && (
+                        <form method="post" action={actions.groups.setRole.queryString}>
+                          <input type="hidden" name="group_id" value={group.id} />
+                          <input type="hidden" name="user_id" value={person.id} />
+                          <input type="hidden" name="role" value="organizer" />
+                          <button
+                            class="secondary"
+                            aria-label={`Make organizer: ${person.display_name}`}
+                          >
+                            Make organizer
+                          </button>
+                        </form>
+                      )}
+                      <form method="post" action={actions.groups.remove.queryString}>
+                        <input type="hidden" name="group_id" value={group.id} />
+                        <input type="hidden" name="user_id" value={person.id} />
+                        <button class="danger" aria-label={`Remove ${person.display_name}`}>
+                          Remove
+                        </button>
+                      </form>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
+          {organizer && !requests.length && !others.length && !(owner && organizers.length) && (
+            <p>Nobody else has joined yet.</p>
+          )}
+          {(owner || moderator) && (
+            <p>
+              <a class="button" href={`/groups/${group.slug}/owner`}>
+                Hand on this group
+              </a>
+            </p>
+          )}
+        </Sheet>
+      )}
       {past?.length ? (
         <section aria-labelledby="past" class="activities past">
           <header>
@@ -409,6 +586,90 @@ const members = group?.member_count ?? 0;
     font-weight: 600;
     border-left: 0.25rem solid #b42318;
     background: #fef3f2;
+  }
+  /* Manage members and "2 asking to join" are quiet, like Manage attendees (UI-21): words in the
+     darker FABA blue, still 44 px tall, underlined on hover. */
+  .quiet {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    min-height: 44px;
+    padding: 0 0.25rem;
+    color: var(--blue-dark);
+    font: inherit;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    white-space: nowrap;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    letter-spacing: normal;
+    text-transform: none;
+  }
+  .quiet:hover {
+    text-decoration: underline;
+    background: none;
+  }
+  .members header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+  }
+  .members h2 {
+    font-size: 1rem;
+  }
+  .people,
+  .manage ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .people li {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    min-height: 44px;
+    padding: 0.25rem 0;
+  }
+  .people a {
+    display: inline-block;
+    padding: 0.25rem 0;
+  }
+  .badge {
+    margin-left: 0.5rem;
+    padding: 0 0.375rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border: 1px solid #767676;
+    border-radius: 0.25rem;
+  }
+  .department {
+    display: block;
+    font-size: 0.875rem;
+    color: #595959;
+  }
+  .manage h3 {
+    margin: 1rem 0 0.25rem;
+    font-size: 1rem;
+  }
+  .manage li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .actions button {
+    padding: 0 0.75rem;
   }
   .membership {
     display: flex;
