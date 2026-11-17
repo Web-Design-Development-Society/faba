@@ -21,14 +21,16 @@ interface Props {
   tab?: 'discover' | 'plans' | 'post' | 'alerts' | 'me';
   /** Where Post goes, such as with Discover's category. */
   post?: string;
+  /** New activity's warm gradient and paper (UI-25). Every other page is blue. */
+  warm?: boolean;
 }
 
-const { title, tab, post = '/activities/new' } = Astro.props;
+const { title, tab, post = '/activities/new', warm = false } = Astro.props;
 const unread = Astro.locals.member?.unread_count ?? 0;
 const current = (item: string) => (item === tab ? ('page' as const) : undefined);
 ---
 
-<html lang="en">
+<html lang="en" class:list={{ warm }}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -190,6 +192,10 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     --card: #ffffff;
     --paper: #f7f4ec; /* cream paper, for the footer */
     --sky: #cfe1fa; /* light blue paper: navy on it is 12:1, FABA blue 4.8:1 */
+    /* New activity's warm colors (UI-25), the blue ones' complements. */
+    --orange: #ee6d34;
+    --peach: #f7caa7;
+    --paper-warm: #fff9f4; /* navy on it is 15.7:1, muted 7.2:1, field borders 4.3:1 */
     /* Anton, then a fallback sized to take about the same room, so the page doesn't jump when
        Anton arrives. */
     --display: 'Anton', 'Anton narrow fallback', 'Anton fallback', sans-serif;
@@ -240,6 +246,16 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
      whole width. */
   main {
     display: block;
+  }
+  /* New activity is warm, to make posting feel exciting (UI-25): an orange gradient, the blue
+     one's complement, with the form on a piece of warm paper, so no text sits on the orange. Every
+     other page stays blue, for trust and safety. */
+  html.warm {
+    background: linear-gradient(var(--orange), var(--peach), var(--paper)) no-repeat var(--paper);
+  }
+  html.warm main {
+    padding: 0.75rem;
+    background: var(--paper-warm);
   }
   /* On a narrow phone, the page's edges give back some room. */
   @media (max-width: 24rem) {
@@ -767,14 +783,15 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
 
   /* High contrast: no shadows, just plain borders in the system's colors. */
   @media (forced-colors: active) {
-    html {
+    html,
+    html.warm,
+    html.warm main {
       background: Canvas;
     }
     footer,
     .site,
     .card,
     .group,
-    .plan,
     .sticker,
     nav.switch a,
     main > h1:first-child:not(.visually-hidden) {

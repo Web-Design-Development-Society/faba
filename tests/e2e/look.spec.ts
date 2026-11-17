@@ -1,9 +1,9 @@
-// FABA's look (UI-02, UI-14, UI-16, UI-18): the bottom bar keeps its five items, each with a line
-// icon in a tile over its label, and the current tab and chosen date are FABA blue. The cut-paper
-// look puts headings in Anton, in capitals by CSS, and each tab on a piece of paper with a shadow,
-// on a gradient that text sits straight on, readable all the way down. Every corner is square but
-// faces. The main tabs' headings are for screen readers only, since the bottom bar shows which
-// page it is.
+// FABA's look (UI-02, UI-14, UI-16, UI-18, UI-25): the bottom bar keeps its five items, each with a
+// line icon in a tile over its label, and the current tab and chosen date are FABA blue. The
+// cut-paper look puts headings in Anton, in capitals by CSS, and each tab on a piece of paper with a
+// shadow, on a blue gradient that text sits straight on, readable all the way down. New activity's
+// gradient is orange instead, with its form on warm paper. Every corner is square but faces. The
+// main tabs' headings are for screen readers only, since the bottom bar shows which page it is.
 import type { Locator, Page } from '@playwright/test';
 import { expect, expectAccessible, expectSquare, paper, test } from './fixtures';
 
@@ -48,7 +48,7 @@ test('selected things are FABA blue, and the bar keeps its five items', async ({
   await expectAccessible(page);
 });
 
-test("the main tabs' headings are for screen readers, and New activity keeps its banner", async ({
+test("the main tabs' headings are for screen readers, and New activity keeps its banner, warm", async ({
   page,
   signInAs,
 }) => {
@@ -88,21 +88,22 @@ test("the main tabs' headings are for screen readers, and New activity keeps its
   const size = parseFloat(await heading.evaluate((el) => getComputedStyle(el).fontSize));
   expect(size).toBeGreaterThanOrEqual(36);
   expect((await heading.boundingBox())!.height).toBeLessThan(size * 1.6);
-  // It sits on its own strip of white paper, with square corners and a shadow (UI-16). The page's
-  // content has no sheet: it sits straight on a soft gradient, with no photo behind it.
+  // It sits on its own strip of white paper, with square corners and a shadow (UI-16).
   expect(await paper(heading)).toBe('ffffff');
   await expectSquare(heading);
+  // New activity is warm (UI-25): orange, peach, then cream, the blue gradient's complement, with
+  // the form on a piece of warm paper, so no text sits on the orange.
   const main = page.locator('main');
-  await expect(main).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
-  await expect(main).toHaveCSS('box-shadow', 'none');
-  // The logo's light blue at the top, light blue paper, then cream at the bottom, and it doesn't
-  // repeat.
   const html = page.locator('html');
+  await expect(main).toHaveCSS('background-color', 'rgb(255, 249, 244)');
+  await expect(main).toHaveCSS('box-shadow', 'none');
+  await expect(main).toHaveCSS('border-top-left-radius', '0px');
   await expect(html).toHaveCSS(
     'background-image',
-    'linear-gradient(rgb(63, 164, 250), rgb(207, 225, 250), rgb(247, 244, 236))'
+    'linear-gradient(rgb(238, 109, 52), rgb(247, 202, 167), rgb(247, 244, 236))'
   );
   await expect(html).toHaveCSS('background-repeat', 'no-repeat');
+  expect(await unreadableOnGradient(page)).toEqual([]);
   expect(
     await page.evaluate(() => getComputedStyle(document.documentElement, '::before').content)
   ).toBe('none');
@@ -110,6 +111,16 @@ test("the main tabs' headings are for screen readers, and New activity keeps its
     true
   );
   await expectAccessible(page);
+
+  // Every other page stays blue, for trust and safety: the logo's light blue at the top, light
+  // blue paper, then cream at the bottom, with no photo, and the content sits straight on it.
+  await page.goto('/discover');
+  await expect(main).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+  await expect(html).toHaveCSS(
+    'background-image',
+    'linear-gradient(rgb(63, 164, 250), rgb(207, 225, 250), rgb(247, 244, 236))'
+  );
+  await expect(html).toHaveCSS('background-repeat', 'no-repeat');
 });
 
 /**
@@ -435,9 +446,12 @@ test('in high contrast, the paper gives way to plain borders', async ({ page, po
   expect(dot.borderTopColor).not.toMatch(/rgba\(0, 0, 0, 0\)/);
   expect(parseFloat(dot.borderTopWidth)).toBeGreaterThan(0);
 
-  // New activity's banner, since the main tabs no longer have one (UI-18).
+  // New activity's banner, since the main tabs no longer have one (UI-18), and no orange or warm
+  // paper behind it (UI-25).
   await page.goto('/activities/new');
   await plain(page.getByRole('heading', { level: 1 }));
+  await expect(page.locator('html')).toHaveCSS('background-image', 'none');
+  await expect(page.locator('main')).not.toHaveCSS('background-color', 'rgb(255, 249, 244)');
 });
 
 test('the motto is beside the logo, on the public pages too', async ({ page }) => {
