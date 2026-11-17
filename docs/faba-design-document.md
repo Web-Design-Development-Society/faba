@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-20`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-21`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-20           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-21           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2461,6 +2461,40 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - UI-07's and UI-15's card criteria
     - section 7.9's **Cards**
   - Size: S, one developer, including the tests.
+
+#### UI-21 · An activity's page that's easier to read
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member looking at an activity, I want its time and place big and everyone going listed, so that I can decide without tapping around.
+- **Acceptance criteria:**
+  - **The day and time and the place are bigger,** in 1.25rem text, with no icons beside them. The cost, when there is one, follows the place.
+  - **Add to calendar and Open in Maps are quiet,** at the right of their rows: words in the darker FABA blue, not outlined buttons under the text. Each is still 44 px tall and still says what it does.
+  - **The order is:**
+    1. the title and cover
+    2. the time, the place and the host
+    3. the details, then the details for attendees
+    4. everyone going
+    5. the updates and the comments, as today
+  - **Everyone going is listed on the page,** under **Who's going**, with no tap needed:
+    - each member's face, name and department, with the organizer first
+    - the count above it, such as "3 going (+2 guests) · 1 maybe", with no icon
+    - **Show all**, which opens the full list's page, when more than 50 are going
+    - after **I'm in** or **Can't make it**, the member's own name joins or leaves the list right away, as today
+  - **The organizer sees who's maybe** under the list, as today.
+  - **Managing attendees and co-organizers moves to its own sheet,** opened by a small **Manage attendees** button beside **Who's going**, for those who can manage them (RSVP-09, ACT-10). Members who can't don't see the button.
+  - At 320 px, 412 px and desktop, nothing scrolls sideways and the axe checks pass.
+  - **Tests:**
+    - The details test checks the bigger time and place with no icons, both buttons at the right of their rows, and the order.
+    - The going tests check the list on the page, the organizer first, the member joining it after **I'm in**, and **Show all**.
+    - The sheet tests use **Add to calendar**'s sheet.
+- **Dependencies:** UI-05, RSVP-03, RSVP-09, ACT-10.
+- **Notes / edge cases:**
+  - **Why:** the icons, two outlined buttons and a row that hid who's going behind a tap made the page busy.
+  - **Mark these when it's built:**
+    - UI-05's details card
+    - RSVP-03's going row
+    - section 7.6
+  - Size: M, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
 
