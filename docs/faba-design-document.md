@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-21`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-22`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-21           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-22           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2496,6 +2496,35 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - RSVP-03's going row
     - section 7.6
   - Size: M, one developer, including the tests.
+
+#### UI-22 · Square buttons in the display face
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want FABA's buttons to look like its paper tabs, so that the app feels like one piece.
+- **Acceptance criteria:**
+  - **Every button is square,** with 90-degree corners, **in the display face in capitals,** like the **Activities | Groups** tabs. That covers:
+    - the main actions, filled FABA blue, such as **Post activity**, **Save picture**, **Post comment** and **Edit**
+    - the outlined ones, such as **Cancel**, **Post update**, **Edit profile**, **See my profile**, **Start a group** and **Show more**
+    - the red ones, such as **Delete my comment**
+    - links drawn as buttons, and the **Category** and **Date** filter boxes
+    - **I'm in** and **✓ Going**, on cards and on an activity's page, and **Going**, **Maybe** and **Can't make it** in the sheet
+  - **The capitals come from CSS,** so screen readers and the tests keep the words as written.
+  - **Colors, sizes and borders stay as they are,** and each button is still at least 44 px tall. A long label wraps rather than running off the screen.
+  - **What isn't a button stays as it is:**
+    - the quiet words, such as **Add to calendar**, **Open in Maps**, **Manage attendees** and a toast's **Undo**
+    - alert cards, menu items, Me's settings rows, fields, chips and badges
+    - the bottom bar
+  - **In high contrast,** buttons keep the system's own colors and borders.
+  - At 320 px, 412 px and desktop, nothing scrolls sideways and the axe checks pass.
+  - **Tests:** the look test checks that buttons on Me, Groups and New activity are square and in the display face in capitals, and that a quiet link isn't.
+- **Dependencies:** UI-12, UI-14, UI-16.
+- **Notes / edge cases:**
+  - **Why:** the tabs, cards and headings are square paper in the display face, while the buttons were rounded and in the system font.
+  - **This replaces UI-16's rule** that buttons keep their rounded corners. Fields and icon tiles keep theirs.
+  - **Mark these when it's built:**
+    - UI-12's and UI-16's button criteria
+    - section 7.17
+  - Size: S, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
 
