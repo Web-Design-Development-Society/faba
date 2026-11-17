@@ -75,12 +75,6 @@ test("the main tabs' headings are for screen readers, and New activity keeps its
       )
     ).toBe(true);
   }
-  // Discover's Search stays, at the right of the top row.
-  await page.goto('/discover');
-  const search = (await page.getByRole('link', { name: 'Search' }).boundingBox())!;
-  const top = (await page.locator('main').boundingBox())!;
-  expect(search.x + search.width).toBeGreaterThan(top.x + top.width - 2);
-
   // New activity keeps its banner: big, in Anton and in capitals.
   await page.goto('/activities/new');
   const heading = page.getByRole('heading', { level: 1 });
@@ -114,6 +108,40 @@ test("the main tabs' headings are for screen readers, and New activity keeps its
     true
   );
   await expectAccessible(page);
+});
+
+test("Search is at the right of the header, and Discover's tabs come first", async ({
+  page,
+  signInAs,
+}) => {
+  await signInAs('member');
+  // Search is at the right of the header's strip on every main tab (UI-19), and Discover's and
+  // Groups' tabs come right after the header.
+  for (const path of ['/discover', '/plans']) {
+    await page.goto(path);
+    const header = page.locator('header.site');
+    const search = header.getByRole('link', { name: 'Search' });
+    const [searchBox, headerBox] = [(await search.boundingBox())!, (await header.boundingBox())!];
+    expect(headerBox.x + headerBox.width - (searchBox.x + searchBox.width)).toBeLessThan(16);
+    expect(searchBox.height).toBeGreaterThanOrEqual(44);
+    // The motto still fits beside the logo and Search, on two lines at most.
+    const motto = header.getByText('Bringing faculty together!', { exact: true });
+    const lines = await motto.evaluate(
+      (el) => el.getBoundingClientRect().height / parseFloat(getComputedStyle(el).lineHeight)
+    );
+    expect(lines).toBeLessThan(2.5);
+  }
+  for (const path of ['/discover', '/groups']) {
+    await page.goto(path);
+    const tabs = (await page.getByRole('navigation', { name: 'Discover' }).boundingBox())!;
+    const header = (await page.locator('header.site').boundingBox())!;
+    expect(tabs.y - (header.y + header.height)).toBeLessThan(24);
+  }
+  await page.goto('/search');
+  await expect(page.locator('header.site').getByRole('link', { name: 'Search' })).toHaveAttribute(
+    'aria-current',
+    'page'
+  );
 });
 
 test('in high contrast, the paper gives way to plain borders', async ({ page, poster, host }) => {
