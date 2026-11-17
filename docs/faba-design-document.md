@@ -601,7 +601,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Web Push** as a channel. The delivery pipeline already supports it, and installed PWAs on iOS 16.4+ and Android support it.
 - **Image uploads** for activity covers and group banners, using Cloudflare Images or R2, with moderation.
 - **Comments** on activities (flat, moderated), if Phase 3 feedback supports them.
-- **A clearer look** from the 2026 mockups (`mockups/discover.webp`, `mockups/new_activity_and_alerts.webp`): FABA blue and icons throughout, cards that show the whole time and place, filters that fit the screen, an easier activity page and form, and alerts as cards. Then a bolder cut-paper look (`mockups/discover_collage.webp`, UI-14): heavy condensed capitals, torn paper on FABA blue, and stickers.
+- **A clearer look** from the 2026 mockups (`mockups/discover.webp`, `mockups/new_activity_and_alerts.webp`): FABA blue and icons throughout, cards that show the whole time and place, filters that fit the screen, an easier activity page and form, and alerts as cards. Then a bolder cut-paper look (`mockups/discover_collage.webp`, UI-14): heavy condensed capitals, paper on FABA blue, and stickers. UI-16 then made the paper square, with shadows, on a photo of torn paper.
 - **Playoff brackets** for leagues.
 - **Data retention automation**, and a data export ("download my data").
 - **Performance:** query review with `pg_stat_statements`, edge caching of non-personalized fragments, Smart Placement tuning.
@@ -1886,7 +1886,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - Every selected state is FABA blue (`--blue`) with white text: the **Activities | Groups** control, chosen chips, and the center **＋ Post** button. Nothing in the app's frame is black. (UI-14 made **＋ Post** a navy square on 2026-11-16.)
   - The bottom bar keeps its five items in the same order: **Discover**, **Plans**, **＋ Post**, **Alerts** and **Me**. Each has a line icon above its label. **＋ Post** is a blue circle with "Post" under it. The current tab is blue, with a bolder label and an underline, so it isn't shown by color alone. The Alerts badge stays. (UI-14 put each icon in a square tile, the current one light blue and underlined, and made **＋ Post** a navy square.)
   - One small set of line icons lives in one component (`src/components/Icon.astro`) as inline SVG: search, back, calendar, clock, pin, people, bell, check, arrows, chevron, plus, and one for each category. They're 20 to 24 px, in navy or blue. An icon beside text is hidden from screen readers. An icon-only button, such as Search or Back, has an accessible name. These icons replace the emoji now used for categories and alerts.
-  - Pages sit on a soft blue-gray background, and content sits on white cards with a 1 px border, a soft shadow and the shared radius. (UI-14 replaced these with torn paper on FABA blue on 2026-11-16.)
+  - Pages sit on a soft blue-gray background, and content sits on white cards with a 1 px border, a soft shadow and the shared radius. (UI-14 replaced these with torn paper on FABA blue on 2026-11-16. UI-16 then made the paper square, with shadows, on a photo of torn paper.)
   - The header shows the logo with the FABA wordmark beside it. **Search** is an outlined square icon button beside the page's heading. Detail pages show a back chevron. Each is at least 44 px.
   - Body text is at least 16 px, and secondary text at least 14 px. Text meets 4.5:1 contrast, and controls and borders meet 3:1.
   - Small fixes seen while comparing the mockups:
@@ -2208,7 +2208,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - Everything else stays in the system font and in sentence case, at least 16 px. That includes descriptions, comments, details, form fields, hints and messages, so long text is never in capitals.
     - Page headings are big. **Discover** spans most of a 412 px screen and still fits on one line at 320 px.
     - The face is one self-hosted, Latin-only `woff2` file under the SIL Open Font License (such as Anton or Bebas Neue), 30 KB at most. It's preloaded, with `font-display: swap` and fallback metrics, so the page doesn't jump when it arrives.
-  - **Paper and torn edges:**
+  - **Paper and torn edges:** (UI-16 replaced the torn edges and the texture on 2026-11-16. The paper now has square corners and shadows, on a photo of torn paper.)
     - The page's background is FABA blue with a faint paper texture. Content sits on paper panels, off-white or light blue, with torn edges. These replace UI-02's white cards with soft shadows.
     - Torn edges are made in CSS (`clip-path`, or an SVG mask), and the texture is one small tiled image or an inline SVG filter. Together they're 15 KB at most, and they have no text in them.
     - Text always sits on solid paper or solid blue, never on the texture or across a torn edge. Navy on paper and white on blue meet 4.5:1, and controls and borders meet 3:1.
@@ -2264,7 +2264,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 - **Role:** Member · **Priority:** Should · **Phase:** 6
 - **Story:** As a member, I want my alerts to look like the rest of FABA, so that Alerts feels like part of the same app and new alerts still stand out.
 - **Acceptance criteria:**
-  - **Each alert is a piece of torn white paper,** like an activity's card (UI-14). That replaces UI-07's white card with a border, rounded corners and a shadow.
+  - **Each alert is a piece of torn white paper,** like an activity's card (UI-14). That replaces UI-07's white card with a border, rounded corners and a shadow. (UI-16 made the paper square, with a shadow, on 2026-11-16.)
   - **The name is in the display face, in capitals,** like an activity's title, with the capitals coming from CSS. The sentence that says what happened and the time ago stay in the system font. The name is still drawn above the sentence, and screen readers still hear the sentence first.
   - **The type's icon sits in a square tile outlined in navy,** like the bottom bar's (UI-14).
   - **Unread alerts:**
@@ -2304,7 +2304,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - the paper sheet each page's content is on, the strip with the logo, and the footer
     - each main page's heading strip, which stays tilted
     - the tabs, such as **Activities | Groups** and **All | Unread**
-    - activity, group and alert cards, the **You're hosting** sticker, which stays tilted, and the light-blue **Your next plan** panel
+    - activity, group and alert cards, the cards on **Me** and **Edit profile**, the **You're hosting** sticker, which stays tilted, and the light-blue **Your next plan** panel
     - the bottom bar, whose torn top edge becomes a shadow
   - **Pieces on the photo have a deeper shadow** than pieces on the sheet, so the sheet reads as lifted off the photo and the cards as resting on the sheet.
   - **Text stays off the photo.** It's on the sheet or a piece of paper, so every contrast ratio is the same as today.
@@ -2511,7 +2511,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 | -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Date badge     | The month and day in a FABA blue badge, at the top left, in the display face (UI-14)                                                                |
 | Picture        | The cover's small copy (MEDIA-01), or the category's line icon on a tint of its color. Its label is the category's name                             |
-| Category color | The picture's tint. UI-14's torn paper edges replaced the stripe down the left edge. Color is never the only signal                                 |
+| Category color | The picture's tint. UI-14 replaced the stripe down the left edge. Color is never the only signal                                                    |
 | Title          | Up to 2 lines, in the display face in capitals (UI-14), truncated with an ellipsis                                                                  |
 | When           | A row with a calendar icon. Relative for the next 6 days ("Tomorrow 6:30 PM", "Sat 7:00 AM"), absolute after that ("Nov 3, 6:30 PM"). Never cut off |
 | Where          | A row with a pin icon. Short place text or "Online". At most 1 line, ending with an ellipsis                                                        |
@@ -2624,7 +2624,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 ### 7.9 Notification center (Phase 2)
 
 - **Layout:** a reverse-chronological list grouped as **New** (unread) and **Earlier**. **All | Unread** at the top shows every alert or only the new ones (`?show=unread`).
-- **Cards** (UI-07, UI-15): each alert is a piece of torn white paper with its type's line icon in a square tile outlined in navy, the activity's or group's name in the display face in capitals, the sentence that says what happened (which wraps as far as it needs), the relative time, and a chevron. Screen readers hear the sentence first, after "Unread", and the name is drawn above it. The cards stay straight. On hover, the chevron turns FABA blue and the name is underlined.
+- **Cards** (UI-07, UI-15, UI-16): each alert is a piece of white paper, with square corners and a shadow, with its type's line icon in a square tile outlined in navy, the activity's or group's name in the display face in capitals, the sentence that says what happened (which wraps as far as it needs), the relative time, and a chevron. Screen readers hear the sentence first, after "Unread", and the name is drawn above it. The cards stay straight. On hover, the chevron turns FABA blue and the name is underlined.
 - **Unread treatment** (UI-15): light-blue paper and a dot before the name, not color alone. The dot is drawn as a border, so it still shows in high contrast, where the paper gives way to a plain border.
 - **Tapping a row** marks it read and opens the target. A long press or the overflow menu offers **Mute this activity**.
 - **Mark all read** is a text button at the top right.
@@ -2714,7 +2714,7 @@ The same HTML serves all widths. CSS (container queries and media queries) handl
 ### 7.17 Visual and content style
 
 - **Fonts:** a system font stack for text. One self-hosted display face, Anton (SIL Open Font License, 18 KB for Latin), is for headings, card titles, tabs, filter labels, badges and the bottom bar's labels, in capitals by CSS (UI-14). It's preloaded, with fallbacks sized to it, and no font service is used.
-- **Look:** cut paper (UI-14, `mockups/discover_collage.webp`). FABA blue with a faint texture is behind everything. Each page's content is on one torn paper sheet, and cards, tabs and the main pages' headings are pieces of torn paper on it. A few things tilt, by 2 degrees at most. Text is always on solid paper or solid blue, and in high-contrast mode the paper gives way to plain borders.
+- **Look:** cut paper (UI-14, `mockups/discover_collage.webp`), with square pieces (UI-16). A photo of torn blue paper (`public/backgrounds/torn-paper.webp`, 114 KB) is fixed behind everything, with FABA blue until it loads. Each page's content is on one paper sheet, and cards, tabs and the main pages' headings are pieces of paper on it. Each piece has square corners and a shadow, deeper for pieces on the photo. A few things tilt, by 2 degrees at most. Text is always on solid paper or solid blue, never on the photo, and in high-contrast mode the photo and the shadows give way to plain borders.
 - **Themes:** light and dark mode follow the OS setting. (So far FABA has only the light theme.)
 - **Color:** a warm primary color and a distinct, accessible color plus icon for each category.
 - **Icons:** an inline SVG sprite, without an icon font.

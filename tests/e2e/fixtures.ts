@@ -1,5 +1,5 @@
 // Shared setup for the end-to-end tests: signing in as a seeded persona or a new member, the axe
-// check, and the color of torn paper.
+// check, and the paper the look is made of.
 import { readFileSync } from 'node:fs';
 import AxeBuilder from '@axe-core/playwright';
 import {
@@ -259,9 +259,22 @@ export async function writeSession(context: BrowserContext, baseURL: string, ses
   );
 }
 
-/** The color of the torn paper an element is on (UI-14), as hex: its border image is drawn in it. */
+/** The color of the piece of paper an element is (UI-14), as hex, such as 'ffffff'. */
 export const paper = (element: Locator) =>
-  element.evaluate((el) => getComputedStyle(el).borderImageSource.match(/%23([0-9a-f]{6})/)?.[1]);
+  element.evaluate((el) =>
+    getComputedStyle(el)
+      .backgroundColor.match(/\d+/g)!
+      .slice(0, 3)
+      .map((part) => Number(part).toString(16).padStart(2, '0'))
+      .join('')
+  );
+
+/** Fails the test unless a piece of paper has square corners and a shadow (UI-16). */
+export async function expectSquare(element: Locator) {
+  await expect(element).toHaveCSS('border-top-left-radius', '0px');
+  await expect(element).toHaveCSS('border-bottom-right-radius', '0px');
+  await expect(element).not.toHaveCSS('box-shadow', 'none');
+}
 
 /** Fails the test if axe finds a serious or critical problem on the page as it is now. */
 export async function expectAccessible(page: Page) {

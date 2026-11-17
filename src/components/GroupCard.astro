@@ -1,7 +1,7 @@
 ---
-// A group in Discover → Groups (GRP-01, UI-10): a piece of torn white paper, like an activity's
-// card (UI-03, UI-14), that opens the group. Its banner runs across the top at 3:1, the shape it has on the group's page, or a strip
-// in its category's tint with the category's icon when it has none or a moderator hid it. Either
+// A group in Discover → Groups (GRP-01, UI-10): a piece of white paper, like an activity's card
+// (UI-03, UI-16), that opens the group. Its banner runs across the top at 3:1, the shape it has on
+// the group's page, or a strip in its category's tint with the category's icon when it has none or a moderator hid it. Either
 // way the picture's label is the category's name. Then its name, its category, how many members
 // it has (GRP-02), who can join, and the start of its description. Badges with words say when the
 // member is in it, has asked to join, or it's a league.
@@ -86,13 +86,14 @@ const badges = [
 </article>
 
 <style>
-  /* Torn white paper (UI-14), with the banner set just inside its edges, like a photo on a page. */
+  /* White paper with square corners and a shadow (UI-16), with the banner set just inside its
+     edges, like a photo on a page. */
   .group {
     position: relative;
     padding: 0.5rem 0.5rem 0;
     border: 1px solid transparent;
-    background: var(--fill-white);
-    border-image: var(--torn-white) 16 / 14px round;
+    background: var(--card);
+    box-shadow: var(--lift);
   }
   /* The banner's shape, across the top. Without one, the category's tint and icon. */
   .picture {
@@ -100,7 +101,6 @@ const badges = [
     place-items: center;
     overflow: hidden;
     aspect-ratio: 3 / 1;
-    border-radius: 0.25rem;
     color: var(--navy);
     background: linear-gradient(
       135deg,

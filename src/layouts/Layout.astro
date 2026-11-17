@@ -7,9 +7,9 @@
 // have it, so their own sticky actions keep the bottom of the screen, except New activity, which
 // has it with Post as the current item (UI-06).
 //
-// The look is UI-14's cut paper (mockups/discover_collage.webp): FABA blue with a faint texture,
-// each page's content on one torn paper sheet, and headings in Anton, a condensed display face, in
-// capitals. Anton is self-hosted (OFL-1.1, 18 KB for Latin) and preloaded.
+// The look is UI-14's cut paper (mockups/discover_collage.webp) with UI-16's square pieces: a photo
+// of torn blue paper behind each page, each page's content on one paper sheet with square corners
+// and a shadow, and headings in Anton, a condensed display face, in capitals. Anton is self-hosted (OFL-1.1, 18 KB for Latin) and preloaded.
 import '@fontsource/anton/latin-400.css';
 import anton from '@fontsource/anton/files/anton-latin-400-normal.woff2?url';
 import Icon from '../components/Icon.astro';
@@ -166,31 +166,14 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     --card: #ffffff;
     --paper: #f7f4ec; /* the sheet each page's content is on */
     --sky: #cfe1fa; /* light blue paper: navy on it is 12:1, FABA blue 4.8:1 */
-    --shadow: 0 1px 2px rgb(15 31 61 / 6%), 0 2px 8px rgb(15 31 61 / 6%);
     --radius: 0.625rem;
     /* Anton, then a fallback sized to take about the same room, so the page doesn't jump when
        Anton arrives. */
     --display: 'Anton', 'Anton narrow fallback', 'Anton fallback', sans-serif;
-    /* Torn paper. Each piece is its color as a background, set just inside its edges, and its torn
-       edges as a border image, which repeat along any length:
-         background: var(--fill-white);
-         border-image: var(--torn-white) 16 / 14px round;
-       The color isn't the border image's middle, which would leave hairline seams where Chrome joins
-       its slices. Here the seams fall over the same color. The texture is faint white noise. */
-    --torn-white: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Cpath d='M2 2L4.6 3.8L9.9 1.9L14 1.2L16 2.5L18 4L22.2 2.5L27.1 1.2L30.2 5L33.8 1.9L38.7 3.7L41.7 3.3L46.2 1.4L50.6 1.2L54.1 1L57.2 5.4L60.9 5.5L64.8 3.6L69.9 4L72.7 3.5L78 1.2L80 2.5L82 4L83.9 1.5L87.8 1.7L92.7 3.1L94 2L94.1 5.4L94.2 8.2L94.1 12.8L94.8 14L93.5 16L92 18L94 20.4L94.3 23.2L93.3 26.4L95.2 31.7L93.7 34.7L95.4 38.9L93.1 43.5L94.6 47.3L93.1 51.5L94.7 54.8L93.9 57.8L94.8 61.7L95.3 65.4L93 68.8L94.7 73.1L94.8 78L93.5 80L92 82L94.9 84.6L93.3 87.8L94.8 91.1L94 94L92.4 92.7L88.1 90.8L83.3 92.9L82 94.8L80 93.5L78 92L74.7 90.7L70.5 91.6L67.1 90.9L62.7 94.2L57.4 93.1L53.9 94.1L51.1 94.4L46.5 94.7L43.3 93.2L39.1 93.5L34.3 94.1L30.7 93.3L27.8 94.3L24.8 91.8L21.9 92.1L18 94.8L16 93.5L14 92L9 92.2L4.8 95.2L2 94L0.7 90.9L2.8 86.4L1.2 82L2.5 80L4 78L2.7 71.7L2.8 66.7L2.5 64L0.9 60.6L2 57L1.7 54.4L1.8 49.6L1.3 45.5L1.2 40.1L2.2 35.5L3 33L3 29.8L2.8 24.6L1.6 19.5L1.2 18L2.5 16L4 14L0.7 10.3L2.9 7.4Z' fill='%23ffffff' stroke='rgb%2815 31 61 / 22%25%29' stroke-width='.8'/%3E%3C/svg%3E");
-    --torn-paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Cpath d='M2 2L4.6 3.8L9.9 1.9L14 1.2L16 2.5L18 4L22.2 2.5L27.1 1.2L30.2 5L33.8 1.9L38.7 3.7L41.7 3.3L46.2 1.4L50.6 1.2L54.1 1L57.2 5.4L60.9 5.5L64.8 3.6L69.9 4L72.7 3.5L78 1.2L80 2.5L82 4L83.9 1.5L87.8 1.7L92.7 3.1L94 2L94.1 5.4L94.2 8.2L94.1 12.8L94.8 14L93.5 16L92 18L94 20.4L94.3 23.2L93.3 26.4L95.2 31.7L93.7 34.7L95.4 38.9L93.1 43.5L94.6 47.3L93.1 51.5L94.7 54.8L93.9 57.8L94.8 61.7L95.3 65.4L93 68.8L94.7 73.1L94.8 78L93.5 80L92 82L94.9 84.6L93.3 87.8L94.8 91.1L94 94L92.4 92.7L88.1 90.8L83.3 92.9L82 94.8L80 93.5L78 92L74.7 90.7L70.5 91.6L67.1 90.9L62.7 94.2L57.4 93.1L53.9 94.1L51.1 94.4L46.5 94.7L43.3 93.2L39.1 93.5L34.3 94.1L30.7 93.3L27.8 94.3L24.8 91.8L21.9 92.1L18 94.8L16 93.5L14 92L9 92.2L4.8 95.2L2 94L0.7 90.9L2.8 86.4L1.2 82L2.5 80L4 78L2.7 71.7L2.8 66.7L2.5 64L0.9 60.6L2 57L1.7 54.4L1.8 49.6L1.3 45.5L1.2 40.1L2.2 35.5L3 33L3 29.8L2.8 24.6L1.6 19.5L1.2 18L2.5 16L4 14L0.7 10.3L2.9 7.4Z' fill='%23f7f4ec' stroke='rgb%2815 31 61 / 22%25%29' stroke-width='.8'/%3E%3C/svg%3E");
-    --torn-sky: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Cpath d='M2 2L4.6 3.8L9.9 1.9L14 1.2L16 2.5L18 4L22.2 2.5L27.1 1.2L30.2 5L33.8 1.9L38.7 3.7L41.7 3.3L46.2 1.4L50.6 1.2L54.1 1L57.2 5.4L60.9 5.5L64.8 3.6L69.9 4L72.7 3.5L78 1.2L80 2.5L82 4L83.9 1.5L87.8 1.7L92.7 3.1L94 2L94.1 5.4L94.2 8.2L94.1 12.8L94.8 14L93.5 16L92 18L94 20.4L94.3 23.2L93.3 26.4L95.2 31.7L93.7 34.7L95.4 38.9L93.1 43.5L94.6 47.3L93.1 51.5L94.7 54.8L93.9 57.8L94.8 61.7L95.3 65.4L93 68.8L94.7 73.1L94.8 78L93.5 80L92 82L94.9 84.6L93.3 87.8L94.8 91.1L94 94L92.4 92.7L88.1 90.8L83.3 92.9L82 94.8L80 93.5L78 92L74.7 90.7L70.5 91.6L67.1 90.9L62.7 94.2L57.4 93.1L53.9 94.1L51.1 94.4L46.5 94.7L43.3 93.2L39.1 93.5L34.3 94.1L30.7 93.3L27.8 94.3L24.8 91.8L21.9 92.1L18 94.8L16 93.5L14 92L9 92.2L4.8 95.2L2 94L0.7 90.9L2.8 86.4L1.2 82L2.5 80L4 78L2.7 71.7L2.8 66.7L2.5 64L0.9 60.6L2 57L1.7 54.4L1.8 49.6L1.3 45.5L1.2 40.1L2.2 35.5L3 33L3 29.8L2.8 24.6L1.6 19.5L1.2 18L2.5 16L4 14L0.7 10.3L2.9 7.4Z' fill='%23cfe1fa' stroke='rgb%2815 31 61 / 22%25%29' stroke-width='.8'/%3E%3C/svg%3E");
-    --torn-blue: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 96 96'%3E%3Cpath d='M2 2L4.6 3.8L9.9 1.9L14 1.2L16 2.5L18 4L22.2 2.5L27.1 1.2L30.2 5L33.8 1.9L38.7 3.7L41.7 3.3L46.2 1.4L50.6 1.2L54.1 1L57.2 5.4L60.9 5.5L64.8 3.6L69.9 4L72.7 3.5L78 1.2L80 2.5L82 4L83.9 1.5L87.8 1.7L92.7 3.1L94 2L94.1 5.4L94.2 8.2L94.1 12.8L94.8 14L93.5 16L92 18L94 20.4L94.3 23.2L93.3 26.4L95.2 31.7L93.7 34.7L95.4 38.9L93.1 43.5L94.6 47.3L93.1 51.5L94.7 54.8L93.9 57.8L94.8 61.7L95.3 65.4L93 68.8L94.7 73.1L94.8 78L93.5 80L92 82L94.9 84.6L93.3 87.8L94.8 91.1L94 94L92.4 92.7L88.1 90.8L83.3 92.9L82 94.8L80 93.5L78 92L74.7 90.7L70.5 91.6L67.1 90.9L62.7 94.2L57.4 93.1L53.9 94.1L51.1 94.4L46.5 94.7L43.3 93.2L39.1 93.5L34.3 94.1L30.7 93.3L27.8 94.3L24.8 91.8L21.9 92.1L18 94.8L16 93.5L14 92L9 92.2L4.8 95.2L2 94L0.7 90.9L2.8 86.4L1.2 82L2.5 80L4 78L2.7 71.7L2.8 66.7L2.5 64L0.9 60.6L2 57L1.7 54.4L1.8 49.6L1.3 45.5L1.2 40.1L2.2 35.5L3 33L3 29.8L2.8 24.6L1.6 19.5L1.2 18L2.5 16L4 14L0.7 10.3L2.9 7.4Z' fill='%230b5bd3' stroke='rgb%2815 31 61 / 35%25%29' stroke-width='.8'/%3E%3C/svg%3E");
-    --fill-white: linear-gradient(#ffffff, #ffffff) center / calc(100% - 15px) calc(100% - 15px)
-      no-repeat;
-    --fill-paper: linear-gradient(#f7f4ec, #f7f4ec) center / calc(100% - 15px) calc(100% - 15px)
-      no-repeat;
-    --fill-sky: linear-gradient(#cfe1fa, #cfe1fa) center / calc(100% - 15px) calc(100% - 15px)
-      no-repeat;
-    --fill-blue: linear-gradient(#0b5bd3, #0b5bd3) center / calc(100% - 15px) calc(100% - 15px)
-      no-repeat;
-    --torn-edge-paper: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 12' preserveAspectRatio='none'%3E%3Cpath d='M0 4L3 2.6L5.9 4.7L8.6 4L12 0.9L15.7 0.7L19.3 1L22.1 3.3L26.6 1.3L29.7 4.6L34.5 4.3L38 6.8L40.7 6.1L43.9 1.4L46.7 2.5L51.2 1.7L55.2 4.7L58.6 4.1L64 4L64 12L0 12Z' fill='%23f7f4ec'/%3E%3C/svg%3E");
-    --texture: url('data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%27220%27 height=%27220%27%3E%3Cfilter id=%27n%27%3E%3CfeTurbulence type=%27fractalNoise%27 baseFrequency=%27.85%27 numOctaves=%272%27 stitchTiles=%27stitch%27/%3E%3CfeColorMatrix values=%270 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .09 0%27/%3E%3C/filter%3E%3Crect width=%27220%27 height=%27220%27 filter=%27url(%23n)%27/%3E%3C/svg%3E');
+    /* Paper (UI-16): each piece is a plain rectangle with square corners and a shadow. A piece on
+       the photo casts a deeper shadow than one on the sheet. */
+    --lift: 0 1px 2px rgb(15 31 61 / 14%), 0 4px 10px rgb(15 31 61 / 12%);
+    --lift-high: 0 2px 4px rgb(5 20 70 / 28%), 0 12px 28px rgb(5 20 70 / 32%);
     /* Anton has one weight, so a heading asked for bold stays Anton, not a smeared copy of it. */
     font-synthesis: none;
   }
@@ -213,10 +196,20 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     descent-override: 49%;
     line-gap-override: 0%;
   }
-  /* FABA blue with a faint paper texture, behind everything. Text never sits on the texture: each
-     part of the page is a sheet of paper on it. */
+  /* A photo of torn blue paper behind everything (UI-16), with FABA blue until it loads. It's a
+     fixed layer, since iOS Safari ignores background-attachment: fixed and would stretch the photo
+     down the whole page. Text never sits on the photo: each part of the page is paper on it. */
   html {
-    background: var(--texture), var(--blue);
+    background: var(--blue);
+  }
+  html::before {
+    position: fixed;
+    z-index: -1;
+    inset: 0 0 auto;
+    height: 100vh;
+    height: 100lvh;
+    content: '';
+    background: url('/backgrounds/torn-paper.webp') center / cover no-repeat;
   }
   body {
     max-width: 40rem;
@@ -226,13 +219,13 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     font-family: system-ui, sans-serif;
     line-height: 1.5;
   }
-  /* The sheet each page's content is on, torn at its edges. */
+  /* The sheet each page's content is on, lifted off the photo. */
   main {
     display: block;
     padding: 1rem 1rem 1.5rem;
     border: 1px solid transparent;
-    background: var(--fill-paper);
-    border-image: var(--torn-paper) 16 / 20px round;
+    background: var(--paper);
+    box-shadow: var(--lift-high);
   }
   /* On a narrow phone, the page's edges and the sheet's give back some room, so cards and fields
      keep the width they had before the paper (UI-14). */
@@ -247,12 +240,11 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   /* A white piece of paper on the sheet, for anything that groups content. */
   .card {
     border: 1px solid transparent;
-    background: var(--fill-white);
-    border-image: var(--torn-white) 16 / 14px round;
+    background: var(--card);
     border-radius: 0;
-    box-shadow: none;
+    box-shadow: var(--lift);
   }
-  /* The mark with the wordmark beside it, on a torn white strip. The words are the link's name. */
+  /* The mark with the wordmark beside it, on a white strip. The words are the link's name. */
   .site {
     display: flex;
     align-items: center;
@@ -260,8 +252,8 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     margin-bottom: 0.75rem;
     padding: 0.25rem 0.875rem;
     border: 1px solid transparent;
-    background: var(--fill-white);
-    border-image: var(--torn-white) 16 / 14px round;
+    background: var(--card);
+    box-shadow: var(--lift-high);
   }
   /* Smaller than the wordmark, after a rule. On a narrow phone it wraps onto a second line beside
      it, and two lines are no taller than the logo's link. */
@@ -329,17 +321,17 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     margin: 0.25rem 0 0.5rem;
     font-size: clamp(2.75rem, 16vw - 0.5rem, 4.25rem);
   }
-  /* A main page's heading is on a torn white strip, tilted a little, as in the mockup. */
+  /* A main page's heading is on a white strip, tilted a little, as in the mockup. */
   main > h1:first-child,
   main > .top h1 {
     display: inline-block;
     padding: 0.125rem 0.75rem;
     border: 1px solid transparent;
-    background: var(--fill-white);
-    border-image: var(--torn-white) 16 / 12px round;
+    background: var(--card);
+    box-shadow: var(--lift);
     transform: rotate(-1.5deg);
   }
-  /* Two torn tabs, such as Discover's Activities | Groups: the current one FABA blue with white
+  /* Two paper tabs, such as Discover's Activities | Groups: the current one FABA blue with white
      text, the other light blue. A tab is a link, so each half has its own address. */
   nav.switch {
     display: flex;
@@ -359,8 +351,8 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     text-decoration: none;
     text-transform: uppercase;
     border: 1px solid transparent;
-    background: var(--fill-sky);
-    border-image: var(--torn-sky) 16 / 12px round;
+    background: var(--sky);
+    box-shadow: var(--lift);
     transform: rotate(1deg);
   }
   nav.switch a:first-child {
@@ -373,8 +365,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   }
   nav.switch a[aria-current='page'] {
     color: white;
-    background: var(--fill-blue);
-    border-image-source: var(--torn-blue);
+    background: var(--blue);
   }
   a {
     color: var(--blue);
@@ -605,15 +596,15 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     border-color: var(--blue);
     box-shadow: inset 0 0 0 1px var(--blue);
   }
-  /* A torn strip of paper under the sheet. */
+  /* A strip of paper under the sheet. */
   footer {
     margin-top: 1rem;
     padding: 0.5rem 1rem;
     font-size: 0.875rem;
     color: var(--muted);
     border: 1px solid transparent;
-    background: var(--fill-paper);
-    border-image: var(--torn-paper) 16 / 14px round;
+    background: var(--paper);
+    box-shadow: var(--lift-high);
   }
   footer a {
     display: inline-block;
@@ -624,8 +615,8 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   body:has(> .tabs) {
     padding-bottom: calc(6rem + env(safe-area-inset-bottom));
   }
-  /* Five items, each an icon in a square tile over its label (section 7.3, UI-14), on paper torn
-     along the top. The current one's tile is light blue and it's underlined, so it isn't shown by
+  /* Five items, each an icon in a square tile over its label (section 7.3, UI-14), on a strip of
+     paper with a shadow along its top (UI-16). The current one's tile is light blue and it's underlined, so it isn't shown by
      color alone. */
   .tabs {
     position: fixed;
@@ -638,16 +629,9 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     margin: 0 auto;
     padding: 0.375rem 0.25rem calc(0.25rem + env(safe-area-inset-bottom));
     background: var(--paper);
-  }
-  .tabs::before {
-    position: absolute;
-    top: -11px;
-    right: 0;
-    left: 0;
-    height: 12px;
-    content: '';
-    background: var(--torn-edge-paper) repeat-x;
-    background-size: 64px 12px;
+    box-shadow:
+      0 -1px 3px rgb(5 20 70 / 14%),
+      0 -6px 18px rgb(5 20 70 / 22%);
   }
   .tabs a {
     position: relative;
@@ -737,14 +721,13 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     background: #1d3361;
   }
 
-  /* High contrast: no texture or torn paper, just plain borders in the system's colors. */
+  /* High contrast: no photo or shadows, just plain borders in the system's colors. */
   @media (forced-colors: active) {
-    /* The longhand, since the minifier empties border-image: none. */
-    * {
-      border-image-source: none !important;
-    }
     html {
       background: Canvas;
+    }
+    html::before {
+      display: none;
     }
     main,
     footer,
@@ -758,12 +741,11 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     main > .top h1 {
       background: Canvas !important;
       border-color: CanvasText !important;
-    }
-    .tabs::before {
-      display: none;
+      box-shadow: none !important;
     }
     .tabs {
       border-top: 1px solid CanvasText;
+      box-shadow: none;
     }
   }
 </style>
