@@ -2590,7 +2590,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - **Mockups:** `mockups/page_sentence_activities.png` and `mockups/page_sentence_groups.png`.
   - **Mark these when it's built:**
     - the lines that describe **Your next plan**: journey J2, the Phase 1 summary, ACT-01, NOTIF-07, UI-03, UI-04, UI-14, UI-16, UI-17, section 7.4 and the Astro tasks
-    - UI-18's note, and the Look line in section 7.3
+    - UI-18's note, and the Look line in section 7.17
   - Size: S, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
