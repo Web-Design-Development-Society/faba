@@ -34,6 +34,9 @@ test('selected things are FABA blue, and the bar keeps its five items', async ({
   );
   // Post is an orange square that rises above the bar, as warm as New activity (UI-14, UI-25).
   await expect(bar.locator('.post .square')).toHaveCSS('background-color', ORANGE);
+  // A darker orange on hover, not navy.
+  await bar.locator('.post').hover();
+  await expect(bar.locator('.post .square')).toHaveCSS('background-color', 'rgb(201, 79, 28)');
 
   // Activities is on FABA blue paper, and Groups on light blue.
   const halves = page.getByRole('navigation', { name: 'Discover' });

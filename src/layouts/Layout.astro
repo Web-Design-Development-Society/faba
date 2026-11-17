@@ -193,7 +193,8 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     --paper: #f7f4ec; /* cream paper, for the footer */
     --sky: #cfe1fa; /* light blue paper: navy on it is 12:1, FABA blue 4.8:1 */
     /* New and Edit activity's warm colors (UI-25), the blue ones' complements. */
-    --orange: #ee6d34;
+    --orange: #ee6d34; /* white on it is 3.1:1, enough for an icon */
+    --orange-dark: #c94f1c; /* white on it is 4.6:1 */
     --peach: #f7caa7;
     --paper-warm: #fff9f4; /* navy on it is 15.7:1, muted 7.2:1, field borders 4.3:1 */
     /* Anton, then a fallback sized to take about the same room, so the page doesn't jump when
@@ -777,8 +778,9 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     border-radius: 0;
     box-shadow: 0 2px 6px rgb(15 31 61 / 35%);
   }
+  /* Darker on hover, like a button's FABA blue (UI-25). */
   .tabs .post:hover .square {
-    background: #1d3361;
+    background: var(--orange-dark);
   }
 
   /* High contrast: no shadows, just plain borders in the system's colors. */
