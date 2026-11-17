@@ -1,0 +1,28 @@
+---
+// What a main page is for, in a sentence at its top (UI-24). It's about the page rather than part
+// of it, so it doesn't stand out: white with a dark-blue shadow, straight on the gradient. That's
+// an agreed exception to the contrast rule, and the look test that measures text on the gradient
+// skips it. In a header row, such as Groups' with Start a group, it takes the room at the left.
+---
+
+<p class="page-sentence">
+  <slot />
+</p>
+
+<style>
+  .page-sentence {
+    margin: 0.75rem 0;
+    color: white;
+    font-size: 1.2em;
+    line-height: 1.4;
+    text-shadow: 1px 2px var(--blue-dark);
+  }
+  :global(main > .top) > .page-sentence {
+    flex: 1 1 0;
+    margin: 0;
+  }
+  /* The button beside it wraps onto two lines before it squeezes the sentence. */
+  :global(main > .top) > .page-sentence ~ :global(*) {
+    max-width: 45%;
+  }
+</style>

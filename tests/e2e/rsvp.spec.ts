@@ -121,7 +121,7 @@ test("✓ Going opens a sheet, and Can't make it takes the member off the list",
   await expect.poll(() => statusOf(host.admin, id, poster.id)).toBe('not_going');
 });
 
-test("on a card, Going keeps the RSVP, and Can't make it changes the next plan too", async ({
+test("on a card, Going keeps the RSVP, and Can't make it takes it back", async ({
   page,
   poster,
   host,
@@ -163,8 +163,6 @@ test("on a card, Going keeps the RSVP, and Can't make it changes the next plan t
   await page.getByRole('button', { name: "Can't make it" }).click();
   await expect(card.getByRole('button', { name: "I'm in" })).toBeVisible();
   await expect(card.getByText('1 going')).toBeVisible();
-  const plan = page.getByRole('region', { name: 'Your next plan' });
-  await expect(plan.getByRole('button', { name: "I'm in" })).toBeVisible();
   await expect.poll(() => statusOf(host.admin, id, poster.id)).toBe('not_going');
 });
 
@@ -206,7 +204,6 @@ test.describe('without JavaScript', () => {
     await expect(page).toHaveURL(`/discover#activity-${id}`);
     await expect(card.getByText('✓ Going')).toBeVisible();
     await expect(card.getByText('2 going')).toBeVisible();
-    await expect(page.getByRole('region', { name: 'Your next plan' })).toContainText(title);
     expect(await statusOf(host.admin, id, poster.id)).toBe('going');
   });
 

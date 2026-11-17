@@ -3,7 +3,7 @@
 // 320 px iPhone SE, a 412 px Pixel and a desktop.
 import type { Locator } from '@playwright/test';
 import { soonParts } from '../../src/lib/time';
-import { expect, expectAccessible, expectSquare, paper, test } from './fixtures';
+import { expect, expectAccessible, test } from './fixtures';
 
 const HOUR = 60 * 60 * 1000;
 // Other tests post at the same time, so each activity has a title of its own.
@@ -95,26 +95,6 @@ test('a card has its title, picture, time and place on paper, and its date and I
     true
   );
   await expectAccessible(page);
-});
-
-test('your next plan is on light blue paper', async ({ page, poster, host }) => {
-  const title = named('Disc golf');
-  const id = await host.post({
-    title,
-    category_id: 'sports',
-    starts_at: new Date(Date.now() + 3 * HOUR).toISOString(),
-  });
-  await host.admin.from('rsvps').insert({ activity_id: id, user_id: poster.id, status: 'going' });
-
-  await page.goto('/discover');
-  const region = page.getByRole('region', { name: 'Your next plan' });
-  const plan = region.getByRole('article');
-  await expect(plan).toContainText(title);
-  // Its card is white paper on a piece of light blue paper (UI-14).
-  expect(await paper(region)).toBe('cfe1fa');
-  expect(await paper(plan)).toBe('ffffff');
-  await expectSquare(region);
-  await expectSquare(plan);
 });
 
 test("a card shows its cover's small copy", async ({ page, poster }) => {

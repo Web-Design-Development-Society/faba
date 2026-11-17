@@ -187,7 +187,7 @@ Tap counts assume the user is signed in and starts on the Home (Discover) screen
 ### J2. Viewing upcoming activities
 
 1. The user opens FABA and sees Home immediately. The page is server-rendered, with no loading spinner on first paint.
-2. If they are going to something in the next 7 days, a **Your next plan** card appears at the top.
+2. If they are going to something in the next 7 days, a **Your next plan** card appears at the top. (UI-24 removed it on 2026-11-17. A sentence at the top says what Discover is for.)
 3. A chronological list follows, grouped by day ("Today", "Tomorrow", "Sat, Oct 24"). Each card shows the category icon, title, time, place, going count, and the user's own RSVP state.
 4. **Show more** at the bottom loads the next 20 (cursor pagination).
 
@@ -400,7 +400,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Sign in, sign out, and sessions:** Google sign-in, domain gate, welcome with guidelines acceptance, sign out, deep-link return.
 - **Profiles:** display name, avatar, optional department and short bio, optional "show my email to other faculty" toggle, and an optional "I'm based in the Rexburg area / elsewhere" setting.
 - **Activities:** create, view, edit, cancel, and un-cancel. Fields are title, date and time, place or online link, category, and description. An optional end time and cost note sit under **More options**.
-- **Discovery:** a chronological Home feed of upcoming activities grouped by day, with category chips (in-URL filters) and a **Your next plan** card.
+- **Discovery:** a chronological Home feed of upcoming activities grouped by day, with category chips (in-URL filters) and a **Your next plan** card. (UI-24 removed the card on 2026-11-17.)
 - **RSVP (basic):** "I'm in" and "Can't make it", a going count, and an attendee list. The organizer is auto-going.
 - **My activities:** a simple list of what I'm going to and what I organize.
 - **Moderation (minimal):** report an activity or profile; a moderator queue; hide and unhide an activity (with a reason shown to the organizer); suspend and reinstate a member; an automatic audit log.
@@ -1005,7 +1005,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   1. Home lists published, non-hidden activities whose start time is no more than 3 hours ago (in-progress) or later. They are sorted by start time and grouped under day headers in the viewer's time zone.
   2. Each card shows: category icon and color, title (up to 2 lines), relative date and time, place, going count, up to 3 attendee avatars, and the viewer's RSVP state.
   3. Pages hold 20 activities. A **Show more** link loads the next page, using a cursor of start time and ID. There is no infinite scroll (see 7.4).
-  4. A **Your next plan** card appears when the viewer is going to something in the next 7 days.
+  4. A **Your next plan** card appears when the viewer is going to something in the next 7 days. (UI-24 removed it on 2026-11-17.)
   5. Cancelled activities do not appear in the default feed.
 - **Dependencies:** ACT-03 (or seed data).
 - **Notes / edge cases:**
@@ -1377,7 +1377,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   2. Each attendee gets at most one reminder per activity (`dedupe_key`).
   3. Reminders are not created for cancelled or muted activities.
 - **Dependencies:** NOTIF-01; `pg_cron` enabled.
-- **Notes / edge cases:** The **Your next plan** card on Home is a second, always-on reminder that needs no job.
+- **Notes / edge cases:** The **Your next plan** card on Home is a second, always-on reminder that needs no job. (UI-24 removed the card on 2026-11-17. Plans still starts with what's next.)
 
 #### NOTIF-08 · Mute an activity
 
@@ -1915,7 +1915,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - The title wraps by words, never one word per line.
     - The day and time show in full on one line, worded as section 7.5 says, such as "Tomorrow 6:30 PM". (Since UI-17, a narrow phone may break the line between the day and the time.)
     - A place too long for its line ends with an ellipsis. The full place is on the activity's page.
-  - A card still has at most one status badge (Cancelled, Full, Board activity or New), and **Your next plan** keeps its blue edge. (UI-14 put it on light blue paper instead.)
+  - A card still has at most one status badge (Cancelled, Full, Board activity or New), and **Your next plan** keeps its blue edge. (UI-14 put it on light blue paper instead, and UI-24 removed it on 2026-11-17.)
   - The whole card except the button still opens the activity. A chevron at the right shows this, hidden from screen readers. (UI-17 removed the chevron.)
   - Discover, Plans, Search and group pages all use the same card.
   - The E2E tests check, at 320 px and 412 px, that the time row isn't cut off and that nothing scrolls sideways.
@@ -1939,7 +1939,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - Choosing one is still a link (`?cat=outdoors`), and it works without JavaScript, as **More filters** does.
   - **More filters** becomes an outlined button that shows how many of its filters are on, such as "More filters (2)". **Clear filters** shows whenever any filter is on.
   - Each chip is at least 44 px tall. A chosen chip is FABA blue with a check, so it isn't shown by color alone.
-  - An **Upcoming activities** heading starts the feed, under **Your next plan**.
+  - An **Upcoming activities** heading starts the feed, under **Your next plan**. (UI-24 removed **Your next plan** on 2026-11-17 and made this heading for screen readers only.)
   - Search uses the same chips and **Category** button.
 - **Dependencies:** UI-02.
 - **Notes / edge cases:**
@@ -2220,7 +2220,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - The header is the logo, the FABA wordmark and the motto (UI-08), on a torn white strip.
     - **Discover** is in big capitals, with **Search** a square button beside it. (Since UI-18, only **Search** shows, at the right. UI-19 moved it into the header, so the tabs are first.)
     - **Activities | Groups** are two torn-paper tabs. The current one is FABA blue with white text, and the other is light blue with navy text.
-    - **Your next plan** and **Upcoming activities** are big section headings.
+    - **Your next plan** and **Upcoming activities** are big section headings. (On 2026-11-17, UI-24 removed the first and made the second for screen readers only.)
     - **Cards:**
       - the date block (month over day) in FABA blue at the left edge
       - the cover's small copy
@@ -2307,7 +2307,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - the paper sheet each page's content is on, the strip with the logo, and the footer
     - each main page's heading strip, which stays tilted
     - the tabs, such as **Activities | Groups** and **All | Unread**
-    - activity, group and alert cards, the cards on **Me** and **Edit profile**, the **You're hosting** sticker, which stays tilted, and the light-blue **Your next plan** panel
+    - activity, group and alert cards, the cards on **Me** and **Edit profile**, the **You're hosting** sticker, which stays tilted, and the light-blue **Your next plan** panel (which UI-24 removed on 2026-11-17)
     - the bottom bar, whose torn top edge becomes a shadow
   - **Pieces on the photo have a deeper shadow** than pieces on the sheet, so the sheet reads as lifted off the photo and the cards as resting on the sheet.
   - **Text stays off the photo.** It's on the sheet or a piece of paper, so every contrast ratio is the same as today. (Replaced on 2026-11-16: text now sits on the faded photo, at 4.5:1 or more everywhere.)
@@ -2364,7 +2364,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - At the top, the month over the day, in white in the display face, bigger than today's date badge.
     - At the bottom, the member's answer: **✓ Going** in white, or **I'm in** as a white button with FABA blue text.
     - **Maybe**, **Full**, **On waitlist**, **Cancelled** and **You're hosting** show there too, in white. That replaces the tilted **You're hosting** sticker (UI-14).
-  - **The title** is at the top left, in the display face in capitals, bigger than today, in up to 2 lines. **Your next plan**'s is bigger still.
+  - **The title** is at the top left, in the display face in capitals, bigger than today, in up to 2 lines. **Your next plan**'s is bigger still. (UI-24 removed **Your next plan** on 2026-11-17.)
   - **The picture** is under the title, on the left, and bigger than today. It's still the cover's small copy, or the category's icon on a tint of its color, with rounded corners. (It became square on 2026-11-17.)
   - **The day and time and the place** are beside the picture, in bigger text, with no icons.
     - A series' "Weekly" still follows the time.
@@ -2372,7 +2372,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - **Who's going is just the count,** such as "4 going", at the bottom right of the white part. The faces and the people icon are gone.
   - **No chevron.** The whole card except the button still opens the activity.
   - **Status badges stay:** Board activity, New, Changed, Full, Hidden, Went and Organized, under the place.
-  - **Your next plan** stays on its light blue paper.
+  - **Your next plan** stays on its light blue paper. (UI-24 removed it on 2026-11-17.)
   - **Contrast and focus:**
     - White on FABA blue is 6.4:1, and so is FABA blue on white.
     - A focused button in the blue column has a white outline, since a blue one wouldn't show.
@@ -2415,6 +2415,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - **Mark these when it's built:**
     - UI-14's criteria about big page headings and Discover's header
     - section 7.17
+  - UI-24 added a short sentence at the top of Discover, Groups, Plans and Alerts on 2026-11-17, saying what each page is for. The headings stay for screen readers only.
   - Size: S, one developer, including the tests.
 
 #### UI-19 · Search in the header
@@ -2732,12 +2733,10 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 +------------------------------------+
 | FABA                          [Q]  |  <- search icon
 +------------------------------------+
-| Your next plan                     |
-| +--------------------------------+ |
-| | [hike] Sunrise hike, R Mountain| |
-| | Sat 7:00 AM . 12 going  [v In] | |
-| +--------------------------------+ |
-| Upcoming activities                |
+| [ ACTIVITIES ]  [  GROUPS  ]       |
+| See what your fellow faculty are   |  <- what the page is for (UI-24)
+| up to, get involved, and have some |
+| fun!                               |
 | [Category v] [Date v]              |  <- the only filters (UI-09)
 |                                    |
 | TODAY . TUE, OCT 21                |
@@ -2757,7 +2756,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 +------------------------------------+
 ```
 
-- **Your next plan** appears only when the member is going to something in the next 7 days. It doubles as an always-on reminder.
+- A sentence under the tabs says what the page is for (UI-24). **Your next plan**, which repeated the next thing the member was going to, came off on 2026-11-17. That activity is in the feed, and first on Plans.
 - Day headers ("Today", "Tomorrow", "Sat, Oct 25") make scanning fast.
 - **NEW** marks activities created since the member's previous visit (Phase 2). This replaces notifying everyone about every new activity. A visit ends after 30 minutes away from Home, so the markers stay while the member browses and are gone when they come back later. A first visit marks nothing, and neither do the member's own activities. It's the last of a card's statuses, after Cancelled, Full and Board activity.
 - **Show more** is a button, not infinite scroll. It keeps the footer reachable and works better with screen readers.
@@ -2976,7 +2975,7 @@ The same HTML serves all widths. CSS (container queries and media queries) handl
 ### 7.17 Visual and content style
 
 - **Fonts:** a system font stack for text. One self-hosted display face, Anton (SIL Open Font License, 18 KB for Latin), is for headings, card titles, tabs, filter labels, badges and the bottom bar's labels, in capitals by CSS (UI-14). It's preloaded, with fallbacks sized to it, and no font service is used.
-- **Look:** cut paper (UI-14, `mockups/discover_collage.webp`), with square pieces (UI-16) on a gradient: the logo's light blue at the top, light blue paper, then cream at the bottom. It fills at least the screen and doesn't repeat. (UI-16's torn-paper photo came off on 2026-11-17, for a flat gray-blue and then this gradient. Its top became the logo's blue later that day.) Every corner is square, like the paper, except faces, which stay round. Link blue is too faint on the logo's blue, so what sits near the top, such as **Back** and "2 asking to join", is navy, and a look test measures text on the gradient, since the accessibility checks can't. Each page's content sits straight on the page, and cards, tabs and page headings are pieces of paper. Discover, Plans, Alerts and Me have no banner, since the bottom bar shows which page it is: their headings are for screen readers only (UI-18). **Search** is a magnifying glass at the right of the header's strip, on every page with the bottom bar (UI-19). Buttons are square, in the display face in capitals like the tabs, while quiet words such as **Add to calendar** stay in the system font (UI-22). Each piece has square corners and a shadow, deeper for the logo strip and the footer. A few things tilt, by 2 degrees at most. Text on the page is at least 5:1, links are the darker FABA blue, and in high-contrast mode the shadows give way to plain borders.
+- **Look:** cut paper (UI-14, `mockups/discover_collage.webp`), with square pieces (UI-16) on a gradient: the logo's light blue at the top, light blue paper, then cream at the bottom. It fills at least the screen and doesn't repeat. (UI-16's torn-paper photo came off on 2026-11-17, for a flat gray-blue and then this gradient. Its top became the logo's blue later that day.) Every corner is square, like the paper, except faces, which stay round. Link blue is too faint on the logo's blue, so what sits near the top, such as **Back** and "2 asking to join", is navy, and a look test measures text on the gradient, since the accessibility checks can't. Each page's content sits straight on the page, and cards, tabs and page headings are pieces of paper. Discover, Plans, Alerts and Me have no banner, since the bottom bar shows which page it is: their headings are for screen readers only (UI-18). Instead, Discover, Groups, Plans and Alerts start with a short white sentence, with a dark-blue shadow, that says what the page is for. It's an agreed exception to the contrast rule, and the look test skips it (UI-24). **Search** is a magnifying glass at the right of the header's strip, on every page with the bottom bar (UI-19). Buttons are square, in the display face in capitals like the tabs, while quiet words such as **Add to calendar** stay in the system font (UI-22). Each piece has square corners and a shadow, deeper for the logo strip and the footer. A few things tilt, by 2 degrees at most. Text on the page is at least 5:1, links are the darker FABA blue, and in high-contrast mode the shadows give way to plain borders.
 - **Themes:** light and dark mode follow the OS setting. (So far FABA has only the light theme.)
 - **Color:** a warm primary color and a distinct, accessible color plus icon for each category.
 - **Icons:** an inline SVG sprite, without an icon font.
@@ -4352,7 +4351,7 @@ RSVP, moderation, profile editing, and account deletion are the **next** iterati
 | AS-2 | Layouts: `PublicLayout`, `AppLayout` (bottom navigation, header, footer disclaimer, skip link)                                                           | M    | Responsive at 320 to 1440 px. axe clean                                          |
 | AS-3 | Base styles from the UX-4 tokens: light and dark themes, focus styles, system fonts                                                                      | S    | Visual check plus a contrast test                                                |
 | AS-4 | Pages: landing (on-demand; redirects members), about, privacy, and guidelines (prerendered), Not eligible, Paused, Welcome (Action: `accept_guidelines`) | M    | J1 works end to end                                                              |
-| AS-5 | Discover: feed grouped by day, category chips in the URL, "Your next plan" placeholder, empty state, **Show more**                                       | M    | ACT-01 and ACT-06 acceptance criteria pass                                       |
+| AS-5 | Discover: feed grouped by day, category chips in the URL, "Your next plan" placeholder (removed by UI-24), empty state, **Show more**                    | M    | ACT-01 and ACT-06 acceptance criteria pass                                       |
 | AS-6 | Activity detail page, including the cancelled banner and the organizer view                                                                              | M    | ACT-02 acceptance criteria pass                                                  |
 | AS-7 | Create and Edit form plus Actions: Zod validation, error mapping, idempotency key, local draft, cancel and restore                                       | L    | ACT-03, ACT-04, and ACT-05 acceptance criteria pass, with and without JavaScript |
 | AS-8 | Me page (read-only profile and sign out). Editing comes next iteration                                                                                   | S    | AUTH-03 passes                                                                   |

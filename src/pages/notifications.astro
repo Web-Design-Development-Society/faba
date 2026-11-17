@@ -3,8 +3,9 @@
 // newest first, 30 at a time, with the unread ones under New and the rest under Earlier. Each row
 // has an icon, a line about what happened, the activity's title, and how long ago. Unread rows are
 // on light blue paper and have a dot, not just a color. Tapping one marks it read and opens its
-// activity, and an activity that's gone, or hidden, opens "not available". Mark all read is at the
-// top. It all works without JavaScript.
+// activity, and an activity that's gone, or hidden, opens "not available". A sentence at the top
+// says what the page is for, with Mark all read at its right (UI-24). It all works without
+// JavaScript.
 //
 // All | Unread switches between every alert and the new ones (?show=unread). Each alert is a card
 // (UI-07) on paper (UI-15, UI-16) with three lines and nothing else (UI-20): the activity's or
@@ -12,6 +13,7 @@
 // sentence comes first for screen readers, after "Unread", and the name is drawn above it. An
 // unread one is on light blue paper.
 import { actions } from 'astro:actions';
+import PageSentence from '../components/PageSentence.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
 import { nextPage, readCursor } from '../lib/feed';
@@ -88,6 +90,7 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
 <Layout title="Alerts" tab="alerts">
   <header class="top">
     <h1 class="visually-hidden">Alerts</h1>
+    <PageSentence>Messages that help you keep track of new and changing activities</PageSentence>
     {unread && (
       <form method="post" action={actions.notifications.readAll.queryString}>
         <button class="secondary">Mark all read</button>

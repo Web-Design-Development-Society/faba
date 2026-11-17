@@ -52,11 +52,9 @@ interface Props {
   history?: boolean;
   /** On Home, when the member's previous visit ended, so newer activities say New (ACT-11). */
   newSince?: Date | null;
-  /** True for Discover's Your next plan, whose title is bigger. */
-  next?: boolean;
 }
 
-const { activity, viewer, now, badges, history, newSince, next } = Astro.props;
+const { activity, viewer, now, badges, history, newSince } = Astro.props;
 const { category } = activity;
 // The date shows the day in Rexburg's time, the same as the time beside the picture.
 const starts = new Date(activity.starts_at);
@@ -100,7 +98,7 @@ const shown = (
 ).filter((badge) => !!badge);
 ---
 
-<article class:list={['card', { next }]} style={look ? `--stripe: ${look.color}` : undefined}>
+<article class="card" style={look ? `--stripe: ${look.color}` : undefined}>
   <div class="paper">
     <h3>
       <a href={`/activities/${activity.id}`}>{activity.title}</a>
@@ -200,7 +198,7 @@ const shown = (
   p {
     margin: 0;
   }
-  /* The title in the display face, in capitals. Your next plan's is bigger. */
+  /* The title in the display face, in capitals. */
   h3 {
     grid-area: title;
     display: -webkit-box;
@@ -216,9 +214,6 @@ const shown = (
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
     line-clamp: 2;
-  }
-  .next h3 {
-    font-size: 2rem;
   }
   h3 a {
     color: inherit;
@@ -375,9 +370,6 @@ const shown = (
     }
     h3 {
       font-size: 1.5rem;
-    }
-    .next h3 {
-      font-size: 1.75rem;
     }
     .picture {
       width: 4.5rem;

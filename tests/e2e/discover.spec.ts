@@ -44,38 +44,14 @@ test('a member sees each activity under its day, with how many are going', async
     )
   ).toBe(0);
 
-  // It's also the next plan.
-  const plan = page.getByRole('region', { name: 'Your next plan' });
-  await expect(plan.getByRole('link', { name: title })).toBeVisible();
+  // It's only in the feed, with no Your next plan above it (UI-24).
+  await expect(page.getByRole('link', { name: title })).toHaveCount(1);
+  await expect(page.getByRole('heading', { name: 'Your next plan' })).toHaveCount(0);
   await expectAccessible(page);
 
   // The whole card opens the activity, not only its title.
   await card.click();
   await expect(page).toHaveURL(`/activities/${id}`);
-});
-
-test('Your next plan is only for the next 7 days', async ({ page, poster, host }) => {
-  const later = await host.post({
-    title: named('Later hike'),
-    starts_at: new Date(Date.now() + 8 * 24 * HOUR).toISOString(),
-  });
-  await host.admin
-    .from('rsvps')
-    .insert({ activity_id: later, user_id: poster.id, status: 'going' });
-  await page.goto('/discover');
-  await expect(page.getByRole('heading', { name: 'Your next plan' })).toHaveCount(0);
-
-  const title = named('Sooner hike');
-  const sooner = await host.post({
-    title,
-    starts_at: new Date(Date.now() + 2 * 24 * HOUR).toISOString(),
-  });
-  await host.admin
-    .from('rsvps')
-    .insert({ activity_id: sooner, user_id: poster.id, status: 'going' });
-  await page.reload();
-  const plan = page.getByRole('region', { name: 'Your next plan' });
-  await expect(plan.getByRole('link', { name: title })).toBeVisible();
 });
 
 test('cancelled and hidden activities are not in the feed', async ({ page, poster, host }) => {
@@ -102,7 +78,6 @@ test('cancelled and hidden activities are not in the feed', async ({ page, poste
   await expect(page.getByRole('heading', { level: 1, name: 'Discover' })).toBeVisible();
   await expect(page.getByText(cancelled)).toHaveCount(0);
   await expect(page.getByText(hidden)).toHaveCount(0);
-  await expect(page.getByRole('heading', { name: 'Your next plan' })).toHaveCount(0);
 });
 
 test('Show more adds the next 20 below', async ({ page, signInAs }) => {
@@ -126,7 +101,6 @@ test.describe('without JavaScript', () => {
     await page.getByRole('link', { name: 'Show more' }).click();
     await expect(page).toHaveURL(/\/discover\?after=.+&id=.+/);
     await expect(page.locator('[data-feed] li')).not.toHaveCount(0);
-    await expect(page.getByRole('heading', { name: 'Your next plan' })).toHaveCount(0);
   });
 });
 

@@ -2,9 +2,11 @@
 // Groups (GRP-01, design document section 7.3): Discover's other half. Every group that isn't
 // archived, by name, each a card with its banner, its category, how many members it has (GRP-02),
 // whether anyone can join, and the start of its description (UI-10). Members can't read a hidden
-// one (RLS). Start a group is at the top.
+// one (RLS). A sentence at the top says what the page is for, with Start a group at its right
+// (UI-24).
 import DiscoverSwitch from '../../components/DiscoverSwitch.astro';
 import GroupCard from '../../components/GroupCard.astro';
+import PageSentence from '../../components/PageSentence.astro';
 import Status from '../../components/Status.astro';
 import Layout from '../../layouts/Layout.astro';
 import { LEAGUES } from '../../lib/features';
@@ -29,6 +31,7 @@ const { data: groups, error } = await supabase
   {/* The tabs are first, right under the header, as on Discover (UI-19). */}
   <DiscoverSwitch current="groups" />
   <header class="top">
+    <PageSentence>Start a faculty group and get together regularly</PageSentence>
     <a href="/groups/new" class="button primary">
       Start a group
     </a>
