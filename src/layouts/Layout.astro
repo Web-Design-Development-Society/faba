@@ -208,10 +208,13 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     descent-override: 49%;
     line-gap-override: 0%;
   }
-  /* A plain light gray-blue page, the color that was under UI-16's torn-paper photo before it came
-     off. On it, ink is 12.3:1, links 5.1:1, muted text 5.2:1 and errors 4.5:1. */
+  /* A soft gradient behind every page: light blue at the top, pale blue, then cream at the bottom.
+     The page is at least as tall as the screen and the gradient doesn't repeat, so a short page
+     ends cleanly. At its darkest, the light blue, ink is 13.5:1, links 5.6:1, muted text 5.7:1 and
+     errors 5:1. The accessibility checks can't measure text on a gradient, so they skip it. */
   html {
-    background: linear-gradient(180deg,var(--sky) 0%, var(--blue-soft) 50%, var(--paper) 100%);
+    min-height: 100%;
+    background: linear-gradient(var(--sky), var(--blue-soft), var(--paper)) no-repeat var(--paper);
   }
   body {
     max-width: 40rem;
