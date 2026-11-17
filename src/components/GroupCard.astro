@@ -108,14 +108,14 @@ const badges = [
       color-mix(in srgb, var(--tint) 10%, white)
     );
   }
-  /* Without a banner, the category's icon in a white circle, so the strip looks finished. */
+  /* Without a banner, the category's icon in a white square, so the strip looks finished. */
   .mark {
     display: grid;
     place-items: center;
     width: 3.75rem;
     height: 3.75rem;
     background: var(--card);
-    border-radius: 50%;
+    border-radius: 0;
     box-shadow: 0 2px 8px rgb(15 31 61 / 14%);
   }
   .picture img {
@@ -172,7 +172,7 @@ const badges = [
     font-weight: 600;
     color: var(--blue);
     background: var(--blue-soft);
-    border-radius: 999px;
+    border-radius: 0;
   }
   /* The category, the members and who can join, each with its icon, wrapping as they need. */
   .facts {
