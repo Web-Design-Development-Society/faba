@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-23`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-24`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-23           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-24           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2558,6 +2558,39 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - **Mark these when it's built:**
     - GRP-05's note
     - the Groups line in section 7.3
+  - Size: S, one developer, including the tests.
+
+#### UI-24 · A sentence on each main page, and no next plan
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want each main page to say in a sentence what it's for, so that I know what I can do there. I also want Discover to start with what's coming up, without my next plan above it.
+- **Acceptance criteria:**
+  - **Each main page has a short sentence at the top** that says what it's for:
+    - **Discover, Activities:** "See what your fellow faculty are up to, get involved, and have some fun!"
+    - **Discover, Groups:** "Start a faculty group and get together regularly"
+    - **Plans:** "Here is what is on my schedule"
+    - **Alerts:** "Messages that help you keep track of new and changing activities"
+    - **Me** has none.
+  - **Where it goes:**
+    - On Discover, it's right under the **Activities | Groups** tabs, above **Category** and **Date**.
+    - On Groups, **Start a group** is at its right, on the same line.
+    - On Plans and Alerts, it's first, above the page's switch. On Alerts, **Mark all read** is at its right.
+  - **How it looks:** 1.2em, white, straight on the gradient, with a shadow 1px right and 2px down in the dark FABA blue (`--blue-dark`). It's about the page, not part of it, so it doesn't stand out.
+  - **It's an exception to the contrast rule.** White on the gradient's light blue is about 2.7:1, under the 4.5:1 that other text meets. The team chose it, with the shadow, for this sentence only. The look test that measures text on the gradient skips it, and still checks everything else.
+  - **Your next plan is gone.** Discover no longer shows the next thing the member is going to above the feed. It's in the feed, and first on Plans.
+  - **The Upcoming activities heading is for screen readers only,** as in the mockup, since it no longer starts the second of two parts.
+  - At 320 px, 412 px and desktop, nothing scrolls sideways and the axe checks pass.
+  - **Tests:**
+    - The E2E tests check each page's sentence, and that Me has none.
+    - They check that Discover has no **Your next plan**.
+    - The look test checks the sentence's size, color and shadow.
+- **Dependencies:** UI-14, UI-16, UI-18.
+- **Notes / edge cases:**
+  - **Why:** UI-18 made the main pages' headings for screen readers only, so nothing on the page says what it's for. **Your next plan** repeated a card that's also in the feed and on Plans.
+  - **Mockups:** `mockups/page_sentence_activities.png` and `mockups/page_sentence_groups.png`.
+  - **Mark these when it's built:**
+    - the lines that describe **Your next plan**: journey J2, the Phase 1 summary, ACT-01, NOTIF-07, UI-03, UI-04, UI-14, UI-16, UI-17, section 7.4 and the Astro tasks
+    - UI-18's note, and the Look line in section 7.17
   - Size: S, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
