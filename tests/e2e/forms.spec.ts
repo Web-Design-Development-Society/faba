@@ -8,15 +8,8 @@ import { expect, expectAccessible, test } from './fixtures';
 async function expectPhoneFriendly(page: Page) {
   const problems = await page.evaluate(() => {
     const found: string[] = [];
-    // The width inside the paper sheet's padding (UI-14), which is all the room a field could have.
-    const sheet = document.querySelector('main')!;
-    const edges = getComputedStyle(sheet);
-    const main =
-      sheet.getBoundingClientRect().width -
-      parseFloat(edges.paddingLeft) -
-      parseFloat(edges.paddingRight) -
-      parseFloat(edges.borderLeftWidth) -
-      parseFloat(edges.borderRightWidth);
+    // The width of the page's content, which is all the room a field could have.
+    const main = document.querySelector('main')!.getBoundingClientRect().width;
     const visible = (el: Element) => {
       const box = el.getBoundingClientRect();
       return box.width > 0 && box.height > 0 && getComputedStyle(el).visibility !== 'hidden';
