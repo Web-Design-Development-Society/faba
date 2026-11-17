@@ -1,7 +1,7 @@
 // FABA's look (UI-02, UI-14, UI-16, UI-18): the bottom bar keeps its five items, each with a line
 // icon in a tile over its label, and the current tab and chosen date are FABA blue. The cut-paper
 // look puts headings in Anton, in capitals by CSS, and each tab on a piece of paper with square
-// corners and a shadow, on a plain light gray-blue page that text sits straight on. The main tabs'
+// corners and a shadow, on a soft gradient that text sits straight on. The main tabs'
 // headings are for screen readers only, since the bottom bar shows which page it is.
 import type { Locator } from '@playwright/test';
 import { expect, expectAccessible, expectSquare, paper, test } from './fixtures';
@@ -67,6 +67,13 @@ test("the main tabs' headings are for screen readers, and New activity keeps its
     const box = (await hidden.boundingBox())!;
     expect(box.width * box.height).toBeLessThanOrEqual(1);
     await expect(hidden).toHaveCSS('box-shadow', 'none');
+    // Even a short page, such as Alerts with none, is as tall as the screen, so the background's
+    // gradient ends at its bottom instead of starting again.
+    expect(
+      await page.evaluate(
+        () => document.documentElement.getBoundingClientRect().height >= window.innerHeight
+      )
+    ).toBe(true);
   }
   // Discover's Search stays, at the right of the top row.
   await page.goto('/discover');
@@ -87,15 +94,19 @@ test("the main tabs' headings are for screen readers, and New activity keeps its
   expect(size).toBeGreaterThanOrEqual(36);
   expect((await heading.boundingBox())!.height).toBeLessThan(size * 1.6);
   // It sits on its own strip of white paper, with square corners and a shadow (UI-16). The page's
-  // content has no sheet: it sits straight on a plain light gray-blue page, with no photo behind it.
+  // content has no sheet: it sits straight on a soft gradient, with no photo behind it.
   expect(await paper(heading)).toBe('ffffff');
   await expectSquare(heading);
   const main = page.locator('main');
   await expect(main).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   await expect(main).toHaveCSS('box-shadow', 'none');
+  // Light blue at the top, pale blue, then cream at the bottom, and it doesn't repeat.
   const html = page.locator('html');
-  await expect(html).toHaveCSS('background-color', 'rgb(211, 214, 224)');
-  await expect(html).toHaveCSS('background-image', 'none');
+  await expect(html).toHaveCSS(
+    'background-image',
+    'linear-gradient(rgb(207, 225, 250), rgb(232, 241, 253), rgb(247, 244, 236))'
+  );
+  await expect(html).toHaveCSS('background-repeat', 'no-repeat');
   expect(
     await page.evaluate(() => getComputedStyle(document.documentElement, '::before').content)
   ).toBe('none');

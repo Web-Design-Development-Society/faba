@@ -601,7 +601,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Web Push** as a channel. The delivery pipeline already supports it, and installed PWAs on iOS 16.4+ and Android support it.
 - **Image uploads** for activity covers and group banners, using Cloudflare Images or R2, with moderation.
 - **Comments** on activities (flat, moderated), if Phase 3 feedback supports them.
-- **A clearer look** from the 2026 mockups (`mockups/discover.webp`, `mockups/new_activity_and_alerts.webp`): FABA blue and icons throughout, cards that show the whole time and place, filters that fit the screen, an easier activity page and form, and alerts as cards. Then a bolder cut-paper look (`mockups/discover_collage.webp`, UI-14): heavy condensed capitals, paper on FABA blue, and stickers. UI-16 then made the paper square, with shadows, on a photo of torn paper, which later came off for a plain light gray-blue page. UI-17 gave activity cards bigger text, fewer pieces and a blue date column.
+- **A clearer look** from the 2026 mockups (`mockups/discover.webp`, `mockups/new_activity_and_alerts.webp`): FABA blue and icons throughout, cards that show the whole time and place, filters that fit the screen, an easier activity page and form, and alerts as cards. Then a bolder cut-paper look (`mockups/discover_collage.webp`, UI-14): heavy condensed capitals, paper on FABA blue, and stickers. UI-16 then made the paper square, with shadows, on a photo of torn paper, which later came off for a soft light-blue gradient. UI-17 gave activity cards bigger text, fewer pieces and a blue date column.
 - **Playoff brackets** for leagues.
 - **Data retention automation**, and a data export ("download my data").
 - **Performance:** query review with `pg_stat_statements`, edge caching of non-personalized fragments, Smart Placement tuning.
@@ -2340,6 +2340,11 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - Every contrast ratio above still holds, since they were measured against that color.
     - `public/backgrounds/torn-paper-faded.webp` is gone. The original is still in `mockups/`.
     - The look test checks the page's color and that nothing is behind it.
+  - **Then the flat color became a gradient** (2026-11-17): light blue (`--sky`) at the top, pale blue (`--blue-soft`), then cream (`--paper`) at the bottom.
+    - Every stop is lighter than `#d3d6e0`. At the darkest, the light blue, ink is 13.5:1, links 5.6:1, muted text 5.7:1 and errors 5:1.
+    - The page is at least as tall as the screen, and the gradient doesn't repeat, so a short page ends cleanly instead of starting it again.
+    - axe can't measure text on a gradient, so it skips the page background's contrast. The ratios above are worked out instead.
+    - The look test checks the gradient, that it doesn't repeat, and that each main tab is at least as tall as the screen, even Alerts with nothing in it.
   - **Mark these when it's built:**
     - UI-14's torn-paper criteria and notes
     - UI-15's torn paper
@@ -2789,7 +2794,7 @@ The same HTML serves all widths. CSS (container queries and media queries) handl
 ### 7.17 Visual and content style
 
 - **Fonts:** a system font stack for text. One self-hosted display face, Anton (SIL Open Font License, 18 KB for Latin), is for headings, card titles, tabs, filter labels, badges and the bottom bar's labels, in capitals by CSS (UI-14). It's preloaded, with fallbacks sized to it, and no font service is used.
-- **Look:** cut paper (UI-14, `mockups/discover_collage.webp`), with square pieces (UI-16) on a plain light gray-blue page, `#d3d6e0`. (UI-16's torn-paper photo came off on 2026-11-17.) Each page's content sits straight on the page, and cards, tabs and page headings are pieces of paper. Discover, Plans, Alerts and Me have no banner, since the bottom bar shows which page it is: their headings are for screen readers only (UI-18). Each piece has square corners and a shadow, deeper for the logo strip and the footer. A few things tilt, by 2 degrees at most. Text on the page is at least 4.5:1, links are the darker FABA blue, and in high-contrast mode the shadows give way to plain borders.
+- **Look:** cut paper (UI-14, `mockups/discover_collage.webp`), with square pieces (UI-16) on a soft gradient: light blue at the top, pale blue, then cream at the bottom. It fills at least the screen and doesn't repeat. (UI-16's torn-paper photo came off on 2026-11-17, for a flat gray-blue and then this gradient.) Each page's content sits straight on the page, and cards, tabs and page headings are pieces of paper. Discover, Plans, Alerts and Me have no banner, since the bottom bar shows which page it is: their headings are for screen readers only (UI-18). Each piece has square corners and a shadow, deeper for the logo strip and the footer. A few things tilt, by 2 degrees at most. Text on the page is at least 5:1, links are the darker FABA blue, and in high-contrast mode the shadows give way to plain borders.
 - **Themes:** light and dark mode follow the OS setting. (So far FABA has only the light theme.)
 - **Color:** a warm primary color and a distinct, accessible color plus icon for each category.
 - **Icons:** an inline SVG sprite, without an icon font.
