@@ -115,7 +115,8 @@ test("the main tabs' headings are for screen readers, and New activity keeps its
 /**
  * The text that sits straight on the page's gradient, with nothing behind it but the page, and
  * whose contrast with the gradient where it sits is under WCAG's 4.5:1, or 3:1 for large text. axe
- * can't measure text on a gradient, so this finds the gradient's color at the middle of each.
+ * can't measure text on a gradient, so this finds the gradient's color at the middle of each. Each
+ * main page's sentence (UI-24) is white with a shadow, an agreed exception, so it's left out.
  */
 async function unreadableOnGradient(page: Page) {
   return page.evaluate(() => {
@@ -155,7 +156,7 @@ async function unreadableOnGradient(page: Page) {
       const box = element.getBoundingClientRect();
       const style = getComputedStyle(element);
       if (!text || box.width <= 1 || box.height <= 1 || style.visibility === 'hidden') continue;
-      if (!onGradient(element)) continue;
+      if (!onGradient(element) || element.closest('.page-sentence')) continue;
       const size = parseFloat(style.fontSize);
       const large = size >= 24 || (size >= 18.66 && Number(style.fontWeight) >= 700);
       const ratio = contrast(rgb(style.color), behind(box.top + scrollY + box.height / 2));
@@ -210,6 +211,44 @@ test('text straight on the gradient is readable, even at its bluest', async ({
     for (const problem of await unreadableOnGradient(page)) found.push(`${path}: ${problem}`);
   }
   expect(found).toEqual([]);
+});
+
+test('each main page says what it is for, in white with a shadow, and Me says nothing', async ({
+  page,
+  signInAs,
+}) => {
+  await signInAs('member');
+  const sentences = {
+    '/discover': 'See what your fellow faculty are up to, get involved, and have some fun!',
+    '/groups': 'Start a faculty group and get together regularly',
+    '/plans': 'Here is what is on my schedule',
+    '/notifications': 'Messages that help you keep track of new and changing activities',
+  };
+  for (const [path, words] of Object.entries(sentences)) {
+    await page.goto(path);
+    const sentence = page.locator('main .page-sentence');
+    await expect(sentence).toHaveText(words);
+    await expect(sentence).toHaveCSS('color', 'rgb(255, 255, 255)');
+    // 1.2em of the page's 16px.
+    await expect(sentence).toHaveCSS('font-size', '19.2px');
+    await expect(sentence).toHaveCSS('text-shadow', 'rgb(10, 79, 184) 1px 2px 0px');
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
+    ).toBe(true);
+  }
+  // On Groups, Start a group is at its right, on the same line.
+  await page.goto('/groups');
+  const sentence = await page.locator('main .page-sentence').boundingBox();
+  const start = await page
+    .locator('main .top')
+    .getByRole('link', { name: 'Start a group' })
+    .boundingBox();
+  expect(start!.x).toBeGreaterThan(sentence!.x + sentence!.width - 1);
+  expect(start!.y).toBeLessThan(sentence!.y + sentence!.height);
+  await expectAccessible(page);
+
+  await page.goto('/me');
+  await expect(page.locator('main .page-sentence')).toHaveCount(0);
 });
 
 test("Search is at the right of the header, and Discover's tabs come first", async ({

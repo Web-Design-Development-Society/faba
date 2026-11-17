@@ -29,9 +29,8 @@ for (const [name, value] of new URLSearchParams(actions.rsvps.set.queryString)) 
   target.searchParams.set(name, value);
 }
 const action = target.pathname + target.search;
-// Discover can show an activity twice, as the next plan and in the feed. I'm in names the sheet too,
-// for when src/scripts/rsvp.ts makes it ✓ Going. A button that names one doesn't post unless its
-// type says to.
+// Each form's sheet has a name of its own, which I'm in names too, for when src/scripts/rsvp.ts
+// makes it ✓ Going. A button that names one doesn't post unless its type says to.
 const sheet = `rsvp-${crypto.randomUUID()}`;
 ---
 

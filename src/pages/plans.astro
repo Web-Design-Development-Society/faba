@@ -4,9 +4,11 @@
 // Organizing the ones they organize, soonest first, as in /plans?show=organizing. Past has the
 // ones they went to or organized, newest first. Each is a card, as on Home, with badges for what
 // changed (FR-HIST-1). Cancelled ones stay, marked cancelled (ACT-05), and hidden ones stay for
-// their organizer. It replaces Phase 1's My activities on Me (HIST-02).
+// their organizer. It replaces Phase 1's My activities on Me (HIST-02). A sentence at the top says
+// what the page is for (UI-24).
 import { actions } from 'astro:actions';
 import ActivityCard from '../components/ActivityCard.astro';
+import PageSentence from '../components/PageSentence.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
 import { CARD, historySince } from '../lib/cards';
@@ -57,6 +59,7 @@ const activities = data ?? [];
 
 <Layout title={segment === 'going' ? 'Plans' : `${SEGMENTS[segment]} · Plans`} tab="plans">
   <h1 class="visually-hidden">Plans</h1>
+  <PageSentence>Here is what is on my schedule</PageSentence>
   <nav aria-label="Plans" class="switch">
     {Object.entries(SEGMENTS).map(([id, name]) => (
       <a
