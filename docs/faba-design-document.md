@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-16`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-17`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-16           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-17           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2339,6 +2339,48 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - UI-14's torn-paper criteria and notes
     - UI-15's torn paper
     - sections 7.5, 7.9 and 7.17
+  - Size: M, one developer, including the tests.
+
+#### UI-17 · Activity cards with a blue date column
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member scanning Discover, I want activity cards with bigger text and less on them, so that I can read them at a glance.
+- **Mockup:** `mockups/activity_card.png`.
+- **Acceptance criteria:**
+  - **A card has two parts:** white paper on the left, and a FABA blue column on the right as tall as the card.
+  - **The blue column:**
+    - At the top, the month over the day, in white in the display face, bigger than today's date badge.
+    - At the bottom, the member's answer: **✓ Going** in white, or **I'm in** as a white button with FABA blue text.
+    - **Maybe**, **Full**, **On waitlist**, **Cancelled** and **You're hosting** show there too, in white. That replaces the tilted **You're hosting** sticker (UI-14).
+  - **The title** is at the top left, in the display face in capitals, bigger than today, in up to 2 lines. **Your next plan**'s is bigger still.
+  - **The picture** is under the title, on the left, and bigger than today. It's still the cover's small copy, or the category's icon on a tint of its color, with rounded corners.
+  - **The day and time and the place** are beside the picture, in bigger text, with no icons.
+    - A series' "Weekly" still follows the time.
+    - A long place still ends with an ellipsis.
+  - **Who's going is just the count,** such as "4 going", at the bottom right of the white part. The faces and the people icon are gone.
+  - **No chevron.** The whole card except the button still opens the activity.
+  - **Status badges stay:** Board activity, New, Changed, Full, Hidden, Went and Organized, under the place.
+  - **Your next plan** stays on its light blue paper.
+  - **Contrast and focus:**
+    - White on FABA blue is 6.4:1, and so is FABA blue on white.
+    - A focused button in the blue column has a white outline, since a blue one wouldn't show.
+  - **In high contrast,** the column is plain, with a border between it and the rest of the card.
+  - **At 320 px, 412 px and desktop:**
+    - Nothing scrolls sideways, and the title wraps by words.
+    - The day and time may take 2 lines on a narrow phone, but only between the day and the time, such as "Tomorrow" over "6:30 PM". Never inside the time.
+    - The axe checks pass.
+  - **Performance:** the pages stop fetching the 3 faces for each card.
+  - **Tests:**
+    - The card tests check that the blue column is on the right, as tall as the card, with the date at the top and I'm in or ✓ Going at the bottom.
+    - They also check that the time and place have no icons, there are no faces, and the title, picture and text are bigger.
+- **Dependencies:** UI-03, UI-14, UI-16.
+- **Notes / edge cases:**
+  - **Why:** the cards were busy: a date badge, a picture, icons on each row, faces, a chevron and a button in one card. Bigger text with fewer pieces is easier to read on a phone.
+  - **The picture is on the left, under the title,** as in the mockup, with the date column on the right.
+  - **The mockup has ✓ Going but no I'm in.** FABA keeps one-tap I'm in on cards (section 7.5, RSVP-01), in the same place.
+  - **Mark these when it's built:**
+    - UI-03's layout criteria
+    - section 7.5's Date badge, When, Where, Social proof and Action rows, and its Layout note
   - Size: M, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
