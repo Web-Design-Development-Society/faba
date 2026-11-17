@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-18`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-20`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-18           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-20           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2414,6 +2414,52 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - **Mark these when it's built:**
     - UI-14's criteria about big page headings and Discover's header
     - section 7.17
+  - Size: S, one developer, including the tests.
+
+#### UI-19 · Search in the header
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want Search in the header and Discover's tabs at the top, so that the page starts with what I came for and Search is always one tap away.
+- **Mockup:** `mockups/discover_header.png`.
+- **Acceptance criteria:**
+  - **Search is a magnifying glass at the right of the header's white strip,** after the motto. It's a link named **Search**, 44 px square, in navy.
+    - It's on every page with the bottom bar.
+    - On the Search page, it's marked as the current page.
+  - **Discover's top row goes.** Its Search button was all that was left in it (UI-18), so **Activities | Groups** are the first thing under the header, on Discover and on Groups.
+  - **Each page keeps its heading for screen readers** (UI-18).
+  - **On a 320 px phone,** the logo, the motto and Search fit on the strip, with the motto on two lines.
+  - At 320 px, 412 px and desktop, nothing scrolls sideways and the axe checks pass.
+  - **Tests:** the look test checks that Search is at the right of the header on Discover and Plans, and that the tabs come right after the header on Discover and Groups.
+- **Dependencies:** UI-08, UI-18.
+- **Notes / edge cases:**
+  - **Alerts keeps its top row,** for **Mark all read**.
+  - **Mark these when it's built:**
+    - UI-14's Discover header
+    - UI-18's note on Discover's Search
+    - section 7.17
+  - Size: S, one developer, including the tests.
+
+#### UI-20 · Simpler alert cards
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member checking Alerts, I want each alert to say only what I need, so that I can scan them quickly.
+- **Acceptance criteria:**
+  - **Each alert card has three lines:**
+    - the title, the activity's or group's name, in the display face
+    - the message, what happened
+    - how long ago, such as "2h ago"
+  - **The type's icon tile and the chevron are gone.**
+  - **Tighter:** less padding in each card, and less space between cards.
+  - **Unread stays as it is** (UI-15): light blue paper and a dot before the title, and screen readers hear "Unread" first.
+  - **The whole card still opens the alert,** and its title is underlined on hover.
+  - At 320 px, 412 px and desktop, nothing scrolls sideways and the axe checks pass.
+  - **Tests:** the alert tests check that a card has no icon tile or chevron, and shows the title, then the message, then how long ago.
+- **Dependencies:** UI-07, UI-15, UI-16.
+- **Notes / edge cases:**
+  - **Why:** an icon, a chevron and three lines of text made each alert busy, and fewer showed on a phone's screen.
+  - **Mark these when it's built:**
+    - UI-07's and UI-15's card criteria
+    - section 7.9's **Cards**
   - Size: S, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
