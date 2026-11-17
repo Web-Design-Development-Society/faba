@@ -37,7 +37,7 @@ const [{ data: activity }, { data: report }] = await Promise.all([
 if (!activity) Astro.response.status = 404;
 ---
 
-<Layout title={activity ? `Report ${activity.title}` : 'Not available'}>
+<Layout title={activity ? `Report ${activity.title}` : 'Not available'} paper>
   {activity ? (
     <>
       <Back href={`/activities/${activity.id}`}>Back to {activity.title}</Back>

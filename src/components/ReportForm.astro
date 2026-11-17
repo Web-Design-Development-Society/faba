@@ -2,7 +2,8 @@
 // The Report form (MOD-01): a reason and an optional note about an activity, a member or an
 // organizer's update (NOTIF-04). Only moderators see who sent it (FR-REP-1). It works without
 // JavaScript. Once it's sent, the page goes back to what was reported, which says thanks. Each
-// member reports each thing once, and never their own.
+// member reports each thing once, and never their own. It asks a few clear questions, and says first
+// that only moderators see who sent it (UI-26).
 import { actions, isInputError } from 'astro:actions';
 import { NOTE_MAX, REASONS } from '../lib/validation/report';
 import FieldError from './FieldError.astro';
@@ -43,10 +44,11 @@ const failure = result?.error && !isInputError(result.error) ? result.error.mess
 ) : (
   <form method="post" action={actions.reports.create.queryString}>
     {failure && <p role="alert">{failure}</p>}
+    <p class="lead">Only moderators see who sent a report.</p>
     <input type="hidden" name="target_type" value={type} />
     <input type="hidden" name="target_id" value={id} />
     <fieldset class="choices" aria-describedby={fields.reason ? 'reason-error' : undefined}>
-      <legend>Reason</legend>
+      <legend>Why are you reporting it?</legend>
       {Object.entries(REASONS).map(([value, label]) => (
         <label>
           <input
@@ -62,8 +64,7 @@ const failure = result?.error && !isInputError(result.error) ? result.error.mess
     </fieldset>
     <FieldError name="reason" errors={fields.reason} />
     <p>
-      <label for="note">Note (optional)</label>
-      <br />
+      <label for="note">Anything else? (optional)</label>
       <textarea
         id="note"
         name="note"
@@ -75,7 +76,6 @@ const failure = result?.error && !isInputError(result.error) ? result.error.mess
       >{typed?.get('note')?.toString() ?? ''}</textarea>
       <FieldError name="note" errors={fields.note} />
     </p>
-    <p class="hint">Only moderators see who sent a report.</p>
     <div class="form-actions">
       <a href={back} class="button">
         Cancel
@@ -84,3 +84,10 @@ const failure = result?.error && !isInputError(result.error) ? result.error.mess
     </div>
   </form>
 )}
+
+<style>
+  /* Said first, so the member knows before they choose a reason. */
+  .lead {
+    margin: 0 0 1.5rem;
+  }
+</style>

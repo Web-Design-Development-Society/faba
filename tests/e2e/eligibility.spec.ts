@@ -26,7 +26,7 @@ test("an ineligible organizer's activity stays up, with a note", async ({
   await page.goto(`/activities/${id}`);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Sunrise hike up the R');
   await expect(page.getByText('Organizer no longer active')).toBeVisible();
-  await expect(page.getByText('Hosted by')).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'Host' }).getByRole('link')).toHaveCount(0);
   await expect(page.getByRole('button', { name: 'Cancel it' })).toHaveCount(0);
   await expectAccessible(page);
 });

@@ -32,7 +32,7 @@ test('a member chooses to show their email on their profile, and to hide it agai
   await page.getByRole('button', { name: 'Save' }).click();
   await expect(page).toHaveURL('/me');
   await page.goto(`/people/${poster.id}`);
-  await expect(page.getByText('Email')).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'Email' })).toHaveCount(0);
 });
 
 test("moderators see a member's email even when they don't share it", async ({
@@ -49,6 +49,7 @@ test("moderators see a member's email even when they don't share it", async ({
   const email = data!.email as string;
 
   await page.goto(`/people/${host.id}`);
-  await expect(page.getByText('Email, for moderators only:')).toBeVisible();
+  // Under its own heading, saying only moderators see it (UI-26).
+  await expect(page.getByRole('region', { name: 'Email' })).toContainText('for moderators only');
   await expect(page.getByRole('link', { name: email })).toHaveAttribute('href', `mailto:${email}`);
 });

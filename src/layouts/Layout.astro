@@ -23,14 +23,16 @@ interface Props {
   post?: string;
   /** New and Edit activity's warm gradient and paper (UI-25). Every other page is blue. */
   warm?: boolean;
+  /** Cream paper behind the content, for a page that reads top to bottom (UI-26). */
+  paper?: boolean;
 }
 
-const { title, tab, post = '/activities/new', warm = false } = Astro.props;
+const { title, tab, post = '/activities/new', warm = false, paper = false } = Astro.props;
 const unread = Astro.locals.member?.unread_count ?? 0;
 const current = (item: string) => (item === tab ? ('page' as const) : undefined);
 ---
 
-<html lang="en" class:list={{ warm }}>
+<html lang="en" class:list={{ warm, paper }}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -257,6 +259,53 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   html.warm main {
     padding: 0.75rem;
     background: var(--paper-warm);
+  }
+  /* An activity, a group, a member and the short forms sit on a piece of cream paper, and read top
+     to bottom in roomy text, each part under a plain heading (UI-26). Muted text is 6.9:1 on it. */
+  html.paper main {
+    padding: 1rem;
+    font-size: 1.0625rem;
+    line-height: 1.6;
+    background: var(--paper);
+  }
+  /* A part of such a page: room above it, and its heading in the display face, the same size for
+     every part, with its action, such as Add to calendar, at the right. */
+  .topic {
+    margin-top: 2rem;
+  }
+  .topic h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.375rem;
+    line-height: 1.2;
+  }
+  .topic-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .topic-head h2 {
+    margin: 0;
+  }
+  /* Small print, such as Updated 2d ago, stays at least 15 px. */
+  .small {
+    font-size: 0.9375rem;
+    color: var(--muted);
+  }
+  /* On paper, a form starts a little below its title, and its questions are bigger, with room
+     between them. */
+  html.paper main h1 + :is(form, .lead) {
+    margin-top: 1.5rem;
+  }
+  /* A form's questions are bigger, with room between them. */
+  html.paper main :where(label[for], legend) {
+    margin-bottom: 0.5rem;
+    font-size: 1.125rem;
+  }
+  html.paper main > form > :where(p, fieldset) {
+    margin: 0 0 1.5rem;
   }
   /* On a narrow phone, the page's edges give back some room. */
   @media (max-width: 24rem) {
@@ -787,7 +836,8 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   @media (forced-colors: active) {
     html,
     html.warm,
-    html.warm main {
+    html.warm main,
+    html.paper main {
       background: Canvas;
     }
     footer,

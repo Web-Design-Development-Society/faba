@@ -74,7 +74,7 @@ test('a member deletes their account from Me, after typing DELETE', async ({
     await signInAs('member');
     await page.goto(`/activities/${upcoming}`);
     await expect(page.getByText('Cancelled: Its organizer left FABA.')).toBeVisible();
-    await expect(page.getByText('Hosted by Former member')).toBeVisible();
+    await expect(page.getByRole('region', { name: 'Host' })).toHaveText(/Former member/);
   } finally {
     // They have no organizer now, so deleting Pat's account doesn't find them.
     await poster.admin.from('activities').delete().in('id', [upcoming, past]);

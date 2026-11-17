@@ -67,14 +67,15 @@ const invalid = (name: string) =>
   fields[name] ? { 'aria-invalid': 'true' as const, 'aria-describedby': `${name}-error` } : {};
 ---
 
-<Layout title="Edit profile" tab="me">
+<Layout title="Edit profile" tab="me" paper>
   <Back href="/me">Back to Me</Back>
   <h1>Edit profile</h1>
   <Status message={flash && !pictureError ? FLASH_MESSAGES[flash] : undefined} />
   {failure && <p role="alert">{failure}</p>}
 
-  {/* The photo comes first: what others see, and changing it (UI-11). */}
-  <section class="photo card" aria-labelledby="photo-heading">
+  {/* The photo comes first: what others see, and changing it (UI-11). It's the first question, on
+      the page's paper with the rest, not on a card of its own (UI-26). */}
+  <section class="photo field" aria-labelledby="photo-heading">
     <h2 id="photo-heading">Photo</h2>
     <div class="current">
       {profile && <Avatar member={profile} named large />}
@@ -211,15 +212,15 @@ const invalid = (name: string) =>
 </Layout>
 
 <style>
-  /* The look of New activity's form (UI-06): bold questions, full-width fields, chips. */
-  /* A piece of white paper, from the layout's .card (UI-16). */
-  .card {
-    margin: 1rem 0 1.5rem;
-    padding: 1rem;
-  }
+  /* The look of New activity's form (UI-06): bold questions, full-width fields, chips, with room
+     between the questions (UI-26). The photo's heading looks like the other questions. */
   .photo h2 {
-    margin: 0 0 0.75rem;
+    margin: 0 0 0.5rem;
+    font-family: inherit;
     font-size: 1.125rem;
+    font-weight: 700;
+    letter-spacing: normal;
+    text-transform: none;
   }
   .current {
     display: flex;
@@ -257,12 +258,12 @@ const invalid = (name: string) =>
     border: 0;
   }
   .field {
-    margin: 0 0 1.25rem;
+    margin: 0 0 1.75rem;
   }
   .question,
   legend {
     display: block;
-    margin-bottom: 0.375rem;
+    margin-bottom: 0.5rem;
     padding: 0;
     font-size: 1.125rem;
     font-weight: 700;

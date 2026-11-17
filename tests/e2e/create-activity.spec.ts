@@ -39,7 +39,7 @@ test('a member posts an activity and lands on it, going', async ({ page, poster 
   ).toBeVisible();
   // Intl puts thin spaces around the dash and a narrow no-break space before AM.
   await expect(page.getByText(/7:00\s–\s9:30\sAM$/)).toBeVisible();
-  await expect(page.getByText('Cost: Free')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Cost' })).toContainText('Free');
   await expect(page.getByText('1 going')).toBeVisible();
   await expect(page.getByText("You're hosting")).toBeVisible();
   await expectAccessible(page);

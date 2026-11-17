@@ -78,7 +78,7 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
 const mine = profile?.id === user.id;
 ---
 
-<Layout title={profile?.display_name ?? 'Not available'}>
+<Layout title={profile?.display_name ?? 'Not available'} paper>
   <header class="top">
     <Back href="/discover">Back to Discover</Back>
     {profile?.status === 'active' && !mine && (
@@ -112,6 +112,7 @@ const mine = profile?.id === user.id;
           </ModerationAction>
         </div>
       )}
+      {/* Their face, name and department, then each fact under a plain heading (UI-26). */}
       <div class="who">
         <Avatar member={profile} large />
         <div>
@@ -119,29 +120,47 @@ const mine = profile?.id === user.id;
           {profile.department && <p>{profile.department}</p>}
         </div>
       </div>
-      {profile.bio && <p class="bio">{profile.bio}</p>}
-      {interests.length > 0 && <p>Interests: {interests.map(({ name }) => name).join(', ')}</p>}
-      {profile.public_email ? (
-        <p>
-          Email: <a href={`mailto:${profile.public_email}`}>{profile.public_email}</a>
-        </p>
-      ) : (
-        email && (
-          <p>
-            Email, for moderators only: <a href={`mailto:${email}`}>{email}</a>
-          </p>
-        )
-      )}
       {mine && (
-        <p>
+        <p class="mine">
           This is how other members see you.{' '}
           <a href="/me/edit" class="button">
             Edit profile
           </a>
         </p>
       )}
+      {profile.bio && (
+        <section class="topic" aria-labelledby="about-heading">
+          <h2 id="about-heading">About</h2>
+          <p class="bio">{profile.bio}</p>
+        </section>
+      )}
+      {interests.length > 0 && (
+        <section class="topic" aria-labelledby="interests-heading">
+          <h2 id="interests-heading">Interests</h2>
+          <ul class="interests">
+            {interests.map(({ name }) => (
+              <li>{name}</li>
+            ))}
+          </ul>
+        </section>
+      )}
+      {(profile.public_email || email) && (
+        <section class="topic" aria-labelledby="email-heading">
+          <h2 id="email-heading">Email</h2>
+          {profile.public_email ? (
+            <p class="fact">
+              <a href={`mailto:${profile.public_email}`}>{profile.public_email}</a>
+            </p>
+          ) : (
+            <p class="fact">
+              <a href={`mailto:${email}`}>{email}</a>
+              <span class="small"> · for moderators only</span>
+            </p>
+          )}
+        </section>
+      )}
 
-      <section aria-labelledby="organizing">
+      <section class="topic" aria-labelledby="organizing">
         <h2 id="organizing">Organizing</h2>
         {error ? (
           <p role="alert">These activities couldn't load. Please try again.</p>
@@ -184,8 +203,35 @@ const mine = profile?.id === user.id;
   .who p {
     margin: 0;
   }
+  .who h1 {
+    overflow-wrap: anywhere;
+  }
   .bio {
+    margin: 0;
     white-space: pre-line;
+  }
+  .fact {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .mine {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 1rem;
+  }
+  /* Interests as chips, as on Me. */
+  .interests {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+  .interests li {
+    padding: 0.125rem 0.75rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--blue-dark);
+    background: var(--blue-soft);
   }
   .banner {
     padding: 0.75rem 1rem;

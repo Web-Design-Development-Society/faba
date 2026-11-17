@@ -16,7 +16,7 @@ test('a member reports an activity from its ⋯ menu, once', async ({ page, post
   await expectAccessible(page);
 
   await page.getByLabel('Spam / commercial').check();
-  await page.getByLabel('Note (optional)').fill('Selling tickets');
+  await page.getByLabel('Anything else? (optional)').fill('Selling tickets');
   await page.getByRole('button', { name: 'Send report' }).click();
   await expect(page).toHaveURL(`/activities/${id}`);
   await expect(page.getByRole('status')).toHaveText('Thanks, a moderator will review this.');
@@ -76,14 +76,14 @@ test("10 reports a day, and nothing of their own or that they can't see", async 
   );
   await page.goto(`/people/${host.id}/report`);
   await page.getByLabel('Other').check();
-  await page.getByLabel('Note (optional)').fill('Rude at the hike');
+  await page.getByLabel('Anything else? (optional)').fill('Rude at the hike');
   await page.getByRole('button', { name: 'Send report' }).click();
   await expect(page.getByRole('alert')).toHaveText(
     'You can send up to 10 reports a day. Try again tomorrow.'
   );
   // What was typed stays.
   await expect(page.getByLabel('Other')).toBeChecked();
-  await expect(page.getByLabel('Note (optional)')).toHaveValue('Rude at the hike');
+  await expect(page.getByLabel('Anything else? (optional)')).toHaveValue('Rude at the hike');
 
   await page.goto(`/people/${poster.id}/report`);
   await expect(page.getByText("You can't report your own profile.")).toBeVisible();

@@ -36,7 +36,7 @@ const { data: report } = group
 if (!group) Astro.response.status = 404;
 ---
 
-<Layout title={group ? `Report ${group.name}` : 'Not available'} tab="discover">
+<Layout title={group ? `Report ${group.name}` : 'Not available'} tab="discover" paper>
   {group ? (
     <>
       <Back href={`/groups/${group.slug}`}>Back to {group.name}</Back>

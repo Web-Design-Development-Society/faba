@@ -292,7 +292,6 @@ const people = activity?.going.map(({ member }) => member) ?? [];
 const addable = people.filter(
   ({ id }) => id !== activity?.organizer_id && !coOrganizers.some((c) => c.id === id)
 );
-const department = host?.department ? `· ${host.department}` : '';
 const look = activity?.category ? categoryLook(activity.category) : null;
 const url = new URL(Astro.url.pathname, Astro.url.origin).href;
 // Add to calendar (ACT-08), until it's cancelled or over. The .ics has the details for attendees
@@ -315,7 +314,7 @@ const email = activity
   : undefined;
 ---
 
-<Layout title={activity?.title ?? 'Not available'}>
+<Layout title={activity?.title ?? 'Not available'} paper>
   <header class="top">
     <Back href="/discover">Back to Discover</Back>
     {activity && (
@@ -414,28 +413,23 @@ const email = activity
       {activity.status === 'cancelled' && (
         <p class="banner">{withReason('Cancelled', activity.cancel_reason)}</p>
       )}
-      {activity.category && look && (
-        <p class="category" style={`--tint: ${look.color}`}>
-          <Icon name={look.icon} />
-          {activity.category.name}
-        </p>
-      )}
+      {/* The title, then what it's part of in a line under it (UI-26). */}
+      <h1>{activity.title}</h1>
       {activity.group && (
-        <p class="group">
-          <a href={`/groups/${activity.group.slug}`}>{activity.group.name}</a>
+        <p class="meta">
+          Group: <a href={`/groups/${activity.group.slug}`}>{activity.group.name}</a>
           {activity.visibility === 'group' && ' · Group members only'}
         </p>
       )}
       {activity.is_board_activity && <p class="board">FABA board activity</p>}
       {boardAdmin && activity.announced_at && (
-        <p class="updated">
+        <p class="small">
           Announced{' '}
           <time datetime={activity.announced_at}>
             {formatAgo(new Date(activity.announced_at), new Date())}
           </time>
         </p>
       )}
-      <h1>{activity.title}</h1>
       {activity.cover && !activity.cover.hidden_at && (
         <CoverPicture image={activity.cover} viewer={user.id} shape="cover" />
       )}
@@ -444,44 +438,35 @@ const email = activity
           {withReason('Picture hidden by a moderator', activity.cover.hidden_reason)}
         </p>
       )}
-      {/* When and where, big and with no icons, each with its link quietly at the right (UI-21),
-          then the cost and the host. */}
-      <div class="details card">
-        <div class="row">
-          <div>
-            <p class="big">
-              <time datetime={activity.starts_at}>
-                {formatRange(
-                  new Date(activity.starts_at),
-                  activity.ends_at ? new Date(activity.ends_at) : null
-                )}
-              </time>
-            </p>
-            {activity.series && (
-              <p class="repeats">
-                {repeatsSentence(activity.series.freq, activity.series.start_date)}
-                {activity.series.until_date && ` through ${formatDate(activity.series.until_date)}`}
-              </p>
-            )}
-          </div>
+      {/* Each fact under a plain heading, one after another, with its link quietly at the right of
+          the heading (UI-21, UI-26). The time and the place are bigger. */}
+      <section class="topic" aria-labelledby="when-heading">
+        <div class="topic-head">
+          <h2 id="when-heading">Date and time</h2>
           {google && (
             <button type="button" class="quiet" commandfor="calendar" command="show-modal">
               Add to calendar
             </button>
           )}
         </div>
-        <div class="row">
-          <div>
-            <p class="big">{activity.location_name}</p>
-            {activity.time_or_place_changed_at && (
-              <p class="updated">
-                Updated{' '}
-                <time datetime={activity.time_or_place_changed_at}>
-                  {formatAgo(new Date(activity.time_or_place_changed_at), new Date())}
-                </time>
-              </p>
+        <p class="big">
+          <time datetime={activity.starts_at}>
+            {formatRange(
+              new Date(activity.starts_at),
+              activity.ends_at ? new Date(activity.ends_at) : null
             )}
-          </div>
+          </time>
+        </p>
+        {activity.series && (
+          <p class="small">
+            {repeatsSentence(activity.series.freq, activity.series.start_date)}
+            {activity.series.until_date && ` through ${formatDate(activity.series.until_date)}`}
+          </p>
+        )}
+      </section>
+      <section class="topic" aria-labelledby="where-heading">
+        <div class="topic-head">
+          <h2 id="where-heading">Location</h2>
           <a
             href={mapsUrl(activity.location_name, Astro.request.headers.get('user-agent') ?? '')}
             class="quiet"
@@ -489,36 +474,48 @@ const email = activity
             Open in Maps
           </a>
         </div>
-        {activity.cost_note && (
-          <div class="row">
-            <p>Cost: {activity.cost_note}</p>
-          </div>
+        <p class="big">{activity.location_name}</p>
+        {activity.time_or_place_changed_at && (
+          <p class="small">
+            Updated{' '}
+            <time datetime={activity.time_or_place_changed_at}>
+              {formatAgo(new Date(activity.time_or_place_changed_at), new Date())}
+            </time>
+          </p>
         )}
-        <div class="row">
-          {host?.status === 'active' ? (
-            <p class="host">
-              <Avatar member={host} />
-              <span>
-                Hosted by <a href={`/people/${host.id}`}>{host.display_name}</a> {department}
-              </span>
-            </p>
-          ) : activity.organizer_id ? (
-            // Members can't read an organizer who isn't active (AUTH-05). Moderators see who it was.
-            <p>
-              Organizer no longer active
-              {host && (
-                <>
-                  {' '}
-                  · <a href={`/people/${host.id}`}>{host.display_name}</a>
-                </>
-              )}
-            </p>
-          ) : (
-            // Its organizer deleted their account (PROF-05).
-            <p>Hosted by Former member</p>
-          )}
-        </div>
-      </div>
+      </section>
+      {activity.cost_note && (
+        <section class="topic" aria-labelledby="cost-heading">
+          <h2 id="cost-heading">Cost</h2>
+          <p class="fact">{activity.cost_note}</p>
+        </section>
+      )}
+      <section class="topic" aria-labelledby="host-heading">
+        <h2 id="host-heading">Host</h2>
+        {host?.status === 'active' ? (
+          <p class="host fact">
+            <Avatar member={host} />
+            <span>
+              <a href={`/people/${host.id}`}>{host.display_name}</a>
+              {host.department && <span class="small department">{host.department}</span>}
+            </span>
+          </p>
+        ) : activity.organizer_id ? (
+          // Members can't read an organizer who isn't active (AUTH-05). Moderators see who it was.
+          <p class="fact">
+            Organizer no longer active
+            {host && (
+              <>
+                {' '}
+                · <a href={`/people/${host.id}`}>{host.display_name}</a>
+              </>
+            )}
+          </p>
+        ) : (
+          // Its organizer deleted their account (PROF-05).
+          <p class="fact">Former member</p>
+        )}
+      </section>
       {/* A regular joins the whole series once, and leaves it the same way (REC-04). */}
       {activity.series && !hosting && !activity.hidden_at && (
         <form
@@ -557,7 +554,7 @@ const email = activity
         </Sheet>
       )}
       {activity.description && (
-        <section aria-labelledby="about">
+        <section class="topic" aria-labelledby="about">
           <h2 id="about">Details</h2>
           <p class="description">
             {linkify(activity.description).map(({ text, href }) =>
@@ -575,7 +572,7 @@ const email = activity
       {activity.has_private_details && (
         // After the member's answer changes, src/scripts/private-details.ts shows the details or
         // the note.
-        <section aria-labelledby="for-attendees" data-private-details={activity.id}>
+        <section class="topic" aria-labelledby="for-attendees" data-private-details={activity.id}>
           <h2 id="for-attendees">For attendees</h2>
           <p class="description" data-details hidden={!activity.private}>
             {activity.private &&
@@ -596,8 +593,8 @@ const email = activity
       )}
       {/* Everyone going, on the page with no tap needed (RSVP-03, UI-21): the count, then each
           member, with the organizer first. The organizer also sees who's maybe (RSVP-05). */}
-      <section class="who" aria-labelledby="going-heading">
-        <div class="who-top">
+      <section class="who topic" aria-labelledby="going-heading">
+        <div class="topic-head">
           <h2 id="going-heading">Who's going</h2>
           {manageable && (
             <button type="button" class="quiet" commandfor="manage" command="show-modal">
@@ -637,6 +634,16 @@ const email = activity
           </>
         )}
       </section>
+      {/* The category as a chip with its icon, on a tint of its color (UI-05), in its own part. */}
+      {activity.category && look && (
+        <section class="topic" aria-labelledby="category-heading">
+          <h2 id="category-heading">Category</h2>
+          <p class="category" style={`--tint: ${look.color}`}>
+            <Icon name={look.icon} />
+            {activity.category.name}
+          </p>
+        </section>
+      )}
       {/* Taking people off the list and choosing co-organizers, for those who can (RSVP-09, ACT-10). */}
       {manageable && (
         <Sheet id="manage" title="Manage attendees">
@@ -752,7 +759,7 @@ const email = activity
       )}
       {PHYSICAL_CATEGORIES.includes(activity.category_id) && <ParticipationDisclaimer />}
       {activity.updates.length > 0 && (
-        <section class="updates" aria-labelledby="updates">
+        <section class="updates topic" aria-labelledby="updates">
           <h2 id="updates">Updates</h2>
           <ul>
             {activity.updates.map((update) => (
@@ -803,7 +810,7 @@ const email = activity
         </section>
       )}
       {hosting && !activity.hidden_at && (
-        <section class="cover-upload" aria-labelledby="cover-heading">
+        <section class="cover-upload topic" aria-labelledby="cover-heading">
           <h2 id="cover-heading">Cover picture</h2>
           <PictureUpload
             target="activity"
@@ -814,7 +821,7 @@ const email = activity
           />
         </section>
       )}
-      <section class="comments" id="comments" aria-labelledby="comments-heading">
+      <section class="comments topic" id="comments" aria-labelledby="comments-heading">
         <h2 id="comments-heading">Questions and comments</h2>
         {commentError && <p role="alert">{commentError}</p>}
         {activity.comments.length > 0 ? (
@@ -1027,9 +1034,9 @@ const email = activity
     flex-wrap: wrap;
     gap: 0.5rem;
   }
-  .group {
-    margin: 0;
-    font-size: 0.875rem;
+  /* What it's part of, under the title. */
+  .meta {
+    margin: 0.25rem 0 0;
   }
   .board {
     display: inline-block;
@@ -1050,46 +1057,25 @@ const email = activity
     display: inline-flex;
     align-items: center;
     gap: 0.375rem;
-    margin: 0.5rem 0 0;
+    margin: 0;
     padding: 0.25rem 0.75rem;
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
     font-weight: 600;
     color: var(--navy);
     background: color-mix(in srgb, var(--tint) 16%, white);
     border-radius: 0;
   }
-  /* When, where, the cost and the host, each a row, with its link at the right (UI-21). */
-  .details {
-    margin: 1rem 0;
-    padding: 0 1rem;
-  }
-  .row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    padding: 0.75rem 0;
-  }
-  .row + .row {
-    border-top: 1px solid var(--line);
-  }
-  /* The time and the place, big. */
-  .big {
-    font-size: 1.25rem;
-    line-height: 1.3;
-  }
-  .row > div {
-    display: grid;
-    gap: 0.125rem;
-    min-width: 0;
-  }
-  .row p {
+  /* Each fact sits right under its heading. The time and the place are bigger. */
+  .big,
+  .fact {
     margin: 0;
   }
-  /* Each part after the details has a heading. */
-  section > h2 {
-    margin: 1.75rem 0 0.5rem;
+  .big {
     font-size: 1.25rem;
+    line-height: 1.35;
+  }
+  .topic .small {
+    margin: 0.25rem 0 0;
   }
   /* The comment box is the page's width. */
   .comments textarea {
@@ -1101,23 +1087,15 @@ const email = activity
     border: 1px solid var(--border);
     border-radius: 0;
   }
-  /* The avatars keep a gap before their words (UI-02). */
+  /* The avatars keep a gap before their words (UI-02), and the department is under the name. */
   .host {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-  }
-  /* Who's going, with Manage attendees at the right of its heading for those who can. */
-  .who-top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
     gap: 0.75rem;
-    margin: 1.75rem 0 0.25rem;
   }
-  .who-top h2 {
-    margin: 0;
-    font-size: 1.25rem;
+  .department {
+    display: block;
+    line-height: 1.3;
   }
   .going {
     margin: 0 0 0.25rem;
@@ -1132,13 +1110,6 @@ const email = activity
   }
   .description {
     white-space: pre-line;
-  }
-  .updated,
-  .repeats {
-    font-size: 0.875rem;
-  }
-  .repeats {
-    margin-top: 0;
   }
   .series {
     display: flex;
@@ -1197,8 +1168,8 @@ const email = activity
   }
   .byline {
     margin-bottom: 0;
-    font-size: 0.875rem;
-    color: #595959;
+    font-size: 0.9375rem;
+    color: var(--muted);
   }
   /* Report, at least 24 px tall (WCAG 2.2 target size). */
   .byline a {

@@ -31,7 +31,7 @@ test('the organizer posts an update, which the people going read', async ({
   await page.getByRole('link', { name: 'Post update' }).click();
   await expect(page).toHaveURL(`/activities/${activity!.id}/update`);
   await expectAccessible(page);
-  await page.getByLabel('Update').fill('  Bring a headlamp!  ');
+  await page.getByLabel("What's the update?").fill('  Bring a headlamp!  ');
   await page.getByRole('button', { name: 'Post update' }).click();
 
   await expect(page).toHaveURL(`/activities/${activity!.id}#updates`);
@@ -98,12 +98,12 @@ test('a post that fails keeps what was typed', async ({ page, poster }) => {
   );
 
   await page.goto(`/activities/${activity!.id}/update`);
-  await page.getByLabel('Update').fill('One more thing');
+  await page.getByLabel("What's the update?").fill('One more thing');
   await page.getByRole('button', { name: 'Post update' }).click();
   await expect(page.getByRole('alert')).toHaveText(
     'You can post up to 5 updates a day to an activity. Try again tomorrow.'
   );
-  await expect(page.getByLabel('Update')).toHaveValue('One more thing');
+  await expect(page.getByLabel("What's the update?")).toHaveValue('One more thing');
 });
 
 test('only the organizer can post an update', async ({ page, poster, host }) => {

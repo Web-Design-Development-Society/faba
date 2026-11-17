@@ -27,7 +27,7 @@ test("an organizer posts an update, and the group's members hear about it", asyn
   await page.getByRole('link', { name: 'Post update' }).click();
   await expect(page).toHaveURL(`/groups/${group!.slug}/update`);
   await expectAccessible(page);
-  await page.getByLabel('Update').fill('  Trail is muddy, bring boots.  ');
+  await page.getByLabel("What's the update?").fill('  Trail is muddy, bring boots.  ');
   await page.getByRole('button', { name: 'Post update' }).click();
 
   await expect(page).toHaveURL(`/groups/${group!.slug}#updates`);
