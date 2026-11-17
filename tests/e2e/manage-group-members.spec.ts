@@ -83,7 +83,7 @@ test('members see who is in a group on its page, and anyone else only how many',
   const [owner, other] = await crowd(2);
   const name = `Painters ${crypto.randomUUID().slice(0, 6)}`;
   const { data: slug } = await owner.rpc('create_group', { name, category_id: 'arts' });
-  const { data: group } = await owner.from('groups').select('id').eq('slug', slug).single();
+  const { data: group } = await owner.from('groups').select('id').eq('slug', slug!).single();
   await other.rpc('join_group', { group_id: group!.id });
 
   // Outside it, just the count, as plain words.
