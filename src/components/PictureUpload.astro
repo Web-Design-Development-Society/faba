@@ -70,10 +70,17 @@ const profile = target === 'profile';
 </script>
 
 <style>
+  /* Room between the questions, so the hint doesn't run into the next one (UI-26). */
+  input[type='file'] {
+    margin-bottom: 0.25rem;
+  }
   .hint {
-    margin: 0;
+    margin: 0 0 1.25rem;
     color: var(--muted);
-    font-size: 0.875rem;
+    font-size: 0.9375rem;
+  }
+  button {
+    margin-top: 1rem;
   }
   [role='alert'] {
     margin: 0;

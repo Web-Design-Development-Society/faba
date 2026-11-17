@@ -2103,7 +2103,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - The photo shows wherever the member's face does: activity cards, who's going, Hosted by, their profile page, and Me. Only signed-in members can see it, through the same rules as other pictures.
     - It can be reported with the member's profile, and a moderator can hide it. A hidden photo shows the member's initials instead (MOD-08).
   - **A cleaner profile form**, laid out like the New activity form (UI-06):
-    - The photo comes first: a large round preview, with **Change photo** and **Remove photo** under it.
+    - The photo comes first: a large round preview, with **Change photo** and **Remove photo** under it. (On 2026-11-17, UI-26 took away its white card, so the photo is the form's first question.)
     - Then sections under bold questions: **Display name**, **Department** (with the departments others use as suggestions), **Short bio**, **Interests**, **Faculty type** and **Email**.
     - Every text field is full width and at least 48 px tall, with an example in it. There are no grey boxes.
     - **Interests** and **Faculty type** are chips, each a checkbox or radio button underneath. The chosen ones are FABA blue with a check.
@@ -2470,7 +2470,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 - **Story:** As a member looking at an activity, I want its time and place big and everyone going listed, so that I can decide without tapping around.
 - **Acceptance criteria:**
   - **The day and time and the place are bigger,** in 1.25rem text, with no icons beside them. The cost, when there is one, follows the place.
-  - **Add to calendar and Open in Maps are quiet,** at the right of their rows: words in the darker FABA blue, not outlined buttons under the text. Each is still 44 px tall and still says what it does.
+  - **Add to calendar and Open in Maps are quiet,** at the right of their rows: words in the darker FABA blue, not outlined buttons under the text. Each is still 44 px tall and still says what it does. (On 2026-11-17, UI-26 took away the white card and put each fact under a heading of its own, with these at the right of their headings.)
   - **The order is:**
     1. the title and cover
     2. the time, the place and the host
@@ -2537,7 +2537,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - each person's face, name and department, with an **Owner** or **Organizer** badge
     - names that open members' profiles (PROF-03)
   - **Who sees the list:** the group's members and moderators, as before. Anyone else sees only how many members it has.
-  - **The member count is plain words,** not a link.
+  - **The member count is plain words,** not a link. (On 2026-11-17, UI-26 moved it into the group's About part, with who started it.)
   - **Managing members moves into a sheet.** Those who can manage the group get a quiet **Manage members** at the right of the Members heading, like **Manage attendees** (UI-21). Its sheet holds:
     - **Asking to join**, with **Approve** and **Decline**
     - the organizers, with **Make member** and **Remove**
@@ -2847,15 +2847,18 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 +------------------------------------+
 | <  Back                     [...]  |  <- Share, Mute, Report
 +------------------------------------+
-| ([mtn] Outdoors)                   |  <- category chip
-| Sunrise hike up the R              |
-| +--------------------------------+ |
-| | Sat, Oct 25 . 7:00-9:30 AM     | |
-| |                Add to calendar | |
-| | R Mountain trailhead           | |
-| |                   Open in Maps | |
-| | (o) Hosted by Dana Smith, Biology | |
-| +--------------------------------+ |
+| Sunrise hike up the R              |  <- on cream paper (UI-26)
+| Group: Trail Runners               |
+|                                    |
+| DATE AND TIME      Add to calendar |
+| Sat, Oct 25 . 7:00-9:30 AM         |
+|                                    |
+| LOCATION              Open in Maps |
+| R Mountain trailhead               |
+|                                    |
+| HOST                               |
+| (o) Dana Smith                     |
+|     Biology                        |
 |                                    |
 | DETAILS                            |
 | Easy pace, about 3 miles round     |
@@ -2871,6 +2874,9 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 | (o) Lee Park, History              |
 | ...                                |
 |                                    |
+| CATEGORY                           |
+| ([mtn] Outdoors)                   |
+|                                    |
 | UPDATES                            |
 | Dana, 2h ago: Parking is at the... |
 +------------------------------------+
@@ -2879,14 +2885,14 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 ```
 
 - The order of information follows the questions people ask: **what → when → where → who → details**. (Since UI-21, the details come before the list of who's going, and the host stays in the card.)
-- **At a glance** (UI-05): when, where, who's going and the host are rows in one card, each with an icon (the host's with their avatar). **Add to calendar** and **Open in Maps** sit on their own lines under the time and the place. The category is a chip with its icon above the title. The details, **For attendees**, **Updates** and **Questions and comments** follow, each under a heading. (UI-21: the time and place are 1.25rem text with no icons, **Add to calendar** and **Open in Maps** are quiet words in the darker FABA blue at the right of their rows, and everyone going is listed on the page under **Who's going**, after the details. **Manage attendees** opens a sheet with the attendee list tools and co-organizers, for those who can manage them.)
+- **At a glance** (UI-05): when, where, who's going and the host are rows in one card, each with an icon (the host's with their avatar). **Add to calendar** and **Open in Maps** sit on their own lines under the time and the place. The category is a chip with its icon above the title. The details, **For attendees**, **Updates** and **Questions and comments** follow, each under a heading. (UI-21: the time and place are 1.25rem text with no icons, **Add to calendar** and **Open in Maps** are quiet words in the darker FABA blue at the right of their rows, and everyone going is listed on the page under **Who's going**, after the details. **Manage attendees** opens a sheet with the attendee list tools and co-organizers, for those who can manage them.) (UI-26 replaced the card on 2026-11-17: each fact is under a plain heading of its own, one after another, on cream paper, with the category in its own part after who's going.)
 - **Maps >** opens the platform maps app with the place text as the query. There is no embedded map, which saves JavaScript, data, and privacy.
 - **Cal >** is **Add to calendar** (ACT-08), beside the time as **Maps** is beside the place, so it's there for organizers too, whose sticky bar is full. It opens a sheet with **Download for Apple Calendar or Outlook** (the `.ics` in section 8.13) and **Open in Google Calendar**, and says the calendar's copy won't change if the activity does. It's hidden once the activity is over.
 - **Organizer view:** the sticky bar shows **Edit** and **Post update** instead of RSVP. Their own RSVP state shows as "You're hosting".
 - **For attendees** (ACT-09): shown only when the organizer added details. The organizer, members going and moderators see the details, and everyone else sees the note. After **I'm in**, the details replace the note without reloading, and the note comes back after **Maybe** or **Can't make it**.
 - **Cancelled:** a full-width banner at the top ("Cancelled: _reason_"). RSVP is disabled. **Add to calendar** is hidden.
-- **Group** (GRP-03): an activity posted under a group names it under the category, linked to the group, and adds "Group members only" when it's for them. Create has a **Group** choice, with **Everyone** (the default) or **Group members only**, only for members who organize a group. RLS keeps a members-only activity, its RSVPs, updates and details out of every list, search and page for anyone outside the group, and it's never announced to everyone.
-- **Board activity** (MOD-07): a "FABA board activity" badge under the category, and "Board activity" on its cards unless they say Cancelled or Full. An admin who organizes the activity has **Mark as board activity** (or **Not a board activity**) in the ⋯ menu. While a board activity is coming up and not yet announced, the menu also has **Announce to every member**, which asks first in a sheet. The sheet says it can't be taken back, and warns when the board has already sent 2 or more announcements in the last 30 days. Afterwards the admin sees "Announced 2h ago".
+- **Group** (GRP-03): an activity posted under a group names it under the category, linked to the group, and adds "Group members only" when it's for them. Create has a **Group** choice, with **Everyone** (the default) or **Group members only**, only for members who organize a group. RLS keeps a members-only activity, its RSVPs, updates and details out of every list, search and page for anyone outside the group, and it's never announced to everyone. (Since UI-26, on 2026-11-17, it's "Group:" and the group's name, under the title.)
+- **Board activity** (MOD-07): a "FABA board activity" badge under the category, and "Board activity" on its cards unless they say Cancelled or Full. An admin who organizes the activity has **Mark as board activity** (or **Not a board activity**) in the ⋯ menu. While a board activity is coming up and not yet announced, the menu also has **Announce to every member**, which asks first in a sheet. The sheet says it can't be taken back, and warns when the board has already sent 2 or more announcements in the last 30 days. Afterwards the admin sees "Announced 2h ago". (Since UI-26, the badge is under the title.)
 
 ### 7.7 Create-activity flow
 
@@ -3039,7 +3045,7 @@ The same HTML serves all widths. CSS (container queries and media queries) handl
 ### 7.17 Visual and content style
 
 - **Fonts:** a system font stack for text. One self-hosted display face, Anton (SIL Open Font License, 18 KB for Latin), is for headings, card titles, tabs, filter labels, badges and the bottom bar's labels, in capitals by CSS (UI-14). It's preloaded, with fallbacks sized to it, and no font service is used.
-- **Look:** cut paper (UI-14, `mockups/discover_collage.webp`), with square pieces (UI-16) on a gradient: the logo's light blue at the top, light blue paper, then cream at the bottom. It fills at least the screen and doesn't repeat. (UI-16's torn-paper photo came off on 2026-11-17, for a flat gray-blue and then this gradient. Its top became the logo's blue later that day.) Every corner is square, like the paper, except faces, which stay round. New and Edit activity are warm instead: an orange gradient with the form on warm paper, so posting feels exciting, and **＋ Post** is orange to match. Every other page stays blue, for trust and safety (UI-25). Link blue is too faint on the logo's blue, so what sits near the top, such as **Back** and "2 asking to join", is navy, and a look test measures text on the gradient, since the accessibility checks can't. Each page's content sits straight on the page, and cards, tabs and page headings are pieces of paper. Discover, Plans, Alerts and Me have no banner, since the bottom bar shows which page it is: their headings are for screen readers only (UI-18). Instead, Discover, Groups, Plans and Alerts start with a short white sentence, with a dark-blue shadow, that says what the page is for. It's an agreed exception to the contrast rule, and the look test skips it (UI-24). **Search** is a magnifying glass at the right of the header's strip, on every page with the bottom bar (UI-19). Buttons are square, in the display face in capitals like the tabs, while quiet words such as **Add to calendar** stay in the system font (UI-22). Each piece has square corners and a shadow, deeper for the logo strip and the footer. A few things tilt, by 2 degrees at most. Text on the page is at least 5:1, links are the darker FABA blue, and in high-contrast mode the shadows give way to plain borders.
+- **Look:** cut paper (UI-14, `mockups/discover_collage.webp`), with square pieces (UI-16) on a gradient: the logo's light blue at the top, light blue paper, then cream at the bottom. It fills at least the screen and doesn't repeat. (UI-16's torn-paper photo came off on 2026-11-17, for a flat gray-blue and then this gradient. Its top became the logo's blue later that day.) Every corner is square, like the paper, except faces, which stay round. New and Edit activity are warm instead: an orange gradient with the form on warm paper, so posting feels exciting, and **＋ Post** is orange to match. Every other page stays blue, for trust and safety (UI-25). An activity's, a group's and a member's page, Post an update, Report and Edit profile have their content on a piece of cream paper instead of straight on the gradient, and read top to bottom: each fact under a plain heading, all the same size, in 17 px text with room between the parts, and forms that ask a few clear questions (UI-26). Link blue is too faint on the logo's blue, so what sits near the top, such as **Back** and "2 asking to join", is navy, and a look test measures text on the gradient, since the accessibility checks can't. Each page's content sits straight on the page, and cards, tabs and page headings are pieces of paper. Discover, Plans, Alerts and Me have no banner, since the bottom bar shows which page it is: their headings are for screen readers only (UI-18). Instead, Discover, Groups, Plans and Alerts start with a short white sentence, with a dark-blue shadow, that says what the page is for. It's an agreed exception to the contrast rule, and the look test skips it (UI-24). **Search** is a magnifying glass at the right of the header's strip, on every page with the bottom bar (UI-19). Buttons are square, in the display face in capitals like the tabs, while quiet words such as **Add to calendar** stay in the system font (UI-22). Each piece has square corners and a shadow, deeper for the logo strip and the footer. A few things tilt, by 2 degrees at most. Text on the page is at least 5:1, links are the darker FABA blue, and in high-contrast mode the shadows give way to plain borders.
 - **Themes:** light and dark mode follow the OS setting. (So far FABA has only the light theme.)
 - **Color:** a warm primary color and a distinct, accessible color plus icon for each category.
 - **Icons:** an inline SVG sprite, without an icon font.

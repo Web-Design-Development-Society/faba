@@ -40,7 +40,7 @@ const [{ data: comment }, { data: report }] = await Promise.all([
 if (!comment) Astro.response.status = 404;
 ---
 
-<Layout title={comment ? `Report a comment on ${comment.activity.title}` : 'Not available'}>
+<Layout title={comment ? `Report a comment on ${comment.activity.title}` : 'Not available'} paper>
   {comment ? (
     <>
       <Back href={`/activities/${comment.activity.id}#comments`}>

@@ -37,7 +37,7 @@ const [{ data: profile }, { data: report }] = await Promise.all([
 if (!profile) Astro.response.status = 404;
 ---
 
-<Layout title={profile ? `Report ${profile.display_name}` : 'Not available'}>
+<Layout title={profile ? `Report ${profile.display_name}` : 'Not available'} paper>
   {profile ? (
     <>
       <Back href={`/people/${profile.id}`}>Back to {profile.display_name}</Back>

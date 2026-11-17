@@ -39,7 +39,7 @@ const fields: Record<string, string[] | undefined> = isInputError(result?.error)
 const failure = result?.error && !isInputError(result.error) ? result.error.message : null;
 ---
 
-<Layout title={group ? `Post an update to ${group.name}` : 'Not available'}>
+<Layout title={group ? `Post an update to ${group.name}` : 'Not available'} paper>
   {!group ? (
     <>
       <h1>Not available</h1>
@@ -63,8 +63,11 @@ const failure = result?.error && !isInputError(result.error) ? result.error.mess
             value={typed?.get('idempotency_key')?.toString() ?? crypto.randomUUID()}
           />
           <p>
-            <label for="body">Update</label>
-            <br />
+            <label for="body">What's the update?</label>
+            <span id="body-hint" class="hint">
+              Every member gets it in Alerts. Up to {UPDATE_MAX} characters, and{' '}
+              {GROUP_UPDATES_PER_DAY} updates a day.
+            </span>
             <textarea
               id="body"
               name="body"
@@ -75,10 +78,6 @@ const failure = result?.error && !isInputError(result.error) ? result.error.mess
               aria-invalid={fields.body ? 'true' : undefined}
               aria-describedby={fields.body ? 'body-hint body-error' : 'body-hint'}
             >{typed?.get('body')?.toString() ?? ''}</textarea>
-            <span id="body-hint" class="hint">
-              Up to {UPDATE_MAX} characters, and {GROUP_UPDATES_PER_DAY} updates a day. Every member
-              gets it in Alerts.
-            </span>
             <FieldError name="body" errors={fields.body} />
           </p>
           <div class="form-actions">

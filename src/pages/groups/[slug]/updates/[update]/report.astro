@@ -39,7 +39,7 @@ const [{ data: update }, { data: report }] = await Promise.all([
 if (!update) Astro.response.status = 404;
 ---
 
-<Layout title={update ? `Report an update to ${update.group.name}` : 'Not available'}>
+<Layout title={update ? `Report an update to ${update.group.name}` : 'Not available'} paper>
   {update ? (
     <>
       <Back href={`/groups/${update.group.slug}#updates`}>Back to {update.group.name}</Back>

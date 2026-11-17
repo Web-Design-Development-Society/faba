@@ -41,12 +41,17 @@ test("the organizer's name opens their profile, with what they're organizing", a
     .eq('id', past);
 
   await page.goto(`/activities/${id}`);
-  await page.getByText('Hosted by').getByRole('link', { name: 'Hana Host' }).click();
+  await page.getByRole('region', { name: 'Host' }).getByRole('link', { name: 'Hana Host' }).click();
   await expect(page).toHaveURL(`/people/${host.id}`);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Hana Host');
   await expect(page.getByText('Biology')).toBeVisible();
   await expect(page.getByText('I lead hikes.')).toBeVisible();
-  await expect(page.getByText('Interests: Outdoors, Food')).toBeVisible();
+  // Each fact under a plain heading (UI-26).
+  await expect(page.getByRole('region', { name: 'About' })).toContainText('I lead hikes.');
+  await expect(page.getByRole('region', { name: 'Interests' }).getByRole('listitem')).toHaveText([
+    'Outdoors',
+    'Food & Socials',
+  ]);
   const organizing = page.getByRole('region', { name: 'Organizing' });
   await expect(organizing.getByRole('article')).toHaveCount(1);
   await expect(organizing.getByRole('link', { name: 'Sunrise hike up the R' })).toHaveAttribute(
@@ -54,7 +59,7 @@ test("the organizer's name opens their profile, with what they're organizing", a
     `/activities/${id}`
   );
   // She doesn't share her email, and her faculty type is never shown.
-  await expect(page.getByText('Email:')).toHaveCount(0);
+  await expect(page.getByRole('region', { name: 'Email' })).toHaveCount(0);
   await expect(page.locator('main')).not.toContainText(/part-time/i);
   await expectAccessible(page);
 

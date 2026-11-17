@@ -2,7 +2,8 @@
 // Posting an update to an activity's attendees (NOTIF-04), from Post update on its page. Only its
 // organizer can, and not while it's hidden. It works without JavaScript: when posting fails, the
 // form comes back with what was typed and the same idempotency key, so posting again never posts
-// twice. Once it's posted, the page goes back to the activity, which shows it first.
+// twice. Once it's posted, the page goes back to the activity, which shows it first. It's on paper,
+// one clear question with who gets it said first (UI-26).
 import { actions, isInputError } from 'astro:actions';
 import Back from '../../../components/Back.astro';
 import FieldError from '../../../components/FieldError.astro';
@@ -36,7 +37,7 @@ const fields: Record<string, string[] | undefined> = isInputError(result?.error)
 const failure = result?.error && !isInputError(result.error) ? result.error.message : null;
 ---
 
-<Layout title={activity ? `Post an update to ${activity.title}` : 'Not available'}>
+<Layout title={activity ? `Post an update to ${activity.title}` : 'Not available'} paper>
   {!activity ? (
     <>
       <h1>Not available</h1>
@@ -60,8 +61,10 @@ const failure = result?.error && !isInputError(result.error) ? result.error.mess
             value={typed?.get('idempotency_key')?.toString() ?? crypto.randomUUID()}
           />
           <p>
-            <label for="body">Update</label>
-            <br />
+            <label for="body">What's the update?</label>
+            <span id="body-hint" class="hint">
+              Everyone going or maybe gets it in Alerts. Up to {UPDATE_MAX} characters.
+            </span>
             <textarea
               id="body"
               name="body"
@@ -72,9 +75,6 @@ const failure = result?.error && !isInputError(result.error) ? result.error.mess
               aria-invalid={fields.body ? 'true' : undefined}
               aria-describedby={fields.body ? 'body-hint body-error' : 'body-hint'}
             >{typed?.get('body')?.toString() ?? ''}</textarea>
-            <span id="body-hint" class="hint">
-              Up to {UPDATE_MAX} characters. Everyone going or maybe gets it in Alerts.
-            </span>
             <FieldError name="body" errors={fields.body} />
           </p>
           <div class="form-actions">

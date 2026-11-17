@@ -34,14 +34,14 @@ test('a member sees what, when, where and who on one screen', async ({ page, sig
     'href',
     /=R%20Mountain%20trailhead%2C%20Rexburg%2C%20ID$/
   );
-  await expect(page.getByText('Cost: Free')).toBeVisible();
+  await expect(page.getByRole('region', { name: 'Cost' })).toContainText('Free');
   await expect(page.getByText('2 going')).toBeVisible();
   // Everyone going is on the page (UI-21), each with their face or initials beside their name.
   const who = page.getByRole('region', { name: "Who's going" });
   await expect(who.getByRole('link', { name: 'Hana Host' })).toBeVisible();
   await expect(who.getByRole('listitem').filter({ hasText: 'Ada Admin' })).toContainText('AA');
   await expect(
-    page.getByText('Hosted by').getByRole('link', { name: 'Hana Host' })
+    page.getByRole('region', { name: 'Host' }).getByRole('link', { name: 'Hana Host' })
   ).toHaveAttribute('href', `/people/${host.id}`);
   // The full stop ends the sentence, not the address.
   await expect(page.getByRole('link', { name: 'https://example.com/r-trail' })).toHaveAttribute(
@@ -163,7 +163,7 @@ test('a cancelled activity says why, and a hidden one is not available', async (
   await expect(page.getByText('Business opportunity')).toHaveCount(0);
 });
 
-test('the time and place are big with their links at the right, then the details, then who is going', async ({
+test('each fact is under a plain heading on paper, the time and place big with their links at the right', async ({
   page,
   signInAs,
   host,
@@ -176,53 +176,73 @@ test('the time and place are big with their links at the right, then the details
   });
 
   await page.goto(`/activities/${id}`);
-  // The category is a chip with its icon, above the title (UI-05).
-  await expect(page.locator('.category svg')).toHaveCount(1);
-  await expect(page.locator('.category')).toHaveText('Outdoors');
+  // On cream paper, in roomy 17 px text (UI-26).
+  const main = page.locator('main');
+  await expect(main).toHaveCSS('background-color', 'rgb(247, 244, 236)');
+  await expect(main).toHaveCSS('font-size', '17px');
 
-  // When, where and the host, with no icons (UI-21).
-  const card = page.locator('.details');
-  await expect(card.locator('.row')).toHaveCount(3);
-  await expect(card.locator('svg')).toHaveCount(0);
-  const time = card.getByText(/7:00\sAM$/);
-  const place = card.getByText('Hidden Valley Park, north trailhead parking lot by the river');
+  // Each fact under a plain heading, one after another, all the same size (UI-21, UI-26).
+  const order = ['Date and time', 'Location', 'Host', 'Details', "Who's going", 'Category'];
+  const sizes = new Set<string>();
+  let above = 0;
+  for (const name of order) {
+    const heading = page.getByRole('heading', { name, level: 2, exact: true });
+    const { y } = (await heading.boundingBox())!;
+    expect(y).toBeGreaterThan(above);
+    above = y;
+    sizes.add(await heading.evaluate((el) => getComputedStyle(el).fontSize));
+  }
+  expect(sizes.size).toBe(1);
+
+  // The time and the place are big, with no icons.
+  const when = page.getByRole('region', { name: 'Date and time' });
+  const where = page.getByRole('region', { name: 'Location' });
+  const time = when.getByText(/7:00\sAM$/);
+  const place = where.getByText('Hidden Valley Park, north trailhead parking lot by the river');
   for (const big of [time, place]) {
     const size = await big.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
     expect(size).toBeGreaterThanOrEqual(20);
   }
-  // Add to calendar and Open in Maps are quiet words at the right of their rows, 44 px tall.
-  const cardBox = (await card.boundingBox())!;
-  for (const [words, link] of [
-    [time, card.getByRole('button', { name: 'Add to calendar' })],
-    [place, card.getByRole('link', { name: 'Open in Maps' })],
+  for (const part of [when, where]) await expect(part.locator('svg')).toHaveCount(0);
+  // Add to calendar and Open in Maps are quiet words at the right of their headings, 44 px tall.
+  const mainBox = (await main.boundingBox())!;
+  for (const [part, link] of [
+    [when, when.getByRole('button', { name: 'Add to calendar' })],
+    [where, where.getByRole('link', { name: 'Open in Maps' })],
   ] as const) {
-    const [a, b] = [(await words.boundingBox())!, (await link.boundingBox())!];
-    expect(b.x).toBeGreaterThan(a.x + a.width - 1);
-    expect(cardBox.x + cardBox.width - (b.x + b.width)).toBeLessThan(24);
+    const [heading, b] = [
+      (await part.getByRole('heading').boundingBox())!,
+      (await link.boundingBox())!,
+    ];
+    expect(b.x).toBeGreaterThan(heading.x + heading.width - 1);
+    expect(mainBox.x + mainBox.width - (b.x + b.width)).toBeLessThan(32);
     expect(b.height).toBeGreaterThanOrEqual(44);
     await expect(link).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
     await expect(link).toHaveCSS('border-top-style', 'none');
   }
-  await expect(card.getByText('Hosted by')).toBeVisible();
+  await expect(
+    page.getByRole('region', { name: 'Host' }).getByRole('link', { name: 'Hana Host' })
+  ).toBeVisible();
 
-  // The details come after the place, and everyone going after the details, with no tap needed.
-  const details = page.getByRole('heading', { name: 'Details', level: 2 });
+  // Everyone going is on the page, with no tap needed.
   const who = page.getByRole('region', { name: "Who's going" });
-  const [detailsBox, whoBox] = [(await details.boundingBox())!, (await who.boundingBox())!];
-  expect(detailsBox.y).toBeGreaterThan(cardBox.y + cardBox.height);
-  expect(whoBox.y).toBeGreaterThan(detailsBox.y);
   await expect(who.locator('.going')).toHaveText('1 going', { useInnerText: true });
   await expect(who.getByRole('link', { name: 'Hana Host' })).toBeVisible();
   // Only those who can manage attendees have the button for it.
   await expect(who.getByRole('button', { name: 'Manage attendees' })).toHaveCount(0);
 
-  // The comment box is the page's width.
+  // The category is a chip with its icon, in its own part (UI-05, UI-26).
+  const category = page.getByRole('region', { name: 'Category' });
+  await expect(category.locator('svg')).toHaveCount(1);
+  await expect(category.getByText('Outdoors')).toBeVisible();
+
+  // The comment box is the paper's width, inside its padding.
   const box = page.getByLabel('Ask a question or leave a comment');
-  const [boxWidth, cardWidth] = [
+  const [boxWidth, partWidth] = [
     (await box.boundingBox())!.width,
-    (await card.boundingBox())!.width,
+    (await when.boundingBox())!.width,
   ];
-  expect(Math.abs(boxWidth - cardWidth)).toBeLessThanOrEqual(1);
+  expect(Math.abs(boxWidth - partWidth)).toBeLessThanOrEqual(1);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true
   );

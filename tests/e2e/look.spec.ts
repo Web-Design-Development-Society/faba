@@ -158,6 +158,78 @@ test("Edit activity is warm too, for its organizer, but not when they can't edit
   await expect(page.locator('main')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
 });
 
+test('an activity, a group, a member and the short forms are on cream paper, read top to bottom', async ({
+  page,
+  poster,
+  host,
+}) => {
+  const theirs = await host.post();
+  const { data: mine } = await poster.admin
+    .from('activities')
+    .insert({
+      organizer_id: poster.id,
+      category_id: 'games',
+      title: 'Paper game night',
+      starts_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      location_name: 'Library',
+    })
+    .select('id')
+    .single();
+  const { data: group } = await poster.admin
+    .from('groups')
+    .insert({
+      slug: `paper-${crypto.randomUUID().slice(0, 6)}`,
+      name: 'Paper group',
+      category_id: 'games',
+      description: 'We play board games.',
+      owner_id: poster.id,
+    })
+    .select('id, slug')
+    .single();
+  await poster.admin
+    .from('group_members')
+    .insert({ group_id: group!.id, user_id: poster.id, role: 'owner' });
+
+  // On the blue gradient, with the content on cream paper and nothing on the gradient (UI-26).
+  for (const path of [
+    `/activities/${theirs}`,
+    `/activities/${mine!.id}/update`,
+    `/activities/${theirs}/report`,
+    `/groups/${group!.slug}`,
+    `/groups/${group!.slug}/update`,
+    `/people/${host.id}`,
+    `/people/${host.id}/report`,
+    '/me/edit',
+  ]) {
+    await page.goto(path);
+    await expect(page.locator('main'), path).toHaveCSS('background-color', 'rgb(247, 244, 236)');
+    await expect(page.locator('main'), path).toHaveCSS('font-size', '17px');
+    await expect(page.locator('html'), path).toHaveCSS(
+      'background-image',
+      'linear-gradient(rgb(63, 164, 250), rgb(207, 225, 250), rgb(247, 244, 236))'
+    );
+    expect(await unreadableOnGradient(page), path).toEqual([]);
+    expect(
+      await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
+      path
+    ).toBe(true);
+  }
+
+  // A group's parts each have a plain heading, all the same size, and Report is in the ⋯ menu.
+  await page.goto(`/groups/${group!.slug}`);
+  const sizes = new Set<string>();
+  for (const name of ['About', 'Category', 'Coming up', 'Members', 'Updates', 'Banner']) {
+    const heading = page.getByRole('heading', { name, level: 2, exact: true });
+    sizes.add(await heading.evaluate((el) => getComputedStyle(el).fontSize));
+  }
+  expect(sizes.size).toBe(1);
+  await expectAccessible(page);
+
+  // The main tabs don't have it.
+  await page.goto('/discover');
+  await expect(page.locator('main')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
+});
+
 /**
  * The text that sits straight on the page's gradient, with nothing behind it but the page, and
  * whose contrast with the gradient where it sits is under WCAG's 4.5:1, or 3:1 for large text. axe
