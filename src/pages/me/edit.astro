@@ -202,7 +202,7 @@ const invalid = (name: string) =>
       </p>
     </div>
     <div class="buttons">
-      <a href="/me" class="cancel">
+      <a href="/me" class="button">
         Cancel
       </a>
       <button type="submit">Save changes</button>
@@ -249,25 +249,6 @@ const invalid = (name: string) =>
   }
   .remove {
     margin-top: 0.25rem;
-  }
-  .secondary,
-  .cancel {
-    display: inline-grid;
-    place-items: center;
-    min-height: 44px;
-    padding: 0 1rem;
-    font: inherit;
-    font-weight: 600;
-    color: var(--navy);
-    text-decoration: none;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    cursor: pointer;
-  }
-  .secondary:hover,
-  .cancel:hover {
-    border-color: var(--blue);
   }
   fieldset {
     min-width: 0;

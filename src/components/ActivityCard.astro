@@ -325,10 +325,13 @@ const shown = (
   .date .day {
     font-size: 3.5rem;
   }
-  /* The member's answer, or why there's none to give. */
+  /* The member's answer, or why there's none to give, in the display face like a button (UI-22). */
   .mine {
-    font-weight: 700;
-    line-height: 1.2;
+    font-family: var(--display);
+    font-size: 1.125rem;
+    line-height: 1.15;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
   }
   .side :global(.rsvp) {
     align-self: stretch;
@@ -339,7 +342,7 @@ const shown = (
   .side :global(.rsvp > form button) {
     width: 100%;
     padding: 0 0.25rem;
-    font-weight: 700;
+    font-size: 1.125rem;
     white-space: nowrap;
   }
   .side :global(.rsvp > form button[type='submit']) {

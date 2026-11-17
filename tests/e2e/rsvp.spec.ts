@@ -146,13 +146,14 @@ test("on a card, Going keeps the RSVP, and Can't make it changes the next plan t
       'rgb(255, 255, 255)'
     );
   }
+  // On light blue paper, like a current tab, since the display face has no bold (UI-22).
   await expect(sheet.getByRole('button', { name: 'Going', exact: true })).toHaveCSS(
-    'font-weight',
-    '600'
+    'background-color',
+    'rgb(207, 225, 250)'
   );
   await expect(sheet.getByRole('button', { name: 'Maybe', exact: true })).toHaveCSS(
-    'font-weight',
-    '400'
+    'background-color',
+    'rgba(0, 0, 0, 0)'
   );
   await page.getByRole('button', { name: 'Going', exact: true }).click();
   await expect(page.getByRole('dialog')).toBeHidden();

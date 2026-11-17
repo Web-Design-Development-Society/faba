@@ -144,6 +144,41 @@ test("Search is at the right of the header, and Discover's tabs come first", asy
   );
 });
 
+test('buttons are square, in the display face in capitals, like the tabs', async ({
+  page,
+  signInAs,
+  host,
+}) => {
+  await signInAs('member');
+  // Every kind of button (UI-22): filled, outlined, and links drawn as buttons.
+  const square = async (button: Locator) => {
+    await expect(button).toHaveCSS('border-top-left-radius', '0px');
+    await expect(button).toHaveCSS('border-bottom-right-radius', '0px');
+    await expect(button).toHaveCSS('font-family', /^Anton/);
+    await expect(button).toHaveCSS('text-transform', 'uppercase');
+    expect((await button.boundingBox())!.height).toBeGreaterThanOrEqual(44);
+  };
+  await page.goto('/me');
+  await square(page.getByRole('link', { name: 'Edit profile' }));
+  await square(page.getByRole('link', { name: 'See my profile' }));
+  // A settings row that's a button stays a row, in plain words.
+  await expect(page.getByRole('button', { name: 'Sign out' })).toHaveCSS('text-transform', 'none');
+  await page.goto('/groups');
+  await square(page.getByRole('link', { name: 'Start a group' }));
+  await page.goto('/activities/new');
+  await square(page.getByRole('button', { name: 'Post activity' }));
+  await square(page.getByRole('link', { name: 'Cancel' }));
+  // The capitals come from CSS, so the words stay as written.
+  await expect(page.getByRole('button', { name: 'Post activity' })).toHaveText('Post activity');
+  // A quiet link that's a button stays quiet words.
+  const id = await host.post();
+  await page.goto(`/activities/${id}`);
+  const quiet = page.getByRole('button', { name: 'Add to calendar' });
+  await expect(quiet).not.toHaveCSS('font-family', /^Anton/);
+  await expect(quiet).toHaveCSS('text-transform', 'none');
+  await expectAccessible(page);
+});
+
 test('in high contrast, the paper gives way to plain borders', async ({ page, poster, host }) => {
   // An unread alert, for its card on Alerts (UI-15).
   const id = await host.post();
