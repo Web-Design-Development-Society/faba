@@ -2,7 +2,8 @@
 // The board's metrics (ANLY-01): weekly active members, new members, RSVPs, the self-reported
 // faculty split and organizers, by day, and activities by category. Only moderators and admins open
 // it, and the database keeps the table to them as well. A figure is stored only when it covers 10 or
-// more people, so a short list means the figure is missing, not zero.
+// more people, so a short list means the figure is missing, not zero. On a phone, the daily table
+// scrolls sideways in its own box, so its columns stay on the sheet (UI-16).
 import Back from '../../components/Back.astro';
 import Layout from '../../layouts/Layout.astro';
 
@@ -55,29 +56,31 @@ const byCategory = (rows ?? []).filter((r) => r.metric === 'activities');
         <p>No figures yet. The first ones appear after the nightly job has run.</p>
       ) : (
         <>
-          <table>
-            <caption>The last two weeks</caption>
-            <thead>
-              <tr>
-                <th scope="col">Day</th>
-                {COLUMNS.map((metric) => (
-                  <th scope="col">{NAMES[metric]}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {days.map((day) => (
+          <div class="scroll" role="region" aria-label="The last two weeks" tabindex="0">
+            <table>
+              <caption>The last two weeks</caption>
+              <thead>
                 <tr>
-                  <th scope="row">
-                    <time datetime={day}>{day}</time>
-                  </th>
+                  <th scope="col">Day</th>
                   {COLUMNS.map((metric) => (
-                    <td>{valueOf(day, metric) ?? ''}</td>
+                    <th scope="col">{NAMES[metric]}</th>
                   ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {days.map((day) => (
+                  <tr>
+                    <th scope="row">
+                      <time datetime={day}>{day}</time>
+                    </th>
+                    {COLUMNS.map((metric) => (
+                      <td>{valueOf(day, metric) ?? ''}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
           {byCategory.length > 0 && (
             <>
               <h2>Activities by category</h2>
@@ -111,6 +114,14 @@ const byCategory = (rows ?? []).filter((r) => r.metric === 'activities');
 </Layout>
 
 <style>
+  /* A box the keyboard can scroll too, since it has focus. */
+  .scroll {
+    overflow-x: auto;
+    margin-bottom: 1.5rem;
+  }
+  .scroll table {
+    margin-bottom: 0;
+  }
   table {
     border-collapse: collapse;
     width: 100%;
