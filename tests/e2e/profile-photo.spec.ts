@@ -7,7 +7,7 @@ test('a member adds a photo, sees it everywhere, and removes it', async ({
   poster,
   host,
 }) => {
-  // Something Pat is going to, so their face is on its card.
+  // Something Pat is going to, so their face is in who's going on its page.
   const title = `Board games ${crypto.randomUUID().slice(0, 6)}`;
   const id = await host.post({
     title,
@@ -56,15 +56,15 @@ test('a member adds a photo, sees it everywhere, and removes it', async ({
   await expect.poll(() => photo.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(256);
   await expect(appearance.getByRole('radio', { name: 'My photo' })).toBeChecked();
 
-  // On Me, and on the card of what Pat's going to.
+  // On Me, and in who's going on the page of what Pat's going to. Cards show just the count
+  // (UI-17).
   await page.goto('/me');
   await expect(page.getByRole('img', { name: 'Pat Poster' })).toHaveAttribute(
     'src',
     /^\/api\/media\//
   );
-  await page.goto('/discover');
-  const card = page.getByRole('article').filter({ hasText: title }).first();
-  await expect(card.getByRole('img', { name: 'Pat Poster' })).toHaveAttribute(
+  await page.goto(`/activities/${id}`);
+  await expect(page.getByRole('img', { name: 'Pat Poster' }).first()).toHaveAttribute(
     'src',
     /^\/api\/media\//
   );

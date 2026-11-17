@@ -1,21 +1,21 @@
 ---
 // An activity in the feed (ACT-01, design document section 7.5) and in Plans (RSVP-08). The whole
 // card opens the activity, except I'm in and ✓ Going (RSVP-01, RSVP-02). A cancelled activity says
-// so in their place (ACT-05), and a full one says Full to anyone not going (RSVP-04), or On waitlist (RSVP-07). In Plans,
-// badges say when an upcoming one has changed time or place, is full, or is hidden. Every card
-// says when it's a FABA board activity (MOD-07), unless it's cancelled or full, which say so in
-// its place: a card has one status at most (design document section 7.5). On Home, one that someone
-// else posted since the member's previous visit says New, after all those (ACT-11). A date in a
-// series says how often it repeats, beside its time (REC-01). The layout is UI-03's: the date,
-// the cover's small copy or the category's icon, the title, then rows for the time and place, and
-// who's going with I'm in along the bottom, so a phone never squeezes the time into a narrow column.
-// It's a piece of white paper with square corners and a shadow (UI-16), with the date and title in
-// the display face and You're hosting as a sticker (UI-14).
+// so in their place (ACT-05), and a full one says Full to anyone not going (RSVP-04), or On
+// waitlist (RSVP-07). In Plans, badges say when an upcoming one has changed time or place, is full,
+// or is hidden. Every card says when it's a FABA board activity (MOD-07), unless it's cancelled or
+// full, which say so in its place: a card has one status at most (design document section 7.5). On
+// Home, one that someone else posted since the member's previous visit says New, after all those
+// (ACT-11). A date in a series says how often it repeats, beside its time (REC-01).
+//
+// The layout is UI-17's (mockups/activity_card.png): white paper with the title across the top,
+// the picture under it with the time and place beside it, and the going count at the bottom right;
+// then a FABA blue column as tall as the card, with the date at the top and the member's answer at
+// the bottom. It's a piece of white paper with square corners and a shadow (UI-16).
 import { categoryLook } from '../lib/categories';
 import { historyLabel, isFull } from '../lib/cards';
 import { repeatsBadge } from '../lib/series';
-import { formatSoon, isOver } from '../lib/time';
-import Avatar from './Avatar.astro';
+import { isOver, soonParts } from '../lib/time';
 import Icon from './Icon.astro';
 import RsvpForm from './RsvpForm.astro';
 
@@ -40,35 +40,25 @@ interface Props {
     series: { freq: string } | null;
     /** Its cover picture (MEDIA-01), shown small (UI-03). */
     cover?: { id: string; hidden_at: string | null } | null;
-    going: {
-      member: {
-        id: string;
-        display_name: string;
-        avatar_url: string | null;
-        use_initials: boolean;
-      };
-    }[];
     /** The signed-in member's RSVP. */
     my_rsvp: string | null;
   };
   /** The signed-in member's id. */
   viewer: string;
   now: Date;
-  /** The most faces in the going row. */
-  faces: number;
   /** True for Plans' status badges. */
   badges?: boolean;
   /** True for a past activity, which says "Went" or "Organized" for the viewer (HIST-01). */
   history?: boolean;
   /** On Home, when the member's previous visit ended, so newer activities say New (ACT-11). */
   newSince?: Date | null;
-  /** True for Discover's Your next plan, which has a blue edge (UI-03). */
+  /** True for Discover's Your next plan, whose title is bigger. */
   next?: boolean;
 }
 
-const { activity, viewer, now, faces, badges, history, newSince, next } = Astro.props;
+const { activity, viewer, now, badges, history, newSince, next } = Astro.props;
 const { category } = activity;
-// The date badge (UI-01) shows the day in Rexburg's time, the same as the time line beside it.
+// The date shows the day in Rexburg's time, the same as the time beside the picture.
 const starts = new Date(activity.starts_at);
 const month = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'America/Boise' })
   .format(starts)
@@ -76,6 +66,7 @@ const month = new Intl.DateTimeFormat('en-US', { month: 'short', timeZone: 'Amer
 const day = new Intl.DateTimeFormat('en-US', { day: 'numeric', timeZone: 'America/Boise' }).format(
   starts
 );
+const [soonDay, soonTime] = soonParts(starts, now);
 const look = category && categoryLook(category);
 const cover = activity.cover && !activity.cover.hidden_at ? activity.cover : null;
 const hosting = activity.organizer_id === viewer;
@@ -110,11 +101,10 @@ const shown = (
 ---
 
 <article class:list={['card', { next }]} style={look ? `--stripe: ${look.color}` : undefined}>
-  <div class="layout">
-    <p class="date" aria-hidden="true">
-      <span class="month">{month}</span>
-      <span class="day">{day}</span>
-    </p>
+  <div class="paper">
+    <h3>
+      <a href={`/activities/${activity.id}`}>{activity.title}</a>
+    </h3>
     {(cover || look) && (
       <span
         class="picture"
@@ -126,34 +116,24 @@ const shown = (
           <img
             src={`/api/media/${cover.id}?size=thumb`}
             alt=""
-            width="64"
-            height="64"
+            width="88"
+            height="88"
             loading="lazy"
             decoding="async"
           />
         ) : (
-          look && <Icon name={look.icon} size={24} />
+          look && <Icon name={look.icon} size={40} />
         )}
       </span>
     )}
-    <h3>
-      <a href={`/activities/${activity.id}`}>{activity.title}</a>
-    </h3>
-    <span class="chevron">
-      <Icon name="chevron" />
-    </span>
     <div class="rows">
       <p class="when">
-        <Icon name="calendar" />
-        <span>
-          <time datetime={activity.starts_at}>{formatSoon(new Date(activity.starts_at), now)}</time>
-          {activity.series && ` · ${repeatsBadge(activity.series.freq)}`}
-        </span>
+        <time datetime={activity.starts_at}>
+          <span>{soonDay}</span> <span>{soonTime}</span>
+        </time>
+        {activity.series && ` · ${repeatsBadge(activity.series.freq)}`}
       </p>
-      <p class="place">
-        <Icon name="pin" />
-        <span>{activity.location_name}</span>
-      </p>
+      <p class="place">{activity.location_name}</p>
       {shown.length > 0 && (
         <ul class="badges">
           {shown.map((badge) => (
@@ -162,107 +142,73 @@ const shown = (
         </ul>
       )}
     </div>
-    <div class="foot">
-      <p class="going" data-going={activity.id} data-faces={faces}>
-        {activity.going.length === 0 && <Icon name="people" />}
-        {activity.going.map(({ member }) => (
-          <Avatar member={member} named mine={member.id === viewer} />
-        ))}
-        <span data-count>{activity.going_count}</span> going
-      </p>
-      {cancelled ? (
-        <p class="mine cancelled">Cancelled</p>
-      ) : hosting ? (
-        <p class="mine sticker">You're hosting</p>
-      ) : open && full && !going && activity.my_rsvp !== 'maybe' ? (
-        <p class="mine">{activity.my_rsvp === 'waitlisted' ? 'On waitlist' : 'Full'}</p>
-      ) : open ? (
-        // Someone waiting when a spot is open says I'm in like anyone else (RSVP-07).
-        <RsvpForm
-          activityId={activity.id}
-          status={activity.my_rsvp === 'waitlisted' ? null : activity.my_rsvp}
-        />
-      ) : (
-        going && <p class="mine going-pill">✓ Going</p>
-      )}
-    </div>
+    <p class="going" data-going={activity.id}>
+      <span data-count>{activity.going_count}</span> going
+    </p>
+  </div>
+  <div class="side">
+    <p class="date" aria-hidden="true">
+      <span class="month">{month}</span>
+      <span class="day">{day}</span>
+    </p>
+    {cancelled ? (
+      <p class="mine">Cancelled</p>
+    ) : hosting ? (
+      <p class="mine">You're hosting</p>
+    ) : open && full && !going && activity.my_rsvp !== 'maybe' ? (
+      <p class="mine">{activity.my_rsvp === 'waitlisted' ? 'On waitlist' : 'Full'}</p>
+    ) : open ? (
+      // Someone waiting when a spot is open says I'm in like anyone else (RSVP-07).
+      <RsvpForm
+        activityId={activity.id}
+        status={activity.my_rsvp === 'waitlisted' ? null : activity.my_rsvp}
+      />
+    ) : (
+      going && <p class="mine">✓ Going</p>
+    )}
   </div>
 </article>
 
 <style>
-  /* A piece of white paper, from the layout's .card (UI-16). The category's color tints its
-     picture. Its own width decides the layout, so a card is laid out for the space it has, not the
-     screen's. */
+  /* A piece of white paper, from the layout's .card (UI-16), with the blue column at its right.
+     The category's color tints its picture. Its own width decides the sizes, so a card is laid out
+     for the space it has, not the screen's. */
   .card {
     position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 5rem;
     container-type: inline-size;
   }
-  /* The date and picture, then the title with the time and place beside them, then who's going
-     and I'm in along the bottom (UI-03). */
-  .layout {
+  /* The title across the top, the picture under it with the time and place beside it, and the
+     going count at the bottom right (UI-17). */
+  .paper {
     display: grid;
-    /* Set widths, so the long rows under the title can't widen the date's column. */
-    grid-template-columns: 3.5rem 4rem minmax(0, 1fr) 1.25rem;
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+    grid-template-rows: auto 1fr auto;
     grid-template-areas:
-      'date picture title chevron'
-      'date picture rows chevron'
-      'foot foot foot foot';
-    gap: 0.25rem 0.75rem;
-    align-items: start;
-    padding: 0.75rem;
+      'title title'
+      'picture rows'
+      'picture going';
+    gap: 0.5rem 0.875rem;
+    padding: 0.75rem 0.875rem;
   }
-  /* The day, as the My events design shows it: a blue badge (UI-01). */
-  .date {
-    grid-area: date;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  /* Without a category or cover, the time and place take the picture's room. */
+  .paper:not(:has(.picture)) {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: 'title' 'rows' 'going';
+  }
+  p {
     margin: 0;
-    padding: 0.25rem 0;
-    color: white;
-    line-height: 1.1;
-    background: var(--blue);
-    border-radius: 0.5rem;
   }
-  .date .month,
-  .date .day {
-    font-family: var(--display);
-    text-transform: uppercase;
-  }
-  .date .month {
-    font-size: 0.875rem;
-    letter-spacing: 0.08em;
-  }
-  .date .day {
-    font-size: 1.75rem;
-    line-height: 1;
-  }
-  /* The cover's small copy, or the category's icon on a tint of its color (UI-02). Either way,
-     its label is the category's name. */
-  .picture {
-    grid-area: picture;
-    display: grid;
-    place-items: center;
-    width: 4rem;
-    height: 4rem;
-    overflow: hidden;
-    color: var(--navy);
-    background: color-mix(in srgb, var(--stripe) 16%, white);
-    border-radius: 0.5rem;
-  }
-  .picture img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-  /* The title in the display face, in capitals. Your next plan's is bigger, as in the mockup. */
+  /* The title in the display face, in capitals. Your next plan's is bigger. */
   h3 {
     grid-area: title;
     display: -webkit-box;
     margin: 0;
     overflow: hidden;
+    color: var(--navy);
     font-family: var(--display);
-    font-size: 1.375rem;
+    font-size: 1.75rem;
     font-weight: 400;
     line-height: 1.1;
     letter-spacing: 0.01em;
@@ -272,7 +218,7 @@ const shown = (
     line-clamp: 2;
   }
   .next h3 {
-    font-size: 1.75rem;
+    font-size: 2rem;
   }
   h3 a {
     color: inherit;
@@ -291,103 +237,43 @@ const shown = (
   .card a:focus-visible {
     outline: none;
   }
-  .chevron {
-    grid-area: chevron;
-    align-self: center;
-    color: var(--muted);
+  /* The cover's small copy, or the category's icon on a tint of its color (UI-02). Either way,
+     its label is the category's name. */
+  .picture {
+    grid-area: picture;
+    display: grid;
+    place-items: center;
+    width: 5.5rem;
+    height: 5.5rem;
+    overflow: hidden;
+    color: var(--navy);
+    background: color-mix(in srgb, var(--stripe) 16%, white);
+    border-radius: 0.5rem;
   }
+  .picture img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  /* The day and time, then the place, big and with no icons. */
   .rows {
     grid-area: rows;
     display: grid;
+    align-content: start;
     gap: 0.125rem;
     min-width: 0;
+    font-size: 1.25rem;
+    line-height: 1.25;
   }
-  p {
-    margin: 0;
-  }
-  .rows p {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-    min-width: 0;
-  }
-  .rows :global(.icon) {
-    color: var(--blue);
-  }
-  /* The time shows in full. A series' "Weekly" can go to the next line. */
-  time {
+  /* The day and the time each stay whole, so a narrow card breaks the line between them. */
+  time span {
     white-space: nowrap;
   }
   /* A long place ends with an ellipsis. The activity's page has all of it. */
-  .place span {
+  .place {
     overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
-  }
-  .foot {
-    grid-area: foot;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    margin-top: 0.25rem;
-  }
-  /* The faces overlap a little, with a white ring, so three fit beside the count on a phone. */
-  .going {
-    display: flex;
-    align-items: center;
-    gap: 0.375rem;
-  }
-  /* The people icon stands in for faces until someone's going. */
-  .going :global(.icon:has(~ .avatar)) {
-    display: none;
-  }
-  .going :global(.avatar) {
-    box-shadow: 0 0 0 2px var(--card);
-  }
-  .going :global(.avatar + .avatar) {
-    margin-left: -0.375rem;
-  }
-  .mine {
-    margin-left: auto;
-    font-weight: 600;
-    white-space: nowrap;
-  }
-  .cancelled {
-    color: #b42318;
-  }
-  /* You're hosting is a blue sticker, tilted, with a few burst lines at its corner. */
-  .sticker {
-    position: relative;
-    padding: 0.375rem 0.75rem;
-    line-height: 1.1;
-    color: white;
-    font-family: var(--display);
-    font-size: 1.0625rem;
-    font-weight: 400;
-    letter-spacing: 0.03em;
-    text-transform: uppercase;
-    border: 1px solid transparent;
-    background: var(--blue);
-    box-shadow: var(--lift);
-    transform: rotate(-2deg);
-  }
-  .sticker::before {
-    position: absolute;
-    top: -0.875rem;
-    right: -0.625rem;
-    width: 1.25rem;
-    height: 1rem;
-    content: '';
-    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 16' fill='none' stroke='%230f1f3d' stroke-width='2.2' stroke-linecap='round'%3E%3Cpath d='M3 14 1 9M9 13V3M15 14l4-4'/%3E%3C/svg%3E")
-      no-repeat;
-  }
-  .going-pill {
-    padding: 0.25rem 0.75rem;
-    color: var(--blue);
-    background: var(--blue-soft);
-    border-radius: 999px;
   }
   .badges {
     display: flex;
@@ -395,38 +281,120 @@ const shown = (
     gap: 0.25rem;
     margin: 0.25rem 0 0;
     padding: 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
     list-style: none;
   }
   .badges li {
     padding: 0 0.5rem;
-    font-size: 0.875rem;
     font-weight: 600;
     border: 1px solid var(--border);
     border-radius: 999px;
   }
-  /* On a phone, the time and place take the card's whole width under the title, so they're never
-     squeezed into a narrow column. */
+  /* Just the count, at the bottom right. */
+  .going {
+    grid-area: going;
+    justify-self: end;
+    align-self: end;
+  }
+  /* FABA blue, as tall as the card, flush with its edges over the paper's transparent border. */
+  .side {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    margin: -1px -1px -1px 0;
+    padding: 0.625rem 0.375rem;
+    color: white;
+    text-align: center;
+    background: var(--blue);
+  }
+  .date {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    font-family: var(--display);
+    line-height: 1;
+    text-transform: uppercase;
+  }
+  .date .month {
+    font-size: 2rem;
+    letter-spacing: 0.04em;
+  }
+  .date .day {
+    font-size: 3.5rem;
+  }
+  /* The member's answer, or why there's none to give. */
+  .mine {
+    font-weight: 700;
+    line-height: 1.2;
+  }
+  .side :global(.rsvp) {
+    align-self: stretch;
+    margin: 0;
+  }
+  /* I'm in is a white button, and ✓ Going and Maybe are white words that open the sheet. Each is
+     the column's width and 44 px tall. */
+  .side :global(.rsvp > form button) {
+    width: 100%;
+    padding: 0 0.25rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .side :global(.rsvp > form button[type='submit']) {
+    color: var(--blue);
+    background: white;
+  }
+  .side :global(.rsvp > form button[type='submit']:hover) {
+    background: var(--blue-soft);
+  }
+  .side :global(.rsvp > form button[type='button']) {
+    color: white;
+    background: none;
+  }
+  .side :global(.rsvp > form button[type='button']:hover) {
+    text-decoration: underline;
+  }
+  /* A blue focus ring wouldn't show on blue. */
+  .side :global(.rsvp > form button:focus-visible) {
+    outline-color: white;
+  }
+  /* On a phone, a little smaller, so the time and place keep their room beside the picture. */
   @container (max-width: 24rem) {
-    .layout {
-      grid-template-columns: 3rem 2.75rem minmax(0, 1fr) 1.25rem;
-      grid-template-areas:
-        'date picture title chevron'
-        'rows rows rows rows'
-        'foot foot foot foot';
-      column-gap: 0.5rem;
+    .card {
+      grid-template-columns: minmax(0, 1fr) 4.75rem;
     }
-    .date .day {
-      font-size: 1.5rem;
+    .paper {
+      grid-template-columns: 4.5rem minmax(0, 1fr);
+      column-gap: 0.75rem;
+      padding: 0.625rem 0.75rem;
     }
     h3 {
-      font-size: 1.25rem;
-    }
-    .next h3 {
       font-size: 1.5rem;
     }
+    .next h3 {
+      font-size: 1.75rem;
+    }
     .picture {
-      width: 2.75rem;
-      height: 2.75rem;
+      width: 4.5rem;
+      height: 4.5rem;
+    }
+    .rows {
+      font-size: 1.125rem;
+    }
+    .date .month {
+      font-size: 1.75rem;
+    }
+    .date .day {
+      font-size: 3.25rem;
+    }
+  }
+  /* High contrast: the column is plain, with a line between it and the rest of the card. */
+  @media (forced-colors: active) {
+    .side {
+      margin: 0;
+      border-left: 1px solid CanvasText;
     }
   }
 </style>

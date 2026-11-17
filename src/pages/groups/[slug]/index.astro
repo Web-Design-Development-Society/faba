@@ -15,7 +15,7 @@ import FollowButton from '../../../components/FollowButton.astro';
 import PictureUpload from '../../../components/PictureUpload.astro';
 import Status from '../../../components/Status.astro';
 import Layout from '../../../layouts/Layout.astro';
-import { CARD, FACES, historySince } from '../../../lib/cards';
+import { CARD, historySince } from '../../../lib/cards';
 import { LEAGUES } from '../../../lib/features';
 import { linkify } from '../../../lib/links';
 import { FLASH_MESSAGES, pictureRefusal, setFlash, takeFlash } from '../../../lib/server/flash';
@@ -59,11 +59,8 @@ const [{ data: activities }, { data: me }, { data: updates }] = group
         .eq('status', 'published')
         .is('hidden_at', null)
         .gte('starts_at', new Date(now.getTime() - 3 * 60 * 60 * 1000).toISOString())
-        .eq('going.status', 'going')
         .order('starts_at')
         .order('id')
-        .order('created_at', { referencedTable: 'going' })
-        .limit(FACES, { referencedTable: 'going' })
         .limit(20),
       supabase
         .from('group_members')
@@ -94,11 +91,8 @@ const { data: past } = group
       .is('hidden_at', null)
       .lt('starts_at', new Date(now.getTime() - 3 * 60 * 60 * 1000).toISOString())
       .gte('starts_at', historySince(now))
-      .eq('going.status', 'going')
       .order('starts_at', { ascending: false })
       .order('id', { ascending: false })
-      .order('created_at', { referencedTable: 'going' })
-      .limit(FACES, { referencedTable: 'going' })
       .limit(20)
   : { data: null };
 const organizer = me?.role === 'owner' || me?.role === 'organizer';
@@ -270,7 +264,7 @@ const members = group?.member_count ?? 0;
           <ul>
             {activities.map((activity) => (
               <li>
-                <ActivityCard activity={activity} viewer={user.id} now={now} faces={FACES} />
+                <ActivityCard activity={activity} viewer={user.id} now={now} />
               </li>
             ))}
           </ul>
@@ -290,7 +284,7 @@ const members = group?.member_count ?? 0;
                   activity={activity}
                   viewer={user.id}
                   now={now}
-                  faces={FACES}
+
                   history
                 />
               </li>

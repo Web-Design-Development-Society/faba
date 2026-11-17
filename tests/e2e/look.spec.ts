@@ -133,6 +133,10 @@ test('in high contrast, the paper gives way to plain borders', async ({ page, po
   await plain(
     page.getByRole('navigation', { name: 'Discover' }).getByRole('link', { name: 'Groups' })
   );
+  // An activity card's blue column is plain, with a line between it and the rest (UI-17).
+  const side = page.getByRole('article').first().locator('.side');
+  await expect(side).toHaveCSS('box-shadow', 'none');
+  await expect(side).toHaveCSS('border-left-style', 'solid');
   // No photo behind the page.
   await expect(page.locator('html')).toHaveCSS('background-image', 'none');
   expect(

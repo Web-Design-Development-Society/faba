@@ -9,7 +9,7 @@ const named = (title: string) => `${title} ${crypto.randomUUID().slice(0, 8)}`;
 // Intl's spaces before AM and PM differ between Node and the Worker.
 const loosely = (text: string) => new RegExp(text.replace(/\s/g, '\\s'));
 
-test('a member sees each activity under its day, with who is going', async ({
+test('a member sees each activity under its day, with how many are going', async ({
   page,
   poster,
   host,
@@ -31,10 +31,12 @@ test('a member sees each activity under its day, with who is going', async ({
   await expect(card.getByRole('img', { name: 'Games' })).toBeVisible();
   await expect(card.getByText(loosely(formatSoon(startsAt, new Date())))).toBeVisible();
   await expect(card.getByText('R Mountain trailhead')).toBeVisible();
+  // Just the count, without faces (UI-17).
   await expect(card.getByText('2 going')).toBeVisible();
-  await expect(card.getByRole('img', { name: 'Hana Host' })).toBeVisible();
-  await expect(card.getByRole('img', { name: 'Pat Poster' })).toBeVisible();
-  await expect(card.getByText('✓ Going')).toBeVisible();
+  await expect(card.getByRole('img', { name: 'Hana Host' })).toHaveCount(0);
+  await expect(card.getByRole('img', { name: 'Pat Poster' })).toHaveCount(0);
+  // ✓ Going is white, in the blue column.
+  await expect(card.getByText('✓ Going')).toHaveCSS('color', 'rgb(255, 255, 255)');
   // Nothing is wider than the screen.
   expect(
     await page.evaluate(

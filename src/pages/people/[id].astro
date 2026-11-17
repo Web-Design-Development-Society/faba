@@ -12,7 +12,7 @@ import Menu from '../../components/Menu.astro';
 import ModerationAction from '../../components/ModerationAction.astro';
 import Status from '../../components/Status.astro';
 import Layout from '../../layouts/Layout.astro';
-import { CARD, FACES } from '../../lib/cards';
+import { CARD } from '../../lib/cards';
 import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../../lib/server/flash';
 
 // The most activities in the list.
@@ -64,11 +64,8 @@ const [{ data: profile }, { data, error }, { data: categories }, { data: email }
       .eq('status', 'published')
       .is('hidden_at', null)
       .gte('starts_at', new Date(now.getTime() - 3 * HOUR).toISOString())
-      .eq('going.status', 'going')
       .order('starts_at')
       .order('id')
-      .order('created_at', { referencedTable: 'going' })
-      .limit(FACES, { referencedTable: 'going' })
       .limit(LIMIT),
     supabase.from('categories').select('id, name').order('sort_order'),
     // Moderators always see a member's email, for safety follow-up (PROF-04).
@@ -154,7 +151,7 @@ const mine = profile?.id === user.id;
           <ul>
             {activities.map((activity) => (
               <li id={`activity-${activity.id}`}>
-                <ActivityCard activity={activity} viewer={user.id} now={now} faces={FACES} />
+                <ActivityCard activity={activity} viewer={user.id} now={now} />
               </li>
             ))}
           </ul>
@@ -166,11 +163,6 @@ const mine = profile?.id === user.id;
       <h1>Not available</h1>
       <p>This member is no longer active.</p>
     </>
-  )}
-  {member && (
-    <template data-my-face>
-      <Avatar member={member} named />
-    </template>
   )}
 </Layout>
 
