@@ -113,11 +113,19 @@ export function formatClock(instant: Date): string {
  * a date after that, such as `Nov 14, 6:30 PM` (design document section 7.5).
  */
 export function formatSoon(instant: Date, now: Date): string {
+  return soonParts(instant, now).join(' ');
+}
+
+/**
+ * formatSoon's day and time apart, such as `Tomorrow` and `6:30 PM`, so a card can break the line
+ * between them and never inside the time (UI-17).
+ */
+export function soonParts(instant: Date, now: Date): [day: string, time: string] {
   const days = daysFrom(now, rexburgDate(instant));
   const time = clock.format(instant);
-  if (NEARBY[days]) return `${NEARBY[days]} ${time}`;
-  if (days > 1 && days < 7) return `${weekday.format(instant)} ${time}`;
-  return `${monthDay.format(instant)}, ${time}`;
+  if (NEARBY[days]) return [NEARBY[days], time];
+  if (days > 1 && days < 7) return [weekday.format(instant), time];
+  return [`${monthDay.format(instant)},`, time];
 }
 
 /** How long before `now` `instant` was, such as `just now`, `5m ago`, `2h ago` or `3d ago`. */

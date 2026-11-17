@@ -601,7 +601,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Web Push** as a channel. The delivery pipeline already supports it, and installed PWAs on iOS 16.4+ and Android support it.
 - **Image uploads** for activity covers and group banners, using Cloudflare Images or R2, with moderation.
 - **Comments** on activities (flat, moderated), if Phase 3 feedback supports them.
-- **A clearer look** from the 2026 mockups (`mockups/discover.webp`, `mockups/new_activity_and_alerts.webp`): FABA blue and icons throughout, cards that show the whole time and place, filters that fit the screen, an easier activity page and form, and alerts as cards. Then a bolder cut-paper look (`mockups/discover_collage.webp`, UI-14): heavy condensed capitals, paper on FABA blue, and stickers. UI-16 then made the paper square, with shadows, on a photo of torn paper, faded so text sits straight on it.
+- **A clearer look** from the 2026 mockups (`mockups/discover.webp`, `mockups/new_activity_and_alerts.webp`): FABA blue and icons throughout, cards that show the whole time and place, filters that fit the screen, an easier activity page and form, and alerts as cards. Then a bolder cut-paper look (`mockups/discover_collage.webp`, UI-14): heavy condensed capitals, paper on FABA blue, and stickers. UI-16 then made the paper square, with shadows, on a photo of torn paper, faded so text sits straight on it. UI-17 gave activity cards bigger text, fewer pieces and a blue date column.
 - **Playoff brackets** for leagues.
 - **Data retention automation**, and a data export ("download my data").
 - **Performance:** query review with `pg_stat_statements`, edge caching of non-personalized fragments, Smart Placement tuning.
@@ -1910,12 +1910,13 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - the title, in up to 2 lines
     - three rows, each with an icon: the day and time, the place, and how many are going
   - **I'm in** or **✓ Going** moves from beside the text to the card's bottom row, at the right, with the avatars and going count at the left. The text gets the card's full width beside the picture.
+  - (UI-17 replaced this layout on 2026-11-17: the date and I'm in or ✓ Going are in a blue column at the right, the picture is under the title with the time and place beside it, and the rows have no icons and no faces.)
   - On a 320 px screen (iPhone SE):
     - The title wraps by words, never one word per line.
-    - The day and time show in full on one line, worded as section 7.5 says, such as "Tomorrow 6:30 PM".
+    - The day and time show in full on one line, worded as section 7.5 says, such as "Tomorrow 6:30 PM". (Since UI-17, a narrow phone may break the line between the day and the time.)
     - A place too long for its line ends with an ellipsis. The full place is on the activity's page.
   - A card still has at most one status badge (Cancelled, Full, Board activity or New), and **Your next plan** keeps its blue edge. (UI-14 put it on light blue paper instead.)
-  - The whole card except the button still opens the activity. A chevron at the right shows this, hidden from screen readers.
+  - The whole card except the button still opens the activity. A chevron at the right shows this, hidden from screen readers. (UI-17 removed the chevron.)
   - Discover, Plans, Search and group pages all use the same card.
   - The E2E tests check, at 320 px and 412 px, that the time row isn't cut off and that nothing scrolls sideways.
 - **Dependencies:** UI-02, MEDIA-01.
@@ -2223,7 +2224,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
       - the cover's small copy
       - the title in display capitals
       - then the time, the place and who's going, with a chevron
-    - **You're hosting** is a blue sticker with a few burst lines, tilted slightly.
+    - **You're hosting** is a blue sticker with a few burst lines, tilted slightly. (UI-17 replaced the sticker with white words in the card's blue column on 2026-11-17.)
     - The **Category** and **Date** filters are bordered boxes with a chevron, with their labels in display capitals.
   - **The bottom bar:**
     - Each item is an icon in a rounded square tile, with its label in display capitals under it.
@@ -2555,19 +2556,19 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 
 ### 7.5 Activity cards
 
-| Element        | Rule                                                                                                                                                |
-| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Date badge     | The month and day in a FABA blue badge, at the top left, in the display face (UI-14)                                                                |
-| Picture        | The cover's small copy (MEDIA-01), or the category's line icon on a tint of its color. Its label is the category's name                             |
-| Category color | The picture's tint. UI-14 replaced the stripe down the left edge. Color is never the only signal                                                    |
-| Title          | Up to 2 lines, in the display face in capitals (UI-14), truncated with an ellipsis                                                                  |
-| When           | A row with a calendar icon. Relative for the next 6 days ("Tomorrow 6:30 PM", "Sat 7:00 AM"), absolute after that ("Nov 3, 6:30 PM"). Never cut off |
-| Where          | A row with a pin icon. Short place text or "Online". At most 1 line, ending with an ellipsis                                                        |
-| Social proof   | Along the bottom: up to 3 avatars, overlapping a little, plus "8 going". "+3 guests" appears only in details                                        |
-| Status         | One badge at most, in priority order: Cancelled → Full → Board activity → New                                                                       |
-| Action         | **I'm in** / **✓ Going** at the right of the bottom row, 44 px tall. The whole card (except the button) opens details, which a chevron shows        |
+| Element        | Rule                                                                                                                                                                                                                                                     |
+| -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Date badge     | The month over the day, in white in the display face, at the top of a FABA blue column at the card's right, as tall as the card (UI-17)                                                                                                                  |
+| Picture        | Under the title, at the left (UI-17). The cover's small copy (MEDIA-01), or the category's line icon on a tint of its color. Its label is the category's name                                                                                            |
+| Category color | The picture's tint. UI-14 replaced the stripe down the left edge. Color is never the only signal                                                                                                                                                         |
+| Title          | Up to 2 lines, in the display face in capitals (UI-14), truncated with an ellipsis                                                                                                                                                                       |
+| When           | Beside the picture, in bigger text with no icon (UI-17). Relative for the next 6 days ("Tomorrow 6:30 PM", "Sat 7:00 AM"), absolute after that ("Nov 3, 6:30 PM"). Never cut off, and a line break only between the day and the time                     |
+| Where          | Under the time, in bigger text with no icon (UI-17). Short place text or "Online". At most 1 line, ending with an ellipsis                                                                                                                               |
+| Social proof   | Just the count, such as "8 going", at the bottom right of the white part (UI-17). Faces and "+3 guests" appear only in details                                                                                                                           |
+| Status         | One badge at most, in priority order: Cancelled → Full → Board activity → New                                                                                                                                                                            |
+| Action         | At the bottom of the blue column, 44 px tall (UI-17): **I'm in** as a white button, or **✓ Going** or **Maybe** in white. Cancelled, Full, On waitlist and You're hosting show there instead, in white. The whole card (except the button) opens details |
 
-- **Layout** (UI-03): a card is laid out for its own width. Wider than 24rem, the time and place sit beside the date and picture. On a phone, they take the card's whole width under the title, so a 320 px screen never squeezes them into a narrow column.
+- **Layout** (UI-17, `mockups/activity_card.png`): white paper with the title across the top, the picture under it with the time and place beside it, and the going count at the bottom right, then a FABA blue column at the right with the date at the top and the member's answer at the bottom. A card is laid out for its own width: narrower than 24rem, the title, picture, text and date are a little smaller. (UI-03's layout put the date and picture at the left and I'm in along the bottom.)
 
 ### 7.6 Activity details
 

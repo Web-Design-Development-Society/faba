@@ -8,12 +8,11 @@
 // each day, as on Discover.
 import { actions } from 'astro:actions';
 import ActivityCard from '../components/ActivityCard.astro';
-import Avatar from '../components/Avatar.astro';
 import Back from '../components/Back.astro';
 import Filters from '../components/Filters.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
-import { CARD, FACES } from '../lib/cards';
+import { CARD } from '../lib/cards';
 import { filterQuery, nextPage, readCursor, readDates } from '../lib/feed';
 import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../lib/server/flash';
 import { formatDay, rexburgDate, WHENS } from '../lib/time';
@@ -22,7 +21,7 @@ import { formatDay, rexburgDate, WHENS } from '../lib/time';
 const PAGE = 20;
 const MAX_QUERY = 100;
 
-const { supabase, user, member } = Astro.locals;
+const { supabase, user } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
 
 // I'm in and Can't make it without JavaScript come back to the card (RSVP-01, RSVP-02).
@@ -55,11 +54,8 @@ const [results, categories] = await Promise.all([
           starts_before: dates.starts_before,
         })
         .select(CARD)
-        .eq('going.status', 'going')
         .order('starts_at', { ascending: !past })
         .order('id', { ascending: !past })
-        .order('created_at', { referencedTable: 'going' })
-        .limit(FACES, { referencedTable: 'going' })
     : { data: null, error: null },
   supabase.from('categories').select('id, name, icon').eq('is_active', true).order('sort_order'),
 ]);
@@ -174,7 +170,7 @@ const matching = [
           <ul>
             {group.map((activity) => (
               <li id={`activity-${activity.id}`}>
-                <ActivityCard activity={activity} viewer={user.id} now={now} faces={FACES} />
+                <ActivityCard activity={activity} viewer={user.id} now={now} />
               </li>
             ))}
           </ul>
@@ -186,11 +182,6 @@ const matching = [
     <a class="more button" href={`/search${more}`} data-more>
       Show more
     </a>
-  )}
-  {member && (
-    <template data-my-face>
-      <Avatar member={member} named />
-    </template>
   )}
 </Layout>
 

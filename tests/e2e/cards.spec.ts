@@ -1,7 +1,8 @@
-// Activity cards that show the time and place (UI-03). Each project runs at its own width, so this
-// checks a 320 px iPhone SE, a 412 px Pixel and a desktop.
+// Activity cards (UI-03, UI-17): the title, a picture and the time and place on white paper, and the
+// date and the member's answer in a blue column. Each project runs at its own width, so this checks a
+// 320 px iPhone SE, a 412 px Pixel and a desktop.
 import type { Locator } from '@playwright/test';
-import { formatSoon } from '../../src/lib/time';
+import { soonParts } from '../../src/lib/time';
 import { expect, expectAccessible, expectSquare, paper, test } from './fixtures';
 
 const HOUR = 60 * 60 * 1000;
@@ -16,7 +17,7 @@ async function inside(inner: Locator, outer: Locator) {
   expect(a.x + a.width).toBeLessThanOrEqual(b.x + b.width + 0.5);
 }
 
-test('a card shows the whole time, the place on one line, and I’m in under them', async ({
+test('a card has its title, picture, time and place on paper, and its date and I’m in on blue', async ({
   page,
   signInAs,
   host,
@@ -32,26 +33,62 @@ test('a card shows the whole time, the place on one line, and I’m in under the
 
   await page.goto('/discover');
   const card = page.getByRole('article').filter({ hasText: title });
-  const time = card.getByText(loosely(formatSoon(startsAt, new Date())));
-  await expect(time).toBeVisible();
+  const box = (await card.boundingBox())!;
+
+  // The title across the top, bigger than before UI-17, with room for words.
+  const heading = card.getByRole('heading', { name: title });
+  const size = (locator: Locator) =>
+    locator.evaluate((el) => parseFloat(getComputedStyle(el).fontSize));
+  expect(await size(heading)).toBeGreaterThanOrEqual(24);
+  expect((await heading.boundingBox())!.width).toBeGreaterThan(110);
+
+  // The picture under it, bigger too.
+  const picture = card.getByRole('img', { name: 'Outdoors' });
+  const pictureBox = (await picture.boundingBox())!;
+  expect(pictureBox.width).toBeGreaterThanOrEqual(72);
+  expect(pictureBox.y).toBeGreaterThan((await heading.boundingBox())!.y);
+
+  // The day and time beside it, big, with no icon. A narrow phone may break the line between the
+  // day and the time, but never inside either.
+  const [day, clock] = soonParts(startsAt, new Date());
+  const time = card.locator('time');
+  await expect(time).toHaveText(loosely(`${day} ${clock}`));
+  expect(await size(time)).toBeGreaterThanOrEqual(18);
+  expect((await time.boundingBox())!.x).toBeGreaterThan(pictureBox.x + pictureBox.width);
+  for (const part of await time.locator('span').all()) {
+    expect(await part.evaluate((el) => el.getClientRects().length)).toBe(1);
+  }
   await inside(time, card);
-  // The time is on one line.
-  const lines = await time.evaluate((el) => el.getClientRects().length);
-  expect(lines).toBe(1);
+  await expect(card.locator('.rows svg')).toHaveCount(0);
 
   // A long place ends with an ellipsis, on one line, inside the card.
   const place = card.getByText(/^Hidden Valley Park, north/);
   await inside(place, card);
   expect(await place.evaluate((el) => el.scrollWidth > el.clientWidth)).toBe(true);
 
-  // I'm in is under the time and place, not squeezing them from the side.
-  const button = card.getByRole('button', { name: "I'm in" });
-  const [placeBox, buttonBox] = [(await place.boundingBox())!, (await button.boundingBox())!];
-  expect(buttonBox.y).toBeGreaterThanOrEqual(placeBox.y + placeBox.height - 1);
+  // Who's going is just the count, and there's no chevron.
+  await expect(card.getByText('1 going', { exact: true })).toBeVisible();
+  await expect(card.locator('.avatar, .chevron')).toHaveCount(0);
 
-  // The title has room for words, not one word to a line.
-  const heading = card.getByRole('heading', { name: title });
-  expect((await heading.boundingBox())!.width).toBeGreaterThan(110);
+  // A FABA blue column, at the right and as tall as the card, with the date at the top and I'm in,
+  // white with FABA blue text, at the bottom.
+  const side = card.locator('.side');
+  const sideBox = (await side.boundingBox())!;
+  await expect(side).toHaveCSS('background-color', 'rgb(11, 91, 211)');
+  expect(Math.abs(sideBox.x + sideBox.width - (box.x + box.width))).toBeLessThanOrEqual(1.5);
+  expect(Math.abs(sideBox.height - box.height)).toBeLessThanOrEqual(2.5);
+  expect(sideBox.x).toBeGreaterThan((await place.boundingBox())!.x);
+  const date = side.locator('.date');
+  const boise = (options: Intl.DateTimeFormatOptions) =>
+    new Intl.DateTimeFormat('en-US', { ...options, timeZone: 'America/Boise' }).format(startsAt);
+  const [month, dayOfMonth] = [boise({ month: 'short' }).toUpperCase(), boise({ day: 'numeric' })];
+  await expect(date).toHaveText(new RegExp(`^${month}\\s*${dayOfMonth}$`));
+  const button = side.getByRole('button', { name: "I'm in" });
+  await expect(button).toHaveCSS('background-color', 'rgb(255, 255, 255)');
+  await expect(button).toHaveCSS('color', 'rgb(11, 91, 211)');
+  const [dateBox, buttonBox] = [(await date.boundingBox())!, (await button.boundingBox())!];
+  expect(buttonBox.y).toBeGreaterThan(dateBox.y + dateBox.height);
+  expect(buttonBox.height).toBeGreaterThanOrEqual(44);
 
   // Nothing is wider than the screen.
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(

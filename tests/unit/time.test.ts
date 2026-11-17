@@ -6,6 +6,7 @@ import {
   formatDay,
   formatRange,
   formatSoon,
+  soonParts,
   isOver,
   rexburgDate,
   rexburgInstant,
@@ -89,6 +90,17 @@ describe('formatSoon', () => {
     ['2026-11-10T01:30:00Z', 'Nov 9, 6:30 PM'],
   ])('%s is %s', (instant, text) => {
     expect(plain(formatSoon(new Date(instant), monday))).toBe(text);
+  });
+
+  it('splits into the day and the time, for a card to break between them', () => {
+    expect(soonParts(new Date('2026-11-03T14:00:00Z'), monday).map(plain)).toEqual([
+      'Tomorrow',
+      '7:00 AM',
+    ]);
+    expect(soonParts(new Date('2026-11-10T01:30:00Z'), monday).map(plain)).toEqual([
+      'Nov 9,',
+      '6:30 PM',
+    ]);
   });
 });
 

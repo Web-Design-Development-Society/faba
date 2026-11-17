@@ -54,7 +54,8 @@ test("I'm in on a card stays on Discover, and the toast goes after 5 seconds", a
 
   await expect(card.getByRole('button', { name: '✓ Going' })).toBeVisible();
   await expect(card.getByText('2 going')).toBeVisible();
-  await expect(card.getByRole('img', { name: 'Pat Poster' })).toBeVisible();
+  // A card has just the count, so no face joins it (UI-17).
+  await expect(card.getByRole('img', { name: 'Pat Poster' })).toHaveCount(0);
   await expect(page).toHaveURL('/discover');
   await expect.poll(() => statusOf(host.admin, id, poster.id)).toBe('going');
 
@@ -153,8 +154,6 @@ test("on a card, Going keeps the RSVP, and Can't make it changes the next plan t
   await page.getByRole('button', { name: "Can't make it" }).click();
   await expect(card.getByRole('button', { name: "I'm in" })).toBeVisible();
   await expect(card.getByText('1 going')).toBeVisible();
-  // Even the face that came from the server goes.
-  await expect(card.getByRole('img', { name: 'Pat Poster' })).toHaveCount(0);
   const plan = page.getByRole('region', { name: 'Your next plan' });
   await expect(plan.getByRole('button', { name: "I'm in" })).toBeVisible();
   await expect.poll(() => statusOf(host.admin, id, poster.id)).toBe('not_going');
@@ -196,7 +195,6 @@ test.describe('without JavaScript', () => {
     await expect(page).toHaveURL(`/discover#activity-${id}`);
     await expect(card.getByText('✓ Going')).toBeVisible();
     await expect(card.getByText('2 going')).toBeVisible();
-    await expect(card.getByRole('img', { name: 'Pat Poster' })).toBeVisible();
     await expect(page.getByRole('region', { name: 'Your next plan' })).toContainText(title);
     expect(await statusOf(host.admin, id, poster.id)).toBe('going');
   });

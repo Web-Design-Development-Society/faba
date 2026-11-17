@@ -84,6 +84,8 @@ function show(id: string, status: Status, guests?: number) {
     const mine = row.querySelector('[data-mine]');
     if (going < 0) mine?.remove();
     else if (going > 0 && face && !mine) {
+      // A card's row has no faces, just the count (UI-17).
+      if (!row.dataset.faces) continue;
       if (row.querySelectorAll('.avatar').length >= Number(row.dataset.faces)) continue;
       const clone = face.content.firstElementChild!.cloneNode(true) as Element;
       clone.setAttribute('data-mine', '');
