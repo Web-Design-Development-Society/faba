@@ -41,7 +41,7 @@ test("the organizer's name opens their profile, with what they're organizing", a
     .eq('id', past);
 
   await page.goto(`/activities/${id}`);
-  await page.getByRole('link', { name: 'Hana Host' }).click();
+  await page.getByText('Hosted by').getByRole('link', { name: 'Hana Host' }).click();
   await expect(page).toHaveURL(`/people/${host.id}`);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Hana Host');
   await expect(page.getByText('Biology')).toBeVisible();
