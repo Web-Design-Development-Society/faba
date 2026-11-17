@@ -101,7 +101,6 @@ test('every form is made for phones', async ({ page, poster, host, crowd }) => {
     '/groups/new',
     `/groups/${group!.slug}`,
     `/groups/${group!.slug}/update`,
-    `/groups/${group!.slug}/members`,
     `/groups/${group!.slug}/owner`,
     `/groups/${theirGroup!.slug}/report`,
     `/people/${host.id}/report`,

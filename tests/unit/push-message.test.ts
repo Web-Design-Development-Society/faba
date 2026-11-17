@@ -81,7 +81,7 @@ describe('notificationHref', () => {
     ).toBe('/activities/a1');
   });
 
-  it('opens the group, and a join request its members', () => {
+  it('opens the group, and a join request its Members (UI-23)', () => {
     expect(
       notificationHref({ type: 'group_update', activity_id: null, payload: {}, group_slug: 'hike' })
     ).toBe('/groups/hike');
@@ -92,7 +92,7 @@ describe('notificationHref', () => {
         payload: {},
         group_slug: 'hike',
       })
-    ).toBe('/groups/hike/members');
+    ).toBe('/groups/hike#members');
   });
 
   it('opens the page a follow notice or a report names, on this site only', () => {

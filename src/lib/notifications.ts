@@ -58,8 +58,8 @@ type Opened = {
 };
 
 /**
- * Where a notification opens: its activity, or its group. A join request opens the group's members,
- * to approve it (GRP-02, GRP-05). A batched follow notice opens its category or group, and a new
+ * Where a notification opens: its activity, or its group. A join request opens the group's Members,
+ * where Manage members approves it (GRP-02, GRP-05, UI-23). A batched follow notice opens its category or group, and a new
  * report opens the queue, each from its payload.
  */
 export function notificationHref({ type, activity_id, payload, group_slug }: Opened): string {
@@ -69,7 +69,7 @@ export function notificationHref({ type, activity_id, payload, group_slug }: Ope
       : null;
   if (typeof named === 'string' && named.startsWith('/')) return named;
   if (activity_id) return `/activities/${activity_id}`;
-  if (group_slug) return `/groups/${group_slug}${type === 'group_join_request' ? '/members' : ''}`;
+  if (group_slug) return `/groups/${group_slug}${type === 'group_join_request' ? '#members' : ''}`;
   return '/notifications';
 }
 
