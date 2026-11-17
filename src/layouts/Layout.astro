@@ -220,10 +220,11 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     descent-override: 49%;
     line-gap-override: 0%;
   }
-  /* A soft gradient behind every page: light blue at the top, pale blue, then cream at the bottom.
-     The page is at least as tall as the screen and the gradient doesn't repeat, so a short page
-     ends cleanly. At its darkest, the light blue, ink is 13.5:1, links 5.6:1, muted text 5.7:1 and
-     errors 5:1. The accessibility checks can't measure text on a gradient, so they skip it. */
+  /* A gradient behind every page: the logo's light blue at the top, light blue paper, then cream
+     at the bottom. The page is at least as tall as the screen and the gradient doesn't repeat, so a
+     short page ends cleanly. At its darkest, the logo's blue, ink is 6.7:1 and navy 6.2:1, but link
+     blue and muted text are only 2.8:1, so what sits at the top, such as Back, is navy. The
+     accessibility checks can't measure text on a gradient, so look.spec.ts does. */
   html {
     min-height: 100%;
     background: linear-gradient(var(--blue-light), var(--sky), var(--paper)) no-repeat var(--paper);

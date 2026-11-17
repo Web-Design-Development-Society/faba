@@ -210,7 +210,7 @@ const members = group?.member_count ?? 0;
         {!!asking && (
           <>
             {' · '}
-            <button type="button" class="quiet" commandfor="manage" command="show-modal">
+            <button type="button" class="quiet asking" commandfor="manage" command="show-modal">
               {asking} asking to join
             </button>
           </>
@@ -609,6 +609,11 @@ const members = group?.member_count ?? 0;
   .quiet:hover {
     text-decoration: underline;
     background: none;
+  }
+  /* Near the top, where the gradient is bluer, so navy, underlined to show it does something. */
+  .asking {
+    color: var(--navy);
+    text-decoration: underline;
   }
   .members header {
     display: flex;

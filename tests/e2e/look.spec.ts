@@ -1,8 +1,8 @@
 // FABA's look (UI-02, UI-14, UI-16, UI-18): the bottom bar keeps its five items, each with a line
 // icon in a tile over its label, and the current tab and chosen date are FABA blue. The cut-paper
 // look puts headings in Anton, in capitals by CSS, and each tab on a piece of paper with square
-// corners and a shadow, on a soft gradient that text sits straight on. The main tabs'
-// headings are for screen readers only, since the bottom bar shows which page it is.
+// corners and a shadow, on a gradient that text sits straight on, readable all the way down. The
+// main tabs' headings are for screen readers only, since the bottom bar shows which page it is.
 import type { Locator } from '@playwright/test';
 import { expect, expectAccessible, expectSquare, paper, test } from './fixtures';
 
@@ -94,11 +94,12 @@ test("the main tabs' headings are for screen readers, and New activity keeps its
   const main = page.locator('main');
   await expect(main).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   await expect(main).toHaveCSS('box-shadow', 'none');
-  // Light blue at the top, pale blue, then cream at the bottom, and it doesn't repeat.
+  // The logo's light blue at the top, light blue paper, then cream at the bottom, and it doesn't
+  // repeat.
   const html = page.locator('html');
   await expect(html).toHaveCSS(
     'background-image',
-    'linear-gradient(rgb(207, 225, 250), rgb(232, 241, 253), rgb(247, 244, 236))'
+    'linear-gradient(rgb(63, 164, 250), rgb(207, 225, 250), rgb(247, 244, 236))'
   );
   await expect(html).toHaveCSS('background-repeat', 'no-repeat');
   expect(
@@ -108,6 +109,106 @@ test("the main tabs' headings are for screen readers, and New activity keeps its
     true
   );
   await expectAccessible(page);
+});
+
+/**
+ * The text that sits straight on the page's gradient, with nothing behind it but the page, and
+ * whose contrast with the gradient where it sits is under WCAG's 4.5:1, or 3:1 for large text. axe
+ * can't measure text on a gradient, so this finds the gradient's color at the middle of each.
+ */
+async function unreadableOnGradient(page: import('@playwright/test').Page) {
+  return page.evaluate(() => {
+    const rgb = (value: string) => (value.match(/[\d.]+/g) ?? []).map(Number);
+    const luminance = ([r, g, b]: number[]) => {
+      const linear = (c: number) =>
+        (c /= 255) <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+      return 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
+    };
+    const contrast = (a: number[], b: number[]) => {
+      const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+      return (light + 0.05) / (dark + 0.05);
+    };
+    const html = document.documentElement;
+    const stops = (getComputedStyle(html).backgroundImage.match(/rgb\([^)]*\)/g) ?? []).map(rgb);
+    const height = html.getBoundingClientRect().height;
+    // The stops are evenly spaced from the top of the page to its bottom.
+    const behind = (y: number) => {
+      const at = Math.min(Math.max(y / height, 0), 1) * (stops.length - 1);
+      const i = Math.min(Math.floor(at), stops.length - 2);
+      return stops[i].map((c, k) => c + (stops[i + 1][k] - c) * (at - i));
+    };
+    const onGradient = (element: Element) => {
+      for (let e: Element | null = element; e && e !== html; e = e.parentElement) {
+        const style = getComputedStyle(e);
+        if (style.backgroundImage !== 'none' || rgb(style.backgroundColor)[3] !== 0) return false;
+      }
+      return true;
+    };
+    const found: string[] = [];
+    for (const element of document.body.querySelectorAll('*')) {
+      const text = [...element.childNodes]
+        .filter((node) => node.nodeType === Node.TEXT_NODE)
+        .map((node) => node.textContent!.trim())
+        .join(' ')
+        .trim();
+      const box = element.getBoundingClientRect();
+      const style = getComputedStyle(element);
+      if (!text || box.width <= 1 || box.height <= 1 || style.visibility === 'hidden') continue;
+      if (!onGradient(element)) continue;
+      const size = parseFloat(style.fontSize);
+      const large = size >= 24 || (size >= 18.66 && Number(style.fontWeight) >= 700);
+      const ratio = contrast(rgb(style.color), behind(box.top + scrollY + box.height / 2));
+      if (ratio < (large ? 3 : 4.5)) found.push(`"${text.slice(0, 40)}" is ${ratio.toFixed(1)}:1`);
+    }
+    return found;
+  });
+}
+
+test('text straight on the gradient is readable, even at its bluest', async ({
+  page,
+  poster,
+  crowd,
+}) => {
+  // A group with someone asking to join, so its page has "1 asking to join" near the top.
+  const { data: group } = await poster.admin
+    .from('groups')
+    .insert({
+      slug: `readable-${crypto.randomUUID().slice(0, 6)}`,
+      name: 'Readable group',
+      category_id: 'games',
+      join_policy: 'approval',
+      owner_id: poster.id,
+    })
+    .select('id, slug')
+    .single();
+  await poster.admin
+    .from('group_members')
+    .insert({ group_id: group!.id, user_id: poster.id, role: 'owner' });
+  const [asking] = await crowd(1);
+  await asking.rpc('join_group', { group_id: group!.id });
+
+  const found: string[] = [];
+  // Back sits at the top of each of these, where the gradient is bluest.
+  for (const path of [
+    '/discover',
+    '/plans',
+    '/notifications',
+    '/me',
+    '/me/edit',
+    '/search',
+    '/groups/new',
+    `/groups/${group!.slug}`,
+    `/people/${poster.id}`,
+  ]) {
+    await page.goto(path);
+    for (const problem of await unreadableOnGradient(page)) found.push(`${path}: ${problem}`);
+  }
+  await page.context().clearCookies();
+  for (const path of ['/', '/auth/login']) {
+    await page.goto(path);
+    for (const problem of await unreadableOnGradient(page)) found.push(`${path}: ${problem}`);
+  }
+  expect(found).toEqual([]);
 });
 
 test("Search is at the right of the header, and Discover's tabs come first", async ({
