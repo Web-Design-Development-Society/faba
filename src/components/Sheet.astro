@@ -35,13 +35,13 @@ const { id, title } = Astro.props;
     margin: auto auto 0;
     padding: 1rem 1rem calc(1rem + env(safe-area-inset-bottom));
     border: 0;
-    border-radius: 1rem 1rem 0 0;
+    border-radius: 0;
   }
   @media (min-width: 640px) {
     dialog {
       width: 24rem;
       margin: auto;
-      border-radius: 1rem;
+      border-radius: 0;
     }
   }
   dialog::backdrop {

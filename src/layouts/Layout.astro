@@ -144,7 +144,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     padding: 0.5rem 0.75rem;
     background: var(--navy);
     color: #fff;
-    border-radius: var(--radius);
+    border-radius: 0;
     transform: translateY(-200%);
   }
   .skip:focus {
@@ -190,7 +190,6 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     --card: #ffffff;
     --paper: #f7f4ec; /* cream paper, for the footer */
     --sky: #cfe1fa; /* light blue paper: navy on it is 12:1, FABA blue 4.8:1 */
-    --radius: 0.625rem;
     /* Anton, then a fallback sized to take about the same room, so the page doesn't jump when
        Anton arrives. */
     --display: 'Anton', 'Anton narrow fallback', 'Anton fallback', sans-serif;
@@ -526,7 +525,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     color: var(--ink);
     background: var(--card);
     border: 2px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: 0;
   }
   /* A select draws its own arrow, so Safari lets it be as tall as the other fields. */
   :where(select) {
@@ -600,7 +599,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     color: var(--navy);
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 999px;
+    border-radius: 0;
     cursor: pointer;
   }
   :where(.choices label input) {
@@ -634,7 +633,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     padding: 0.5rem 0.75rem;
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: var(--radius);
+    border-radius: 0;
     cursor: pointer;
   }
   :where(.rows label:has(input:checked)) {
@@ -703,7 +702,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     height: 2.25rem;
     background: var(--card);
     border: 2px solid var(--navy);
-    border-radius: 0.5rem;
+    border-radius: 0;
   }
   .tabs [aria-current] .tile {
     background: var(--sky);
@@ -716,7 +715,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     height: 3px;
     content: '';
     background: var(--blue);
-    border-radius: 2px;
+    border-radius: 0;
   }
   .tabs .badge {
     position: absolute;
@@ -730,7 +729,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     color: white;
     text-align: center;
     background: #b42318;
-    border-radius: 999px;
+    border-radius: 0;
   }
   /* Heard, not seen. */
   .tabs .unread {
@@ -746,7 +745,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     padding: 0.5rem 0.75rem;
     color: #171717;
     background: #fef3c7;
-    border-radius: 0.5rem;
+    border-radius: 0;
   }
   /* The one filled button in the bar: a navy square that rises above it, with "Post" under it
      (UI-14). */
@@ -759,7 +758,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     color: white;
     background: var(--navy);
     border: 3px solid var(--paper);
-    border-radius: 0.5rem;
+    border-radius: 0;
     box-shadow: 0 2px 6px rgb(15 31 61 / 35%);
   }
   .tabs .post:hover .square {

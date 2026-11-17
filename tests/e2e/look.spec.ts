@@ -1,9 +1,10 @@
 // FABA's look (UI-02, UI-14, UI-16, UI-18): the bottom bar keeps its five items, each with a line
 // icon in a tile over its label, and the current tab and chosen date are FABA blue. The cut-paper
-// look puts headings in Anton, in capitals by CSS, and each tab on a piece of paper with square
-// corners and a shadow, on a gradient that text sits straight on, readable all the way down. The
-// main tabs' headings are for screen readers only, since the bottom bar shows which page it is.
-import type { Locator } from '@playwright/test';
+// look puts headings in Anton, in capitals by CSS, and each tab on a piece of paper with a shadow,
+// on a gradient that text sits straight on, readable all the way down. Every corner is square but
+// faces. The main tabs' headings are for screen readers only, since the bottom bar shows which
+// page it is.
+import type { Locator, Page } from '@playwright/test';
 import { expect, expectAccessible, expectSquare, paper, test } from './fixtures';
 
 const BLUE = 'rgb(11, 91, 211)';
@@ -116,7 +117,7 @@ test("the main tabs' headings are for screen readers, and New activity keeps its
  * whose contrast with the gradient where it sits is under WCAG's 4.5:1, or 3:1 for large text. axe
  * can't measure text on a gradient, so this finds the gradient's color at the middle of each.
  */
-async function unreadableOnGradient(page: import('@playwright/test').Page) {
+async function unreadableOnGradient(page: Page) {
   return page.evaluate(() => {
     const rgb = (value: string) => (value.match(/[\d.]+/g) ?? []).map(Number);
     const luminance = ([r, g, b]: number[]) => {
@@ -278,6 +279,86 @@ test('buttons are square, in the display face in capitals, like the tabs', async
   await expect(quiet).not.toHaveCSS('font-family', /^Anton/);
   await expect(quiet).toHaveCSS('text-transform', 'none');
   await expectAccessible(page);
+});
+
+// Each element on the page, and its ::before and ::after, with a rounded corner. Faces stay round,
+// and so do the browser's own radio buttons and checkboxes.
+function roundedCorners(page: Page) {
+  return page.evaluate(() => {
+    const found: string[] = [];
+    for (const element of document.querySelectorAll('*')) {
+      if (element.closest('.avatar')) continue;
+      for (const pseudo of [null, '::before', '::after']) {
+        const style = getComputedStyle(element, pseudo);
+        const native =
+          element.matches('input[type=radio], input[type=checkbox]') && style.appearance !== 'none';
+        const radii = [
+          style.borderTopLeftRadius,
+          style.borderTopRightRadius,
+          style.borderBottomRightRadius,
+          style.borderBottomLeftRadius,
+        ];
+        if (native || radii.every((radius) => radius === '0px')) continue;
+        const name = [element.tagName.toLowerCase(), ...element.classList].join('.');
+        found.push(`${name}${pseudo ?? ''} is ${radii.join(' ')}`);
+      }
+    }
+    return found;
+  });
+}
+
+test('everything is square but faces', async ({ page, poster, host, crowd }) => {
+  // A group with someone asking to join, and an activity, so the sheet, the unread dot, badges
+  // and a toast all turn up.
+  const { data: group } = await poster.admin
+    .from('groups')
+    .insert({
+      slug: `square-${crypto.randomUUID().slice(0, 6)}`,
+      name: 'Square group',
+      category_id: 'games',
+      join_policy: 'approval',
+      owner_id: poster.id,
+    })
+    .select('id, slug')
+    .single();
+  await poster.admin
+    .from('group_members')
+    .insert({ group_id: group!.id, user_id: poster.id, role: 'owner' });
+  const [asking] = await crowd(1);
+  await asking.rpc('join_group', { group_id: group!.id });
+  const id = await host.post();
+
+  const found: string[] = [];
+  for (const path of [
+    '/discover',
+    '/groups',
+    '/plans',
+    '/notifications',
+    '/me',
+    '/me/edit',
+    '/search',
+    '/activities/new',
+    '/groups/new',
+    `/groups/${group!.slug}`,
+    `/activities/${id}`,
+    `/people/${poster.id}`,
+  ]) {
+    await page.goto(path);
+    for (const problem of await roundedCorners(page)) found.push(`${path}: ${problem}`);
+  }
+  expect(found).toEqual([]);
+
+  // The sheet open, and the toast after approving.
+  await page.goto(`/groups/${group!.slug}`);
+  await page.getByRole('button', { name: '1 asking to join' }).click();
+  const sheet = page.getByRole('dialog', { name: 'Manage members' });
+  await expect(sheet).toHaveCSS('border-top-left-radius', '0px');
+  await expect(page.locator('.avatar').first()).toHaveCSS('border-top-left-radius', '50%');
+  await sheet.getByRole('button', { name: /^Approve/ }).click();
+  const toast = page.getByRole('status');
+  await expect(toast).toHaveText("Approved. They're in the group.");
+  await expect(toast).toHaveCSS('border-top-left-radius', '0px');
+  await expect(toast).toHaveCSS('border-bottom-right-radius', '0px');
 });
 
 test('in high contrast, the paper gives way to plain borders', async ({ page, poster, host }) => {

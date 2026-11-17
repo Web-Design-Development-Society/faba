@@ -1980,7 +1980,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - The date and the start time sit side by side in one bordered control, with calendar and clock icons. Under 360 px they stack.
     - **Today**, **Tomorrow** and **This Saturday** become outlined chips above it, not solid blue buttons that look like the form's main button. UI-13 removed them on 2026-11-15.
   - **Where?** has a pin icon inside its field.
-  - **Category** choices are pill-shaped chips that wrap onto more lines. Each is a radio button underneath, and the chosen one is FABA blue with a check.
+  - **Category** choices are pill-shaped chips that wrap onto more lines. Each is a radio button underneath, and the chosen one is FABA blue with a check. (The chips became square on 2026-11-17.)
   - **Details** is full width and 3 lines tall to start. Its hint suggests what to add: what to bring, the route, or a weather plan.
   - The form ends with **Cancel** (outlined, back to where the member came from) and **Post activity** (FABA blue), side by side.
   - The bottom bar shows on this page, with **＋ Post** as the current tab. Today it's hidden here.
@@ -2229,7 +2229,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - **You're hosting** is a blue sticker with a few burst lines, tilted slightly. (UI-17 replaced the sticker with white words in the card's blue column on 2026-11-17.)
     - The **Category** and **Date** filters are bordered boxes with a chevron, with their labels in display capitals.
   - **The bottom bar:**
-    - Each item is an icon in a rounded square tile, with its label in display capitals under it.
+    - Each item is an icon in a rounded square tile, with its label in display capitals under it. (The tile became square on 2026-11-17.)
     - The current item's tile is filled light blue. It's still marked by more than color, with `aria-current` and a bolder label.
     - **＋ Post** is a navy square with a white plus, raised a little above the bar. This replaces UI-02's blue circle.
   - **Every page follows**, through the layout, the shared tokens and the shared components, not page by page. That covers Plans, Groups and a group's page, an activity's page, Alerts, Me, every form (UI-12), Search, Welcome, and the moderation and admin pages. Their structure and wording don't change.
@@ -2311,7 +2311,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - the bottom bar, whose torn top edge becomes a shadow
   - **Pieces on the photo have a deeper shadow** than pieces on the sheet, so the sheet reads as lifted off the photo and the cards as resting on the sheet.
   - **Text stays off the photo.** It's on the sheet or a piece of paper, so every contrast ratio is the same as today. (Replaced on 2026-11-16: text now sits on the faded photo, at 4.5:1 or more everywhere.)
-  - **Buttons, fields and icon tiles keep their rounded corners.** (UI-22 made buttons square on 2026-11-17. Fields and icon tiles keep their rounded corners.)
+  - **Buttons, fields and icon tiles keep their rounded corners.** (UI-22 made buttons square on 2026-11-17. Fields, choices, the bottom bar's tiles, its Alerts count and the offline notice became square later that day, and then everything else but faces, such as badges, pictures, the bottom sheet, the toast and the switch.)
   - **In high contrast,** the photo and the shadows are gone, and each piece has a plain border, as today.
   - **Performance:**
     - The photo is a WebP under 150 KB.
@@ -2365,7 +2365,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - At the bottom, the member's answer: **✓ Going** in white, or **I'm in** as a white button with FABA blue text.
     - **Maybe**, **Full**, **On waitlist**, **Cancelled** and **You're hosting** show there too, in white. That replaces the tilted **You're hosting** sticker (UI-14).
   - **The title** is at the top left, in the display face in capitals, bigger than today, in up to 2 lines. **Your next plan**'s is bigger still.
-  - **The picture** is under the title, on the left, and bigger than today. It's still the cover's small copy, or the category's icon on a tint of its color, with rounded corners.
+  - **The picture** is under the title, on the left, and bigger than today. It's still the cover's small copy, or the category's icon on a tint of its color, with rounded corners. (It became square on 2026-11-17.)
   - **The day and time and the place** are beside the picture, in bigger text, with no icons.
     - A series' "Weekly" still follows the time.
     - A long place still ends with an ellipsis.
@@ -2520,7 +2520,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 - **Dependencies:** UI-12, UI-14, UI-16.
 - **Notes / edge cases:**
   - **Why:** the tabs, cards and headings are square paper in the display face, while the buttons were rounded and in the system font.
-  - **This replaces UI-16's rule** that buttons keep their rounded corners. Fields and icon tiles keep theirs.
+  - **This replaces UI-16's rule** that buttons keep their rounded corners. Fields and icon tiles keep theirs. (They became square too, later on 2026-11-17.)
   - **Mark these when it's built:**
     - UI-12's and UI-16's button criteria
     - section 7.17
@@ -2943,7 +2943,7 @@ The same HTML serves all widths. CSS (container queries and media queries) handl
 ### 7.17 Visual and content style
 
 - **Fonts:** a system font stack for text. One self-hosted display face, Anton (SIL Open Font License, 18 KB for Latin), is for headings, card titles, tabs, filter labels, badges and the bottom bar's labels, in capitals by CSS (UI-14). It's preloaded, with fallbacks sized to it, and no font service is used.
-- **Look:** cut paper (UI-14, `mockups/discover_collage.webp`), with square pieces (UI-16) on a gradient: the logo's light blue at the top, light blue paper, then cream at the bottom. It fills at least the screen and doesn't repeat. (UI-16's torn-paper photo came off on 2026-11-17, for a flat gray-blue and then this gradient. Its top became the logo's blue later that day.) Link blue is too faint on the logo's blue, so what sits near the top, such as **Back** and "2 asking to join", is navy, and a look test measures text on the gradient, since the accessibility checks can't. Each page's content sits straight on the page, and cards, tabs and page headings are pieces of paper. Discover, Plans, Alerts and Me have no banner, since the bottom bar shows which page it is: their headings are for screen readers only (UI-18). **Search** is a magnifying glass at the right of the header's strip, on every page with the bottom bar (UI-19). Buttons are square, in the display face in capitals like the tabs, while quiet words such as **Add to calendar** stay in the system font (UI-22). Each piece has square corners and a shadow, deeper for the logo strip and the footer. A few things tilt, by 2 degrees at most. Text on the page is at least 5:1, links are the darker FABA blue, and in high-contrast mode the shadows give way to plain borders.
+- **Look:** cut paper (UI-14, `mockups/discover_collage.webp`), with square pieces (UI-16) on a gradient: the logo's light blue at the top, light blue paper, then cream at the bottom. It fills at least the screen and doesn't repeat. (UI-16's torn-paper photo came off on 2026-11-17, for a flat gray-blue and then this gradient. Its top became the logo's blue later that day.) Every corner is square, like the paper, except faces, which stay round. Link blue is too faint on the logo's blue, so what sits near the top, such as **Back** and "2 asking to join", is navy, and a look test measures text on the gradient, since the accessibility checks can't. Each page's content sits straight on the page, and cards, tabs and page headings are pieces of paper. Discover, Plans, Alerts and Me have no banner, since the bottom bar shows which page it is: their headings are for screen readers only (UI-18). **Search** is a magnifying glass at the right of the header's strip, on every page with the bottom bar (UI-19). Buttons are square, in the display face in capitals like the tabs, while quiet words such as **Add to calendar** stay in the system font (UI-22). Each piece has square corners and a shadow, deeper for the logo strip and the footer. A few things tilt, by 2 degrees at most. Text on the page is at least 5:1, links are the darker FABA blue, and in high-contrast mode the shadows give way to plain borders.
 - **Themes:** light and dark mode follow the OS setting. (So far FABA has only the light theme.)
 - **Color:** a warm primary color and a distinct, accessible color plus icon for each category.
 - **Icons:** an inline SVG sprite, without an icon font.
