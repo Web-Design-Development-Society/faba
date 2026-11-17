@@ -1,7 +1,7 @@
 // FABA's look (UI-02, UI-14, UI-16): the bottom bar keeps its five items, each with a line icon in
 // a tile over its label, and the current tab and chosen date are FABA blue. The cut-paper look puts
 // headings in Anton, in capitals by CSS, and each tab on a piece of paper with square corners and a
-// shadow, over a faded photo of torn paper that text sits straight on.
+// shadow, on a plain light gray-blue page that text sits straight on.
 import type { Locator } from '@playwright/test';
 import { expect, expectAccessible, expectSquare, paper, test } from './fixtures';
 
@@ -63,54 +63,18 @@ test("Discover's heading is big, in Anton and in capitals, but still says Discov
   expect(size).toBeGreaterThanOrEqual(44);
   expect((await heading.boundingBox())!.height).toBeLessThan(size * 1.6);
   // It sits on its own strip of white paper, with square corners and a shadow (UI-16). The page's
-  // content has no sheet: it sits straight on a faded photo of torn paper.
+  // content has no sheet: it sits straight on a plain light gray-blue page, with no photo behind it.
   expect(await paper(heading)).toBe('ffffff');
   await expectSquare(heading);
   const main = page.locator('main');
   await expect(main).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
   await expect(main).toHaveCSS('box-shadow', 'none');
+  const html = page.locator('html');
+  await expect(html).toHaveCSS('background-color', 'rgb(211, 214, 224)');
+  await expect(html).toHaveCSS('background-image', 'none');
   expect(
-    await page.evaluate(
-      () => getComputedStyle(document.documentElement, '::before').backgroundImage
-    )
-  ).toMatch(/\/backgrounds\/torn-paper-faded\.webp/);
-  // The color under the photo is no lighter than its darkest patch, so the accessibility check,
-  // which can't see the photo, measures text against the worst place it could sit. A patch is 4 by
-  // 4 pixels, about the size of a letter's stroke, averaged here rather than by the browser's own
-  // scaling, which differs between browsers.
-  const [darkest, under] = await page.evaluate(async () => {
-    const channel = (c: number) =>
-      c / 255 <= 0.04045 ? c / 255 / 12.92 : ((c / 255 + 0.055) / 1.055) ** 2.4;
-    const luminance = (r: number, g: number, b: number) =>
-      0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b);
-    const image = new Image();
-    image.src = '/backgrounds/torn-paper-faded.webp';
-    await image.decode();
-    const { naturalWidth: width, naturalHeight: height } = image;
-    const canvas = Object.assign(document.createElement('canvas'), { width, height });
-    const context = canvas.getContext('2d', { willReadFrequently: true })!;
-    context.drawImage(image, 0, 0);
-    const { data } = context.getImageData(0, 0, width, height);
-    let least = 1;
-    for (let y = 0; y + 4 <= height; y += 4) {
-      for (let x = 0; x + 4 <= width; x += 4) {
-        const sum = [0, 0, 0];
-        for (let row = y; row < y + 4; row++) {
-          for (let column = x; column < x + 4; column++) {
-            for (let part = 0; part < 3; part++)
-              sum[part] += data[(row * width + column) * 4 + part];
-          }
-        }
-        least = Math.min(least, luminance(sum[0] / 16, sum[1] / 16, sum[2] / 16));
-      }
-    }
-    const [r, g, b] = getComputedStyle(document.documentElement)
-      .backgroundColor.match(/\d+/g)!
-      .map(Number);
-    return [least, luminance(r, g, b)];
-  });
-  // A little room for each browser decoding the photo slightly differently.
-  expect(darkest).toBeGreaterThanOrEqual(under - 0.003);
+    await page.evaluate(() => getComputedStyle(document.documentElement, '::before').content)
+  ).toBe('none');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true
   );
@@ -137,11 +101,8 @@ test('in high contrast, the paper gives way to plain borders', async ({ page, po
   const side = page.getByRole('article').first().locator('.side');
   await expect(side).toHaveCSS('box-shadow', 'none');
   await expect(side).toHaveCSS('border-left-style', 'solid');
-  // No photo behind the page.
+  // Nothing behind the page.
   await expect(page.locator('html')).toHaveCSS('background-image', 'none');
-  expect(
-    await page.evaluate(() => getComputedStyle(document.documentElement, '::before').display)
-  ).toBe('none');
 
   // An alert's card too, and its unread dot still shows.
   await page.goto('/notifications');
