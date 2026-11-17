@@ -1,5 +1,6 @@
 ---
-// A page's way back (UI-02): a back chevron and where it goes, such as "Back to Discover".
+// A page's way back (UI-02): a back chevron and where it goes, such as "Back to Discover". It's
+// navy, not link blue, because it sits at the top of the page, on the gradient's darkest blue.
 import Icon from './Icon.astro';
 
 interface Props {
@@ -20,6 +21,7 @@ const { href } = Astro.props;
     align-items: center;
     gap: 0.25rem;
     min-height: 44px;
+    color: var(--navy);
     font-weight: 600;
     text-decoration: none;
   }
