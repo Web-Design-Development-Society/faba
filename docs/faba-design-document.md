@@ -2602,7 +2602,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 - **Acceptance criteria:**
   - **New activity's gradient is warm,** the complement of the blue one: orange at the top, then peach, then cream at the bottom, where the blue one ends too.
   - **Its content is on a piece of warm paper,** a warmer cream than the footer's. The paper is as wide as the logo strip, with room around the form, and has square corners. The **New activity** heading keeps its white strip.
-  - **Every other page stays blue,** for trust and safety. That includes Edit activity. (On 2026-11-17, Edit activity became warm too, since it's the same form, and **＋ Post** became orange to match.)
+  - **Every other page stays blue,** for trust and safety. That includes Edit activity. (On 2026-11-17, Edit activity became warm too, since it's the same form, and **＋ Post** became orange to match, a darker orange on hover.)
   - **Nothing on New activity sits straight on the warm gradient,** so all its text is on the paper. There, navy is 15.7:1, muted text 7.2:1, link blue 7.1:1 and field borders 4.3:1.
   - **In high-contrast mode,** the gradient and the paper give way to the system's colors, as elsewhere.
   - At 320 px, 412 px and desktop, nothing scrolls sideways and the axe checks pass.
@@ -2610,7 +2610,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 - **Dependencies:** UI-14, UI-16.
 - **Notes / edge cases:**
   - **Why:** warm colors feel exciting and inviting, which suits the moment a member posts. Blue feels trustworthy and safe, which suits everything else.
-  - **The colors are tokens, from the mockup:** `--orange` (#ee6d34), `--peach` (#f7caa7) and `--paper-warm` (#fff9f4).
+  - **The colors are tokens, from the mockup:** `--orange` (#ee6d34), `--peach` (#f7caa7) and `--paper-warm` (#fff9f4). `--orange-dark` (#c94f1c) is **＋ Post**'s hover, where white is 4.6:1.
   - **Mark these when it's built:**
     - the Look line in section 7.17
     - section 7.7
