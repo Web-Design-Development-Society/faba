@@ -211,7 +211,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   /* A plain light gray-blue page, the color that was under UI-16's torn-paper photo before it came
      off. On it, ink is 12.3:1, links 5.1:1, muted text 5.2:1 and errors 4.5:1. */
   html {
-    background: #d3d6e0;
+    background: linear-gradient(180deg,var(--sky) 0%, var(--blue-soft) 50%, var(--paper) 100%);
   }
   body {
     max-width: 40rem;
