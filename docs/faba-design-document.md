@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-22`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-23`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-22           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-23           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2524,6 +2524,40 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - **Mark these when it's built:**
     - UI-12's and UI-16's button criteria
     - section 7.17
+  - Size: S, one developer, including the tests.
+
+#### UI-23 · Members listed on the group page
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member of a group, I want to see who's in it on its page, so that I don't have to open another page to find out.
+- **Acceptance criteria:**
+  - **A Members section lists everyone in the group** on its page, after **Coming up**. It shows:
+    - the owner first, then the organizers, then everyone else by name
+    - each person's face, name and department, with an **Owner** or **Organizer** badge
+    - names that open members' profiles (PROF-03)
+  - **Who sees the list:** the group's members and moderators, as before. Anyone else sees only how many members it has.
+  - **The member count is plain words,** not a link.
+  - **Managing members moves into a sheet.** Those who can manage the group get a quiet **Manage members** at the right of the Members heading, like **Manage attendees** (UI-21). Its sheet holds:
+    - **Asking to join**, with **Approve** and **Decline**
+    - the organizers, with **Make member** and **Remove**
+    - the members, with **Make organizer** and **Remove**
+    - **Hand on this group**
+  - **Each control in the sheet shows to the same people as before.**
+  - **"2 asking to join"** in the group's summary opens the same sheet.
+  - **A join request's alert opens the group's page** at its Members.
+  - **There's no separate members page.** Its old address goes to the group's page, and so does **Hand on this group** when it's done.
+  - Everything works without JavaScript, as before.
+  - At 320 px, 412 px and desktop, nothing scrolls sideways and the axe checks pass.
+  - **Tests:**
+    - The E2E tests list the members on the group's page.
+    - They approve, make an organizer and hand the group on from the sheet.
+    - They check that someone outside the group sees only the count.
+- **Dependencies:** GRP-05, UI-21.
+- **Notes / edge cases:**
+  - **Why:** who's in a group was a tap away, on a page of its own, as who's going to an activity was before UI-21.
+  - **Mark these when it's built:**
+    - GRP-05's note
+    - the Groups line in section 7.3
   - Size: S, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
