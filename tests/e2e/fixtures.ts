@@ -1,8 +1,14 @@
-// Shared setup for the end-to-end tests: signing in as a seeded persona or a new member, and the
-// axe check.
+// Shared setup for the end-to-end tests: signing in as a seeded persona or a new member, the axe
+// check, and the color of torn paper.
 import { readFileSync } from 'node:fs';
 import AxeBuilder from '@axe-core/playwright';
-import { test as base, expect, type BrowserContext, type Page } from '@playwright/test';
+import {
+  test as base,
+  expect,
+  type BrowserContext,
+  type Locator,
+  type Page,
+} from '@playwright/test';
 import {
   combineChunks,
   createChunks,
@@ -252,6 +258,10 @@ export async function writeSession(context: BrowserContext, baseURL: string, ses
     }))
   );
 }
+
+/** The color of the torn paper an element is on (UI-14), as hex: its border image is drawn in it. */
+export const paper = (element: Locator) =>
+  element.evaluate((el) => getComputedStyle(el).borderImageSource.match(/%23([0-9a-f]{6})/)?.[1]);
 
 /** Fails the test if axe finds a serious or critical problem on the page as it is now. */
 export async function expectAccessible(page: Page) {

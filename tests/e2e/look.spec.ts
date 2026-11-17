@@ -2,15 +2,11 @@
 // over its label, and the current tab and chosen date are FABA blue. The cut-paper look puts
 // headings in Anton, in capitals by CSS, and each tab on a piece of torn paper.
 import type { Locator } from '@playwright/test';
-import { expect, expectAccessible, test } from './fixtures';
+import { expect, expectAccessible, paper, test } from './fixtures';
 
 const BLUE = 'rgb(11, 91, 211)';
 const SKY = 'rgb(207, 225, 250)';
 const NAVY = 'rgb(15, 31, 61)';
-
-/** The color of the torn paper an element is on: its border image is drawn in it. */
-const paper = (element: Locator) =>
-  element.evaluate((el) => getComputedStyle(el).borderImageSource.match(/%23([0-9a-f]{6})/)?.[1]);
 
 test('selected things are FABA blue, and the bar keeps its five items', async ({
   page,
@@ -74,19 +70,37 @@ test("Discover's heading is big, in Anton and in capitals, but still says Discov
   await expectAccessible(page);
 });
 
-test('in high contrast, the paper gives way to plain borders', async ({ page, signInAs }) => {
-  await signInAs('member');
+test('in high contrast, the paper gives way to plain borders', async ({ page, poster, host }) => {
+  // An unread alert, for its card on Alerts (UI-15).
+  const id = await host.post();
+  await poster.admin
+    .from('notifications')
+    .insert({ recipient_id: poster.id, type: 'rsvp_confirmed', activity_id: id, payload: {} });
   await page.emulateMedia({ forcedColors: 'active' });
   await page.goto('/discover');
-  for (const piece of [
-    page.locator('main'),
-    page.getByRole('heading', { level: 1 }),
-    page.getByRole('navigation', { name: 'Discover' }).getByRole('link', { name: 'Groups' }),
-  ]) {
+  const plain = async (piece: Locator) => {
     await expect(piece).toHaveCSS('border-image-source', 'none');
     await expect(piece).not.toHaveCSS('border-left-color', /rgba\(0, 0, 0, 0\)/);
-  }
+  };
+  await plain(page.locator('main'));
+  await plain(page.getByRole('heading', { level: 1 }));
+  await plain(
+    page.getByRole('navigation', { name: 'Discover' }).getByRole('link', { name: 'Groups' })
+  );
   await expect(page.locator('html')).toHaveCSS('background-image', 'none');
+
+  // An alert's card too, and its unread dot still shows.
+  await page.goto('/notifications');
+  const card = page.getByRole('region', { name: 'New' }).getByRole('button');
+  await plain(card);
+  await expect(card).toHaveCSS('background-image', 'none');
+  const dot = await card.getByText('Sunrise hike up the R').evaluate((el) => {
+    const { content, borderTopColor, borderTopWidth } = getComputedStyle(el, '::before');
+    return { content, borderTopColor, borderTopWidth };
+  });
+  expect(dot.content).not.toBe('none');
+  expect(dot.borderTopColor).not.toMatch(/rgba\(0, 0, 0, 0\)/);
+  expect(parseFloat(dot.borderTopWidth)).toBeGreaterThan(0);
 });
 
 test('the motto is beside the logo, on the public pages too', async ({ page }) => {

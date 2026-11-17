@@ -2,14 +2,15 @@
 // The notification center (NOTIF-01, design document section 7.9, journey J8): the last 90 days,
 // newest first, 30 at a time, with the unread ones under New and the rest under Earlier. Each row
 // has an icon, a line about what happened, the activity's title, and how long ago. Unread rows are
-// bold and have a dot, not just a color. Tapping one marks it read and opens its activity, and an
-// activity that's gone, or hidden, opens "not available". Mark all read is at the top. It all works
-// without JavaScript.
+// on light blue paper and have a dot, not just a color. Tapping one marks it read and opens its
+// activity, and an activity that's gone, or hidden, opens "not available". Mark all read is at the
+// top. It all works without JavaScript.
 //
 // All | Unread switches between every alert and the new ones (?show=unread). Each alert is a card
-// (UI-07): its type's icon on a soft blue tile, the activity's or group's name in bold, the sentence
-// that says what happened, how long ago, and a chevron. The sentence comes first for screen
-// readers, after "Unread", and the name is drawn above it.
+// (UI-07) on torn paper (UI-15): its type's icon in a navy-outlined tile, the activity's or group's
+// name in the display face, the sentence that says what happened, how long ago, and a chevron. The
+// sentence comes first for screen readers, after "Unread", and the name is drawn above it. An
+// unread one is on light blue paper.
 import { actions } from 'astro:actions';
 import Icon from '../components/Icon.astro';
 import Status from '../components/Status.astro';
@@ -179,40 +180,51 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
     padding: 0;
     list-style: none;
   }
-  /* Each alert is a card, and the whole card is one button. */
+  /* Each alert is a piece of torn white paper, and the whole piece is one button (UI-15). Like
+     every list, the pieces stay straight. */
   li button {
     display: flex;
     align-items: center;
     gap: 0.75rem;
     width: 100%;
     min-height: 44px;
-    padding: 0.875rem 0.75rem 0.875rem 1rem;
+    padding: 1rem;
     font: inherit;
     font-weight: 400;
     color: inherit;
     text-align: left;
-    background: var(--card);
-    border: 1px solid var(--line);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
+    border: 1px solid transparent;
+    background: var(--fill-white);
+    border-image: var(--torn-white) 16 / 14px round;
+    border-radius: 0;
   }
-  li button:hover {
-    border-color: var(--blue);
-  }
-  /* An unread alert has a blue left edge, a dot and a bold name, so it isn't shown by color alone. */
+  /* An unread alert is on light blue paper, with a dot before its name, so it isn't shown by color
+     alone. Screen readers hear "Unread" first. */
   .unread button {
-    border-left: 0.3125rem solid var(--blue);
+    background: var(--fill-sky);
+    border-image-source: var(--torn-sky);
   }
-  /* The type's line icon on a soft blue tile (UI-02). */
+  /* There's no border to color on hover, so the chevron turns blue and the name is underlined. */
+  li button:hover .title {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.15em;
+  }
+  li button:hover :global(.chevron) {
+    color: var(--blue);
+  }
+  /* The type's line icon in a square tile outlined in navy, like the bottom bar's (UI-14). */
   .tile {
     display: grid;
     flex: none;
     place-items: center;
     align-self: flex-start;
+    box-sizing: border-box;
     width: 2.75rem;
     height: 2.75rem;
-    color: var(--blue);
-    background: var(--blue-soft);
+    color: var(--navy);
+    background: var(--card);
+    border: 2px solid var(--navy);
     border-radius: 0.5rem;
   }
   /* The name is drawn first, above what happened, which screen readers hear first. */
@@ -222,22 +234,27 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
     gap: 0.125rem;
     min-width: 0;
   }
+  /* In the display face, in capitals by CSS, like an activity's title. */
   .title {
     order: -1;
-    font-weight: 600;
+    font-family: var(--display);
+    font-size: 1.25rem;
+    line-height: 1.15;
+    letter-spacing: 0.01em;
     color: var(--navy);
+    text-transform: uppercase;
+    overflow-wrap: anywhere;
   }
-  .unread .title {
-    font-weight: 800;
-  }
+  /* The dot is a border, not a background, so it still shows in high contrast. */
   .unread .title::before {
     display: inline-block;
-    width: 0.5rem;
-    height: 0.5rem;
+    box-sizing: border-box;
+    width: 0.625rem;
+    height: 0.625rem;
     margin-right: 0.5rem;
-    vertical-align: middle;
+    vertical-align: 0.2em;
     content: '';
-    background: var(--blue);
+    border: 0.3125rem solid var(--blue);
     border-radius: 50%;
   }
   /* The sentence wraps to as many lines as it needs. */
@@ -266,5 +283,12 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
   .more {
     display: flex;
     margin-top: 1rem;
+  }
+  /* High contrast: a plain border in the system's colors, as everywhere else. */
+  @media (forced-colors: active) {
+    li button {
+      background: Canvas !important;
+      border-color: CanvasText !important;
+    }
   }
 </style>

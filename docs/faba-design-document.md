@@ -2006,7 +2006,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - the time ago
     - a chevron
   - The sentence wraps to as many lines as it needs. Nothing is cut off.
-  - An unread card has a blue left edge, a dot and a bold name. Screen readers still hear "Unread" first. Unread isn't shown by color alone.
+  - An unread card has a blue left edge, a dot and a bold name. Screen readers still hear "Unread" first. Unread isn't shown by color alone. (UI-15 put the cards on torn paper on 2026-11-16: an unread one is on light-blue paper with its dot, and the name is in the display face.)
   - The whole card is still one button that marks the alert read and opens it, at least 44 px tall. **Mark all read** stays at the top right.
 - **Dependencies:** UI-02.
 - **Notes / edge cases:**
@@ -2583,8 +2583,8 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 ### 7.9 Notification center (Phase 2)
 
 - **Layout:** a reverse-chronological list grouped as **New** (unread) and **Earlier**. **All | Unread** at the top shows every alert or only the new ones (`?show=unread`).
-- **Cards** (UI-07): each alert is a card with its type's line icon on a soft blue tile, the activity's or group's name in bold, the sentence that says what happened (which wraps as far as it needs), the relative time, and a chevron. Screen readers hear the sentence first, after "Unread", and the name is drawn above it.
-- **Unread treatment:** a blue left edge, a dot and a bolder name, not color alone.
+- **Cards** (UI-07, UI-15): each alert is a piece of torn white paper with its type's line icon in a square tile outlined in navy, the activity's or group's name in the display face in capitals, the sentence that says what happened (which wraps as far as it needs), the relative time, and a chevron. Screen readers hear the sentence first, after "Unread", and the name is drawn above it. The cards stay straight. On hover, the chevron turns FABA blue and the name is underlined.
+- **Unread treatment** (UI-15): light-blue paper and a dot before the name, not color alone. The dot is drawn as a border, so it still shows in high contrast, where the paper gives way to a plain border.
 - **Tapping a row** marks it read and opens the target. A long press or the overflow menu offers **Mute this activity**.
 - **Mark all read** is a text button at the top right.
 - **Copy examples:**

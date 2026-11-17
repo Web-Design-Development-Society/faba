@@ -1,7 +1,15 @@
 // The notification center (NOTIF-01). The pgTAP tests cover marking notifications read.
-import { expect, expectAccessible, test } from './fixtures';
+import type { Locator } from '@playwright/test';
+import { expect, expectAccessible, paper, test } from './fixtures';
 
 const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * 60 * 1000).toISOString();
+
+/** The color of the dot before an alert's name, or null when it has none. */
+const dot = (name: Locator) =>
+  name.evaluate((el) => {
+    const before = getComputedStyle(el, '::before');
+    return before.content === 'none' ? null : before.borderTopColor;
+  });
 
 test('the center has new and earlier alerts, and opening one marks it read', async ({
   page,
@@ -81,14 +89,26 @@ test('each alert is a card, and Unread shows only the new ones', async ({ page, 
   const show = page.getByRole('navigation', { name: 'Show' });
   await expect(show.getByRole('link', { name: 'All' })).toHaveAttribute('aria-current', 'page');
 
-  // The new one has a blue left edge. The name is drawn above what happened (UI-07).
+  // Each is torn paper (UI-15): the new one light blue with a dot before its name, and the earlier
+  // one white with none. The name is in the display face, drawn above what happened (UI-07).
   const card = page.getByRole('region', { name: 'New' }).getByRole('button');
-  await expect(card).toHaveCSS('border-left-color', 'rgb(11, 91, 211)');
+  const read = page.getByRole('region', { name: 'Earlier' }).getByRole('button');
+  const title = card.getByText('Sunrise hike up the R');
+  expect(await paper(card)).toBe('cfe1fa');
+  expect(await dot(title)).toBe('rgb(11, 91, 211)');
+  expect(await paper(read)).toBe('ffffff');
+  expect(await dot(read.getByText('Sunrise hike up the R'))).toBeNull();
+  await expect(title).toHaveCSS('font-family', /^Anton/);
+  await expect(title).toHaveCSS('text-transform', 'uppercase');
   const [name, sentence] = [
-    (await card.getByText('Sunrise hike up the R').boundingBox())!,
+    (await title.boundingBox())!,
     (await card.getByText(/Reminder: /).boundingBox())!,
   ];
   expect(name.y).toBeLessThan(sentence.y);
+  // With no border to color, hovering turns the chevron blue and underlines the name.
+  await card.hover();
+  await expect(card.locator('.chevron')).toHaveCSS('color', 'rgb(11, 91, 211)');
+  await expect(title).toHaveCSS('text-decoration-line', 'underline');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true
   );
