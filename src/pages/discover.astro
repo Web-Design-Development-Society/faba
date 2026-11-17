@@ -123,7 +123,7 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
 
 <Layout title={category ? `${category.name} · Discover` : 'Discover'} tab="discover" post={post}>
   <header class="top">
-    <h1>Discover</h1>
+    <h1 class="visually-hidden">Discover</h1>
     <a href="/search" class="search" aria-label="Search">
       <Icon name="search" size={24} />
     </a>

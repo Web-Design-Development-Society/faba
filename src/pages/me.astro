@@ -44,7 +44,7 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
 ---
 
 <Layout title="Me" tab="me">
-  <h1>Me</h1>
+  <h1 class="visually-hidden">Me</h1>
   <Status message={flash && FLASH_MESSAGES[flash]} />
 
   <section class="card profile" aria-labelledby="my-name">

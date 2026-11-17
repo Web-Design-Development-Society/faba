@@ -1,7 +1,8 @@
-// FABA's look (UI-02, UI-14, UI-16): the bottom bar keeps its five items, each with a line icon in
-// a tile over its label, and the current tab and chosen date are FABA blue. The cut-paper look puts
-// headings in Anton, in capitals by CSS, and each tab on a piece of paper with square corners and a
-// shadow, on a plain light gray-blue page that text sits straight on.
+// FABA's look (UI-02, UI-14, UI-16, UI-18): the bottom bar keeps its five items, each with a line
+// icon in a tile over its label, and the current tab and chosen date are FABA blue. The cut-paper
+// look puts headings in Anton, in capitals by CSS, and each tab on a piece of paper with square
+// corners and a shadow, on a plain light gray-blue page that text sits straight on. The main tabs'
+// headings are for screen readers only, since the bottom bar shows which page it is.
 import type { Locator } from '@playwright/test';
 import { expect, expectAccessible, expectSquare, paper, test } from './fixtures';
 
@@ -46,21 +47,44 @@ test('selected things are FABA blue, and the bar keeps its five items', async ({
   await expectAccessible(page);
 });
 
-test("Discover's heading is big, in Anton and in capitals, but still says Discover", async ({
+test("the main tabs' headings are for screen readers, and New activity keeps its banner", async ({
   page,
   signInAs,
 }) => {
   await signInAs('member');
+  // The bottom bar shows which page it is, so Discover, its Groups half, Plans, Alerts and Me have no
+  // banner. Each keeps its heading for screen readers, taking no room on screen (UI-18).
+  for (const [path, name] of [
+    ['/discover', 'Discover'],
+    ['/groups', 'Discover'],
+    ['/plans', 'Plans'],
+    ['/notifications', 'Alerts'],
+    ['/me', 'Me'],
+  ]) {
+    await page.goto(path);
+    const hidden = page.getByRole('heading', { level: 1 });
+    await expect(hidden).toHaveText(name);
+    const box = (await hidden.boundingBox())!;
+    expect(box.width * box.height).toBeLessThanOrEqual(1);
+    await expect(hidden).toHaveCSS('box-shadow', 'none');
+  }
+  // Discover's Search stays, at the right of the top row.
   await page.goto('/discover');
+  const search = (await page.getByRole('link', { name: 'Search' }).boundingBox())!;
+  const top = (await page.locator('main').boundingBox())!;
+  expect(search.x + search.width).toBeGreaterThan(top.x + top.width - 2);
+
+  // New activity keeps its banner: big, in Anton and in capitals.
+  await page.goto('/activities/new');
   const heading = page.getByRole('heading', { level: 1 });
-  // Capitals come from CSS, so the page, screen readers and search keep the word as written.
-  await expect(heading).toHaveText('Discover');
+  // Capitals come from CSS, so the page, screen readers and search keep the words as written.
+  await expect(heading).toHaveText('New activity');
   await expect(heading).toHaveCSS('text-transform', 'uppercase');
   await expect(heading).toHaveCSS('font-family', /^Anton/);
   expect(await page.evaluate(() => document.fonts.check('48px Anton'))).toBe(true);
   // On one line at every width, and as big as a heading on a phone should be.
   const size = parseFloat(await heading.evaluate((el) => getComputedStyle(el).fontSize));
-  expect(size).toBeGreaterThanOrEqual(44);
+  expect(size).toBeGreaterThanOrEqual(36);
   expect((await heading.boundingBox())!.height).toBeLessThan(size * 1.6);
   // It sits on its own strip of white paper, with square corners and a shadow (UI-16). The page's
   // content has no sheet: it sits straight on a plain light gray-blue page, with no photo behind it.
@@ -93,7 +117,6 @@ test('in high contrast, the paper gives way to plain borders', async ({ page, po
     await expect(piece).toHaveCSS('box-shadow', 'none');
     await expect(piece).not.toHaveCSS('border-left-color', /rgba\(0, 0, 0, 0\)/);
   };
-  await plain(page.getByRole('heading', { level: 1 }));
   await plain(
     page.getByRole('navigation', { name: 'Discover' }).getByRole('link', { name: 'Groups' })
   );
@@ -116,6 +139,10 @@ test('in high contrast, the paper gives way to plain borders', async ({ page, po
   expect(dot.content).not.toBe('none');
   expect(dot.borderTopColor).not.toMatch(/rgba\(0, 0, 0, 0\)/);
   expect(parseFloat(dot.borderTopWidth)).toBeGreaterThan(0);
+
+  // New activity's banner, since the main tabs no longer have one (UI-18).
+  await page.goto('/activities/new');
+  await plain(page.getByRole('heading', { level: 1 }));
 });
 
 test('the motto is beside the logo, on the public pages too', async ({ page }) => {

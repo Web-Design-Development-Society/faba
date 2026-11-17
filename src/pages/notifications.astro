@@ -88,7 +88,7 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
 
 <Layout title="Alerts" tab="alerts">
   <header class="top">
-    <h1>Alerts</h1>
+    <h1 class="visually-hidden">Alerts</h1>
     {unread && (
       <form method="post" action={actions.notifications.readAll.queryString}>
         <button class="secondary">Mark all read</button>
