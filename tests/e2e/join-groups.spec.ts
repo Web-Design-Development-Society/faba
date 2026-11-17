@@ -1,5 +1,5 @@
-// Joining and leaving groups (GRP-02). The pgTAP tests cover the counts, archived and hidden groups,
-// the owner, and who reads what.
+// Joining and leaving groups (GRP-02). Joining follows the group (NOTIF-09). The pgTAP tests cover
+// the counts, archived and hidden groups, the owner, who reads what, and following on join.
 import { expect, test } from './fixtures';
 
 test('a member joins an open group in one tap, and leaves it', async ({ page, poster, crowd }) => {
@@ -14,6 +14,11 @@ test('a member joins an open group in one tap, and leaves it', async ({ page, po
   await expect(page.getByRole('status')).toHaveText("You're in the group.");
   await expect(page.getByText("✓ You're a member")).toBeVisible();
   await expect(page.getByText('2 members ·')).toBeVisible();
+  // Joining follows it, so the member hears about its new activities without another tap.
+  await expect(page.getByRole('button', { name: /^Following/ })).toHaveAttribute(
+    'aria-pressed',
+    'true'
+  );
 
   await page.getByRole('button', { name: 'Leave group' }).click();
   await expect(page.getByRole('status')).toHaveText('You left the group.');
