@@ -21,7 +21,7 @@ interface Props {
   tab?: 'discover' | 'plans' | 'post' | 'alerts' | 'me';
   /** Where Post goes, such as with Discover's category. */
   post?: string;
-  /** New activity's warm gradient and paper (UI-25). Every other page is blue. */
+  /** New and Edit activity's warm gradient and paper (UI-25). Every other page is blue. */
   warm?: boolean;
 }
 
@@ -192,7 +192,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     --card: #ffffff;
     --paper: #f7f4ec; /* cream paper, for the footer */
     --sky: #cfe1fa; /* light blue paper: navy on it is 12:1, FABA blue 4.8:1 */
-    /* New activity's warm colors (UI-25), the blue ones' complements. */
+    /* New and Edit activity's warm colors (UI-25), the blue ones' complements. */
     --orange: #ee6d34;
     --peach: #f7caa7;
     --paper-warm: #fff9f4; /* navy on it is 15.7:1, muted 7.2:1, field borders 4.3:1 */
@@ -247,9 +247,9 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   main {
     display: block;
   }
-  /* New activity is warm, to make posting feel exciting (UI-25): an orange gradient, the blue
-     one's complement, with the form on a piece of warm paper, so no text sits on the orange. Every
-     other page stays blue, for trust and safety. */
+  /* New and Edit activity are warm, to make posting feel exciting (UI-25): an orange gradient,
+     the blue one's complement, with the form on a piece of warm paper, so no text sits on the
+     orange. Every other page stays blue, for trust and safety. */
   html.warm {
     background: linear-gradient(var(--orange), var(--peach), var(--paper)) no-repeat var(--paper);
   }
