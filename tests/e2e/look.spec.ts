@@ -9,7 +9,10 @@ import { expect, expectAccessible, expectSquare, paper, test } from './fixtures'
 
 const BLUE = 'rgb(11, 91, 211)';
 const SKY = 'rgb(207, 225, 250)';
-const NAVY = 'rgb(15, 31, 61)';
+// New and Edit activity's gradient and paper, and the orange of Post (UI-25).
+const ORANGE = 'rgb(238, 109, 52)';
+const WARM = `linear-gradient(${ORANGE}, rgb(247, 202, 167), rgb(247, 244, 236))`;
+const WARM_PAPER = 'rgb(255, 249, 244)';
 
 test('selected things are FABA blue, and the bar keeps its five items', async ({
   page,
@@ -29,8 +32,8 @@ test('selected things are FABA blue, and the bar keeps its five items', async ({
     'background-color',
     'rgb(255, 255, 255)'
   );
-  // Post is a navy square that rises above the bar (UI-14).
-  await expect(bar.locator('.post .square')).toHaveCSS('background-color', NAVY);
+  // Post is an orange square that rises above the bar, as warm as New activity (UI-14, UI-25).
+  await expect(bar.locator('.post .square')).toHaveCSS('background-color', ORANGE);
 
   // Activities is on FABA blue paper, and Groups on light blue.
   const halves = page.getByRole('navigation', { name: 'Discover' });
@@ -95,13 +98,10 @@ test("the main tabs' headings are for screen readers, and New activity keeps its
   // the form on a piece of warm paper, so no text sits on the orange.
   const main = page.locator('main');
   const html = page.locator('html');
-  await expect(main).toHaveCSS('background-color', 'rgb(255, 249, 244)');
+  await expect(main).toHaveCSS('background-color', WARM_PAPER);
   await expect(main).toHaveCSS('box-shadow', 'none');
   await expect(main).toHaveCSS('border-top-left-radius', '0px');
-  await expect(html).toHaveCSS(
-    'background-image',
-    'linear-gradient(rgb(238, 109, 52), rgb(247, 202, 167), rgb(247, 244, 236))'
-  );
+  await expect(html).toHaveCSS('background-image', WARM);
   await expect(html).toHaveCSS('background-repeat', 'no-repeat');
   expect(await unreadableOnGradient(page)).toEqual([]);
   expect(
@@ -121,6 +121,38 @@ test("the main tabs' headings are for screen readers, and New activity keeps its
     'linear-gradient(rgb(63, 164, 250), rgb(207, 225, 250), rgb(247, 244, 236))'
   );
   await expect(html).toHaveCSS('background-repeat', 'no-repeat');
+});
+
+test("Edit activity is warm too, for its organizer, but not when they can't edit", async ({
+  page,
+  poster,
+  host,
+}) => {
+  const { data } = await poster.admin
+    .from('activities')
+    .insert({
+      organizer_id: poster.id,
+      category_id: 'games',
+      title: 'Warm game night',
+      starts_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+      location_name: 'Library',
+    })
+    .select('id')
+    .single();
+  await page.goto(`/activities/${data!.id}/edit`);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveText('Edit activity');
+  await expect(page.locator('html')).toHaveCSS('background-image', WARM);
+  await expect(page.locator('main')).toHaveCSS('background-color', WARM_PAPER);
+  // Back sits on the warm paper too, so nothing is on the orange.
+  expect(await unreadableOnGradient(page)).toEqual([]);
+  await expectAccessible(page);
+
+  // Someone else's activity says they can't edit it, on the blue page.
+  const theirs = await host.post();
+  await page.goto(`/activities/${theirs}/edit`);
+  await expect(page.getByText('Only the organizer can edit this activity.')).toBeVisible();
+  await expect(page.locator('html')).not.toHaveCSS('background-image', WARM);
+  await expect(page.locator('main')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
 });
 
 /**
@@ -451,7 +483,7 @@ test('in high contrast, the paper gives way to plain borders', async ({ page, po
   await page.goto('/activities/new');
   await plain(page.getByRole('heading', { level: 1 }));
   await expect(page.locator('html')).toHaveCSS('background-image', 'none');
-  await expect(page.locator('main')).not.toHaveCSS('background-color', 'rgb(255, 249, 244)');
+  await expect(page.locator('main')).not.toHaveCSS('background-color', WARM_PAPER);
 });
 
 test('the motto is beside the logo, on the public pages too', async ({ page }) => {
