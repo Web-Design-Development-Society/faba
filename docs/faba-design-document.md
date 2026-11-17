@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-24`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-25`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-24           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-25           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2592,6 +2592,28 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - **Mark these when it's built:**
     - the lines that describe **Your next plan**: journey J2, the Phase 1 summary, ACT-01, NOTIF-07, UI-03, UI-04, UI-14, UI-16, UI-17, section 7.4 and the Astro tasks
     - UI-18's note, and the Look line in section 7.17
+  - Size: S, one developer, including the tests.
+
+#### UI-25 · A warm New activity page
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member about to post, I want New activity to feel warm and lively, so that I'm excited to get something going.
+- **Mockup:** `mockups/new_activity_warm.png`.
+- **Acceptance criteria:**
+  - **New activity's gradient is warm,** the complement of the blue one: orange at the top, then peach, then cream at the bottom, where the blue one ends too.
+  - **Its content is on a piece of warm paper,** a warmer cream than the footer's. The paper is as wide as the logo strip, with room around the form, and has square corners. The **New activity** heading keeps its white strip.
+  - **Every other page stays blue,** for trust and safety. That includes Edit activity.
+  - **Nothing on New activity sits straight on the warm gradient,** so all its text is on the paper. There, navy is 15.7:1, muted text 7.2:1, link blue 7.1:1 and field borders 4.3:1.
+  - **In high-contrast mode,** the gradient and the paper give way to the system's colors, as elsewhere.
+  - At 320 px, 412 px and desktop, nothing scrolls sideways and the axe checks pass.
+  - **Tests:** the look test checks New activity's gradient and paper. It also checks that Discover's gradient is still blue and its content still sits straight on the page.
+- **Dependencies:** UI-14, UI-16.
+- **Notes / edge cases:**
+  - **Why:** warm colors feel exciting and inviting, which suits the moment a member posts. Blue feels trustworthy and safe, which suits everything else.
+  - **The colors are tokens, from the mockup:** `--orange` (#ee6d34), `--peach` (#f7caa7) and `--paper-warm` (#fff9f4).
+  - **Mark these when it's built:**
+    - the Look line in section 7.17
+    - section 7.7
   - Size: S, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
