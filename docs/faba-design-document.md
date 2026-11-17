@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-25`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-26`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-25           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-26           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2615,6 +2615,47 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - the Look line in section 7.17
     - section 7.7
   - Size: S, one developer, including the tests.
+
+#### UI-26 · Pages on paper that read top to bottom
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want an activity's, a group's and a member's page, and the short forms, to read like a clean sheet of paper, so that I take in the facts easily and nothing feels cramped.
+- **Mockup:** `mockups/activity_paper.png` (a sketch, not exact).
+- **Acceptance criteria:**
+  - **These pages sit on a piece of cream paper** (`--paper`), as wide as the logo strip, on the blue gradient, with room around the content:
+    - an activity's page, a group's page and a member's profile
+    - Post an update, for an activity and for a group
+    - every Report form
+    - Edit profile
+  - New and Edit activity keep their warm paper (UI-25).
+  - **Each fact is under a plain heading, one after another.** The headings are in the display face, in capitals, all the same size. A fact's action sits at the right of its heading, such as **Add to calendar**.
+    - **An activity:** its title, with its group and badges in a line under it, then its cover. Then Date and time, Location, Cost, Host, Details, For attendees, Who's going, Category, Updates, Cover picture, and Questions and comments.
+    - **A group:** its name, with **Join** or **Leave group** under it, then its banner. Then About (its description, who started it, how many members it has and who can join), Category, Coming up, Members, Past and Updates. Its organizers get a Banner part last, for changing it. **Report group** moves into a ⋯ menu, as on an activity and a profile.
+    - **A member:** their face, name and department, then About, Interests, Email and Organizing.
+  - **Room to read:**
+    - Text is 17 px, with lines 1.6 apart, and each part has clear space above it.
+    - The time and the place are bigger.
+    - Small print, such as "Updated 2d ago", is still at least 15 px.
+  - **The forms ask a few clear questions, one after another:**
+    - Each question is bold and bigger than the text, with its hint under it, and room before the next.
+    - **Post an update** asks "What's the update?", and says who gets it before the field.
+    - **Report** says first that only moderators see who sent it. Then it asks why, with the reasons, and "Anything else?" as an optional note.
+    - **Edit profile** has no white card. The photo is the first question, then how you appear, your name, department, bio, interests, faculty type and email.
+  - **Contrast:** text on the paper meets the contrast rule. Muted text is 6.9:1 on it and link blue 6.8:1.
+  - Everything works as before, without JavaScript too.
+  - At 320 px, 412 px and desktop, nothing scrolls sideways and the axe checks pass.
+  - **Tests:**
+    - The look test checks the paper and the headings on each of these pages.
+    - The activity, group and profile tests find each fact under its heading.
+- **Dependencies:** UI-16, UI-21, UI-23, UI-25.
+- **Notes / edge cases:**
+  - **Why:** on the gradient, an activity's facts ran together in a white card, the headings came in several sizes, and the forms' questions were small and close together.
+  - **Mark these when it's built:**
+    - UI-21's criteria about the white card of details
+    - UI-23's criteria about the group's summary line
+    - UI-11's criteria about Edit profile's photo card
+    - section 7.6, and the Look line in section 7.17
+  - Size: M, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
 
