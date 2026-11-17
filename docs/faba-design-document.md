@@ -1468,7 +1468,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - **Leave** is always available.
   - The member count is shown.
 - **Dependencies:** GRP-01.
-- **Notes / edge cases:** Joining a group implies following it, so members get notifications for its new activities.
+- **Notes / edge cases:** Joining a group implies following it, so members get notifications for its new activities. This covers joining an open group, being approved, starting a group and signing up for a league season. Members can still unfollow with the group's **Following** button. Leaving, being removed or the group being deleted drops the follow, so rejoining follows again.
 
 #### GRP-03 · Group activities and visibility
 
@@ -1571,7 +1571,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - **Follow** is available on category pages and groups.
   - New matching activities create at most one batched notification per follow per day ("2 new Outdoors activities").
 - **Dependencies:** NOTIF-01.
-- **Notes / edge cases:** The PROF-02 interests field can suggest follows.
+- **Notes / edge cases:** The PROF-02 interests field can suggest follows. Joining a group follows it (GRP-02), so only members see a group's **Follow** button, and it starts as **Following**.
 
 #### NOTIF-10 · Notification preferences
 
