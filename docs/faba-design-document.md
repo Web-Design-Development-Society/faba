@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-15`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-16`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-15           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-16           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2293,6 +2293,47 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - UI-07's "a blue left edge, a dot and a bold name"
     - section 7.9's **Cards** and **Unread treatment** bullets
   - Size: S, one developer, including the tests.
+
+#### UI-16 · Square paper on a torn-paper photo
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want FABA's pieces of paper to have clean edges on a torn-paper background, so that pages look tidy and keep the cut-paper feel.
+- **Acceptance criteria:**
+  - **The page's background is a photo of torn blue paper,** fixed behind the page and covering the screen at any size. It replaces UI-14's FABA blue with faint noise, and FABA blue shows until it loads.
+  - **Each piece of torn paper becomes a rectangle with 90-degree corners and a shadow,** in the same color as before:
+    - the paper sheet each page's content is on, the strip with the logo, and the footer
+    - each main page's heading strip, which stays tilted
+    - the tabs, such as **Activities | Groups** and **All | Unread**
+    - activity, group and alert cards, the **You're hosting** sticker, which stays tilted, and the light-blue **Your next plan** panel
+    - the bottom bar, whose torn top edge becomes a shadow
+  - **Pieces on the photo have a deeper shadow** than pieces on the sheet, so the sheet reads as lifted off the photo and the cards as resting on the sheet.
+  - **Text stays off the photo.** It's on the sheet or a piece of paper, so every contrast ratio is the same as today.
+  - **Buttons, fields and icon tiles keep their rounded corners.**
+  - **In high contrast,** the photo and the shadows are gone, and each piece has a plain border, as today.
+  - **Performance:**
+    - The photo is a WebP under 150 KB.
+    - It loads after the page's CSS and fonts, and isn't the Largest Contentful Paint.
+    - CLS stays under 0.1, LCP under 2 seconds, and the CSS gets smaller.
+  - At 320 px, 412 px and desktop, nothing scrolls sideways and the axe checks pass.
+  - **Tests:**
+    - The look, card and alert tests read each piece's color from its background, where they read its torn edge. They also check its square corners and its shadow.
+    - The high-contrast test checks that the photo and the shadows are gone.
+- **Dependencies:** UI-14, UI-15.
+- **Notes / edge cases:**
+  - **Why:** the torn edges were SVG border images, which caused three problems:
+    - Chrome drew hairline seams where it joined their slices.
+    - A short piece lost its edges unless it was padded.
+    - With the noise texture, they added about 5.5 KB of CSS, 1 KB compressed.
+  - **The photo:**
+    - It's `mockups/Monochrome blue torn-paper background.png`, 887 × 1774. It's served as `public/backgrounds/torn-paper.webp`.
+    - On a wide screen it's scaled up about 2 times, which softens it. A larger original would be sharper there.
+  - **It's fixed by a fixed-position layer behind the page,** not `background-attachment: fixed`. iOS Safari ignores `background-attachment: fixed` and stretches the photo down the whole page.
+  - **On a phone, the photo shows mostly at the edges,** around the logo strip and below the footer, since the sheet is nearly as wide as the screen.
+  - **Mark these when it's built:**
+    - UI-14's torn-paper criteria and notes
+    - UI-15's torn paper
+    - sections 7.5, 7.9 and 7.17
+  - Size: M, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
 
