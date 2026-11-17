@@ -2143,7 +2143,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - Short choices, such as categories or a report's reason, are chips that wrap. Long ones are full-width rows. Either way, each is at least 44 px.
     - A text area starts at least 3 lines tall.
   - **Buttons in proportion:**
-    - Every button is the same height as a field (48 px), with modest padding and 16 px text, so it no longer outweighs the fields.
+    - Every button is the same height as a field (48 px), with modest padding and 16 px text, so it no longer outweighs the fields. (UI-22 made every button square, in the display face in capitals at 20 px, on 2026-11-17.)
     - A form's main action is FABA blue. Others, such as **Cancel**, are outlined. Destructive ones, such as **Delete account** or **Remove photo**, are outlined in red.
     - On a phone, **Cancel** and the main action sit side by side, as on New activity, and a lone main action is full width.
   - **Links that look like buttons:**
@@ -2311,7 +2311,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - the bottom bar, whose torn top edge becomes a shadow
   - **Pieces on the photo have a deeper shadow** than pieces on the sheet, so the sheet reads as lifted off the photo and the cards as resting on the sheet.
   - **Text stays off the photo.** It's on the sheet or a piece of paper, so every contrast ratio is the same as today. (Replaced on 2026-11-16: text now sits on the faded photo, at 4.5:1 or more everywhere.)
-  - **Buttons, fields and icon tiles keep their rounded corners.**
+  - **Buttons, fields and icon tiles keep their rounded corners.** (UI-22 made buttons square on 2026-11-17. Fields and icon tiles keep their rounded corners.)
   - **In high contrast,** the photo and the shadows are gone, and each piece has a plain border, as today.
   - **Performance:**
     - The photo is a WebP under 150 KB.
@@ -2880,7 +2880,7 @@ The same HTML serves all widths. CSS (container queries and media queries) handl
 ### 7.17 Visual and content style
 
 - **Fonts:** a system font stack for text. One self-hosted display face, Anton (SIL Open Font License, 18 KB for Latin), is for headings, card titles, tabs, filter labels, badges and the bottom bar's labels, in capitals by CSS (UI-14). It's preloaded, with fallbacks sized to it, and no font service is used.
-- **Look:** cut paper (UI-14, `mockups/discover_collage.webp`), with square pieces (UI-16) on a soft gradient: light blue at the top, pale blue, then cream at the bottom. It fills at least the screen and doesn't repeat. (UI-16's torn-paper photo came off on 2026-11-17, for a flat gray-blue and then this gradient.) Each page's content sits straight on the page, and cards, tabs and page headings are pieces of paper. Discover, Plans, Alerts and Me have no banner, since the bottom bar shows which page it is: their headings are for screen readers only (UI-18). **Search** is a magnifying glass at the right of the header's strip, on every page with the bottom bar (UI-19). Each piece has square corners and a shadow, deeper for the logo strip and the footer. A few things tilt, by 2 degrees at most. Text on the page is at least 5:1, links are the darker FABA blue, and in high-contrast mode the shadows give way to plain borders.
+- **Look:** cut paper (UI-14, `mockups/discover_collage.webp`), with square pieces (UI-16) on a soft gradient: light blue at the top, pale blue, then cream at the bottom. It fills at least the screen and doesn't repeat. (UI-16's torn-paper photo came off on 2026-11-17, for a flat gray-blue and then this gradient.) Each page's content sits straight on the page, and cards, tabs and page headings are pieces of paper. Discover, Plans, Alerts and Me have no banner, since the bottom bar shows which page it is: their headings are for screen readers only (UI-18). **Search** is a magnifying glass at the right of the header's strip, on every page with the bottom bar (UI-19). Buttons are square, in the display face in capitals like the tabs, while quiet words such as **Add to calendar** stay in the system font (UI-22). Each piece has square corners and a shadow, deeper for the logo strip and the footer. A few things tilt, by 2 degrees at most. Text on the page is at least 5:1, links are the darker FABA blue, and in high-contrast mode the shadows give way to plain borders.
 - **Themes:** light and dark mode follow the OS setting. (So far FABA has only the light theme.)
 - **Color:** a warm primary color and a distinct, accessible color plus icon for each category.
 - **Icons:** an inline SVG sprite, without an icon font.

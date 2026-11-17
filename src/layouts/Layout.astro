@@ -300,7 +300,6 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     height: 44px;
     margin-right: -0.375rem;
     color: var(--navy);
-    border-radius: var(--radius);
   }
   .site-search:hover {
     background: var(--blue-soft);
@@ -403,17 +402,23 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   a {
     color: var(--blue-dark);
   }
-  /* A form's main action: FABA blue, as tall as a field, with modest padding (UI-12). */
+  /* A form's main action: FABA blue, as tall as a field, with modest padding (UI-12). Every button
+     is square, in the display face in capitals, like the paper tabs (UI-22). Rows and quiet words
+     that are buttons, such as an alert's card, set their own font. */
   button {
     min-height: 44px;
     padding: 0 1.25rem;
     color: white;
     font: inherit;
-    font-size: 1rem;
-    font-weight: 600;
+    font-family: var(--display);
+    font-size: 1.25rem;
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
     background: var(--blue);
     border: 0;
-    border-radius: var(--radius);
+    border-radius: 0;
     cursor: pointer;
   }
   button:hover {
@@ -434,12 +439,17 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     padding: 0 1.25rem;
     color: var(--navy);
     font: inherit;
-    font-weight: 600;
+    font-family: var(--display);
+    font-size: 1.25rem;
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: 0.02em;
     text-align: center;
     text-decoration: none;
+    text-transform: uppercase;
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
+    border-radius: 0;
     cursor: pointer;
   }
   summary.button {

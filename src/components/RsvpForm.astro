@@ -111,21 +111,21 @@ const sheet = `rsvp-${crypto.randomUUID()}`;
     min-height: 44px;
   }
   /* Outlined, with the sheet's own text color: buttons are white on blue elsewhere (UI-01), and on
-     no background that white text would be invisible. Plain weight, so the answer stands out. */
+     no background that white text would be invisible. Square, in the display face (UI-22). */
   .choices button {
     width: 100%;
     margin-top: 0.5rem;
     color: inherit;
-    font-weight: 400;
     text-align: left;
     background: none;
     border: 1px solid #767676;
-    border-radius: 0.5rem;
+    border-radius: 0;
   }
-  /* The member's answer: bold, a thicker border, and a check. */
+  /* The member's answer: light blue paper like a current tab, a thicker border, and a check. The
+     display face has one weight, so it can't be bold. */
   .choices [aria-pressed='true'] {
-    font-weight: 600;
-    border-width: 2px;
+    background: var(--sky);
+    border: 2px solid var(--navy);
   }
   .choices [aria-pressed='true']::before {
     content: '✓ ' / '';

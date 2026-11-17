@@ -210,7 +210,7 @@ const back = referrer ?? (original ? `/activities/${original.id}` : '/discover')
       </fieldset>
     )}
     <div class="buttons">
-      <a href={back} class="cancel">
+      <a href={back} class="button">
         Cancel
       </a>
       <button type="submit">Post activity</button>
@@ -234,17 +234,6 @@ const back = referrer ?? (original ? `/activities/${original.id}` : '/discover')
     flex: 1;
     place-items: center;
     min-height: 48px;
-  }
-  .cancel {
-    font-weight: 600;
-    color: var(--navy);
-    text-decoration: none;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-  }
-  .cancel:hover {
-    border-color: var(--blue);
   }
   .buttons button {
     flex: 1.6;
