@@ -56,6 +56,17 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
       </a>
       {/* The motto (UI-08), beside the link, so the link's name stays FABA. */}
       <p class="motto">Bringing faculty together!</p>
+      {/* Search, at the strip's right on every page with the bottom bar (UI-19). */}
+      {tab && (
+        <a
+          href="/search"
+          class="site-search"
+          aria-label="Search"
+          aria-current={Astro.url.pathname === '/search' ? 'page' : undefined}
+        >
+          <Icon name="search" size={24} />
+        </a>
+      )}
     </header>
     <main id="content">
       <slot />
@@ -268,6 +279,35 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     color: var(--navy);
     border-left: 2px solid var(--navy);
   }
+  /* On a narrow phone the strip is a little tighter, so the motto stays on two lines beside the
+     logo and Search. */
+  @media (max-width: 24rem) {
+    .site {
+      gap: 0.5rem;
+      padding-inline: 0.625rem;
+    }
+    .motto {
+      padding-left: 0.5rem;
+      font-size: 0.8125rem;
+    }
+  }
+  /* Search: a navy magnifying glass, 44 px square, light blue on the Search page. */
+  .site-search {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    margin-right: -0.375rem;
+    color: var(--navy);
+    border-radius: var(--radius);
+  }
+  .site-search:hover {
+    background: var(--blue-soft);
+  }
+  .site-search[aria-current='page'] {
+    background: var(--sky);
+  }
   .brand {
     display: inline-flex;
     align-items: center;
@@ -305,9 +345,8 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   h3 {
     color: var(--navy);
   }
-  /* The row along the top of Discover, Groups and Alerts, with their buttons at the right. Their
-     headings, like Plans' and Me's, are for screen readers only, since the bottom bar shows which
-     page it is (UI-18). */
+  /* A row of buttons at the right, such as Alerts' Mark all read. The main tabs' headings are for
+     screen readers only, since the bottom bar shows which page it is (UI-18). */
   main > .top {
     display: flex;
     flex-wrap: wrap;

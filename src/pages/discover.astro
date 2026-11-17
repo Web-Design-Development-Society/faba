@@ -9,7 +9,6 @@ import { actions } from 'astro:actions';
 import ActivityCard from '../components/ActivityCard.astro';
 import DiscoverSwitch from '../components/DiscoverSwitch.astro';
 import Filters from '../components/Filters.astro';
-import Icon from '../components/Icon.astro';
 import FollowButton from '../components/FollowButton.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
@@ -122,12 +121,8 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
 ---
 
 <Layout title={category ? `${category.name} · Discover` : 'Discover'} tab="discover" post={post}>
-  <header class="top">
-    <h1 class="visually-hidden">Discover</h1>
-    <a href="/search" class="search" aria-label="Search">
-      <Icon name="search" size={24} />
-    </a>
-  </header>
+  <h1 class="visually-hidden">Discover</h1>
+  {/* The tabs are first, right under the header, which has Search (UI-19). */}
   <DiscoverSwitch current="activities" />
   <p data-zone-note hidden>
     Times are in Rexburg time.
@@ -223,22 +218,6 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
 </script>
 
 <style>
-  /* A square icon button beside the heading (UI-02), outlined in navy like the bar's tiles. */
-  .search {
-    display: grid;
-    flex: none;
-    place-items: center;
-    width: 48px;
-    height: 48px;
-    color: var(--navy);
-    background: var(--card);
-    border: 2px solid var(--navy);
-    border-radius: 0.5rem;
-  }
-  .search:hover {
-    color: var(--blue);
-    border-color: var(--blue);
-  }
   /* Your next plan and Upcoming activities head the page's two parts, as in the mockup (UI-04). */
   .section {
     margin: 1.5rem 0 0.75rem;

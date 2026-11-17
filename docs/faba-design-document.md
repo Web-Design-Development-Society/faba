@@ -1887,7 +1887,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - The bottom bar keeps its five items in the same order: **Discover**, **Plans**, **＋ Post**, **Alerts** and **Me**. Each has a line icon above its label. **＋ Post** is a blue circle with "Post" under it. The current tab is blue, with a bolder label and an underline, so it isn't shown by color alone. The Alerts badge stays. (UI-14 put each icon in a square tile, the current one light blue and underlined, and made **＋ Post** a navy square.)
   - One small set of line icons lives in one component (`src/components/Icon.astro`) as inline SVG: search, back, calendar, clock, pin, people, bell, check, arrows, chevron, plus, and one for each category. They're 20 to 24 px, in navy or blue. An icon beside text is hidden from screen readers. An icon-only button, such as Search or Back, has an accessible name. These icons replace the emoji now used for categories and alerts.
   - Pages sit on a soft blue-gray background, and content sits on white cards with a 1 px border, a soft shadow and the shared radius. (UI-14 replaced these with torn paper on FABA blue on 2026-11-16. UI-16 then made the paper square, with shadows, on a photo of torn paper.)
-  - The header shows the logo with the FABA wordmark beside it. **Search** is an outlined square icon button beside the page's heading. Detail pages show a back chevron. Each is at least 44 px.
+  - The header shows the logo with the FABA wordmark beside it. **Search** is an outlined square icon button beside the page's heading. Detail pages show a back chevron. Each is at least 44 px. (Since UI-19, **Search** is a magnifying glass at the right of the header's strip.)
   - Body text is at least 16 px, and secondary text at least 14 px. Text meets 4.5:1 contrast, and controls and borders meet 3:1.
   - Small fixes seen while comparing the mockups:
     - The footer's "Privacy ·Guidelines" gets its missing space.
@@ -2006,6 +2006,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - a sentence with the specifics, such as "Moved to Fri, Nov 13, 10:30 AM (was 10:30 PM)" or "Reminder: today at 10:30 AM, Hidden Valley Park"
     - the time ago
     - a chevron
+    - (UI-20 removed the icon and the chevron on 2026-11-17. A card is now the name, the sentence and the time ago.)
   - The sentence wraps to as many lines as it needs. Nothing is cut off.
   - An unread card has a blue left edge, a dot and a bold name. Screen readers still hear "Unread" first. Unread isn't shown by color alone. (UI-15 put the cards on torn paper on 2026-11-16: an unread one is on light-blue paper with its dot, and the name is in the display face.)
   - The whole card is still one button that marks the alert read and opens it, at least 44 px tall. **Mark all read** stays at the top right.
@@ -2216,7 +2217,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - A few things tilt, by 2 degrees at most: the page heading's strip, the **Activities | Groups** tabs and badges. Fields, the cards in a list and the bottom bar stay straight, so lists read cleanly and taps land where they look.
   - **Discover, as in the mockup.** The order and content stay as they are today (UI-03, UI-04, UI-09).
     - The header is the logo, the FABA wordmark and the motto (UI-08), on a torn white strip.
-    - **Discover** is in big capitals, with **Search** a square button beside it. (Since UI-18, only **Search** shows, at the right.)
+    - **Discover** is in big capitals, with **Search** a square button beside it. (Since UI-18, only **Search** shows, at the right. UI-19 moved it into the header, so the tabs are first.)
     - **Activities | Groups** are two torn-paper tabs. The current one is FABA blue with white text, and the other is light blue with navy text.
     - **Your next plan** and **Upcoming activities** are big section headings.
     - **Cards:**
@@ -2267,7 +2268,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 - **Acceptance criteria:**
   - **Each alert is a piece of torn white paper,** like an activity's card (UI-14). That replaces UI-07's white card with a border, rounded corners and a shadow. (UI-16 made the paper square, with a shadow, on 2026-11-16.)
   - **The name is in the display face, in capitals,** like an activity's title, with the capitals coming from CSS. The sentence that says what happened and the time ago stay in the system font. The name is still drawn above the sentence, and screen readers still hear the sentence first.
-  - **The type's icon sits in a square tile outlined in navy,** like the bottom bar's (UI-14).
+  - **The type's icon sits in a square tile outlined in navy,** like the bottom bar's (UI-14). (UI-20 removed the tile.)
   - **Unread alerts:**
     - An unread alert is on light-blue paper (`--sky`), and a read one on white.
     - It keeps its dot before the name, so unread isn't shown by color alone.
@@ -2278,7 +2279,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - The sentence wraps as far as it needs, and nothing is cut off.
     - **All | Unread**, the **New** and **Earlier** headings, **Mark all read**, **Show more** and the empty state stay as they are.
     - The cards stay straight, not tilted, as in every list (UI-14).
-  - **On hover,** the chevron turns FABA blue and the name is underlined, since there's no border left to color.
+  - **On hover,** the chevron turns FABA blue and the name is underlined, since there's no border left to color. (Since UI-20 there's no chevron, so only the name is underlined.)
   - **In high contrast,** the paper gives way to a plain border, as everywhere else, and the unread dot still shows.
   - At 320 px, 412 px and desktop, nothing scrolls sideways and the axe checks pass.
   - **Tests:**
@@ -2401,7 +2402,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - **Discover, Plans, Alerts and Me lose their banners,** the big page heading on a tilted white strip (UI-14). The bottom bar's highlighted item already says which page it is.
   - **Discover's Groups half loses its banner too,** since it's the same **Discover** banner, so switching between Activities and Groups doesn't make it come and go.
   - **Each page keeps its heading for screen readers,** hidden on screen. The page still has a title to jump to, and its headings keep their order.
-  - **What sat beside a banner stays, at the right of its row:** Discover's **Search** button, and Alerts' **Mark all read**.
+  - **What sat beside a banner stays, at the right of its row:** Discover's **Search** button, and Alerts' **Mark all read**. (UI-19 moved **Search** into the header, and Groups' **Start a group** row below the tabs.)
   - **New activity keeps its banner,** and so does every other page that has one, such as About and Edit profile.
   - At 320 px, 412 px and desktop, nothing scrolls sideways and the axe checks pass.
   - **Tests:**
@@ -2750,7 +2751,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 ### 7.9 Notification center (Phase 2)
 
 - **Layout:** a reverse-chronological list grouped as **New** (unread) and **Earlier**. **All | Unread** at the top shows every alert or only the new ones (`?show=unread`).
-- **Cards** (UI-07, UI-15, UI-16): each alert is a piece of white paper, with square corners and a shadow, with its type's line icon in a square tile outlined in navy, the activity's or group's name in the display face in capitals, the sentence that says what happened (which wraps as far as it needs), the relative time, and a chevron. Screen readers hear the sentence first, after "Unread", and the name is drawn above it. The cards stay straight. On hover, the chevron turns FABA blue and the name is underlined.
+- **Cards** (UI-07, UI-15, UI-16, UI-20): each alert is a piece of white paper, with square corners and a shadow, and three lines: the activity's or group's name in the display face in capitals, the sentence that says what happened (which wraps as far as it needs), and the relative time. There's no icon or chevron. Screen readers hear the sentence first, after "Unread", and the name is drawn above it. The cards stay straight and close together. On hover, the name is underlined.
 - **Unread treatment** (UI-15): light-blue paper and a dot before the name, not color alone. The dot is drawn as a border, so it still shows in high contrast, where the paper gives way to a plain border.
 - **Tapping a row** marks it read and opens the target. A long press or the overflow menu offers **Mute this activity**.
 - **Mark all read** is a text button at the top right.
@@ -2840,7 +2841,7 @@ The same HTML serves all widths. CSS (container queries and media queries) handl
 ### 7.17 Visual and content style
 
 - **Fonts:** a system font stack for text. One self-hosted display face, Anton (SIL Open Font License, 18 KB for Latin), is for headings, card titles, tabs, filter labels, badges and the bottom bar's labels, in capitals by CSS (UI-14). It's preloaded, with fallbacks sized to it, and no font service is used.
-- **Look:** cut paper (UI-14, `mockups/discover_collage.webp`), with square pieces (UI-16) on a soft gradient: light blue at the top, pale blue, then cream at the bottom. It fills at least the screen and doesn't repeat. (UI-16's torn-paper photo came off on 2026-11-17, for a flat gray-blue and then this gradient.) Each page's content sits straight on the page, and cards, tabs and page headings are pieces of paper. Discover, Plans, Alerts and Me have no banner, since the bottom bar shows which page it is: their headings are for screen readers only (UI-18). Each piece has square corners and a shadow, deeper for the logo strip and the footer. A few things tilt, by 2 degrees at most. Text on the page is at least 5:1, links are the darker FABA blue, and in high-contrast mode the shadows give way to plain borders.
+- **Look:** cut paper (UI-14, `mockups/discover_collage.webp`), with square pieces (UI-16) on a soft gradient: light blue at the top, pale blue, then cream at the bottom. It fills at least the screen and doesn't repeat. (UI-16's torn-paper photo came off on 2026-11-17, for a flat gray-blue and then this gradient.) Each page's content sits straight on the page, and cards, tabs and page headings are pieces of paper. Discover, Plans, Alerts and Me have no banner, since the bottom bar shows which page it is: their headings are for screen readers only (UI-18). **Search** is a magnifying glass at the right of the header's strip, on every page with the bottom bar (UI-19). Each piece has square corners and a shadow, deeper for the logo strip and the footer. A few things tilt, by 2 degrees at most. Text on the page is at least 5:1, links are the darker FABA blue, and in high-contrast mode the shadows give way to plain borders.
 - **Themes:** light and dark mode follow the OS setting. (So far FABA has only the light theme.)
 - **Color:** a warm primary color and a distinct, accessible color plus icon for each category.
 - **Icons:** an inline SVG sprite, without an icon font.

@@ -7,12 +7,11 @@
 // top. It all works without JavaScript.
 //
 // All | Unread switches between every alert and the new ones (?show=unread). Each alert is a card
-// (UI-07) on paper (UI-15, UI-16): its type's icon in a navy-outlined tile, the activity's or
-// group's name in the display face, the sentence that says what happened, how long ago, and a
-// chevron. The sentence comes first for screen readers, after "Unread", and the name is drawn
-// above it. An unread one is on light blue paper.
+// (UI-07) on paper (UI-15, UI-16) with three lines and nothing else (UI-20): the activity's or
+// group's name in the display face, the sentence that says what happened, and how long ago. The
+// sentence comes first for screen readers, after "Unread", and the name is drawn above it. An
+// unread one is on light blue paper.
 import { actions } from 'astro:actions';
-import Icon from '../components/Icon.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
 import { nextPage, readCursor } from '../lib/feed';
@@ -120,7 +119,7 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
         <h2 id={`alerts-${name}`}>{name}</h2>
         <ul>
           {items.map((notification) => {
-            const { icon, summary } = describe(
+            const { summary } = describe(
               notification.type,
               notification.payload,
               notification.type === 'organizer_update' || notification.type === 'group_update'
@@ -133,9 +132,6 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
                 <form method="post" action={actions.notifications.open.queryString}>
                   <input type="hidden" name="id" value={notification.id} />
                   <button>
-                    <span class="tile">
-                      <Icon name={icon} />
-                    </span>
                     <span class="text">
                       <span class="summary">
                         {!notification.read_at && <span class="unread-label">Unread: </span>}
@@ -150,7 +146,6 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
                         {formatAgo(new Date(notification.created_at), now)}
                       </time>
                     </span>
-                    <Icon name="chevron" class="chevron" />
                   </button>
                 </form>
               </li>
@@ -175,7 +170,7 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
   }
   ul {
     display: grid;
-    gap: 0.75rem;
+    gap: 0.5rem;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -183,12 +178,10 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
   /* Each alert is a piece of white paper with square corners and a shadow, and the whole piece is
      one button (UI-15, UI-16). Like every list, the pieces stay straight. */
   li button {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+    display: block;
     width: 100%;
     min-height: 44px;
-    padding: 1rem;
+    padding: 0.625rem 0.875rem;
     font: inherit;
     font-weight: 400;
     color: inherit;
@@ -203,33 +196,15 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
   .unread button {
     background: var(--sky);
   }
-  /* There's no border to color on hover, so the chevron turns blue and the name is underlined. */
+  /* There's no border to color on hover, so the name is underlined. */
   li button:hover .title {
     text-decoration: underline;
     text-decoration-thickness: 2px;
     text-underline-offset: 0.15em;
   }
-  li button:hover :global(.chevron) {
-    color: var(--blue);
-  }
-  /* The type's line icon in a square tile outlined in navy, like the bottom bar's (UI-14). */
-  .tile {
-    display: grid;
-    flex: none;
-    place-items: center;
-    align-self: flex-start;
-    box-sizing: border-box;
-    width: 2.75rem;
-    height: 2.75rem;
-    color: var(--navy);
-    background: var(--card);
-    border: 2px solid var(--navy);
-    border-radius: 0.5rem;
-  }
   /* The name is drawn first, above what happened, which screen readers hear first. */
   .text {
     display: grid;
-    flex: 1;
     gap: 0.125rem;
     min-width: 0;
   }
@@ -237,7 +212,7 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
   .title {
     order: -1;
     font-family: var(--display);
-    font-size: 1.25rem;
+    font-size: 1.125rem;
     line-height: 1.15;
     letter-spacing: 0.01em;
     color: var(--navy);
@@ -270,9 +245,6 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
   }
   time {
     font-size: 0.875rem;
-    color: var(--muted);
-  }
-  button :global(.chevron) {
     color: var(--muted);
   }
   .empty {

@@ -90,7 +90,8 @@ test('each alert is a card, and Unread shows only the new ones', async ({ page, 
   await expect(show.getByRole('link', { name: 'All' })).toHaveAttribute('aria-current', 'page');
 
   // Each is paper with square corners and a shadow (UI-15, UI-16): the new one light blue with a
-  // dot before its name, and the earlier one white with none. The name is in the display face, drawn above what happened (UI-07).
+  // dot before its name, and the earlier one white with none. It has three lines and nothing else
+  // (UI-20): the name in the display face, then what happened, then how long ago.
   const card = page.getByRole('region', { name: 'New' }).getByRole('button');
   const read = page.getByRole('region', { name: 'Earlier' }).getByRole('button');
   const title = card.getByText('Sunrise hike up the R');
@@ -105,10 +106,12 @@ test('each alert is a card, and Unread shows only the new ones', async ({ page, 
     (await title.boundingBox())!,
     (await card.getByText(/Reminder: /).boundingBox())!,
   ];
+  const ago = (await card.getByText(/^(just now|\d+[mhd] ago)$/).boundingBox())!;
   expect(name.y).toBeLessThan(sentence.y);
-  // With no border to color, hovering turns the chevron blue and underlines the name.
+  expect(sentence.y).toBeLessThan(ago.y);
+  await expect(card.locator('svg, .tile, .chevron')).toHaveCount(0);
+  // With no border to color, hovering underlines the name.
   await card.hover();
-  await expect(card.locator('.chevron')).toHaveCSS('color', 'rgb(11, 91, 211)');
   await expect(title).toHaveCSS('text-decoration-line', 'underline');
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true

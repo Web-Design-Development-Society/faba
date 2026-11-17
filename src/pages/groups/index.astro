@@ -25,8 +25,10 @@ const { data: groups, error } = await supabase
 ---
 
 <Layout title="Groups · Discover" tab="discover">
+  <h1 class="visually-hidden">Discover</h1>
+  {/* The tabs are first, right under the header, as on Discover (UI-19). */}
+  <DiscoverSwitch current="groups" />
   <header class="top">
-    <h1 class="visually-hidden">Discover</h1>
     <a href="/groups/new" class="button primary">
       Start a group
     </a>
@@ -36,7 +38,6 @@ const { data: groups, error } = await supabase
       </a>
     )}
   </header>
-  <DiscoverSwitch current="groups" />
   <Status message={flash && FLASH_MESSAGES[flash]} />
 
   {error ? (
