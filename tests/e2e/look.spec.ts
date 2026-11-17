@@ -280,6 +280,24 @@ test('buttons are square, in the display face in capitals, like the tabs', async
   await expectAccessible(page);
 });
 
+test('fields, choices and the bottom bar are square too', async ({ page, signInAs }) => {
+  await signInAs('member');
+  const corners = async (element: Locator) => {
+    await expect(element).toHaveCSS('border-top-left-radius', '0px');
+    await expect(element).toHaveCSS('border-bottom-right-radius', '0px');
+  };
+  await page.goto('/activities/new');
+  await corners(page.getByLabel('What are you doing?'));
+  await corners(page.getByLabel('Where?'));
+  await corners(page.locator('.datetime'));
+  await corners(page.locator('label', { hasText: 'Outdoors' }));
+  const bar = page.getByRole('navigation', { name: 'Main' });
+  await corners(bar.getByRole('link', { name: 'Plans' }).locator('.tile'));
+  await corners(bar.locator('.post .square'));
+  await page.goto('/me/edit');
+  await corners(page.locator('textarea').first());
+});
+
 test('in high contrast, the paper gives way to plain borders', async ({ page, poster, host }) => {
   // An unread alert, for its card on Alerts (UI-15).
   const id = await host.post();
