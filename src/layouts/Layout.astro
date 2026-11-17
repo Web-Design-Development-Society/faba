@@ -222,10 +222,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   /* The sheet each page's content is on, lifted off the photo. */
   main {
     display: block;
-    padding: 1rem 1rem 1.5rem;
-    border: 1px solid transparent;
-    background: var(--paper);
-    box-shadow: var(--lift-high);
+    
   }
   /* On a narrow phone, the page's edges and the sheet's give back some room, so cards and fields
      keep the width they had before the paper (UI-14). */
