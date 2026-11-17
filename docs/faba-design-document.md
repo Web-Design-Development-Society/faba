@@ -2207,7 +2207,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - Page headings, section headings, card titles, the **Activities | Groups** tabs, filter labels, badges and the bottom bar's labels use one heavy, condensed display face, in capitals.
     - The capitals come from CSS (`text-transform: uppercase`), so the HTML, screen readers and the tests keep the words as written.
     - Everything else stays in the system font and in sentence case, at least 16 px. That includes descriptions, comments, details, form fields, hints and messages, so long text is never in capitals.
-    - Page headings are big. **Discover** spans most of a 412 px screen and still fits on one line at 320 px.
+    - Page headings are big. **Discover** spans most of a 412 px screen and still fits on one line at 320 px. (UI-18 removed the banners from Discover, Plans, Alerts and Me on 2026-11-17. Their headings are for screen readers only.)
     - The face is one self-hosted, Latin-only `woff2` file under the SIL Open Font License (such as Anton or Bebas Neue), 30 KB at most. It's preloaded, with `font-display: swap` and fallback metrics, so the page doesn't jump when it arrives.
   - **Paper and torn edges:** (UI-16 replaced the torn edges and the texture on 2026-11-16. The paper now has square corners and shadows, on a photo of torn paper.)
     - The page's background is FABA blue with a faint paper texture. Content sits on paper panels, off-white or light blue, with torn edges. These replace UI-02's white cards with soft shadows.
@@ -2216,7 +2216,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - A few things tilt, by 2 degrees at most: the page heading's strip, the **Activities | Groups** tabs and badges. Fields, the cards in a list and the bottom bar stay straight, so lists read cleanly and taps land where they look.
   - **Discover, as in the mockup.** The order and content stay as they are today (UI-03, UI-04, UI-09).
     - The header is the logo, the FABA wordmark and the motto (UI-08), on a torn white strip.
-    - **Discover** is in big capitals, with **Search** a square button beside it.
+    - **Discover** is in big capitals, with **Search** a square button beside it. (Since UI-18, only **Search** shows, at the right.)
     - **Activities | Groups** are two torn-paper tabs. The current one is FABA blue with white text, and the other is light blue with navy text.
     - **Your next plan** and **Upcoming activities** are big section headings.
     - **Cards:**
@@ -2789,7 +2789,7 @@ The same HTML serves all widths. CSS (container queries and media queries) handl
 ### 7.17 Visual and content style
 
 - **Fonts:** a system font stack for text. One self-hosted display face, Anton (SIL Open Font License, 18 KB for Latin), is for headings, card titles, tabs, filter labels, badges and the bottom bar's labels, in capitals by CSS (UI-14). It's preloaded, with fallbacks sized to it, and no font service is used.
-- **Look:** cut paper (UI-14, `mockups/discover_collage.webp`), with square pieces (UI-16) on a plain light gray-blue page, `#d3d6e0`. (UI-16's torn-paper photo came off on 2026-11-17.) Each page's content sits straight on the page, and cards, tabs and the main pages' headings are pieces of paper. Each piece has square corners and a shadow, deeper for the logo strip and the footer. A few things tilt, by 2 degrees at most. Text on the page is at least 4.5:1, links are the darker FABA blue, and in high-contrast mode the shadows give way to plain borders.
+- **Look:** cut paper (UI-14, `mockups/discover_collage.webp`), with square pieces (UI-16) on a plain light gray-blue page, `#d3d6e0`. (UI-16's torn-paper photo came off on 2026-11-17.) Each page's content sits straight on the page, and cards, tabs and page headings are pieces of paper. Discover, Plans, Alerts and Me have no banner, since the bottom bar shows which page it is: their headings are for screen readers only (UI-18). Each piece has square corners and a shadow, deeper for the logo strip and the footer. A few things tilt, by 2 degrees at most. Text on the page is at least 4.5:1, links are the darker FABA blue, and in high-contrast mode the shadows give way to plain borders.
 - **Themes:** light and dark mode follow the OS setting. (So far FABA has only the light theme.)
 - **Color:** a warm primary color and a distinct, accessible color plus icon for each category.
 - **Icons:** an inline SVG sprite, without an icon font.
