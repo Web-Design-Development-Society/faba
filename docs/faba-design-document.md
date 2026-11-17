@@ -601,7 +601,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Web Push** as a channel. The delivery pipeline already supports it, and installed PWAs on iOS 16.4+ and Android support it.
 - **Image uploads** for activity covers and group banners, using Cloudflare Images or R2, with moderation.
 - **Comments** on activities (flat, moderated), if Phase 3 feedback supports them.
-- **A clearer look** from the 2026 mockups (`mockups/discover.webp`, `mockups/new_activity_and_alerts.webp`): FABA blue and icons throughout, cards that show the whole time and place, filters that fit the screen, an easier activity page and form, and alerts as cards. Then a bolder cut-paper look (`mockups/discover_collage.webp`, UI-14): heavy condensed capitals, paper on FABA blue, and stickers. UI-16 then made the paper square, with shadows, on a photo of torn paper.
+- **A clearer look** from the 2026 mockups (`mockups/discover.webp`, `mockups/new_activity_and_alerts.webp`): FABA blue and icons throughout, cards that show the whole time and place, filters that fit the screen, an easier activity page and form, and alerts as cards. Then a bolder cut-paper look (`mockups/discover_collage.webp`, UI-14): heavy condensed capitals, paper on FABA blue, and stickers. UI-16 then made the paper square, with shadows, on a photo of torn paper, faded so text sits straight on it.
 - **Playoff brackets** for leagues.
 - **Data retention automation**, and a data export ("download my data").
 - **Performance:** query review with `pg_stat_statements`, edge caching of non-personalized fragments, Smart Placement tuning.
@@ -2299,7 +2299,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 - **Role:** Member · **Priority:** Should · **Phase:** 6
 - **Story:** As a member, I want FABA's pieces of paper to have clean edges on a torn-paper background, so that pages look tidy and keep the cut-paper feel.
 - **Acceptance criteria:**
-  - **The page's background is a photo of torn blue paper,** fixed behind the page and covering the screen at any size. It replaces UI-14's FABA blue with faint noise, and FABA blue shows until it loads.
+  - **The page's background is a photo of torn blue paper,** fixed behind the page and covering the screen at any size. It replaces UI-14's FABA blue with faint noise, and FABA blue shows until it loads. (After it was built, on 2026-11-16, the photo was faded and the sheet removed. See the notes.)
   - **Each piece of torn paper becomes a rectangle with 90-degree corners and a shadow,** in the same color as before:
     - the paper sheet each page's content is on, the strip with the logo, and the footer
     - each main page's heading strip, which stays tilted
@@ -2307,7 +2307,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - activity, group and alert cards, the cards on **Me** and **Edit profile**, the **You're hosting** sticker, which stays tilted, and the light-blue **Your next plan** panel
     - the bottom bar, whose torn top edge becomes a shadow
   - **Pieces on the photo have a deeper shadow** than pieces on the sheet, so the sheet reads as lifted off the photo and the cards as resting on the sheet.
-  - **Text stays off the photo.** It's on the sheet or a piece of paper, so every contrast ratio is the same as today.
+  - **Text stays off the photo.** It's on the sheet or a piece of paper, so every contrast ratio is the same as today. (Replaced on 2026-11-16: text now sits on the faded photo, at 4.5:1 or more everywhere.)
   - **Buttons, fields and icon tiles keep their rounded corners.**
   - **In high contrast,** the photo and the shadows are gone, and each piece has a plain border, as today.
   - **Performance:**
@@ -2325,10 +2325,16 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - A short piece lost its edges unless it was padded.
     - With the noise texture, they added about 5.5 KB of CSS, 1 KB compressed.
   - **The photo:**
-    - It's `mockups/Monochrome blue torn-paper background.png`, 887 × 1774. It's served as `public/backgrounds/torn-paper.webp`.
+    - It's `mockups/Monochrome blue torn-paper background.png`, 887 × 1774. It's served faded, as `public/backgrounds/torn-paper-faded.webp` (12 KB).
     - On a wide screen it's scaled up about 2 times, which softens it. A larger original would be sharper there.
   - **It's fixed by a fixed-position layer behind the page,** not `background-attachment: fixed`. iOS Safari ignores `background-attachment: fixed` and stretches the photo down the whole page.
-  - **On a phone, the photo shows mostly at the edges,** around the logo strip and below the footer, since the sheet is nearly as wide as the screen.
+  - **On a phone, the photo shows mostly at the edges,** around the logo strip and below the footer, since the sheet is nearly as wide as the screen. (No longer, since the sheet came off.)
+  - **The sheet came off after it was built** (2026-11-16), so more of the photo shows and cards and fields get the whole width:
+    - **Text on the bright photo was unreadable.** The photo is pale paper over bright blue, so no single text color reads on both. Without the sheet, axe failed on nearly every page.
+    - **So the photo is faded to 16%,** blended with white in the file itself. The other choices were a piece of paper behind each block of text, a see-through sheet, or putting the sheet back.
+    - **The color under the photo, `#d3d6e0`, is a shade darker than its darkest patch.** It shows until the photo loads, and axe, which can't see the photo, checks text against it. On it, ink is 12.3:1, links 5.1:1, muted text 5.2:1 and errors 4.5:1. The look test checks that the photo has no darker patch.
+    - **Links are the darker FABA blue,** `--blue-dark`, since FABA blue on the photo is 4.2:1.
+    - In high contrast, there's no sheet to outline.
   - **Mark these when it's built:**
     - UI-14's torn-paper criteria and notes
     - UI-15's torn paper
@@ -2714,7 +2720,7 @@ The same HTML serves all widths. CSS (container queries and media queries) handl
 ### 7.17 Visual and content style
 
 - **Fonts:** a system font stack for text. One self-hosted display face, Anton (SIL Open Font License, 18 KB for Latin), is for headings, card titles, tabs, filter labels, badges and the bottom bar's labels, in capitals by CSS (UI-14). It's preloaded, with fallbacks sized to it, and no font service is used.
-- **Look:** cut paper (UI-14, `mockups/discover_collage.webp`), with square pieces (UI-16). A photo of torn blue paper (`public/backgrounds/torn-paper.webp`, 114 KB) is fixed behind everything, with FABA blue until it loads. Each page's content is on one paper sheet, and cards, tabs and the main pages' headings are pieces of paper on it. Each piece has square corners and a shadow, deeper for pieces on the photo. A few things tilt, by 2 degrees at most. Text is always on solid paper or solid blue, never on the photo, and in high-contrast mode the photo and the shadows give way to plain borders.
+- **Look:** cut paper (UI-14, `mockups/discover_collage.webp`), with square pieces (UI-16). A photo of torn blue paper, faded to 16% (`public/backgrounds/torn-paper-faded.webp`, 12 KB), is fixed behind everything, with its darkest tone until it loads. Each page's content sits straight on it, and cards, tabs and the main pages' headings are pieces of paper. Each piece has square corners and a shadow, deeper for the logo strip and the footer. A few things tilt, by 2 degrees at most. Text on the photo is at least 4.5:1 on its darkest patch, links there are the darker FABA blue, and in high-contrast mode the photo and the shadows give way to plain borders.
 - **Themes:** light and dark mode follow the OS setting. (So far FABA has only the light theme.)
 - **Color:** a warm primary color and a distinct, accessible color plus icon for each category.
 - **Icons:** an inline SVG sprite, without an icon font.

@@ -7,9 +7,9 @@
 // have it, so their own sticky actions keep the bottom of the screen, except New activity, which
 // has it with Post as the current item (UI-06).
 //
-// The look is UI-14's cut paper (mockups/discover_collage.webp) with UI-16's square pieces: a photo
-// of torn blue paper behind each page, each page's content on one paper sheet with square corners
-// and a shadow, and headings in Anton, a condensed display face, in capitals. Anton is self-hosted (OFL-1.1, 18 KB for Latin) and preloaded.
+// The look is UI-14's cut paper (mockups/discover_collage.webp) with UI-16's square pieces: a faded
+// photo of torn blue paper behind each page, the page's content straight on it, pieces of paper
+// with square corners and a shadow, and headings in Anton, a condensed display face, in capitals. Anton is self-hosted (OFL-1.1, 18 KB for Latin) and preloaded.
 import '@fontsource/anton/latin-400.css';
 import anton from '@fontsource/anton/files/anton-latin-400-normal.woff2?url';
 import Icon from '../components/Icon.astro';
@@ -164,14 +164,14 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     --line: #c9d3e0;
     --border: #767676; /* 4.5:1 on white, for controls that need 3:1 */
     --card: #ffffff;
-    --paper: #f7f4ec; /* the sheet each page's content is on */
+    --paper: #f7f4ec; /* cream paper, for the footer */
     --sky: #cfe1fa; /* light blue paper: navy on it is 12:1, FABA blue 4.8:1 */
     --radius: 0.625rem;
     /* Anton, then a fallback sized to take about the same room, so the page doesn't jump when
        Anton arrives. */
     --display: 'Anton', 'Anton narrow fallback', 'Anton fallback', sans-serif;
-    /* Paper (UI-16): each piece is a plain rectangle with square corners and a shadow. A piece on
-       the photo casts a deeper shadow than one on the sheet. */
+    /* Paper (UI-16): each piece is a plain rectangle with square corners and a shadow. Most lie
+       low; the logo strip and the footer, at the page's ends, are lifted higher. */
     --lift: 0 1px 2px rgb(15 31 61 / 14%), 0 4px 10px rgb(15 31 61 / 12%);
     --lift-high: 0 2px 4px rgb(5 20 70 / 28%), 0 12px 28px rgb(5 20 70 / 32%);
     /* Anton has one weight, so a heading asked for bold stays Anton, not a smeared copy of it. */
@@ -196,11 +196,14 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     descent-override: 49%;
     line-gap-override: 0%;
   }
-  /* A photo of torn blue paper behind everything (UI-16), with FABA blue until it loads. It's a
-     fixed layer, since iOS Safari ignores background-attachment: fixed and would stretch the photo
-     down the whole page. Text never sits on the photo: each part of the page is paper on it. */
+  /* A photo of torn blue paper behind everything (UI-16). It's faded to 16% so text reads straight
+     on it: the file is the photo blended with white. The color under it is a shade darker than its
+     darkest patch, so it shows until the photo loads and is what the accessibility checks measure
+     against. On it, ink is 12.3:1, links 5.1:1, muted text 5.2:1 and errors 4.5:1. It's a fixed
+     layer, since iOS Safari ignores background-attachment: fixed and would stretch the photo down
+     the whole page. */
   html {
-    background: var(--blue);
+    background: #d3d6e0;
   }
   html::before {
     position: fixed;
@@ -209,7 +212,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     height: 100vh;
     height: 100lvh;
     content: '';
-    background: url('/backgrounds/torn-paper.webp') center / cover no-repeat;
+    background: url('/backgrounds/torn-paper-faded.webp') center / cover no-repeat;
   }
   body {
     max-width: 40rem;
@@ -219,22 +222,18 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     font-family: system-ui, sans-serif;
     line-height: 1.5;
   }
-  /* The sheet each page's content is on, lifted off the photo. */
+  /* Each page's content sits straight on the photo, with no sheet, so cards and fields get the
+     whole width. */
   main {
     display: block;
-    
   }
-  /* On a narrow phone, the page's edges and the sheet's give back some room, so cards and fields
-     keep the width they had before the paper (UI-14). */
+  /* On a narrow phone, the page's edges give back some room. */
   @media (max-width: 24rem) {
     body {
       padding-inline: 0.5rem;
     }
-    main {
-      padding-inline: 0.75rem;
-    }
   }
-  /* A white piece of paper on the sheet, for anything that groups content. */
+  /* A white piece of paper, for anything that groups content. */
   .card {
     border: 1px solid transparent;
     background: var(--card);
@@ -364,8 +363,9 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     color: white;
     background: var(--blue);
   }
+  /* The darker FABA blue, since a link can sit on the photo: 5.1:1 on its darkest patch. */
   a {
-    color: var(--blue);
+    color: var(--blue-dark);
   }
   /* A form's main action: FABA blue, as tall as a field, with modest padding (UI-12). */
   button {
@@ -593,7 +593,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     border-color: var(--blue);
     box-shadow: inset 0 0 0 1px var(--blue);
   }
-  /* A strip of paper under the sheet. */
+  /* A strip of cream paper at the bottom of the page. */
   footer {
     margin-top: 1rem;
     padding: 0.5rem 1rem;
@@ -726,7 +726,6 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     html::before {
       display: none;
     }
-    main,
     footer,
     .site,
     .card,
