@@ -229,8 +229,8 @@ test('each main page says what it is for, in white with a shadow, and Me says no
     const sentence = page.locator('main .page-sentence');
     await expect(sentence).toHaveText(words);
     await expect(sentence).toHaveCSS('color', 'rgb(255, 255, 255)');
-    // 1.2em of the page's 16px.
-    await expect(sentence).toHaveCSS('font-size', '19.2px');
+    // 1.2em of the page's 16px, which WebKit rounds to 19.200001px.
+    await expect(sentence).toHaveCSS('font-size', /^19\.2(0000\d)?px$/);
     await expect(sentence).toHaveCSS('text-shadow', 'rgb(10, 79, 184) 1px 2px 0px');
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
