@@ -118,7 +118,7 @@ test("a group's banner shows across its card, from its small copy", async ({ pag
   await expect.poll(() => picture.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(640);
   // Across the card, at 3:1.
   const [box, cardBox] = [(await picture.boundingBox())!, (await card.boundingBox())!];
-  // Across the card, set just inside its torn paper edges (UI-14).
+  // Across the card, set just inside its edges, like a photo on a page (UI-14).
   expect(cardBox.width - box.width).toBeGreaterThanOrEqual(0);
   expect(cardBox.width - box.width).toBeLessThanOrEqual(20);
   expect(Math.abs(box.height - box.width / 3)).toBeLessThanOrEqual(1);

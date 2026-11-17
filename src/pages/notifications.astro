@@ -7,10 +7,10 @@
 // top. It all works without JavaScript.
 //
 // All | Unread switches between every alert and the new ones (?show=unread). Each alert is a card
-// (UI-07) on torn paper (UI-15): its type's icon in a navy-outlined tile, the activity's or group's
-// name in the display face, the sentence that says what happened, how long ago, and a chevron. The
-// sentence comes first for screen readers, after "Unread", and the name is drawn above it. An
-// unread one is on light blue paper.
+// (UI-07) on paper (UI-15, UI-16): its type's icon in a navy-outlined tile, the activity's or
+// group's name in the display face, the sentence that says what happened, how long ago, and a
+// chevron. The sentence comes first for screen readers, after "Unread", and the name is drawn
+// above it. An unread one is on light blue paper.
 import { actions } from 'astro:actions';
 import Icon from '../components/Icon.astro';
 import Status from '../components/Status.astro';
@@ -180,8 +180,8 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
     padding: 0;
     list-style: none;
   }
-  /* Each alert is a piece of torn white paper, and the whole piece is one button (UI-15). Like
-     every list, the pieces stay straight. */
+  /* Each alert is a piece of white paper with square corners and a shadow, and the whole piece is
+     one button (UI-15, UI-16). Like every list, the pieces stay straight. */
   li button {
     display: flex;
     align-items: center;
@@ -194,15 +194,14 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
     color: inherit;
     text-align: left;
     border: 1px solid transparent;
-    background: var(--fill-white);
-    border-image: var(--torn-white) 16 / 14px round;
+    background: var(--card);
     border-radius: 0;
+    box-shadow: var(--lift);
   }
   /* An unread alert is on light blue paper, with a dot before its name, so it isn't shown by color
      alone. Screen readers hear "Unread" first. */
   .unread button {
-    background: var(--fill-sky);
-    border-image-source: var(--torn-sky);
+    background: var(--sky);
   }
   /* There's no border to color on hover, so the chevron turns blue and the name is underlined. */
   li button:hover .title {
@@ -289,6 +288,7 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
     li button {
       background: Canvas !important;
       border-color: CanvasText !important;
+      box-shadow: none !important;
     }
   }
 </style>

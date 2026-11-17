@@ -9,8 +9,8 @@
 // series says how often it repeats, beside its time (REC-01). The layout is UI-03's: the date,
 // the cover's small copy or the category's icon, the title, then rows for the time and place, and
 // who's going with I'm in along the bottom, so a phone never squeezes the time into a narrow column.
-// It's a piece of torn white paper, with the date and title in the display face and You're hosting
-// as a sticker (UI-14).
+// It's a piece of white paper with square corners and a shadow (UI-16), with the date and title in
+// the display face and You're hosting as a sticker (UI-14).
 import { categoryLook } from '../lib/categories';
 import { historyLabel, isFull } from '../lib/cards';
 import { repeatsBadge } from '../lib/series';
@@ -190,14 +190,12 @@ const shown = (
 </article>
 
 <style>
-  /* A piece of torn white paper (UI-14). The category's color tints its picture. Its own width
-     decides the layout, so a card is laid out for the space it has, not the screen's. */
+  /* A piece of white paper, from the layout's .card (UI-16). The category's color tints its
+     picture. Its own width decides the layout, so a card is laid out for the space it has, not the
+     screen's. */
   .card {
     position: relative;
     container-type: inline-size;
-    border: 1px solid transparent;
-    background: var(--fill-white);
-    border-image: var(--torn-white) 16 / 14px round;
   }
   /* The date and picture, then the title with the time and place beside them, then who's going
      and I'm in along the bottom (UI-03). */
@@ -359,8 +357,7 @@ const shown = (
   .cancelled {
     color: #b42318;
   }
-  /* You're hosting is a blue sticker, tilted, with a few burst lines at its corner. Chrome leaves
-     out a torn edge that's too short for its tiles, so the sticker is tall enough for them. */
+  /* You're hosting is a blue sticker, tilted, with a few burst lines at its corner. */
   .sticker {
     position: relative;
     padding: 0.375rem 0.75rem;
@@ -372,8 +369,8 @@ const shown = (
     letter-spacing: 0.03em;
     text-transform: uppercase;
     border: 1px solid transparent;
-    background: var(--fill-blue);
-    border-image: var(--torn-blue) 16 / 10px round;
+    background: var(--blue);
+    box-shadow: var(--lift);
     transform: rotate(-2deg);
   }
   .sticker::before {

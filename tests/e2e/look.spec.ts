@@ -1,8 +1,9 @@
-// FABA's look (UI-02, UI-14): the bottom bar keeps its five items, each with a line icon in a tile
-// over its label, and the current tab and chosen date are FABA blue. The cut-paper look puts
-// headings in Anton, in capitals by CSS, and each tab on a piece of torn paper.
+// FABA's look (UI-02, UI-14, UI-16): the bottom bar keeps its five items, each with a line icon in
+// a tile over its label, and the current tab and chosen date are FABA blue. The cut-paper look puts
+// headings in Anton, in capitals by CSS, and each tab on a piece of paper with square corners and a
+// shadow, over a photo of torn paper.
 import type { Locator } from '@playwright/test';
-import { expect, expectAccessible, paper, test } from './fixtures';
+import { expect, expectAccessible, expectSquare, paper, test } from './fixtures';
 
 const BLUE = 'rgb(11, 91, 211)';
 const SKY = 'rgb(207, 225, 250)';
@@ -61,9 +62,17 @@ test("Discover's heading is big, in Anton and in capitals, but still says Discov
   const size = parseFloat(await heading.evaluate((el) => getComputedStyle(el).fontSize));
   expect(size).toBeGreaterThanOrEqual(44);
   expect((await heading.boundingBox())!.height).toBeLessThan(size * 1.6);
-  // It sits on its own strip of torn white paper, and the page's content on a paper sheet.
+  // It sits on its own strip of white paper, and the page's content on a paper sheet, each with
+  // square corners and a shadow, over the photo of torn paper (UI-16).
   expect(await paper(heading)).toBe('ffffff');
   expect(await paper(page.locator('main'))).toBe('f7f4ec');
+  await expectSquare(heading);
+  await expectSquare(page.locator('main'));
+  expect(
+    await page.evaluate(
+      () => getComputedStyle(document.documentElement, '::before').backgroundImage
+    )
+  ).toMatch(/\/backgrounds\/torn-paper\.webp/);
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(
     true
   );
@@ -79,7 +88,7 @@ test('in high contrast, the paper gives way to plain borders', async ({ page, po
   await page.emulateMedia({ forcedColors: 'active' });
   await page.goto('/discover');
   const plain = async (piece: Locator) => {
-    await expect(piece).toHaveCSS('border-image-source', 'none');
+    await expect(piece).toHaveCSS('box-shadow', 'none');
     await expect(piece).not.toHaveCSS('border-left-color', /rgba\(0, 0, 0, 0\)/);
   };
   await plain(page.locator('main'));
@@ -87,7 +96,11 @@ test('in high contrast, the paper gives way to plain borders', async ({ page, po
   await plain(
     page.getByRole('navigation', { name: 'Discover' }).getByRole('link', { name: 'Groups' })
   );
+  // No photo behind the page.
   await expect(page.locator('html')).toHaveCSS('background-image', 'none');
+  expect(
+    await page.evaluate(() => getComputedStyle(document.documentElement, '::before').display)
+  ).toBe('none');
 
   // An alert's card too, and its unread dot still shows.
   await page.goto('/notifications');

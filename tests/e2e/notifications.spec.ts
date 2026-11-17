@@ -1,6 +1,6 @@
 // The notification center (NOTIF-01). The pgTAP tests cover marking notifications read.
 import type { Locator } from '@playwright/test';
-import { expect, expectAccessible, paper, test } from './fixtures';
+import { expect, expectAccessible, expectSquare, paper, test } from './fixtures';
 
 const minutesAgo = (minutes: number) => new Date(Date.now() - minutes * 60 * 1000).toISOString();
 
@@ -89,14 +89,15 @@ test('each alert is a card, and Unread shows only the new ones', async ({ page, 
   const show = page.getByRole('navigation', { name: 'Show' });
   await expect(show.getByRole('link', { name: 'All' })).toHaveAttribute('aria-current', 'page');
 
-  // Each is torn paper (UI-15): the new one light blue with a dot before its name, and the earlier
-  // one white with none. The name is in the display face, drawn above what happened (UI-07).
+  // Each is paper with square corners and a shadow (UI-15, UI-16): the new one light blue with a
+  // dot before its name, and the earlier one white with none. The name is in the display face, drawn above what happened (UI-07).
   const card = page.getByRole('region', { name: 'New' }).getByRole('button');
   const read = page.getByRole('region', { name: 'Earlier' }).getByRole('button');
   const title = card.getByText('Sunrise hike up the R');
   expect(await paper(card)).toBe('cfe1fa');
   expect(await dot(title)).toBe('rgb(11, 91, 211)');
   expect(await paper(read)).toBe('ffffff');
+  await expectSquare(card);
   expect(await dot(read.getByText('Sunrise hike up the R'))).toBeNull();
   await expect(title).toHaveCSS('font-family', /^Anton/);
   await expect(title).toHaveCSS('text-transform', 'uppercase');
