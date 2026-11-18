@@ -30,6 +30,7 @@ import PictureUpload from '../../../components/PictureUpload.astro';
 import Sheet from '../../../components/Sheet.astro';
 import Status from '../../../components/Status.astro';
 import Layout from '../../../layouts/Layout.astro';
+import { profileHref } from '../../../lib/back';
 import { googleCalendarUrl } from '../../../lib/calendar';
 import { isFull } from '../../../lib/cards';
 import { categoryLook } from '../../../lib/categories';
@@ -496,7 +497,7 @@ const email = activity
           <p class="host fact">
             <Avatar member={host} />
             <span>
-              <a href={`/people/${host.id}`}>{host.display_name}</a>
+              <a href={profileHref(host.id, `/activities/${activity.id}`)}>{host.display_name}</a>
               {host.department && <span class="small department">{host.department}</span>}
             </span>
           </p>
@@ -507,7 +508,8 @@ const email = activity
             {host && (
               <>
                 {' '}
-                · <a href={`/people/${host.id}`}>{host.display_name}</a>
+                ·{' '}
+                <a href={profileHref(host.id, `/activities/${activity.id}`)}>{host.display_name}</a>
               </>
             )}
           </p>
@@ -617,6 +619,7 @@ const email = activity
           </span>
         </p>
         <GoingList
+          from={`/activities/${activity.id}`}
           activityId={activity.id}
           organizerId={activity.organizer_id}
           people={people}
@@ -630,7 +633,12 @@ const email = activity
         {maybes.length > 0 && (
           <>
             <h3>Maybe</h3>
-            <GoingList activityId={`${activity.id}-maybe`} organizerId={null} people={maybes} />
+            <GoingList
+              activityId={`${activity.id}-maybe`}
+              organizerId={null}
+              people={maybes}
+              from={`/activities/${activity.id}`}
+            />
           </>
         )}
       </section>

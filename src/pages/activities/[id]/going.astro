@@ -28,6 +28,7 @@ if (!activity) Astro.response.status = 404;
       <Back href={`/activities/${activity.id}`}>Back to {activity.title}</Back>
       <h1>Who's going</h1>
       <GoingList
+        from={`/activities/${activity.id}`}
         activityId={activity.id}
         organizerId={activity.organizer_id}
         people={activity.going.map(({ member }) => member)}

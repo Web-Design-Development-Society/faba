@@ -28,7 +28,7 @@ test("who's going is on the page, with the organizer first", async ({ page, sign
   await expect(people.nth(1)).toContainText('Ada Admin');
   await expect(who.getByRole('link', { name: 'Hana Host' })).toHaveAttribute(
     'href',
-    `/people/${host.id}`
+    `/people/${host.id}?from=${encodeURIComponent(`/activities/${id}`)}`
   );
   await expect(who.getByRole('link', { name: 'Show all' })).toHaveCount(0);
   await expectAccessible(page);
@@ -97,7 +97,7 @@ test("after I'm in, who's going has the member in it at once", async ({ page, po
   await expect(who.getByRole('listitem')).toHaveCount(2);
   await expect(who.getByRole('link', { name: 'Pat Poster' })).toHaveAttribute(
     'href',
-    `/people/${poster.id}`
+    `/people/${poster.id}?from=${encodeURIComponent(`/activities/${id}`)}`
   );
 
   await page.getByRole('button', { name: '✓ Going' }).click();

@@ -42,7 +42,7 @@ test('a member sees what, when, where and who on one screen', async ({ page, sig
   await expect(who.getByRole('listitem').filter({ hasText: 'Ada Admin' })).toContainText('AA');
   await expect(
     page.getByRole('region', { name: 'Host' }).getByRole('link', { name: 'Hana Host' })
-  ).toHaveAttribute('href', `/people/${host.id}`);
+  ).toHaveAttribute('href', `/people/${host.id}?from=${encodeURIComponent(`/activities/${id}`)}`);
   // The full stop ends the sentence, not the address.
   await expect(page.getByRole('link', { name: 'https://example.com/r-trail' })).toHaveAttribute(
     'href',
