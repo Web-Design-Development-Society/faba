@@ -2,7 +2,8 @@
 // A member's photo, or their initials when they chose those at Welcome or have no photo. With
 // `named`, it says who it is. Without, it's decorative, because their name is beside it. With
 // `mine`, it's the signed-in member's, which src/scripts/rsvp.ts takes away after Can't make it.
-// With `large`, it's twice the size, as on a profile (PROF-03).
+// With `large`, it's twice the size, as on a profile (PROF-03). A photo loads as it scrolls into view,
+// so a long list of faces doesn't load all at once (UI-27).
 interface Props {
   member: { display_name: string; avatar_url: string | null; use_initials: boolean };
   named?: boolean;
@@ -26,6 +27,8 @@ const initials = (words[0][0] + (words.length > 1 ? words.at(-1)![0] : '')).toUp
     width={size}
     height={size}
     referrerpolicy="no-referrer"
+    loading="lazy"
+    decoding="async"
   />
 ) : named ? (
   <span

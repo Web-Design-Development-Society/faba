@@ -4,13 +4,16 @@
 // file's own bytes, stores it under a random key in the bucket, then asks Postgres to point the
 // activity or group at it. Postgres checks who's allowed, and the Worker deletes the file again if
 // that fails, so the bucket never keeps a picture nothing points to. With JavaScript, the device also
-// sends a small copy for cards (UI-03), kept beside it. One that isn't a picture is left out. A
+// sends a small copy for cards (UI-03), and for a cover or banner a medium copy for phones (UI-27),
+// each kept beside it. One that isn't a picture, or is too big, is left out. A
 // profile photo needs no description, since it's the member's face, and replacing it deletes the
 // old one's files, so a member's old photos aren't kept.
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
 import {
   ALT_MAX,
+  MEDIUM_MAX_BYTES,
+  mediumKey,
   pictureProblem,
   sniffPicture,
   THUMB_MAX_BYTES,
@@ -76,14 +79,17 @@ export const POST = (async ({ locals, request, cookies, url, redirect }) => {
   const folder = { activity: 'activities', group: 'groups', profile: 'profiles' }[target];
   const key = `${folder}/${crypto.randomUUID()}`;
   await bucket().put(key, bytes.buffer, { httpMetadata: { contentType: type } });
-  const small = form.get('thumb');
-  if (small instanceof File && small.size > 0 && small.size <= THUMB_MAX_BYTES) {
-    const thumb = new Uint8Array(await small.arrayBuffer());
-    const thumbType = sniffPicture(thumb);
-    if (thumbType) {
-      await bucket().put(thumbKey(key), thumb.buffer, { httpMetadata: { contentType: thumbType } });
-    }
-  }
+  /** Keeps the device's copy from `field` at `copy`, if it's a picture no bigger than `max`. */
+  const keep = async (field: string, max: number, copy: string) => {
+    const sent = form.get(field);
+    if (!(sent instanceof File) || sent.size === 0 || sent.size > max) return;
+    const made = new Uint8Array(await sent.arrayBuffer());
+    const madeType = sniffPicture(made);
+    if (madeType)
+      await bucket().put(copy, made.buffer, { httpMetadata: { contentType: madeType } });
+  };
+  await keep('thumb', THUMB_MAX_BYTES, thumbKey(key));
+  if (target !== 'profile') await keep('medium', MEDIUM_MAX_BYTES, mediumKey(key));
 
   const { data: replaced, error } =
     target === 'profile'
@@ -109,7 +115,7 @@ export const POST = (async ({ locals, request, cookies, url, redirect }) => {
           });
 
   if (error) {
-    await bucket().delete([key, thumbKey(key)]);
+    await bucket().delete([key, thumbKey(key), mediumKey(key)]);
     return fail(
       error.message.includes('NOT_ORGANIZER') || error.message.includes('NOT_GROUP_ORGANIZER')
         ? 'upload_forbidden'
