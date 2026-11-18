@@ -135,7 +135,7 @@ test('a form ends with Cancel beside its main action, and links on their own are
   await expect(page.getByRole('radio', { name: 'Games' })).toBeChecked();
   await expect(page.locator('label', { hasText: 'Games' })).toHaveCSS(
     'background-color',
-    'rgb(11, 91, 211)'
+    'rgb(0, 108, 194)'
   );
 
   // A link on its own looks like a button, and is still a link.

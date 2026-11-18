@@ -74,7 +74,7 @@ test('a card has its title, picture, time and place on paper, and its date and I
   // white with FABA blue text, at the bottom.
   const side = card.locator('.side');
   const sideBox = (await side.boundingBox())!;
-  await expect(side).toHaveCSS('background-color', 'rgb(11, 91, 211)');
+  await expect(side).toHaveCSS('background-color', 'rgb(0, 108, 194)');
   expect(Math.abs(sideBox.x + sideBox.width - (box.x + box.width))).toBeLessThanOrEqual(1.5);
   expect(Math.abs(sideBox.height - box.height)).toBeLessThanOrEqual(2.5);
   expect(sideBox.x).toBeGreaterThan((await place.boundingBox())!.x);
@@ -85,7 +85,7 @@ test('a card has its title, picture, time and place on paper, and its date and I
   await expect(date).toHaveText(new RegExp(`^${month}\\s*${dayOfMonth}$`));
   const button = side.getByRole('button', { name: "I'm in" });
   await expect(button).toHaveCSS('background-color', 'rgb(255, 255, 255)');
-  await expect(button).toHaveCSS('color', 'rgb(11, 91, 211)');
+  await expect(button).toHaveCSS('color', 'rgb(0, 108, 194)');
   const [dateBox, buttonBox] = [(await date.boundingBox())!, (await button.boundingBox())!];
   expect(buttonBox.y).toBeGreaterThan(dateBox.y + dateBox.height);
   expect(buttonBox.height).toBeGreaterThanOrEqual(44);

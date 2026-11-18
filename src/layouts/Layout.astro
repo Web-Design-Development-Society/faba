@@ -21,7 +21,7 @@ interface Props {
   tab?: 'discover' | 'plans' | 'post' | 'alerts' | 'me';
   /** Where Post goes, such as with Discover's category. */
   post?: string;
-  /** New and Edit activity's warm gradient and paper (UI-25). Every other page is blue. */
+  /** New and Edit activity's warm paper (UI-25). */
   warm?: boolean;
   /** Cream paper behind the content, for a page that reads top to bottom (UI-26). */
   paper?: boolean;
@@ -40,7 +40,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     <link rel="icon" href="/favicon.ico" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#0b5bd3" />
+    <meta name="theme-color" content="#006cc2" />
     <link rel="preload" href={anton} as="font" type="font/woff2" crossorigin />
     <title>{title === 'FABA' ? title : `${title} · FABA`}</title>
   </head>
@@ -183,8 +183,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   /* The look from the My events design (UI-01), the 2026 mockups (UI-02) and the cut-paper mockup
      (UI-14). Colors are tokens, so they change in one place. */
   :root {
-    --blue: #0b5bd3; /* white text on it is 6.4:1 */
-    --blue-light: #3fa4fa;
+    --blue: #006cc2; /* white text on it is 5.35:1, and it's 4.9:1 as text on the page (UI-29) */
     --blue-dark: #0a4fb8;
     --blue-soft: #e8f1fd;
     --navy: #0f1f3d;
@@ -195,10 +194,12 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     --card: #ffffff;
     --paper: #f7f4ec; /* cream paper, for the footer */
     --sky: #cfe1fa; /* light blue paper: navy on it is 12:1, FABA blue 4.8:1 */
-    /* New and Edit activity's warm colors (UI-25), the blue ones' complements. */
+    /* The page's background: a calm, nearly white grey, with no gradient, so eyes don't tire
+       (UI-29). Ink is 16.5:1 on it, link blue 6.9:1 and muted text 7.0:1. */
+    --page: #f4f6f8;
+    /* New and Edit activity's warm colors (UI-25). */
     --orange: #ee6d34; /* white on it is 3.1:1, enough for an icon */
     --orange-dark: #c94f1c; /* white on it is 4.6:1 */
-    --peach: #f7caa7;
     --paper-warm: #fff9f4; /* navy on it is 15.7:1, muted 7.2:1, field borders 4.3:1 */
     /* Anton, then a fallback sized to take about the same room, so the page doesn't jump when
        Anton arrives. */
@@ -229,14 +230,11 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     descent-override: 49%;
     line-gap-override: 0%;
   }
-  /* A gradient behind every page: the logo's light blue at the top, light blue paper, then cream
-     at the bottom. The page is at least as tall as the screen and the gradient doesn't repeat, so a
-     short page ends cleanly. At its darkest, the logo's blue, ink is 6.7:1 and navy 6.2:1, but link
-     blue and muted text are only 2.8:1, so what sits at the top, such as Back, is navy. The
-     accessibility checks can't measure text on a gradient, so look.spec.ts does. */
+  /* A solid, nearly white grey behind every page, with no gradient (UI-29). It replaced the blue
+     gradient of UI-16, which a designer advised could tire older adults' eyes. */
   html {
     min-height: 100%;
-    background: linear-gradient(var(--blue-light), var(--sky), var(--paper)) no-repeat var(--paper);
+    background: var(--page);
   }
   body {
     max-width: 40rem;
@@ -251,12 +249,8 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   main {
     display: block;
   }
-  /* New and Edit activity are warm, to make posting feel exciting (UI-25): an orange gradient,
-     the blue one's complement, with the form on a piece of warm paper, so no text sits on the
-     orange. Every other page stays blue, for trust and safety. */
-  html.warm {
-    background: linear-gradient(var(--orange), var(--peach), var(--paper)) no-repeat var(--paper);
-  }
+  /* New and Edit activity are warm, to make posting feel exciting (UI-25): the form is on a piece
+     of warm paper, on the same calm background as every other page (UI-29). */
   html.warm main {
     padding: 0.75rem;
     background: var(--paper-warm);
@@ -436,7 +430,8 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     transform: rotate(-1.5deg);
   }
   /* Two paper tabs, such as Discover's Activities | Groups: the current one FABA blue with white
-     text, the other light blue. A tab is a link, so each half has its own address. */
+     text, the other white with FABA blue text (UI-29). A tab is a link, so each half has its own
+     address. */
   nav.switch {
     display: flex;
     gap: 0.5rem;
@@ -448,14 +443,14 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     place-items: center;
     min-height: 48px;
     padding: 0.25rem 0.5rem;
-    color: var(--navy);
+    color: var(--blue);
     font-family: var(--display);
     font-size: 1.375rem;
     letter-spacing: 0.02em;
     text-decoration: none;
     text-transform: uppercase;
     border: 1px solid transparent;
-    background: var(--sky);
+    background: var(--card);
     box-shadow: var(--lift);
     transform: rotate(1deg);
   }
@@ -471,7 +466,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     color: white;
     background: var(--blue);
   }
-  /* The darker FABA blue, since a link can sit straight on the page: 5.1:1 on it. */
+  /* The darker FABA blue, since a link can sit straight on the page: 6.9:1 on it. */
   a {
     color: var(--blue-dark);
   }

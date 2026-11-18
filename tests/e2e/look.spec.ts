@@ -1,17 +1,18 @@
-// FABA's look (UI-02, UI-14, UI-16, UI-18, UI-25): the bottom bar keeps its five items, each with a
-// line icon in a tile over its label, and the current tab and chosen date are FABA blue. The
+// FABA's look (UI-02, UI-14, UI-16, UI-18, UI-25, UI-29): the bottom bar keeps its five items, each
+// with a line icon in a tile over its label, and the current tab and chosen date are FABA blue. The
 // cut-paper look puts headings in Anton, in capitals by CSS, and each tab on a piece of paper with a
-// shadow, on a blue gradient that text sits straight on, readable all the way down. New activity's
-// gradient is orange instead, with its form on warm paper. Every corner is square but faces. The
-// main tabs' headings are for screen readers only, since the bottom bar shows which page it is.
+// shadow, on a solid, nearly white grey that text sits straight on, readable all the way down. New
+// activity's form is on warm paper. Every corner is square but faces. The main tabs' headings are
+// for screen readers only, since the bottom bar shows which page it is.
 import type { Locator, Page } from '@playwright/test';
 import { expect, expectAccessible, expectSquare, paper, test } from './fixtures';
 
-const BLUE = 'rgb(11, 91, 211)';
+const BLUE = 'rgb(0, 108, 194)';
+// The page's solid background (UI-29).
+const PAGE = 'rgb(244, 246, 248)';
 const SKY = 'rgb(207, 225, 250)';
-// New and Edit activity's gradient and paper, and the orange of Post (UI-25).
+// New and Edit activity's paper, and the orange of Post (UI-25).
 const ORANGE = 'rgb(238, 109, 52)';
-const WARM = `linear-gradient(${ORANGE}, rgb(247, 202, 167), rgb(247, 244, 236))`;
 const WARM_PAPER = 'rgb(255, 249, 244)';
 
 test('selected things are FABA blue, and the bar keeps its five items', async ({
@@ -52,8 +53,10 @@ test('selected things are FABA blue, and the bar keeps its five items', async ({
 
   // Activities is on FABA blue paper, and Groups on light blue.
   const halves = page.getByRole('navigation', { name: 'Discover' });
-  expect(await paper(halves.getByRole('link', { name: 'Activities' }))).toBe('0b5bd3');
-  expect(await paper(halves.getByRole('link', { name: 'Groups' }))).toBe('cfe1fa');
+  expect(await paper(halves.getByRole('link', { name: 'Activities' }))).toBe('006cc2');
+  // The other is white with FABA blue words (UI-29).
+  expect(await paper(halves.getByRole('link', { name: 'Groups' }))).toBe('ffffff');
+  await expect(halves.getByRole('link', { name: 'Groups' })).toHaveCSS('color', BLUE);
   // Any time, the date chosen until another is, is FABA blue in the Date list.
   const filters = page.getByRole('navigation', { name: 'Filters' });
   await filters.locator('summary', { hasText: /^Date/ }).click();
@@ -86,8 +89,8 @@ test("the main tabs' headings are for screen readers, and New activity keeps its
     const box = (await hidden.boundingBox())!;
     expect(box.width * box.height).toBeLessThanOrEqual(1);
     await expect(hidden).toHaveCSS('box-shadow', 'none');
-    // Even a short page, such as Alerts with none, is as tall as the screen, so the background's
-    // gradient ends at its bottom instead of starting again.
+    // Even a short page, such as Alerts with none, is as tall as the screen, so its background
+    // fills it.
     expect(
       await page.evaluate(
         () => document.documentElement.getBoundingClientRect().height >= window.innerHeight
@@ -109,16 +112,16 @@ test("the main tabs' headings are for screen readers, and New activity keeps its
   // It sits on its own strip of white paper, with square corners and a shadow (UI-16).
   expect(await paper(heading)).toBe('ffffff');
   await expectSquare(heading);
-  // New activity is warm (UI-25): orange, peach, then cream, the blue gradient's complement, with
-  // the form on a piece of warm paper, so no text sits on the orange.
+  // New activity is warm (UI-25): its form is on a piece of warm paper, on the same solid grey as
+  // every other page, with no gradient (UI-29).
   const main = page.locator('main');
   const html = page.locator('html');
   await expect(main).toHaveCSS('background-color', WARM_PAPER);
   await expect(main).toHaveCSS('box-shadow', 'none');
   await expect(main).toHaveCSS('border-top-left-radius', '0px');
-  await expect(html).toHaveCSS('background-image', WARM);
-  await expect(html).toHaveCSS('background-repeat', 'no-repeat');
-  expect(await unreadableOnGradient(page)).toEqual([]);
+  await expect(html).toHaveCSS('background-image', 'none');
+  await expect(html).toHaveCSS('background-color', PAGE);
+  expect(await unreadableOnPage(page)).toEqual([]);
   expect(
     await page.evaluate(() => getComputedStyle(document.documentElement, '::before').content)
   ).toBe('none');
@@ -127,15 +130,12 @@ test("the main tabs' headings are for screen readers, and New activity keeps its
   );
   await expectAccessible(page);
 
-  // Every other page stays blue, for trust and safety: the logo's light blue at the top, light
-  // blue paper, then cream at the bottom, with no photo, and the content sits straight on it.
+  // Every other page is the same solid grey, with no gradient or photo (UI-29), and the content
+  // sits straight on it.
   await page.goto('/discover');
   await expect(main).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
-  await expect(html).toHaveCSS(
-    'background-image',
-    'linear-gradient(rgb(63, 164, 250), rgb(207, 225, 250), rgb(247, 244, 236))'
-  );
-  await expect(html).toHaveCSS('background-repeat', 'no-repeat');
+  await expect(html).toHaveCSS('background-image', 'none');
+  await expect(html).toHaveCSS('background-color', PAGE);
 });
 
 test("Edit activity is warm too, for its organizer, but not when they can't edit", async ({
@@ -156,17 +156,16 @@ test("Edit activity is warm too, for its organizer, but not when they can't edit
     .single();
   await page.goto(`/activities/${data!.id}/edit`);
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Edit activity');
-  await expect(page.locator('html')).toHaveCSS('background-image', WARM);
+  await expect(page.locator('html')).toHaveCSS('background-color', PAGE);
   await expect(page.locator('main')).toHaveCSS('background-color', WARM_PAPER);
-  // Back sits on the warm paper too, so nothing is on the orange.
-  expect(await unreadableOnGradient(page)).toEqual([]);
+  // Back sits on the warm paper too.
+  expect(await unreadableOnPage(page)).toEqual([]);
   await expectAccessible(page);
 
-  // Someone else's activity says they can't edit it, on the blue page.
+  // Someone else's activity says they can't edit it, with no warm paper.
   const theirs = await host.post();
   await page.goto(`/activities/${theirs}/edit`);
   await expect(page.getByText('Only the organizer can edit this activity.')).toBeVisible();
-  await expect(page.locator('html')).not.toHaveCSS('background-image', WARM);
   await expect(page.locator('main')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
 });
 
@@ -202,7 +201,7 @@ test('an activity, a group, a member and the short forms are on cream paper, rea
     .from('group_members')
     .insert({ group_id: group!.id, user_id: poster.id, role: 'owner' });
 
-  // On the blue gradient, with the content on cream paper and nothing on the gradient (UI-26).
+  // On the solid grey (UI-29), with the content on cream paper (UI-26).
   for (const path of [
     `/activities/${theirs}`,
     `/activities/${mine!.id}/update`,
@@ -217,11 +216,8 @@ test('an activity, a group, a member and the short forms are on cream paper, rea
     await page.goto(path);
     await expect(page.locator('main'), path).toHaveCSS('background-color', 'rgb(247, 244, 236)');
     await expect(page.locator('main'), path).toHaveCSS('font-size', '17px');
-    await expect(page.locator('html'), path).toHaveCSS(
-      'background-image',
-      'linear-gradient(rgb(63, 164, 250), rgb(207, 225, 250), rgb(247, 244, 236))'
-    );
-    expect(await unreadableOnGradient(page), path).toEqual([]);
+    await expect(page.locator('html'), path).toHaveCSS('background-color', PAGE);
+    expect(await unreadableOnPage(page), path).toEqual([]);
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth),
       path
@@ -244,12 +240,12 @@ test('an activity, a group, a member and the short forms are on cream paper, rea
 });
 
 /**
- * The text that sits straight on the page's gradient, with nothing behind it but the page, and
- * whose contrast with the gradient where it sits is under WCAG's 4.5:1, or 3:1 for large text. axe
- * can't measure text on a gradient, so this finds the gradient's color at the middle of each. Each
- * main page's sentence (UI-24) is white with a shadow, an agreed exception, so it's left out.
+ * The text that sits straight on the page's background, with nothing behind it but the page, and
+ * whose contrast with it is under WCAG's 4.5:1, or 3:1 for large text. The background is a solid
+ * grey (UI-29), which axe can measure too. If a gradient ever comes back, axe can't, so this finds
+ * its color at the middle of each piece of text.
  */
-async function unreadableOnGradient(page: Page) {
+async function unreadableOnPage(page: Page) {
   return page.evaluate(() => {
     const rgb = (value: string) => (value.match(/[\d.]+/g) ?? []).map(Number);
     const luminance = ([r, g, b]: number[]) => {
@@ -262,15 +258,17 @@ async function unreadableOnGradient(page: Page) {
       return (light + 0.05) / (dark + 0.05);
     };
     const html = document.documentElement;
-    const stops = (getComputedStyle(html).backgroundImage.match(/rgb\([^)]*\)/g) ?? []).map(rgb);
+    const page = getComputedStyle(html);
+    const stops = (page.backgroundImage.match(/rgb\([^)]*\)/g) ?? []).map(rgb);
     const height = html.getBoundingClientRect().height;
-    // The stops are evenly spaced from the top of the page to its bottom.
+    // A solid background, or a gradient's stops evenly spaced from the top of the page to its bottom.
     const behind = (y: number) => {
+      if (stops.length < 2) return rgb(page.backgroundColor);
       const at = Math.min(Math.max(y / height, 0), 1) * (stops.length - 1);
       const i = Math.min(Math.floor(at), stops.length - 2);
       return stops[i].map((c, k) => c + (stops[i + 1][k] - c) * (at - i));
     };
-    const onGradient = (element: Element) => {
+    const onPage = (element: Element) => {
       for (let e: Element | null = element; e && e !== html; e = e.parentElement) {
         const style = getComputedStyle(e);
         if (style.backgroundImage !== 'none' || rgb(style.backgroundColor)[3] !== 0) return false;
@@ -287,7 +285,7 @@ async function unreadableOnGradient(page: Page) {
       const box = element.getBoundingClientRect();
       const style = getComputedStyle(element);
       if (!text || box.width <= 1 || box.height <= 1 || style.visibility === 'hidden') continue;
-      if (!onGradient(element) || element.closest('.page-sentence')) continue;
+      if (!onPage(element)) continue;
       const size = parseFloat(style.fontSize);
       const large = size >= 24 || (size >= 18.66 && Number(style.fontWeight) >= 700);
       const ratio = contrast(rgb(style.color), behind(box.top + scrollY + box.height / 2));
@@ -297,11 +295,7 @@ async function unreadableOnGradient(page: Page) {
   });
 }
 
-test('text straight on the gradient is readable, even at its bluest', async ({
-  page,
-  poster,
-  crowd,
-}) => {
+test('text straight on the page is readable', async ({ page, poster, crowd }) => {
   // A group with someone asking to join, so its page has "1 asking to join" near the top.
   const { data: group } = await poster.admin
     .from('groups')
@@ -321,7 +315,7 @@ test('text straight on the gradient is readable, even at its bluest', async ({
   await asking.rpc('join_group', { group_id: group!.id });
 
   const found: string[] = [];
-  // Back sits at the top of each of these, where the gradient is bluest.
+  // Back and the page's sentence sit at the top of these.
   for (const path of [
     '/discover',
     '/plans',
@@ -334,17 +328,17 @@ test('text straight on the gradient is readable, even at its bluest', async ({
     `/people/${poster.id}`,
   ]) {
     await page.goto(path);
-    for (const problem of await unreadableOnGradient(page)) found.push(`${path}: ${problem}`);
+    for (const problem of await unreadableOnPage(page)) found.push(`${path}: ${problem}`);
   }
   await page.context().clearCookies();
   for (const path of ['/', '/auth/login']) {
     await page.goto(path);
-    for (const problem of await unreadableOnGradient(page)) found.push(`${path}: ${problem}`);
+    for (const problem of await unreadableOnPage(page)) found.push(`${path}: ${problem}`);
   }
   expect(found).toEqual([]);
 });
 
-test('each main page says what it is for, in white with a shadow, and Me says nothing', async ({
+test('each main page says what it is for, in dark text with no shadow, and Me says nothing', async ({
   page,
   signInAs,
 }) => {
@@ -359,10 +353,11 @@ test('each main page says what it is for, in white with a shadow, and Me says no
     await page.goto(path);
     const sentence = page.locator('main .page-sentence');
     await expect(sentence).toHaveText(words);
-    await expect(sentence).toHaveCSS('color', 'rgb(255, 255, 255)');
+    // Dark, with no shadow, which made it look blurry (UI-29).
+    await expect(sentence).toHaveCSS('color', 'rgb(23, 23, 23)');
     // 1.2em of the page's 16px, which WebKit rounds to 19.200001px.
     await expect(sentence).toHaveCSS('font-size', /^19\.2(0000\d)?px$/);
-    await expect(sentence).toHaveCSS('text-shadow', 'rgb(10, 79, 184) 1px 2px 0px');
+    await expect(sentence).toHaveCSS('text-shadow', 'none');
     expect(
       await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)
     ).toBe(true);

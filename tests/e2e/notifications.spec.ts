@@ -96,7 +96,7 @@ test('each alert is a card, and Unread shows only the new ones', async ({ page, 
   const read = page.getByRole('region', { name: 'Earlier' }).getByRole('button');
   const title = card.getByText('Sunrise hike up the R');
   expect(await paper(card)).toBe('cfe1fa');
-  expect(await dot(title)).toBe('rgb(11, 91, 211)');
+  expect(await dot(title)).toBe('rgb(0, 108, 194)');
   expect(await paper(read)).toBe('ffffff');
   await expectSquare(card);
   expect(await dot(read.getByText('Sunrise hike up the R'))).toBeNull();
