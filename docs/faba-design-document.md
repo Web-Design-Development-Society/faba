@@ -2569,7 +2569,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - **Each main page has a short sentence at the top** that says what it's for:
     - **Discover, Activities:** "See what your fellow faculty are up to, get involved, and have some fun!"
     - **Discover, Groups:** "Start a faculty group and get together regularly"
-    - **Plans:** "Here is what is on my schedule"
+    - **Plans:** "Here is what is on your schedule" (it said "my schedule" until 2026-11-17, and now speaks to the member, as the other pages do)
     - **Alerts:** "Messages that help you keep track of new and changing activities"
     - **Me** has none.
   - **Where it goes:**
