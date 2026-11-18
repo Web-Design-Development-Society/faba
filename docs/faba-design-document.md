@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-28`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-29`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-28           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-29           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2706,6 +2706,28 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - UI-02's and UI-14's lines about the bar's icons
     - section 7.3
   - Size: XS, one developer, including the tests.
+
+#### UI-29 · Calmer colors
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, especially an older one, I want FABA's colors to be calm and its text crisp, so that I can read it for a while without my eyes tiring.
+- **Mockup:** `mockups/calm_colors.png`.
+- **Acceptance criteria:**
+  - **The page's background is a solid, nearly white grey,** `#F4F6F8`, with no gradient, on every page. That includes New and Edit activity: their form keeps its warm paper (UI-25), and **＋ Post** stays orange.
+  - **FABA blue is `#006CC2`,** in place of `#0B5BD3`, wherever it was: the current tab, an activity card's date column, buttons, chosen chips and unread marks. White text on it is 5.35:1.
+  - **A tab that isn't current is white paper with FABA blue text,** in place of light blue paper with navy text, as in the mockup. That covers Discover's **Activities | Groups** and the switches on Plans and Alerts. The blue text is 5.35:1 on the white.
+  - **Each main page's sentence (UI-24) is dark, with no shadow,** since the shadow made it look blurry. It's 16.5:1 on the background, so it's no longer an exception to the contrast rule.
+  - **Everything else stays as it is,** including the paper pieces and their shadows, the square corners, the cream paper behind an activity's, a group's and a member's page (UI-26), and the bottom bar.
+  - At 320 px, 412 px and desktop, nothing scrolls sideways and the axe checks pass. With no gradient, axe can measure text on the page itself.
+  - **Tests:** the look tests check the solid background on the blue and warm pages, the new blue, the white tabs, and the dark sentence with no shadow. The test that measured text on the gradient measures it on the solid background instead.
+- **Dependencies:** UI-14, UI-16, UI-24, UI-25.
+- **Notes / edge cases:**
+  - **Why:** a professional designer advised that the saturated blue and orange gradients could tire older adults' eyes, and members said the white sentence with its shadow looked blurry.
+  - **Mark these when it's built:**
+    - UI-24's criteria about the white sentence and its exception
+    - UI-25's criteria about the warm gradient
+    - the Look line in section 7.17
+  - Size: S, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
 
