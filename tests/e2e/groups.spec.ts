@@ -17,9 +17,9 @@ test('a member starts a group from Discover and lands on it as its owner', async
   await expect(page).toHaveURL('/groups/new');
   await expectAccessible(page);
 
-  await page.getByLabel('Name').fill(name);
+  await page.getByLabel("What's it called?").fill(name);
   await page.getByRole('radio', { name: 'Outdoors' }).check();
-  await page.getByLabel("What it's about (optional)").fill('Easy miles on Saturdays.');
+  await page.getByLabel('What do you do together? (optional)').fill('Easy miles on Saturdays.');
   await page.getByRole('radio', { name: 'People you approve' }).check();
   await page.getByRole('button', { name: 'Start group' }).click();
 
