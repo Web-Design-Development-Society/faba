@@ -1,7 +1,8 @@
 ---
 // Starting a group (GRP-01): a name, a category, a description and who can join. The member
 // becomes its owner. It works without JavaScript: when it fails, the form comes back with what was
-// typed and the same idempotency key, so starting it again can't make a second group.
+// typed and the same idempotency key, so starting it again can't make a second group. It's on
+// paper, a few clear questions with room between them, like the other short forms (UI-26).
 import { actions, isInputError } from 'astro:actions';
 import Back from '../../components/Back.astro';
 import FieldError from '../../components/FieldError.astro';
@@ -36,10 +37,12 @@ const { data: categories, error: categoriesError } = await supabase
   .order('sort_order');
 ---
 
-<Layout title="Start a group">
+<Layout title="Start a group" paper>
   <Back href="/groups">Back to Groups</Back>
   <h1>Start a group</h1>
-  <p>A home for people who meet again and again, such as a running club or a book club.</p>
+  <p class="lead">
+    A home for people who meet again and again, such as a running club or a book club.
+  </p>
   {failure && <p role="alert">{failure}</p>}
   {categoriesError && <p role="alert">The categories couldn't load. Please try again.</p>}
   <form method="post" action={actions.groups.create.queryString}>
@@ -49,8 +52,7 @@ const { data: categories, error: categoriesError } = await supabase
       value={value('idempotency_key') ?? crypto.randomUUID()}
     />
     <p>
-      <label for="name">Name</label>
-      <br />
+      <label for="name">What's it called?</label>
       <input
         id="name"
         name="name"
@@ -64,7 +66,7 @@ const { data: categories, error: categoriesError } = await supabase
       <FieldError name="name" errors={errors.name} />
     </p>
     <fieldset class="choices" {...invalid('category_id')}>
-      <legend>Category</legend>
+      <legend>Which category fits it best?</legend>
       {categories?.map(({ id, name }) => (
         <label>
           <input
@@ -80,14 +82,13 @@ const { data: categories, error: categoriesError } = await supabase
       <FieldError name="category_id" errors={errors.category_id} />
     </fieldset>
     <p>
-      <label for="description">What it's about (optional)</label>
-      <br />
+      <label for="description">What do you do together? (optional)</label>
       <textarea
         id="description"
         name="description"
         rows="4"
         maxlength={GROUP.description.max}
-        placeholder="What you do together, and how often."
+        placeholder="Such as what you do, and how often you meet."
         {...invalid('description')}
       >{value('description')}</textarea>
       <FieldError name="description" errors={errors.description} />
@@ -112,3 +113,10 @@ const { data: categories, error: categoriesError } = await supabase
     </div>
   </form>
 </Layout>
+
+<style>
+  /* What a group is for, said once, with room before the first question. */
+  .lead {
+    margin-bottom: 1.5rem;
+  }
+</style>

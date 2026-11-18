@@ -2627,6 +2627,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - Post an update, for an activity and for a group
     - every Report form
     - Edit profile
+    - Start a group, which joined them on 2026-11-17, after the rest were built. Its questions ask what it's called, which category fits it best, what you do together, and who can join.
   - New and Edit activity keep their warm paper (UI-25).
   - **Each fact is under a plain heading, one after another.** The headings are in the display face, in capitals, all the same size. A fact's action sits at the right of its heading, such as **Add to calendar**.
     - **An activity:** its title, with its group and badges in a line under it, then its cover. Then Date and time, Location, Cost, Host, Details, For attendees, Who's going, Category, Updates, Cover picture, and Questions and comments.

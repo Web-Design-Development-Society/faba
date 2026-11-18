@@ -197,6 +197,7 @@ test('an activity, a group, a member and the short forms are on cream paper, rea
     `/activities/${theirs}/report`,
     `/groups/${group!.slug}`,
     `/groups/${group!.slug}/update`,
+    '/groups/new',
     `/people/${host.id}`,
     `/people/${host.id}/report`,
     '/me/edit',
