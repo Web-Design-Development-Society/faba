@@ -1,6 +1,7 @@
 -- Accounts for the five test personas on staging, so sample_data.sql has organizers. They have no
 -- password and no Google identity, so nobody can sign in as them, and they're all plain members.
--- The Seed staging workflow runs this, then sample_data.sql. Existing accounts are left alone.
+-- The Seed staging workflow runs this, then sample_data.sql and staging_groups.sql. Existing accounts
+-- are left alone.
 INSERT INTO auth.users
   (
     instance_id,
