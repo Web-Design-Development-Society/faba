@@ -1,6 +1,8 @@
-# Loads synthetic sample data into staging: five sample accounts that can't sign in, and 50
-# activities over the next 6 weeks (FND-10, design document section 11.7). Run it from the Actions
-# tab. Running it again gives the sample activities fresh dates and leaves everything else alone.
+# Loads synthetic sample data into staging: five sample accounts that can't sign in, 50 activities
+# over the next 6 weeks, and four groups with members, updates and some of those activities, plus
+# comments and updates on a few activities (FND-10, design document section 11.7). Run it from the
+# Actions tab. Running it again gives the sample activities fresh dates and starts the sample groups
+# over, and leaves everything else alone. Nobody is notified.
 name: Seed staging
 
 on:
@@ -33,7 +35,7 @@ jobs:
       - run: npm ci
       # Supabase CLI 3 targets the local stack unless told --remote, and changes a hosted project
       # only with --yes.
-      - name: Load the sample accounts and activities
+      - name: Load the sample accounts, activities and groups
         env:
           SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
           SUPABASE_DB_PASSWORD: ${{ secrets.SUPABASE_DB_PASSWORD }}
@@ -42,3 +44,4 @@ jobs:
           npx supabase link --project-ref "$SUPABASE_PROJECT_REF"
           npx supabase db query --remote --yes --file supabase/seed/staging_accounts.sql
           npx supabase db query --remote --yes --file supabase/seed/sample_data.sql
+          npx supabase db query --remote --yes --file supabase/seed/staging_groups.sql
