@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-26`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-27`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-26           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-27           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2657,6 +2657,35 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - UI-11's criteria about Edit profile's photo card
     - section 7.6, and the Look line in section 7.17
   - Size: M, one developer, including the tests.
+
+#### UI-27 · Pictures that load faster
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member on my phone, I want an activity's or a group's page to load its picture quickly, without downloading more than my screen shows, so that pages open fast on campus Wi-Fi or on cell data.
+- **Acceptance criteria:**
+  - **A medium copy for covers and banners.** When an activity's cover or a group's banner is added with JavaScript, the device also makes a medium copy, as a JPEG of at most 400 KB. It's kept beside the small copy for cards (UI-03). Profile photos don't get one, since faces are small.
+  - **It's what the page shows, no more:** the middle of the picture at the page's shape (16:9 for a cover, 3:1 for a banner), at most 1080 px wide. A tall phone photo keeps only the band the page shows.
+  - **The page picks the size that fits.** An activity's cover and a group's banner offer the medium copy and the full picture, and the browser picks the smaller one that's still sharp on its screen. A phone gets the medium copy, and a wide, sharp screen gets the full picture.
+  - Pictures added before this, or without JavaScript, have no medium copy, so they show the full picture, as now.
+  - **Pictures that haven't changed aren't downloaded again.**
+    - A browser keeps a picture for 5 minutes, so one a moderator hides goes quickly. (The picture said so before, but every page's no-store overrode it, so browsers kept no pictures at all.)
+    - A response that refreshes the member's session still isn't kept.
+    - After that, it asks whether its copy is still current, and the server answers "not changed", with no picture, when it is.
+  - **Faces load as they scroll into view,** like the cards' pictures, in long lists such as a group's members and who's going.
+  - **Nothing else changes:** the same pictures, at the same shapes, for the same people, with the same checks.
+  - **Tests:**
+    - The picture tests check that a phone photo's medium copy is 1080 by 608 px and is what a phone shows, and that the full picture is still at most 1600 px.
+    - They check that a picture is kept for 5 minutes, that asking again with its ETag gets "not changed", and that a hidden one is gone even then.
+    - The unit tests check the medium copy's cut and size.
+- **Dependencies:** MEDIA-01, UI-03, UI-26.
+- **Notes / edge cases:**
+  - **Why:** a cover is up to 1600 px and 2 MB, while a phone shows it about 1,000 px wide, so most of what it downloads is never seen.
+  - **Cut to the shape:** a cover fills the page's width and is cut to its shape, so a copy merely 1080 px wide would save little on a tall photo, whose full picture is only 1200 px wide. Cut to the shape, a test photo's medium copy was 60% smaller than the full picture when tall, and 50% when wide.
+  - **Cleanup:** when saving a picture fails, its medium copy is deleted with it, as the small copy is.
+  - **Mark these when it's built:**
+    - MEDIA-01's notes
+    - section 7.12
+  - Size: S, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
 
