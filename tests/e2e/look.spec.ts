@@ -340,7 +340,7 @@ test('each main page says what it is for, in white with a shadow, and Me says no
   const sentences = {
     '/discover': 'See what your fellow faculty are up to, get involved, and have some fun!',
     '/groups': 'Start a faculty group and get together regularly',
-    '/plans': 'Here is what is on my schedule',
+    '/plans': 'Here is what is on your schedule',
     '/notifications': 'Messages that help you keep track of new and changing activities',
   };
   for (const [path, words] of Object.entries(sentences)) {
