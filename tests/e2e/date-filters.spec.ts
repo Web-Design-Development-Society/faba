@@ -99,3 +99,18 @@ test('links from before UI-09 still work, without spots or tags', async ({ page,
   await choose(page, 'Date', 'Today');
   await expect(page).toHaveURL('/discover?when=today');
 });
+
+test("Category's and Date's lists have the same room around their choices", async ({
+  page,
+  signInAs,
+}) => {
+  await signInAs('member');
+  await page.goto('/discover');
+  for (const list of ['Category', 'Date'] as const) {
+    await button(page, list).click();
+    const panel = filters(page).locator('details[open] .panel');
+    await expect(panel).toBeVisible();
+    await expect(panel).toHaveCSS('padding', '12px');
+    await button(page, list).click();
+  }
+});
