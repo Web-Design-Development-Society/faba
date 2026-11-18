@@ -279,6 +279,10 @@ const on = !!chosenCategory || !anyTime;
     border: 1px solid var(--border);
     border-radius: 0;
   }
+  /* Category's panel is a list of chips too, so it keeps the panel's padding, as Date's does. */
+  .chips.panel {
+    padding: 0.75rem;
+  }
   .chips :global(.icon) {
     color: var(--blue);
   }
