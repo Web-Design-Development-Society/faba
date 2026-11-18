@@ -88,8 +88,9 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     {tab && (
       <nav aria-label="Main" class="tabs">
         <a href="/discover" aria-current={current('discover')}>
+          {/* The FABA logo, in greyscale like the icons beside it (UI-28). The label names it. */}
           <span class="tile">
-            <Icon name="home" size={24} />
+            <img class="mark" src="/brand/faba-mark.png" alt="" width="32" height="23" />
           </span>
           Discover
         </a>
@@ -777,6 +778,14 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   }
   .tabs [aria-current] .tile {
     background: var(--sky);
+  }
+  /* Discover's FABA logo, in greyscale at 70% brightness, so its lighter figure is 5.5:1 on the
+     white tile and 4.1:1 on the light blue one (UI-28). */
+  .tabs .tile .mark {
+    display: block;
+    width: 2rem;
+    height: auto;
+    filter: grayscale(1) brightness(0.7);
   }
   .tabs [aria-current]::after {
     position: absolute;

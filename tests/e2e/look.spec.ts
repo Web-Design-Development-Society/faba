@@ -23,7 +23,19 @@ test('selected things are FABA blue, and the bar keeps its five items', async ({
 
   const bar = page.getByRole('navigation', { name: 'Main' });
   await expect(bar.getByRole('link')).toHaveText(['Discover', 'Plans', 'Post', /^Alerts/, 'Me']);
-  await expect(bar.locator('svg')).toHaveCount(5);
+  // Discover's tile has the FABA logo in greyscale, and the other four keep their icons (UI-28).
+  const discover = bar.getByRole('link', { name: 'Discover' });
+  await expect(discover.locator('svg')).toHaveCount(0);
+  const mark = discover.locator('.tile img');
+  await expect(mark).toHaveAttribute('src', '/brand/faba-mark.png');
+  await expect(mark).toHaveAttribute('alt', '');
+  await expect(mark).toHaveCSS('filter', 'grayscale(1) brightness(0.7)');
+  await expect
+    .poll(() => mark.evaluate((img: HTMLImageElement) => img.naturalWidth))
+    .toBeGreaterThan(0);
+  for (const name of ['Plans', 'Post', /^Alerts/, 'Me']) {
+    await expect(bar.getByRole('link', { name }).locator('svg')).toHaveCount(1);
+  }
   // The current tab's tile is light blue, and it's underlined, so it isn't color alone.
   const here = bar.getByRole('link', { name: 'Discover' });
   await expect(here).toHaveAttribute('aria-current', 'page');
