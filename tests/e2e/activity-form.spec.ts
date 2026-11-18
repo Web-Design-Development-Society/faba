@@ -3,7 +3,7 @@
 // create-activity.spec.ts covers posting.
 import { expect, expectAccessible, test } from './fixtures';
 
-const BLUE = 'rgb(11, 91, 211)';
+const BLUE = 'rgb(0, 108, 194)';
 
 test('the form reads as sections, fits the screen, and keeps the bottom bar', async ({
   page,
