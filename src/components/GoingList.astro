@@ -1,6 +1,7 @@
 ---
 // Who's going to an activity (RSVP-03, journey J7): each member's face, name and department, with
-// the organizer first. Names open members' profiles (PROF-03).
+// the organizer first. Names open members' profiles (PROF-03), which go back to `from`.
+import { profileHref } from '../lib/back';
 import Avatar from './Avatar.astro';
 
 interface Member {
@@ -17,9 +18,11 @@ interface Props {
   people: Member[];
   /** The signed-in member, hidden while they're not going, for src/scripts/rsvp.ts to show. */
   me?: Member | null;
+  /** The activity's page, where a profile's Back goes. */
+  from?: string;
 }
 
-const { activityId, organizerId, people, me } = Astro.props;
+const { activityId, organizerId, people, me, from } = Astro.props;
 // create_activity() makes the organizer going before anyone else, but this doesn't rely on that.
 const rank = ({ id }: Member) => (id === organizerId ? 0 : 1);
 const entries = people
@@ -33,7 +36,7 @@ if (me && !people.some(({ id }) => id === me.id)) entries.push({ member: me, hid
     <li data-mine={member.id === me?.id ? '' : undefined} hidden={hidden}>
       <Avatar member={member} />
       <span>
-        <a href={`/people/${member.id}`}>{member.display_name}</a>
+        <a href={profileHref(member.id, from)}>{member.display_name}</a>
         {member.id === organizerId && <span class="badge">Organizer</span>}
         {member.department && <span class="department">{member.department}</span>}
       </span>

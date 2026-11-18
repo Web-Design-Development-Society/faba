@@ -100,7 +100,7 @@ test('members see who is in a group on its page, and anyone else only how many',
   await expect(members.getByRole('listitem').first()).toContainText('Owner');
   await expect(members.getByRole('link', { name: 'Pat Poster' })).toHaveAttribute(
     'href',
-    `/people/${poster.id}`
+    `/people/${poster.id}?from=${encodeURIComponent(`/groups/${slug}`)}`
   );
   await expect(page.getByRole('button', { name: 'Manage members' })).toHaveCount(0);
   await expectAccessible(page);

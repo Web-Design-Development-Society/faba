@@ -18,6 +18,7 @@ import PictureUpload from '../../../components/PictureUpload.astro';
 import Sheet from '../../../components/Sheet.astro';
 import Status from '../../../components/Status.astro';
 import Layout from '../../../layouts/Layout.astro';
+import { profileHref } from '../../../lib/back';
 import { CARD, historySince } from '../../../lib/cards';
 import { LEAGUES } from '../../../lib/features';
 import { linkify } from '../../../lib/links';
@@ -258,7 +259,10 @@ const members = group?.member_count ?? 0;
             'You started this group'
           ) : group.owner ? (
             <>
-              Started by <a href={`/people/${group.owner.id}`}>{group.owner.display_name}</a>
+              Started by{' '}
+              <a href={profileHref(group.owner.id, `/groups/${group.slug}`)}>
+                {group.owner.display_name}
+              </a>
             </>
           ) : (
             'Its owner left FABA'
@@ -327,7 +331,9 @@ const members = group?.member_count ?? 0;
               <li>
                 <Avatar member={person} />
                 <span>
-                  <a href={`/people/${person.id}`}>{person.display_name}</a>
+                  <a href={profileHref(person.id, `/groups/${group.slug}`)}>
+                    {person.display_name}
+                  </a>
                   {person.role === 'owner' && <span class="badge">Owner</span>}
                   {person.role === 'organizer' && <span class="badge">Organizer</span>}
                   {person.department && <span class="department">{person.department}</span>}

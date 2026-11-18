@@ -3,7 +3,9 @@
 // who they are, and the upcoming activities they organize. Their email shows only when they share
 // it, and moderators always see it (PROF-04). Faculty type, RSVPs and last-seen time aren't asked
 // for, and members can't read other members' anyway (RLS, FR-PROF-5). Report opens the Report form
-// (MOD-01). Moderators also see a suspended member's profile, to reinstate them (MOD-04).
+// (MOD-01). Moderators also see a suspended member's profile, to reinstate them (MOD-04). Opened
+// from an activity's or a group's page (?from=), Back goes there, named, so the member doesn't lose
+// the activity. Otherwise it goes to Discover.
 import { actions, isInputError } from 'astro:actions';
 import ActivityCard from '../../components/ActivityCard.astro';
 import Avatar from '../../components/Avatar.astro';
@@ -12,6 +14,7 @@ import Menu from '../../components/Menu.astro';
 import ModerationAction from '../../components/ModerationAction.astro';
 import Status from '../../components/Status.astro';
 import Layout from '../../layouts/Layout.astro';
+import { openedFrom } from '../../lib/back';
 import { CARD } from '../../lib/cards';
 import { FLASH_MESSAGES, postedFrom, setFlash, takeFlash } from '../../lib/server/flash';
 
@@ -47,7 +50,28 @@ const profileId = Astro.params.id!;
 const now = new Date();
 const moderator =
   member?.status === 'active' && (member.role === 'moderator' || member.role === 'admin');
-const [{ data: profile }, { data, error }, { data: categories }, { data: email }] =
+// The activity's or group's page it was opened from, and its name, if the member can see it.
+const from = openedFrom(Astro.url.searchParams.get('from'));
+const fromName = async () => {
+  if (from?.kind === 'activity') {
+    const { data: activity } = await supabase
+      .from('activities')
+      .select('title')
+      .eq('id', from.id)
+      .maybeSingle();
+    return activity?.title ?? null;
+  }
+  if (from?.kind === 'group') {
+    const { data: group } = await supabase
+      .from('groups')
+      .select('name')
+      .eq('slug', from.slug)
+      .maybeSingle();
+    return group?.name ?? null;
+  }
+  return null;
+};
+const [{ data: profile }, { data, error }, { data: categories }, { data: email }, backName] =
   await Promise.all([
     supabase
       .from('profiles')
@@ -70,7 +94,9 @@ const [{ data: profile }, { data, error }, { data: categories }, { data: email }
     supabase.from('categories').select('id, name').order('sort_order'),
     // Moderators always see a member's email, for safety follow-up (PROF-04).
     moderator ? supabase.rpc('member_email', { member_id: profileId }) : { data: null },
+    fromName(),
   ]);
+const back = from && backName ? from.path : null;
 if (!profile) Astro.response.status = 404;
 
 const activities = data ?? [];
@@ -80,11 +106,19 @@ const mine = profile?.id === user.id;
 
 <Layout title={profile?.display_name ?? 'Not available'} paper>
   <header class="top">
-    <Back href="/discover">Back to Discover</Back>
+    {back ? (
+      <Back href={back}>Back to {backName}</Back>
+    ) : (
+      <Back href="/discover">Back to Discover</Back>
+    )}
     {profile?.status === 'active' && !mine && (
       <Menu>
         <li>
-          <a href={`/people/${profile.id}/report`}>Report</a>
+          <a
+            href={`/people/${profile.id}/report${back ? `?from=${encodeURIComponent(back)}` : ''}`}
+          >
+            Report
+          </a>
         </li>
       </Menu>
     )}

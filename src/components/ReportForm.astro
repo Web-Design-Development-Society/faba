@@ -35,6 +35,12 @@ const fields: Record<string, string[] | undefined> = isInputError(result?.error)
   ? result.error.fields
   : {};
 const failure = result?.error && !isInputError(result.error) ? result.error.message : null;
+// Sending keeps the page's own query, such as where a profile was opened from (PROF-03).
+const target = new URL(Astro.url);
+for (const [name, value] of new URLSearchParams(actions.reports.create.queryString)) {
+  target.searchParams.set(name, value);
+}
+const action = target.pathname + target.search;
 ---
 
 {mine ? (
@@ -42,7 +48,7 @@ const failure = result?.error && !isInputError(result.error) ? result.error.mess
 ) : reported ? (
   <p>You've already reported this. A moderator will review it.</p>
 ) : (
-  <form method="post" action={actions.reports.create.queryString}>
+  <form method="post" action={action}>
     {failure && <p role="alert">{failure}</p>}
     <p class="lead">Only moderators see who sent a report.</p>
     <input type="hidden" name="target_type" value={type} />
