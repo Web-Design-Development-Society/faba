@@ -1884,7 +1884,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 - **Story:** As a member, I want FABA to look consistent, in FABA blue with clear icons, so that I can find my way around at a glance.
 - **Acceptance criteria:**
   - Every selected state is FABA blue (`--blue`) with white text: the **Activities | Groups** control, chosen chips, and the center **＋ Post** button. Nothing in the app's frame is black. (UI-14 made **＋ Post** a navy square on 2026-11-16, and it became orange on 2026-11-17, to match New activity's warmth.)
-  - The bottom bar keeps its five items in the same order: **Discover**, **Plans**, **＋ Post**, **Alerts** and **Me**. Each has a line icon above its label. **＋ Post** is a blue circle with "Post" under it. The current tab is blue, with a bolder label and an underline, so it isn't shown by color alone. The Alerts badge stays. (UI-14 put each icon in a square tile, the current one light blue and underlined, and made **＋ Post** a navy square.)
+  - The bottom bar keeps its five items in the same order: **Discover**, **Plans**, **＋ Post**, **Alerts** and **Me**. Each has a line icon above its label. (Since UI-28, on 2026-11-18, Discover's is the FABA logo in greyscale.) **＋ Post** is a blue circle with "Post" under it. The current tab is blue, with a bolder label and an underline, so it isn't shown by color alone. The Alerts badge stays. (UI-14 put each icon in a square tile, the current one light blue and underlined, and made **＋ Post** a navy square.)
   - One small set of line icons lives in one component (`src/components/Icon.astro`) as inline SVG: search, back, calendar, clock, pin, people, bell, check, arrows, chevron, plus, and one for each category. They're 20 to 24 px, in navy or blue. An icon beside text is hidden from screen readers. An icon-only button, such as Search or Back, has an accessible name. These icons replace the emoji now used for categories and alerts.
   - Pages sit on a soft blue-gray background, and content sits on white cards with a 1 px border, a soft shadow and the shared radius. (UI-14 replaced these with torn paper on FABA blue on 2026-11-16. UI-16 then made the paper square, with shadows, on a photo of torn paper.)
   - The header shows the logo with the FABA wordmark beside it. **Search** is an outlined square icon button beside the page's heading. Detail pages show a back chevron. Each is at least 44 px. (Since UI-19, **Search** is a magnifying glass at the right of the header's strip.)
@@ -2229,7 +2229,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - **You're hosting** is a blue sticker with a few burst lines, tilted slightly. (UI-17 replaced the sticker with white words in the card's blue column on 2026-11-17.)
     - The **Category** and **Date** filters are bordered boxes with a chevron, with their labels in display capitals.
   - **The bottom bar:**
-    - Each item is an icon in a rounded square tile, with its label in display capitals under it. (The tile became square on 2026-11-17.)
+    - Each item is an icon in a rounded square tile, with its label in display capitals under it. (The tile became square on 2026-11-17, and Discover's icon became the FABA logo in greyscale on 2026-11-18, UI-28.)
     - The current item's tile is filled light blue. It's still marked by more than color, with `aria-current` and a bolder label.
     - **＋ Post** is a navy square with a white plus, raised a little above the bar. This replaces UI-02's blue circle. (It became orange on 2026-11-17, to match New activity's warmth, UI-25.)
   - **Every page follows**, through the layout, the shared tokens and the shared components, not page by page. That covers Plans, Groups and a group's page, an activity's page, Alerts, Me, every form (UI-12), Search, Welcome, and the moderation and admin pages. Their structure and wording don't change.
@@ -2834,6 +2834,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 | 3 and later | Same 5 items. **Discover** gains a segmented control, **Activities \| Groups**. Leagues live inside Groups, and are on hold (ADR-018) |
 
 - The center **＋** is visually prominent. It is the only filled button in the bar.
+- **Discover**'s tile shows the FABA logo in greyscale, darkened so it's at least 4.1:1 on the current tab's light blue tile, where the other items have line icons (UI-28).
 - The **Alerts** badge shows the unread count (displayed as "9+" above 9).
 - The top app bar is minimal: the FABA mark and wordmark (which return to Home), the motto "Bringing faculty together!" beside them (UI-08), and a **search** icon. Detail pages show **Back** and an overflow (⋯) menu.
 - Moderators get a **Moderation** entry inside **Me**, not in the bottom bar.
