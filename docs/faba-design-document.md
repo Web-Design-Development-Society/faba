@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-27`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-28`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-27           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-28           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2686,6 +2686,26 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - MEDIA-01's notes
     - section 7.12
   - Size: S, one developer, including the tests.
+
+#### UI-28 · The FABA logo for Discover
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want Discover in the bottom bar to show the FABA logo, so that the app's home looks like FABA's own.
+- **Acceptance criteria:**
+  - **Discover's tile shows the FABA logo** (`public/brand/faba-mark.png`) instead of the house icon, about the size of the other icons, and in greyscale, so it matches their plain look.
+  - **It's dark enough to see:** greyscale at 70% brightness, so the logo's lighter figure is 5.5:1 on the white tile and 4.1:1 on the current tab's light blue tile, above the 3:1 an icon needs.
+  - **It stays greyscale** when Discover is the current tab. The tile turns light blue and the tab is underlined, as for the others.
+  - **Its label still says Discover,** and the logo is decorative, so screen readers hear "Discover" as before.
+  - **Plans, Post, Alerts and Me keep their icons.**
+  - At 320 px, 412 px and desktop, the bar keeps its five items in one row.
+  - **Tests:** the look test checks that Discover's tile has the greyscale logo and no icon, and that the other tiles keep theirs.
+- **Dependencies:** UI-02, UI-14.
+- **Notes / edge cases:**
+  - **Why:** the logo makes the bar FABA's own, while greyscale keeps it as quiet as the line icons beside it.
+  - **Mark these when it's built:**
+    - UI-02's and UI-14's lines about the bar's icons
+    - section 7.3
+  - Size: XS, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
 
