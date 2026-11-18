@@ -1,7 +1,9 @@
 ---
 // An activity's cover or a group's banner (MEDIA-01), across the page's width at a fixed shape, so a
 // tall phone photo doesn't fill the screen. The middle of the picture shows, and the edges that
-// don't fit are cut off. Anyone but the person who added it can report it.
+// don't fit are cut off. Anyone but the person who added it can report it. A phone gets its medium
+// copy, 1080 px wide, and a wide, sharp screen the full picture, which the browser picks from how
+// wide the page shows it (UI-27). One without a medium copy is served whole either way.
 interface Props {
   image: { id: string; alt: string; uploaded_by: string | null };
   /** The member viewing the page. */
@@ -14,7 +16,13 @@ const { image, viewer, shape } = Astro.props;
 ---
 
 <figure class:list={['picture', shape]}>
-  <img src={`/api/media/${image.id}`} alt={image.alt} />
+  <img
+    src={`/api/media/${image.id}?size=medium`}
+    srcset={`/api/media/${image.id}?size=medium 1080w, /api/media/${image.id} 1600w`}
+    sizes="(min-width: 40rem) 36rem, calc(100vw - 3rem)"
+    alt={image.alt}
+    decoding="async"
+  />
   {image.uploaded_by !== viewer && (
     <figcaption>
       <a href={`/media/${image.id}/report`} class="button">

@@ -5,22 +5,32 @@
 // carried about itself, such as where it was taken. A small picture uploads as it is.
 //
 // Every picture also gets a small copy, at most 640 px, which cards show so Discover doesn't
-// download whole photos (UI-03).
+// download whole photos (UI-03). A cover or banner also gets a medium copy, which a phone shows on
+// the activity's or group's page: the middle of the picture at the shape the page shows it, at most
+// 1080 px wide (UI-27).
 //
 // Without JavaScript, or when the browser can't read the file, it uploads as it is, and the server
 // says what's wrong, next to the form.
-import { fitWithin, MAX_BYTES, MAX_SIDE, THUMB_MAX_BYTES, THUMB_SIDE } from '../lib/media';
+import {
+  fitWithin,
+  MAX_BYTES,
+  MAX_SIDE,
+  MEDIUM_MAX_BYTES,
+  mediumCrop,
+  THUMB_MAX_BYTES,
+  THUMB_SIDE,
+} from '../lib/media';
 
 const KEPT = ['image/jpeg', 'image/png', 'image/webp'];
 
-/** The picture drawn at most `side` px on its longest side, as a JPEG of at most `max` bytes. */
+/** The picture, or `crop` of it, drawn at `size`, as a JPEG of at most `max` bytes. */
 async function redraw(
   bitmap: ImageBitmap,
-  side: number,
+  { width, height }: { width: number; height: number },
   max: number,
-  name: string
+  name: string,
+  crop = { sx: 0, sy: 0, sw: bitmap.width, sh: bitmap.height }
 ): Promise<File | null> {
-  const { width, height } = fitWithin(bitmap.width, bitmap.height, side);
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -28,7 +38,7 @@ async function redraw(
   // A JPEG has no transparency, so a see-through PNG goes on white, not black.
   context.fillStyle = 'white';
   context.fillRect(0, 0, width, height);
-  context.drawImage(bitmap, 0, 0, width, height);
+  context.drawImage(bitmap, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, width, height);
 
   // Lower the quality until it fits, which it almost always does at the first.
   let blob: Blob | null = null;
@@ -43,22 +53,34 @@ async function redraw(
 
 /**
  * The picture redrawn smaller, or null when it's fine as it is, and its small copy for cards, at
- * most `side` px. A profile photo's is smaller, since faces are small (UI-11).
+ * most `side` px. A profile photo's is smaller, since faces are small (UI-11). With `shape`, a
+ * cover or banner also gets its medium copy at that shape (UI-27).
  */
 async function prepare(
   file: File,
-  side = THUMB_SIDE
-): Promise<{ picture: File | null; thumb: File | null }> {
+  side = THUMB_SIDE,
+  shape?: number
+): Promise<{ picture: File | null; thumb: File | null; middle: File | null }> {
   const bitmap = await createImageBitmap(file);
   try {
     const name = file.name.replace(/\.[^.]*$/, '') || 'picture';
-    const big = Math.max(bitmap.width, bitmap.height) > MAX_SIDE;
+    const { width, height } = bitmap;
+    const big = Math.max(width, height) > MAX_SIDE;
     const picture =
       big || file.size > MAX_BYTES || !KEPT.includes(file.type)
-        ? await redraw(bitmap, MAX_SIDE, MAX_BYTES, `${name}.jpg`)
+        ? await redraw(bitmap, fitWithin(width, height), MAX_BYTES, `${name}.jpg`)
         : null;
-    const thumb = await redraw(bitmap, side, THUMB_MAX_BYTES, `${name}-small.jpg`);
-    return { picture, thumb };
+    const thumb = await redraw(
+      bitmap,
+      fitWithin(width, height, side),
+      THUMB_MAX_BYTES,
+      `${name}-small.jpg`
+    );
+    const medium = shape ? mediumCrop(width, height, shape) : null;
+    const middle = medium
+      ? await redraw(bitmap, medium.size, MEDIUM_MAX_BYTES, `${name}-medium.jpg`, medium.crop)
+      : null;
+    return { picture, thumb, middle };
   } finally {
     bitmap.close();
   }
@@ -86,10 +108,16 @@ for (const form of document.querySelectorAll<HTMLFormElement>('form[data-picture
       button.textContent = 'Getting the picture ready…';
     }
     try {
-      const { picture, thumb } = await prepare(file, Number(form.dataset.thumbSide) || undefined);
+      const medium = form.querySelector<HTMLInputElement>('input[data-medium]');
+      const { picture, thumb, middle } = await prepare(
+        file,
+        Number(form.dataset.thumbSide) || undefined,
+        Number(medium?.dataset.shape) || undefined
+      );
       if (picture) choose(input, picture);
       const small = form.querySelector<HTMLInputElement>('input[data-thumb]');
       if (thumb && small) choose(small, thumb);
+      if (middle && medium) choose(medium, middle);
     } catch {
       // The browser can't read it, so the server decides, and says why if it's refused.
     }

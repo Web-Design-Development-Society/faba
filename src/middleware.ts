@@ -1,3 +1,4 @@
+import type { APIContext } from 'astro';
 import { defineMiddleware } from 'astro:middleware';
 // Importing astro:env/server checks every variable in env.schema, so a missing or invalid one
 // fails every request with an error that names it.
@@ -74,13 +75,21 @@ export const onRequest = defineMiddleware(async (context, next) => {
     }
   }
 
-  return noStore(await next());
+  return noStore(await next(), context.cookies);
 });
 
 // Pages depend on who's signed in, and refreshed sessions set cookies, so browsers and
-// Cloudflare must never cache them. Nor should search engines index them (FR-PROF-7).
-function noStore(response: Response) {
-  response.headers.set('Cache-Control', 'private, no-store');
+// Cloudflare must never cache them. Nor should search engines index them (FR-PROF-7). A response
+// that sets its own short, private cache, as a picture does (src/pages/api/media/[id].ts), keeps
+// it, so a page doesn't download its pictures again each time it opens (UI-27). It doesn't when
+// the request set a cookie, such as a refreshed session.
+function noStore(response: Response, cookies?: APIContext['cookies']) {
+  const own = response.headers.get('Cache-Control') ?? '';
+  const setsCookie =
+    !cookies || !cookies.headers().next().done || response.headers.has('Set-Cookie');
+  if (!own.startsWith('private, max-age=') || setsCookie) {
+    response.headers.set('Cache-Control', 'private, no-store');
+  }
   response.headers.set('X-Robots-Tag', 'noindex');
   return response;
 }

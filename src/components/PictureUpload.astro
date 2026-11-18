@@ -5,6 +5,8 @@
 // /api/media/upload, which comes back to this form (#picture) with the reason when it refuses the
 // picture, so the reason shows here, not just in the toast at the top of the page.
 // src/scripts/pictures.ts shrinks a big photo on the device first.
+import { SHAPES } from '../lib/media';
+
 interface Props {
   target: 'activity' | 'group' | 'profile';
   /** The activity's or group's id. A profile photo is always the member's own. */
@@ -20,6 +22,8 @@ interface Props {
 const { target, id, back, submit, error } = Astro.props;
 const prefix = { activity: 'cover', group: 'banner', profile: 'photo' }[target];
 const profile = target === 'profile';
+// The shape the page shows a cover or banner at, for its medium copy (UI-27).
+const shape = target === 'profile' ? null : SHAPES[target];
 ---
 
 <form
@@ -54,8 +58,10 @@ const profile = target === 'profile';
     A big photo is made smaller on your device before it uploads, and where it was taken is left
     out.
   </p>
-  {/* The small copy for cards (UI-03), which src/scripts/pictures.ts makes. */}
+  {/* The small copy for cards (UI-03), and a cover's or banner's medium copy for phones (UI-27),
+      which src/scripts/pictures.ts makes. */}
   <input name="thumb" type="file" hidden data-thumb />
+  {shape && <input name="medium" type="file" hidden data-medium data-shape={shape} />}
   {!profile && (
     <>
       <label for={`${prefix}-alt`}>Describe it for people who can't see it</label>

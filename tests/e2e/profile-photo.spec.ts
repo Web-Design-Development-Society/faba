@@ -52,8 +52,11 @@ test('a member adds a photo, sees it everywhere, and removes it', async ({
   );
   const photo = page.getByRole('img', { name: 'Pat Poster' });
   await expect(photo).toHaveAttribute('src', /^\/api\/media\/[0-9a-f-]{36}\?size=thumb$/);
-  // Its small copy, made for faces.
+  // Its small copy, made for faces, which loads as it scrolls into view (UI-27). A photo has no
+  // medium copy, since faces are small.
   await expect.poll(() => photo.evaluate((img: HTMLImageElement) => img.naturalWidth)).toBe(256);
+  await expect(photo).toHaveAttribute('loading', 'lazy');
+  await expect(page.locator('form#picture input[data-medium]')).toHaveCount(0);
   await expect(appearance.getByRole('radio', { name: 'My photo' })).toBeChecked();
 
   // On Me, and in who's going on the page of what Pat's going to. Cards show just the count
