@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-34`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-35`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-34           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-35           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2849,6 +2849,24 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - **Why on the device, not the account:** a member may want their phone dark and their office computer light. It also works before signing in, and needs no database change.
   - **A home-screen app** keeps its own cookies apart from the browser on some phones, such as iPhones, so it has its own choice.
   - Size: S, one developer, including the tests.
+
+#### UI-35 · A check for Plans in the bottom bar
+
+- **Role:** Member · **Priority:** Could · **Phase:** 6
+- **Story:** As a member, I want the Plans button in the bottom bar to show a check like **✓ Going**'s, so that I can tell at a glance it's where the things I'm going to are.
+- **Acceptance criteria:**
+  - **Plans' tile shows a check mark** in place of the calendar icon.
+  - **It's the same ✓ as ✓ Going,** the same character in the same display face, so the two look alike on each device.
+  - **It's black** (`--ink`): 17.9:1 on the white tile and 13.5:1 on the light blue one when Plans is the current page. In the dark theme it's the soft white of the text (UI-33), 12.6:1 and 10.1:1.
+  - It's about as big as the other icons, in the middle of the tile.
+  - The label still says Plans. The check is hidden from screen readers, so the link's name stays "Plans".
+  - High-contrast mode shows it in the system's text color.
+  - **Tests:** the look test checks that Plans has the check, in the display face, and no icon, and the axe checks pass.
+- **Dependencies:** UI-14, UI-28, UI-33.
+- **Notes / edge cases:**
+  - **Why a character, not a drawn icon:** Anton has no ✓, so each device draws ✓ Going's from its own symbol font. The same character in the same face matches it on every device, where a drawn icon would match it on none.
+  - The calendar icon stays everywhere else, such as Me's Calendar feed row and the date field.
+  - Size: XS.
 
 #### GRP-06 · No limit on starting groups
 
