@@ -198,7 +198,7 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
 </script>
 
 <style>
-  /* Each day is a small label over its cards. */
+  /* Each day is a small label over its cards, each word starting with a capital (UI-30). */
   h3 {
     margin: 1.5rem 0 0.5rem;
     font-family: var(--display);
@@ -206,7 +206,7 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
     font-weight: 400;
     letter-spacing: 0.04em;
     color: var(--navy);
-    text-transform: uppercase;
+    text-transform: capitalize;
   }
   /* minmax(0, 1fr) keeps a card with a long place on one line from widening the column. */
   ul {

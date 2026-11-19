@@ -101,7 +101,7 @@ test('each alert is a card, and Unread shows only the new ones', async ({ page, 
   await expectSquare(card);
   expect(await dot(read.getByText('Sunrise hike up the R'))).toBeNull();
   await expect(title).toHaveCSS('font-family', /^Anton/);
-  await expect(title).toHaveCSS('text-transform', 'uppercase');
+  await expect(title).toHaveCSS('text-transform', 'capitalize');
   const [name, sentence] = [
     (await title.boundingBox())!,
     (await card.getByText(/Reminder: /).boundingBox())!,

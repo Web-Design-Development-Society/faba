@@ -169,7 +169,7 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
   h2 {
     margin: 1.5rem 0 0.5rem;
     font-size: 0.875rem;
-    text-transform: uppercase;
+    text-transform: capitalize;
   }
   ul {
     display: grid;
@@ -213,7 +213,7 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
     gap: 0.125rem;
     min-width: 0;
   }
-  /* In the display face, in capitals by CSS, like an activity's title. */
+  /* In the display face, each word starting with a capital by CSS, like an activity's title (UI-30). */
   .title {
     order: -1;
     font-family: var(--display);
@@ -221,7 +221,7 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
     line-height: 1.15;
     letter-spacing: 0.01em;
     color: var(--navy);
-    text-transform: uppercase;
+    text-transform: capitalize;
     overflow-wrap: anywhere;
   }
   /* The dot is a border, not a background, so it still shows in high contrast. */

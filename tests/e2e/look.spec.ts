@@ -69,6 +69,49 @@ test('selected things are FABA blue, and the bar keeps its five items', async ({
   await expectAccessible(page);
 });
 
+test('headers start each word with a capital, while buttons and tabs stay in capitals', async ({
+  page,
+  poster,
+  host,
+}) => {
+  expect(poster.id).toBeTruthy();
+  const id = await host.post();
+  // Headers: a day's label and a card's title on Discover, and a page's headings (UI-30).
+  await page.goto('/discover');
+  const feed = page.locator('[data-feed]');
+  await expect(feed.locator('[data-day] > h3').first()).toHaveCSS('text-transform', 'capitalize');
+  await expect(feed.getByRole('article').first().getByRole('heading')).toHaveCSS(
+    'text-transform',
+    'capitalize'
+  );
+  // Not headers: the tabs, the filter buttons, a card's date and the bottom bar.
+  await expect(
+    page.getByRole('navigation', { name: 'Discover' }).getByRole('link', { name: 'Activities' })
+  ).toHaveCSS('text-transform', 'uppercase');
+  await expect(
+    page.getByRole('navigation', { name: 'Filters' }).locator('summary').first()
+  ).toHaveCSS('text-transform', 'uppercase');
+  await expect(feed.getByRole('article').first().locator('.date')).toHaveCSS(
+    'text-transform',
+    'uppercase'
+  );
+  await expect(
+    page.getByRole('navigation', { name: 'Main' }).getByRole('link', { name: 'Plans' })
+  ).toHaveCSS('text-transform', 'uppercase');
+
+  await page.goto(`/activities/${id}`);
+  await expect(page.getByRole('heading', { level: 1 })).toHaveCSS('text-transform', 'capitalize');
+  await expect(page.getByRole('heading', { name: 'Date and time', level: 2 })).toHaveCSS(
+    'text-transform',
+    'capitalize'
+  );
+  // A button stays in capitals (UI-22).
+  await expect(page.getByRole('button', { name: "I'm in" })).toHaveCSS(
+    'text-transform',
+    'uppercase'
+  );
+});
+
 test("the main tabs' headings are for screen readers, and New activity keeps its banner, warm", async ({
   page,
   signInAs,
@@ -97,12 +140,12 @@ test("the main tabs' headings are for screen readers, and New activity keeps its
       )
     ).toBe(true);
   }
-  // New activity keeps its banner: big, in Anton and in capitals.
+  // New activity keeps its banner: big, in Anton, each word starting with a capital (UI-30).
   await page.goto('/activities/new');
   const heading = page.getByRole('heading', { level: 1 });
   // Capitals come from CSS, so the page, screen readers and search keep the words as written.
   await expect(heading).toHaveText('New activity');
-  await expect(heading).toHaveCSS('text-transform', 'uppercase');
+  await expect(heading).toHaveCSS('text-transform', 'capitalize');
   await expect(heading).toHaveCSS('font-family', /^Anton/);
   expect(await page.evaluate(() => document.fonts.check('48px Anton'))).toBe(true);
   // On one line at every width, and as big as a heading on a phone should be.

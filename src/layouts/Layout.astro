@@ -390,14 +390,15 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     height: 2.25rem;
     width: auto;
   }
-  /* Headings are in the display face, in capitals by CSS, so the page keeps the words as written. */
+  /* Headings are in the display face, each word starting with a capital by CSS, which reads more
+     easily than all capitals (UI-30), so the page keeps the words as written. */
   h1,
   h2 {
     font-family: var(--display);
     font-weight: 400;
     line-height: 1.05;
     letter-spacing: 0.01em;
-    text-transform: uppercase;
+    text-transform: capitalize;
   }
   h1 {
     margin: 0.25rem 0 0.75rem;
