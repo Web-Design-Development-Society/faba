@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-33`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-34`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-33           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-34           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2828,6 +2828,27 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - UI-14's note about dark mode
     - the Themes and Contrast lines in section 7.17
   - Size: M, one developer, including the tests.
+
+#### UI-34 · Choose light or dark on Me
+
+- **Role:** Member · **Priority:** Could · **Phase:** 6
+- **Story:** As a member, I want to choose light or dark for FABA myself, so that it looks the way I like even when my phone or computer is set the other way.
+- **Acceptance criteria:**
+  - **Me has a Theme card** under the settings, with three choices: **Match device**, **Light** and **Dark**. Match device is chosen until the member picks another, and it follows the device as UI-33 does.
+  - **A choice takes effect at once:** choosing one reloads Me in that theme, and a toast says "Theme saved." Without JavaScript, a **Save** button sends it.
+  - **It's kept on this device,** in a cookie, for a year. The server draws each page in the chosen theme, so a page never shows the other theme first. It applies to every page on that device, including the landing and sign-in pages after signing out.
+  - **Light or Dark wins over the device's setting:** for FABA's colors, for the browser's own fields and scrollbars (`color-scheme`), and for the browser bar's color.
+  - **The colors are exactly UI-33's.** A test compares every color token between the two ways of getting each theme, so they can't drift apart.
+  - **The choices are radio buttons under a legend,** so a screen reader says "Theme" and which one is chosen. The chosen one is FABA blue with a check, so it isn't shown by color alone.
+  - High-contrast mode still uses the system's colors.
+  - **Tests:**
+    - E2E: choosing Dark on a light device and Light on a dark device, which lasts across pages and a reload; going back to Match device; Save without JavaScript; and axe on Me in both themes.
+    - Unit: a cookie that isn't light or dark counts as Match device.
+- **Dependencies:** UI-33.
+- **Notes / edge cases:**
+  - **Why on the device, not the account:** a member may want their phone dark and their office computer light. It also works before signing in, and needs no database change.
+  - **A home-screen app** keeps its own cookies apart from the browser on some phones, such as iPhones, so it has its own choice.
+  - Size: S, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
 
