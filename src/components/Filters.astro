@@ -9,7 +9,8 @@
 // weekend, then Pick dates with From and To. The choices are links, and Pick dates is a GET form,
 // so a filter can be shared. A date keeps the category, and a category keeps the dates, as in
 // /discover?when=weekend&cat=outdoors. On Search they keep the words too. Clear filters shows
-// whenever a filter is on.
+// whenever a filter is on. What the page puts in the slot, such as Discover's Follow button for
+// the chosen category, comes after it in the same row.
 //
 // On Search before searching (`browse`), the categories show as chips to browse instead.
 import { isIcon } from '../lib/icons';
@@ -156,6 +157,7 @@ const on = !!chosenCategory || !anyTime;
           Clear filters
         </a>
       )}
+      <slot />
     </div>
   </nav>
 )}
@@ -193,7 +195,7 @@ const on = !!chosenCategory || !anyTime;
   .filters > p {
     margin: 0 0 0.5rem;
   }
-  /* Category, Date and Clear filters, in one row that wraps on a narrow phone. */
+  /* Category, Date, Clear filters and Follow, in one row that wraps on a narrow phone. */
   .tools {
     position: relative;
     display: flex;

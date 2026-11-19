@@ -121,10 +121,9 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
   <h2 id="upcoming" class="visually-hidden">
     Upcoming activities
   </h2>
-  <Filters categories={chips ?? []} page="/discover" query={Astro.url.searchParams} dates={dates} />
-  {category && (
-    <>
-      {followed?.error && <p role="alert">{followed.error.message}</p>}
+  {/* Follow sits beside Clear filters, in the filters' row. */}
+  <Filters categories={chips ?? []} page="/discover" query={Astro.url.searchParams} dates={dates}>
+    {category && (
       <FollowButton
         kind="category"
         target={category.id}
@@ -132,8 +131,9 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
         following={!!following}
         action={`?cat=${encodeURIComponent(category.id)}&${actions.follows.set.queryString.replace(/^\?/, '')}`}
       />
-    </>
-  )}
+    )}
+  </Filters>
+  {followed?.error && <p role="alert">{followed.error.message}</p>}
 
   {feed.error ? (
     <p role="alert">Activities couldn't load. Please try again.</p>
