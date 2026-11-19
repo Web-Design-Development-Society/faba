@@ -3193,6 +3193,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 - **Unread treatment** (UI-15): light-blue paper and a dot before the name, not color alone. The dot is drawn as a border, so it still shows in high contrast, where the paper gives way to a plain border.
 - **Tapping a row** marks it read and opens the target. A long press or the overflow menu offers **Mute this activity**.
 - **Mark all read** is a text button at the top right.
+- **Removing** (NOTIF-21): an × at each card's top right removes it, and **Clear**, at the right of the **Earlier** heading, removes every alert that's been read. Removing a new one marks it read. The list comes back at the alert that took the removed one's place. A removed alert is hidden, not deleted, and shows again only if it comes back as new.
 - **Copy examples:**
   - "**Board game night** moved to **7:30 PM**, Fri (was 7:00)"
   - "**Sunrise hike** was cancelled: _weather_"
@@ -3387,6 +3388,7 @@ Requirements use "must" for required behavior. **P** is the phase in which a req
 | FR-NOT-4 | Members must be able to mute an activity. Cancellations bypass mute                                                                                      | 2   | NOTIF-08 |
 | FR-NOT-5 | Notifications older than 90 days must be purged                                                                                                          | 2   | NOTIF-01 |
 | FR-NOT-6 | The system must support per-type preferences, stored per channel                                                                                         | 3   | NOTIF-10 |
+| FR-NOT-7 | Members must be able to remove an alert, or every one they've read. A removed alert is hidden until it's purged, so it isn't made again                  | 6   | NOTIF-21 |
 
 **Notification type catalog.** This table is the source for `docs/notifications.md`.
 
@@ -3999,6 +4001,7 @@ erDiagram
     jsonb payload
     text dedupe_key
     timestamptz read_at
+    timestamptz removed_at
   }
   REPORTS {
     uuid id PK
@@ -4127,7 +4130,7 @@ erDiagram
 | `tags`, `activity_tags`    | 2     | Curated tags (`id` slug, `name`, `is_active`), joined to activities (PK `activity_id, tag_id`)                                                                                                                    | Read by members. Written through activity RPCs                                                                               | `activity_tags(tag_id, activity_id)`                                                                                   |
 | `activity_private_details` | 2     | `activity_id` PK, `details` (500 characters or fewer), `updated_at`                                                                                                                                               | Organizer, going attendees, moderators. Purged 30 days after the activity ends, and when its organizer deletes their account | Primary key                                                                                                            |
 | `activity_updates`         | 2     | `id`, `activity_id` or (P3) `group_id`, `author_id`, `body`, `hidden_at`, `created_at`                                                                                                                            | Viewers of the activity. Created through RPC                                                                                 | `(activity_id, created_at desc)`                                                                                       |
-| `notifications`            | 2     | `id`, `recipient_id`, `type`, `activity_id` (`SET NULL`), `actor_id`, `payload jsonb`, `dedupe_key`, `read_at`, `created_at`                                                                                      | Own rows. `read_at` can be updated. Created only by `private.notify()`                                                       | `(recipient_id, created_at desc)`; partial `(recipient_id) where read_at is null`; unique `(recipient_id, dedupe_key)` |
+| `notifications`            | 2     | `id`, `recipient_id`, `type`, `activity_id` (`SET NULL`), `actor_id`, `payload jsonb`, `dedupe_key`, `read_at`, `removed_at`, `created_at`                                                                        | Own rows. `read_at` can be updated. Created only by `private.notify()`                                                       | `(recipient_id, created_at desc)`; partial `(recipient_id) where read_at is null`; unique `(recipient_id, dedupe_key)` |
 | `groups`                   | 3     | `id`, `slug`, `name`, `description`, `category_id`, `kind` (`interest` \| `league`), `join_policy`, `owner_id`, `idempotency_key`, `archived_at`, `hidden_at`                                                     | Visible to members (unless hidden). Managed through RPC                                                                      | `slug` unique; `(kind, archived_at)`                                                                                   |
 | `group_members`            | 3     | PK `(group_id, user_id)`, `role` (`owner` \| `organizer` \| `member`), `status` (`active` \| `pending`), `joined_at`                                                                                              | Members of the group and the member themself                                                                                 | `(user_id, status)`                                                                                                    |
 | `activity_organizers`      | 3     | PK `(activity_id, user_id)`, `added_by`                                                                                                                                                                           | Through RPC. Referenced by `is_activity_organizer()`                                                                         | `(user_id)`                                                                                                            |
@@ -4162,6 +4165,7 @@ erDiagram
 | `search_activities(q, filters, cursor)` / `get_feed(filters, cursor)`                      | 2 (feed: 1) | Filtered, paginated reads (`SECURITY INVOKER`, so RLS applies)                                                                                                                      |
 | `post_activity_update(activity_id, body)`                                                  | 2           | Organizer check, quota, insert, notify                                                                                                                                              |
 | `mark_notifications_read(ids \| all)`                                                      | 2           | Sets `read_at` on the caller's notifications                                                                                                                                        |
+| `remove_notifications(ids)`, `clear_read_notifications()`                                  | 6           | Sets `removed_at` on the caller's notifications: the ones given, which it marks read too, or every read one                                                                         |
 | `mute_activity(activity_id, muted)`                                                        | 2           | Adds or removes the member's `activity_mutes` row                                                                                                                                   |
 | `private.notify(...)`                                                                      | 2           | The single notification creation path. Handles deduplication upserts and mute rules                                                                                                 |
 | `private.generate_reminders()`, `private.purge_old_data()`, `private.check_counts()`       | 2           | `pg_cron` jobs                                                                                                                                                                      |

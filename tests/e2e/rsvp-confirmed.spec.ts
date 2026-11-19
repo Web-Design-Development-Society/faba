@@ -22,7 +22,7 @@ test("I'm in puts a confirmation in Alerts, without the badge", async ({ page, p
   await expect(alerts).toHaveAccessibleName('Alerts');
   await expect(page.getByRole('button', { name: 'Mark all read' })).toHaveCount(0);
   await expect(page.getByRole('region', { name: 'New' })).toHaveCount(0);
-  await expect(page.getByRole('region', { name: 'Earlier' }).getByRole('button')).toHaveText([
+  await expect(page.getByRole('region', { name: 'Earlier' }).getByRole('listitem')).toHaveText([
     new RegExp(`You're going on ${formatWhen(startsAt)}\\s*Sunrise hike up the R`),
   ]);
   await expectAccessible(page);

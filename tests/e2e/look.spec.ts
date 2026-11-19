@@ -555,7 +555,7 @@ test('in high contrast, the paper gives way to plain borders', async ({ page, po
 
   // An alert's card too, and its unread dot still shows.
   await page.goto('/notifications');
-  const card = page.getByRole('region', { name: 'New' }).getByRole('button');
+  const card = page.getByRole('region', { name: 'New' }).getByRole('button', { name: /^Unread: / });
   await plain(card);
   await expect(card).toHaveCSS('background-image', 'none');
   const dot = await card.getByText('Sunrise hike up the R').evaluate((el) => {

@@ -19,7 +19,7 @@ test('Alerts shows a reminder with the time and place', async ({ page, poster, h
   });
 
   await page.goto('/notifications');
-  await expect(page.getByRole('region', { name: 'New' }).getByRole('button')).toHaveText([
+  await expect(page.getByRole('region', { name: 'New' }).getByRole('listitem')).toHaveText([
     new RegExp(
       `Unread: Reminder: (today at ${formatClock(startsAt)}|.+), Hart courts\\s*Sunrise hike up the R`
     ),
