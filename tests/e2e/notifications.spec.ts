@@ -1,4 +1,5 @@
-// The notification center (NOTIF-01). The pgTAP tests cover marking notifications read.
+// The notification center (NOTIF-01), and removing alerts (NOTIF-21). The pgTAP tests cover marking
+// notifications read and removing them.
 import type { Locator } from '@playwright/test';
 import { expect, expectAccessible, expectSquare, paper, test } from './fixtures';
 
@@ -37,22 +38,22 @@ test('the center has new and earlier alerts, and opening one marks it read', asy
   await page.goto('/notifications');
   const fresh = page.getByRole('region', { name: 'New' });
   const earlier = page.getByRole('region', { name: 'Earlier' });
-  await expect(fresh.getByRole('button')).toHaveText([
+  await expect(fresh.getByRole('listitem')).toHaveText([
     /Unread: Reminder\s*Sunrise hike up the R/,
     /Unread: Time or place changed\s*Sunrise hike up the R/,
   ]);
-  await expect(earlier.getByRole('button')).toHaveText([/Cancelled\s*No longer available/]);
+  await expect(earlier.getByRole('listitem')).toHaveText([/Cancelled\s*No longer available/]);
   await expectAccessible(page);
 
-  await fresh.getByRole('button', { name: /Time or place changed/ }).click();
+  await fresh.getByRole('button', { name: /^Unread: Time or place changed/ }).click();
   await expect(page).toHaveURL(`/activities/${id}`);
   await page.goto('/notifications');
-  await expect(fresh.getByRole('button')).toHaveCount(1);
+  await expect(fresh.getByRole('listitem')).toHaveCount(1);
 
   await page.getByRole('button', { name: 'Mark all read' }).click();
   await expect(page.getByRole('status')).toHaveText('All caught up.');
   await expect(fresh).toHaveCount(0);
-  await expect(earlier.getByRole('button')).toHaveCount(3);
+  await expect(earlier.getByRole('listitem')).toHaveCount(3);
 });
 
 test('with no alerts, the center says so', async ({ page, poster }) => {
@@ -92,8 +93,8 @@ test('each alert is a card, and Unread shows only the new ones', async ({ page, 
   // Each is paper with square corners and a shadow (UI-15, UI-16): the new one light blue with a
   // dot before its name, and the earlier one white with none. It has three lines and nothing else
   // (UI-20): the name in the display face, then what happened, then how long ago.
-  const card = page.getByRole('region', { name: 'New' }).getByRole('button');
-  const read = page.getByRole('region', { name: 'Earlier' }).getByRole('button');
+  const card = page.getByRole('region', { name: 'New' }).locator('.alert');
+  const read = page.getByRole('region', { name: 'Earlier' }).locator('.alert');
   const title = card.getByText('Sunrise hike up the R');
   expect(await paper(card)).toBe('cfe1fa');
   expect(await dot(title)).toBe('rgb(0, 108, 194)');
@@ -121,10 +122,96 @@ test('each alert is a card, and Unread shows only the new ones', async ({ page, 
   await show.getByRole('link', { name: 'Unread' }).click();
   await expect(page).toHaveURL('/notifications?show=unread');
   await expect(show.getByRole('link', { name: 'Unread' })).toHaveAttribute('aria-current', 'page');
-  await expect(page.getByRole('region', { name: 'New' }).getByRole('button')).toHaveCount(1);
+  await expect(page.getByRole('region', { name: 'New' }).getByRole('listitem')).toHaveCount(1);
   await expect(page.getByRole('region', { name: 'Earlier' })).toHaveCount(0);
 
   await page.getByRole('button', { name: 'Mark all read' }).click();
   await page.goto('/notifications?show=unread');
   await expect(page.getByText("You're all caught up.", { exact: true })).toBeVisible();
+});
+
+test('a member removes alerts one at a time, or clears the read ones', async ({
+  page,
+  poster,
+  host,
+}) => {
+  const id = await host.post();
+  // Three new alerts and two read ones, all about the same activity.
+  const alert = (type: string, minutes: number, read: boolean) => ({
+    recipient_id: poster.id,
+    type,
+    activity_id: id,
+    payload: type === 'new_attendees' ? { count: 2 } : {},
+    created_at: minutesAgo(minutes),
+    read_at: read ? minutesAgo(1) : null,
+  });
+  await poster.admin
+    .from('notifications')
+    .insert([
+      alert('reminder', 1, false),
+      alert('activity_changed', 2, false),
+      alert('activity_cancelled', 3, false),
+      alert('rsvp_confirmed', 30, true),
+      alert('new_attendees', 40, true),
+    ]);
+
+  await page.goto('/notifications');
+  const badge = page
+    .getByRole('navigation', { name: 'Main' })
+    .getByRole('link', { name: /^Alerts/ });
+  const fresh = page.getByRole('region', { name: 'New' });
+  const earlier = page.getByRole('region', { name: 'Earlier' });
+  await expect(badge).toHaveAccessibleName('Alerts 3 unread');
+
+  // Each has a Remove button at its top right, 44 px square, named for what happened and the
+  // activity, as its card is read. It's the muted color.
+  const changed = fresh.getByRole('listitem').nth(1);
+  const remove = changed.getByRole('button', {
+    name: /^Remove alert: Time or place changed, Sunrise hike up the R/,
+  });
+  await expect(remove).toHaveCSS('color', 'rgb(75, 85, 99)');
+  const [x, card] = [(await remove.boundingBox())!, (await changed.boundingBox())!];
+  expect(x.width).toBeGreaterThanOrEqual(44);
+  expect(x.height).toBeGreaterThanOrEqual(44);
+  expect(Math.abs(x.x + x.width - (card.x + card.width))).toBeLessThan(1);
+  expect(Math.abs(x.y - card.y)).toBeLessThan(1);
+  await expectAccessible(page);
+
+  // Removing it takes it off the list, marks it read, and comes back at the one after it.
+  const cancelled = await fresh.getByRole('listitem').nth(2).getAttribute('id');
+  await remove.click();
+  await expect(page.getByRole('status')).toHaveText('Alert removed.');
+  await expect(page).toHaveURL(`/notifications#${cancelled}`);
+  await expect(fresh.getByRole('listitem')).toHaveText([/Reminder/, /Cancelled/]);
+  await expect(badge).toHaveAccessibleName('Alerts 2 unread');
+
+  // On Unread, it stays on Unread, and the last one comes back at the one before it.
+  await page.goto('/notifications?show=unread');
+  const reminder = await fresh.getByRole('listitem').first().getAttribute('id');
+  await fresh.getByRole('button', { name: /^Remove alert: Cancelled, / }).click();
+  await expect(page).toHaveURL(`/notifications?show=unread#${reminder}`);
+  await expect(fresh.getByRole('listitem')).toHaveText([/Reminder/]);
+
+  // Earlier's Clear removes the read ones, and the new reminder stays.
+  await page.goto('/notifications');
+  await expect(earlier.getByRole('listitem')).toHaveCount(2);
+  await expect(fresh.getByRole('button', { name: /^Clear/ })).toHaveCount(0);
+  const clear = earlier.getByRole('button', { name: 'Clear earlier alerts' });
+  // It says Clear, and screen readers hear the rest.
+  await expect(clear.locator('.visually-hidden')).toHaveText('earlier alerts');
+  await expect(clear).toHaveCSS('color', 'rgb(180, 35, 24)');
+  await expectAccessible(page);
+  await clear.click();
+  await expect(page.getByRole('status')).toHaveText('Earlier alerts cleared.');
+  await expect(earlier).toHaveCount(0);
+  await expect(fresh.getByRole('listitem')).toHaveText([/Reminder/]);
+  await expect(badge).toHaveAccessibleName('Alerts 1 unread');
+
+  // Removing the last one leaves nothing to come back to.
+  await fresh.getByRole('button', { name: /^Remove alert: Reminder/ }).click();
+  await expect(page).toHaveURL('/notifications');
+  await expect(
+    page.getByText("You're all caught up. We'll let you know when plans change.")
+  ).toBeVisible();
+  await expect(badge).not.toHaveAccessibleName(/unread/);
 });

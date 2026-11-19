@@ -1,5 +1,5 @@
-// Notification Actions (NOTIF-01). Each checks who's signed in, and Postgres marks only the
-// member's own notifications read (ADR-004).
+// Notification Actions (NOTIF-01). Each checks who's signed in, and Postgres marks read, or
+// removes, only the member's own notifications (ADR-004).
 import { ActionError, defineAction } from 'astro:actions';
 import { SITE_URL } from 'astro:env/server';
 import { z } from 'astro/zod';
@@ -34,6 +34,31 @@ export const notifications = {
       const { error } = await locals.supabase.rpc('mark_notifications_read', { ids: [id] });
       if (error) throw new ActionError(actionErrorFor(error));
       return { href: await openedHref(locals.supabase, id) };
+    },
+  }),
+
+  /** Removes an alert (NOTIF-21), and marks it read if it was new. */
+  remove: defineAction({
+    accept: 'form',
+    input: z.object({ id: z.uuid() }),
+    handler: async ({ id }, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { data, error } = await locals.supabase.rpc('remove_notifications', { ids: [id] });
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { removed: data };
+    },
+  }),
+
+  /** Earlier's Clear (NOTIF-21): removes every alert that's been read. Returns how many. */
+  clearRead: defineAction({
+    accept: 'form',
+    handler: async (_, { locals }) => {
+      if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
+
+      const { data, error } = await locals.supabase.rpc('clear_read_notifications');
+      if (error) throw new ActionError(actionErrorFor(error));
+      return { removed: data };
     },
   }),
 

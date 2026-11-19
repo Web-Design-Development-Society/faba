@@ -33,6 +33,8 @@ export const FLASH_MESSAGES = {
   reinstated: 'Member reinstated.',
   transferred: 'New host set.',
   read: 'All caught up.',
+  alert_removed: 'Alert removed.',
+  cleared: 'Earlier alerts cleared.',
   muted: "Muted. You'll still hear if it's cancelled.",
   unmuted: 'Unmuted.',
   update_posted: 'Update posted.',

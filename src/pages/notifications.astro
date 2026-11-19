@@ -12,7 +12,12 @@
 // group's name in the display face, the sentence that says what happened, and how long ago. The
 // sentence comes first for screen readers, after "Unread", and the name is drawn above it. An
 // unread one is on light blue paper.
+//
+// Each alert has a Remove button, an × at its top right, and Earlier has Clear, which removes every
+// alert that's been read (NOTIF-21). Removing one comes back to the same list, at the alert that took
+// its place, so removing several in a row doesn't jump to the top.
 import { actions } from 'astro:actions';
+import Icon from '../components/Icon.astro';
 import PageSentence from '../components/PageSentence.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
@@ -23,6 +28,7 @@ import { formatAgo } from '../lib/time';
 
 const PAGE = 30;
 const KEPT_DAYS = 90;
+const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 const { supabase, user } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
@@ -34,7 +40,23 @@ if (readAll && !readAll.error) {
   setFlash(Astro.cookies, Astro.url, 'read');
   return Astro.redirect('/notifications', 303);
 }
-const failed = opened?.error ?? readAll?.error;
+// This list, as All or Unread and on the page it's on, without an action.
+const list = new URLSearchParams(Astro.url.searchParams);
+list.delete('_action');
+list.delete('near');
+const here = `/notifications${list.size ? `?${list}` : ''}`;
+const removed = Astro.getActionResult(actions.notifications.remove);
+if (removed && !removed.error) {
+  setFlash(Astro.cookies, Astro.url, 'alert_removed');
+  const near = Astro.url.searchParams.get('near') ?? '';
+  return Astro.redirect(UUID.test(near) ? `${here}#alert-${near}` : here, 303);
+}
+const cleared = Astro.getActionResult(actions.notifications.clearRead);
+if (cleared && !cleared.error) {
+  setFlash(Astro.cookies, Astro.url, 'cleared');
+  return Astro.redirect(here, 303);
+}
+const failed = opened?.error ?? readAll?.error ?? removed?.error ?? cleared?.error;
 const flash = takeFlash(Astro.cookies);
 
 const now = new Date();
@@ -43,6 +65,7 @@ const cursor = readCursor(Astro.url.searchParams);
 let query = supabase
   .from('notifications')
   .select('id, type, payload, read_at, created_at, activity:activities(title), group:groups(name)')
+  .is('removed_at', null)
   .gte('created_at', new Date(now.getTime() - KEPT_DAYS * 24 * 60 * 60 * 1000).toISOString())
   .order('created_at', { ascending: false })
   .order('id', { ascending: false })
@@ -85,6 +108,18 @@ const groups = [
   { name: 'Earlier', items: shown.filter(({ read_at }) => read_at) },
 ].filter(({ items }) => items.length > 0);
 const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
+// Where removing an alert comes back to: the one after it, or before it if it was the last.
+const order = groups.flatMap(({ items }) => items.map(({ id }) => id));
+const removeAction = (id: string) => {
+  const query = new URLSearchParams(list);
+  const i = order.indexOf(id);
+  const near = order[i + 1] ?? order[i - 1];
+  if (near) query.set('near', near);
+  for (const [key, value] of new URLSearchParams(actions.notifications.remove.queryString)) {
+    query.set(key, value);
+  }
+  return `/notifications?${query}`;
+};
 ---
 
 <Layout title="Alerts" tab="alerts">
@@ -119,7 +154,16 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
   ) : (
     groups.map(({ name, items }) => (
       <section aria-labelledby={`alerts-${name}`}>
-        <h2 id={`alerts-${name}`}>{name}</h2>
+        <div class="heading">
+          <h2 id={`alerts-${name}`}>{name}</h2>
+          {name === 'Earlier' && (
+            <form method="post" action={actions.notifications.clearRead.queryString}>
+              <button class="clear">
+                Clear<span class="visually-hidden"> earlier alerts</span>
+              </button>
+            </form>
+          )}
+        </div>
         <ul>
           {items.map((notification) => {
             const { summary } = describe(
@@ -130,25 +174,29 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
                 : undefined,
               now
             );
+            const title =
+              notification.activity?.title ?? notification.group?.name ?? 'No longer available';
             return (
-              <li class:list={{ unread: !notification.read_at }}>
+              <li id={`alert-${notification.id}`} class:list={{ unread: !notification.read_at }}>
                 <form method="post" action={actions.notifications.open.queryString}>
                   <input type="hidden" name="id" value={notification.id} />
-                  <button>
+                  <button class="alert">
                     <span class="text">
                       <span class="summary">
                         {!notification.read_at && <span class="unread-label">Unread: </span>}
                         {summary}
                       </span>
-                      <span class="title">
-                        {notification.activity?.title ??
-                          notification.group?.name ??
-                          'No longer available'}
-                      </span>
+                      <span class="title">{title}</span>
                       <time datetime={notification.created_at}>
                         {formatAgo(new Date(notification.created_at), now)}
                       </time>
                     </span>
+                  </button>
+                </form>
+                <form class="remove" method="post" action={removeAction(notification.id)}>
+                  <input type="hidden" name="id" value={notification.id} />
+                  <button aria-label={`Remove alert: ${summary}, ${title}`}>
+                    <Icon name="x" />
                   </button>
                 </form>
               </li>
@@ -166,10 +214,37 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
 </Layout>
 
 <style>
+  /* Earlier's Clear is at the right of its heading. Both headings are as tall as it, so they're
+     spaced alike. */
+  .heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    min-height: 44px;
+    margin: 0.75rem 0 0;
+  }
   h2 {
-    margin: 1.5rem 0 0.5rem;
+    margin: 0;
     font-size: 0.875rem;
     text-transform: capitalize;
+  }
+  /* Quiet words, in red, since it removes (UI-12). */
+  .clear {
+    min-height: 44px;
+    padding: 0 0.25rem;
+    color: var(--danger);
+    font-family: inherit;
+    font-size: 0.875rem;
+    letter-spacing: normal;
+    text-transform: none;
+    background: none;
+  }
+  .clear:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.15em;
+    background: none;
   }
   ul {
     display: grid;
@@ -178,13 +253,18 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
     padding: 0;
     list-style: none;
   }
+  /* Remove sits on the card's top right, so the card leaves room for it. */
+  li {
+    position: relative;
+    scroll-margin-top: 6rem;
+  }
   /* Each alert is a piece of white paper with square corners and a shadow, and the whole piece is
      one button (UI-15, UI-16). Like every list, the pieces stay straight. */
-  li button {
+  .alert {
     display: block;
     width: 100%;
     min-height: 44px;
-    padding: 0.625rem 0.875rem;
+    padding: 0.625rem 2.75rem 0.625rem 0.875rem;
     font: inherit;
     font-weight: 400;
     color: inherit;
@@ -198,11 +278,11 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
   }
   /* An unread alert is on light blue paper, with a dot before its name, so it isn't shown by color
      alone. Screen readers hear "Unread" first. */
-  .unread button {
+  .unread .alert {
     background: var(--sky);
   }
   /* There's no border to color on hover, so the name is underlined. */
-  li button:hover .title {
+  .alert:hover .title {
     text-decoration: underline;
     text-decoration-thickness: 2px;
     text-underline-offset: 0.15em;
@@ -260,9 +340,27 @@ const unread = groups[0]?.name === 'New' || (onlyUnread && shown.length > 0);
     display: flex;
     margin-top: 1rem;
   }
+  /* Remove: an × in the muted color, 44 px square, that turns red on hover. */
+  .remove {
+    position: absolute;
+    top: 0;
+    right: 0;
+  }
+  .remove button {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    padding: 0;
+    color: var(--muted);
+    background: none;
+  }
+  .remove button:hover {
+    color: var(--danger);
+    background: none;
+  }
   /* High contrast: a plain border in the system's colors, as everywhere else. */
   @media (forced-colors: active) {
-    li button {
+    .alert {
       background: Canvas !important;
       border-color: CanvasText !important;
       box-shadow: none !important;

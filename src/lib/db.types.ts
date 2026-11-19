@@ -1432,6 +1432,7 @@ export type Database = {
           payload: NonNullable<Json>;
           read_at: string | null;
           recipient_id: string;
+          removed_at: string | null;
           type: string;
         };
         ComputedFields: never;
@@ -1445,6 +1446,7 @@ export type Database = {
           payload?: NonNullable<Json>;
           read_at?: string | null;
           recipient_id: string;
+          removed_at?: string | null;
           type: string;
         };
         Update: {
@@ -1457,6 +1459,7 @@ export type Database = {
           payload?: NonNullable<Json>;
           read_at?: string | null;
           recipient_id?: string;
+          removed_at?: string | null;
           type?: string;
         };
         Relationships: [
@@ -1904,6 +1907,7 @@ export type Database = {
           type: string;
         }[];
       };
+      clear_read_notifications: { Args: Record<PropertyKey, never>; Returns: number };
       confirm_score: { Args: { game_id: string }; Returns: undefined };
       create_activity: {
         Args: {
@@ -2137,6 +2141,7 @@ export type Database = {
       remove_attendee: { Args: { activity_id: string; user_id: string }; Returns: undefined };
       remove_co_organizer: { Args: { activity_id: string; user_id: string }; Returns: undefined };
       remove_group_member: { Args: { group_id: string; user_id: string }; Returns: undefined };
+      remove_notifications: { Args: { ids: string[] }; Returns: number };
       remove_profile_photo: { Args: Record<PropertyKey, never>; Returns: string };
       remove_push_subscription: { Args: { endpoint: string }; Returns: undefined };
       report_content: {
