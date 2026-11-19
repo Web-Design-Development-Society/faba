@@ -245,7 +245,7 @@ const invalid = (name: string) =>
     align-items: center;
     min-height: 44px;
     font-weight: 600;
-    color: var(--blue);
+    color: var(--blue-text);
     cursor: pointer;
   }
   .remove {
@@ -282,7 +282,7 @@ const invalid = (name: string) =>
     border-radius: 0;
   }
   ::placeholder {
-    color: #6b7280; /* 4.8:1 on white */
+    color: var(--placeholder);
     opacity: 1;
   }
   .hint {
@@ -347,7 +347,7 @@ const invalid = (name: string) =>
     height: 1.75rem;
     margin: 0;
     appearance: none;
-    background: #767676;
+    background: var(--border);
     border-radius: 0;
     cursor: pointer;
   }

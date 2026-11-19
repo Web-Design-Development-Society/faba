@@ -5,7 +5,7 @@
 // activity's form is on warm paper. Every corner is square but faces. The main tabs' headings are
 // for screen readers only, since the bottom bar shows which page it is.
 import type { Locator, Page } from '@playwright/test';
-import { expect, expectAccessible, expectSquare, paper, test } from './fixtures';
+import { expect, expectAccessible, expectSquare, paper, test, unreadableOnPage } from './fixtures';
 
 const BLUE = 'rgb(0, 108, 194)';
 // The page's solid background (UI-29).
@@ -286,62 +286,6 @@ test('an activity, a group, a member and the short forms are on cream paper, rea
   await page.goto('/discover');
   await expect(page.locator('main')).toHaveCSS('background-color', 'rgba(0, 0, 0, 0)');
 });
-
-/**
- * The text that sits straight on the page's background, with nothing behind it but the page, and
- * whose contrast with it is under WCAG's 4.5:1, or 3:1 for large text. The background is a solid
- * grey (UI-29), which axe can measure too. If a gradient ever comes back, axe can't, so this finds
- * its color at the middle of each piece of text.
- */
-async function unreadableOnPage(page: Page) {
-  return page.evaluate(() => {
-    const rgb = (value: string) => (value.match(/[\d.]+/g) ?? []).map(Number);
-    const luminance = ([r, g, b]: number[]) => {
-      const linear = (c: number) =>
-        (c /= 255) <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
-      return 0.2126 * linear(r) + 0.7152 * linear(g) + 0.0722 * linear(b);
-    };
-    const contrast = (a: number[], b: number[]) => {
-      const [light, dark] = [luminance(a), luminance(b)].sort((x, y) => y - x);
-      return (light + 0.05) / (dark + 0.05);
-    };
-    const html = document.documentElement;
-    const page = getComputedStyle(html);
-    const stops = (page.backgroundImage.match(/rgb\([^)]*\)/g) ?? []).map(rgb);
-    const height = html.getBoundingClientRect().height;
-    // A solid background, or a gradient's stops evenly spaced from the top of the page to its bottom.
-    const behind = (y: number) => {
-      if (stops.length < 2) return rgb(page.backgroundColor);
-      const at = Math.min(Math.max(y / height, 0), 1) * (stops.length - 1);
-      const i = Math.min(Math.floor(at), stops.length - 2);
-      return stops[i].map((c, k) => c + (stops[i + 1][k] - c) * (at - i));
-    };
-    const onPage = (element: Element) => {
-      for (let e: Element | null = element; e && e !== html; e = e.parentElement) {
-        const style = getComputedStyle(e);
-        if (style.backgroundImage !== 'none' || rgb(style.backgroundColor)[3] !== 0) return false;
-      }
-      return true;
-    };
-    const found: string[] = [];
-    for (const element of document.body.querySelectorAll('*')) {
-      const text = [...element.childNodes]
-        .filter((node) => node.nodeType === Node.TEXT_NODE)
-        .map((node) => node.textContent!.trim())
-        .join(' ')
-        .trim();
-      const box = element.getBoundingClientRect();
-      const style = getComputedStyle(element);
-      if (!text || box.width <= 1 || box.height <= 1 || style.visibility === 'hidden') continue;
-      if (!onPage(element)) continue;
-      const size = parseFloat(style.fontSize);
-      const large = size >= 24 || (size >= 18.66 && Number(style.fontWeight) >= 700);
-      const ratio = contrast(rgb(style.color), behind(box.top + scrollY + box.height / 2));
-      if (ratio < (large ? 3 : 4.5)) found.push(`"${text.slice(0, 40)}" is ${ratio.toFixed(1)}:1`);
-    }
-    return found;
-  });
-}
 
 test('text straight on the page is readable', async ({ page, poster, crowd }) => {
   // A group with someone asking to join, so its page has "1 asking to join" near the top.

@@ -62,7 +62,7 @@ const failure = result?.error && !isInputError(result.error) ? result.error.mess
   }
   /* No background, since the red is too dark on WebKit's grey buttons. */
   .destructive {
-    color: #b42318;
+    color: var(--danger);
     background: none;
     border: 1px solid currentColor;
     border-radius: 0;

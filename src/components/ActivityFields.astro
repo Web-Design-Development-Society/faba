@@ -271,7 +271,7 @@ const moreOptions =
     resize: vertical;
   }
   ::placeholder {
-    color: #6b7280; /* 4.8:1 on white */
+    color: var(--placeholder);
     opacity: 1;
   }
   .title input:focus-visible,
@@ -294,7 +294,7 @@ const moreOptions =
     position: absolute;
     top: 50%;
     left: 0.75rem;
-    color: var(--blue);
+    color: var(--blue-text);
     transform: translateY(-50%);
     pointer-events: none;
   }
@@ -320,7 +320,7 @@ const moreOptions =
     border-left: 1px solid var(--line);
   }
   .part :global(.icon) {
-    color: var(--blue);
+    color: var(--blue-text);
   }
   .part input {
     position: relative;
@@ -382,7 +382,7 @@ const moreOptions =
     cursor: pointer;
   }
   .pill :global(.icon) {
-    color: var(--blue);
+    color: var(--blue-text);
   }
   .pill:has(input:checked) {
     font-weight: 600;
