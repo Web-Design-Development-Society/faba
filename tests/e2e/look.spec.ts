@@ -23,7 +23,11 @@ test('selected things are FABA blue, and the bar keeps its five items', async ({
   await page.goto('/discover');
 
   const bar = page.getByRole('navigation', { name: 'Main' });
-  await expect(bar.getByRole('link')).toHaveText(['Discover', 'Plans', 'Post', /^Alerts/, 'Me']);
+  const items = bar.getByRole('link');
+  await expect(items).toHaveCount(5);
+  for (const [i, name] of ['Discover', 'Plans', 'Post', /^Alerts/, 'Me'].entries()) {
+    await expect(items.nth(i)).toHaveAccessibleName(name);
+  }
   // Discover's tile has the FABA logo in greyscale, and the other four keep their icons (UI-28).
   const discover = bar.getByRole('link', { name: 'Discover' });
   await expect(discover.locator('svg')).toHaveCount(0);
@@ -34,9 +38,18 @@ test('selected things are FABA blue, and the bar keeps its five items', async ({
   await expect
     .poll(() => mark.evaluate((img: HTMLImageElement) => img.naturalWidth))
     .toBeGreaterThan(0);
-  for (const name of ['Plans', 'Post', /^Alerts/, 'Me']) {
+  for (const name of ['Post', /^Alerts/, 'Me']) {
     await expect(bar.getByRole('link', { name }).locator('svg')).toHaveCount(1);
   }
+  // Plans has ✓ Going's check, the same character in the same face, in black, in place of the
+  // calendar (UI-35). Screen readers hear just Plans.
+  const plans = bar.getByRole('link', { name: 'Plans' });
+  await expect(plans.locator('svg')).toHaveCount(0);
+  const check = plans.locator('.tile .check');
+  await expect(check).toHaveText('✓');
+  await expect(check).toHaveAttribute('aria-hidden', 'true');
+  await expect(check).toHaveCSS('color', 'rgb(23, 23, 23)');
+  await expect(check).toHaveCSS('font-family', /^Anton/);
   // The current tab's tile is light blue, and it's underlined, so it isn't color alone.
   const here = bar.getByRole('link', { name: 'Discover' });
   await expect(here).toHaveAttribute('aria-current', 'page');

@@ -50,6 +50,8 @@ test('in the dark, the page, its cards and its paper are dark, and orange stays'
   const discover = bar.getByRole('link', { name: 'Discover' });
   expect(await paper(discover.locator('.tile'))).toBe('1c3754');
   await expect(discover.locator('.tile img')).toHaveCSS('filter', 'grayscale(1) brightness(1.7)');
+  // Plans' check is the text's soft white (UI-35).
+  await expect(bar.locator('a[href="/plans"] .check')).toHaveCSS('color', 'rgb(231, 234, 238)');
   await expect(bar.locator('.post .square')).toHaveCSS('background-color', ORANGE);
   expect(await unreadableOnPage(page)).toEqual([]);
   await expectAccessible(page);
