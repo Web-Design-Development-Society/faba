@@ -1,0 +1,26 @@
+{
+  "$schema": "https://www.schemastore.org/web-manifest.json",
+  "id": "/",
+  "name": "FABA",
+  "short_name": "FABA",
+  "description": "Find and organize activities with BYU-Idaho faculty in Rexburg. FABA is an independent community run by the Faculty Association Board.",
+  "start_url": "/",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/favicon/web-app-manifest-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/favicon/web-app-manifest-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "theme_color": "#f4f7fb",
+  "background_color": "#f4f7fb",
+  "display": "standalone"
+}
