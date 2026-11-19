@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-32`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-33`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-32           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-33           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2797,6 +2797,37 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - UI-25's criteria about the warm paper
     - section 7.7, and the Look line in section 7.17
   - Size: XS, one developer, including the tests.
+
+#### UI-33 · Dark mode
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member who keeps my phone in dark mode, I want FABA to be dark too, so that it's comfortable to read at night and doesn't glare.
+- **Acceptance criteria:**
+  - **FABA follows the phone's or computer's setting** (`prefers-color-scheme`). There's no switch in the app, and light stays the default.
+  - **The same look, in the dark:**
+    - the page a dark grey-blue (`#0F141B`) in place of the light grey
+    - paper pieces and cards a little lighter (`#1E2631`), and the cream paper behind an activity's, a group's and a member's page between the two (`#171D26`)
+    - New and Edit activity's warm paper a dark warm brown (`#221B16`), still edged in orange
+    - text a soft white, headings near white
+    - the orange of **＋ Post**, the border and New activity's heading strip unchanged
+  - **Blue has two jobs in the dark:**
+    - Behind white words, and as a border or a focus ring, it's `#0A74CF`. White on it is 4.76:1, and as a border it's 3.2:1 on a card.
+    - As text, such as a tab that isn't current or a link, it's a lighter blue: 6.9:1 or more on a card.
+  - **The rest gets its own dark color:** light-blue paper, chips, borders, hints, the red of a warning or a delete, the toast, and the category tints behind pictures.
+  - **Every pair meets the same rules as the light theme:** text at least 4.5:1 and controls 3:1.
+  - **The page tells the browser it has both themes** (`color-scheme`), so fields, date pickers and scrollbars are dark too. The browser bar matches each theme.
+  - **The Discover logo in the bottom bar** is a light grey, not the dark grey of the light theme, so it shows on the dark tile: 6.6:1.
+  - High-contrast mode still uses the system's colors.
+  - At 320 px, 412 px and desktop, in both themes, nothing scrolls sideways and the axe checks pass.
+  - **Tests:** an E2E test opens the main pages in dark mode and runs the axe checks there, which measure contrast. It also checks the dark background, a card and a heading. The light theme's tests don't change.
+- **Dependencies:** UI-16, UI-28, UI-29, UI-32.
+- **Notes / edge cases:**
+  - **Why:** many older adults keep dark mode on for comfort, and a bright page at night is the opposite of the calm look UI-29 aimed for.
+  - **Colors written straight into pages** move into tokens, so the dark theme can change them in one place. For example, the alerts' red banners, the warning box, grey borders and placeholder text.
+  - **Mark these when it's built:**
+    - UI-14's note about dark mode
+    - the Themes and Contrast lines in section 7.17
+  - Size: M, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
 
