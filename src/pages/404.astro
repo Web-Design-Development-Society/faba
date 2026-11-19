@@ -52,14 +52,14 @@ const quip = quips[Math.floor(Math.random() * quips.length)];
     margin: clamp(0.75rem, 4vh, 2rem) auto;
     padding: clamp(1rem, 5vw, 2.5rem);
     overflow: hidden;
-    background: white;
-    box-shadow: 8px 10px 0 var(--navy);
+    background: var(--card);
+    box-shadow: 8px 10px 0 var(--navy-surface);
     text-align: center;
   }
 
   .eyebrow {
     margin: 0;
-    color: var(--blue);
+    color: var(--blue-text);
     font-weight: 800;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -67,7 +67,7 @@ const quip = quips[Math.floor(Math.random() * quips.length)];
 
   .code {
     margin: 0.25rem 0 -0.35rem;
-    color: var(--blue);
+    color: var(--blue-text);
     font-family: var(--display);
     font-size: clamp(4.5rem, 18vh, 9rem);
     line-height: 0.95;
@@ -118,7 +118,7 @@ const quip = quips[Math.floor(Math.random() * quips.length)];
 
   .search {
     border: 2px solid var(--blue);
-    color: var(--blue);
+    color: var(--blue-text);
   }
 
   .sticker {
@@ -131,7 +131,7 @@ const quip = quips[Math.floor(Math.random() * quips.length)];
     place-content: center;
     transform: rotate(9deg);
     background: #f6c94d;
-    color: var(--navy);
+    color: #0f1f3d; /* navy on yellow in both themes */
     font-size: 0.7rem;
     font-weight: 900;
     line-height: 1.05;

@@ -994,8 +994,8 @@ const email = activity
   }
   .banner {
     padding: 0.75rem 1rem;
-    border-left: 0.25rem solid #b42318;
-    background: #fef3f2;
+    border-left: 0.25rem solid var(--danger);
+    background: var(--danger-soft);
   }
   .banner p {
     margin: 0;
@@ -1052,13 +1052,13 @@ const email = activity
     padding: 0 0.5rem;
     font-size: 0.875rem;
     font-weight: 600;
-    border: 1px solid #767676;
+    border: 1px solid var(--border);
     border-radius: 0;
   }
   .warning {
     padding: 0.5rem 0.75rem;
-    border-left: 0.25rem solid #b54708;
-    background: #fffaeb;
+    border-left: 0.25rem solid var(--warning);
+    background: var(--warning-soft);
   }
   /* The category as a chip with its icon, on a tint of its color (UI-05). */
   .category {
@@ -1070,7 +1070,7 @@ const email = activity
     font-size: 0.9375rem;
     font-weight: 600;
     color: var(--navy);
-    background: color-mix(in srgb, var(--tint) 16%, white);
+    background: color-mix(in srgb, var(--tint) 16%, var(--card));
     border-radius: 0;
   }
   /* Each fact sits right under its heading. The time and the place are bigger. */
@@ -1172,7 +1172,7 @@ const email = activity
     list-style: none;
   }
   .updates li + li {
-    border-top: 1px solid #767676;
+    border-top: 1px solid var(--border);
   }
   .byline {
     margin-bottom: 0;
@@ -1188,7 +1188,7 @@ const email = activity
     margin-bottom: 0;
     padding: 0.25rem 0.75rem;
     font-weight: 600;
-    border-left: 0.25rem solid #b42318;
-    background: #fef3f2;
+    border-left: 0.25rem solid var(--danger);
+    background: var(--danger-soft);
   }
 </style>

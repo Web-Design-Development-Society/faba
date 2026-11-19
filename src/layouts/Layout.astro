@@ -40,7 +40,9 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
       name="description"
       content="Find and organize activities with BYU-Idaho faculty in Rexburg. FABA is an independent community run by the Faculty Association Board."
     />
-    <meta name="theme-color" content="#f4f7fb" />
+    <meta name="theme-color" content="#f4f7fb" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0f141b" media="(prefers-color-scheme: dark)" />
+    <meta name="color-scheme" content="light dark" />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="FABA" />
     <meta property="og:title" content={title === 'FABA' ? title : `${title} · FABA`} />
@@ -159,8 +161,8 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     top: 0.5rem;
     z-index: 10;
     padding: 0.5rem 0.75rem;
-    background: var(--navy);
-    color: #fff;
+    background: var(--navy-surface);
+    color: white;
     border-radius: 0;
     transform: translateY(-200%);
   }
@@ -221,8 +223,50 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
        low; the logo strip and the footer, at the page's ends, are lifted higher. */
     --lift: 0 1px 2px rgb(15 31 61 / 14%), 0 4px 10px rgb(15 31 61 / 12%);
     --lift-high: 0 2px 4px rgb(5 20 70 / 28%), 0 12px 28px rgb(5 20 70 / 32%);
+    /* Colors by their job, so the dark theme can change each in one place (UI-33). FABA blue is
+       for backgrounds behind white words, borders and focus rings; blue words use --blue-text. */
+    --blue-text: #006cc2; /* 4.9:1 on the page, 5.35:1 on white */
+    --blue-hover: #0a4fb8; /* behind white words, on hover */
+    --navy-surface: #0f1f3d; /* behind white words, such as the toast */
+    --danger: #b42318; /* 6.6:1 on white */
+    --danger-soft: #fef3f2;
+    --warning: #b54708;
+    --warning-soft: #fffaeb;
+    --placeholder: #6b7280; /* 4.8:1 on white */
+    --avatar: #dddddd;
+    /* Fields, date pickers and scrollbars follow the theme. */
+    color-scheme: light dark;
     /* Anton has one weight, so a heading asked for bold stays Anton, not a smeared copy of it. */
     font-synthesis: none;
+  }
+  /* Dark mode, when the device asks for it (UI-33): the same look in the dark, every pair checked
+     against the same rules, text at least 4.5:1 and controls 3:1. Orange stays as it is. */
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --page: #0f141b;
+      --paper: #171d26;
+      --card: #1e2631;
+      --paper-warm: #221b16;
+      --sky: #1c3754;
+      --blue-soft: #1a2a40;
+      --ink: #e7eaee; /* 12.6:1 on a card */
+      --navy: #eef2f8; /* headings: 13.6:1 on a card */
+      --muted: #a9b2bf; /* 7.1:1 on a card, 5.7:1 on sky */
+      --line: #2e3846;
+      --border: #8792a2; /* 4.8:1 on a card */
+      --placeholder: #9aa4b1;
+      --blue: #0a74cf; /* white on it is 4.76:1, and as a border 3.2:1 on a card */
+      --blue-text: #6db3ff; /* 6.9:1 on a card, 5.5:1 on sky */
+      --blue-dark: #8fc5ff; /* links: 8.4:1 on a card */
+      --navy-surface: #2c3c5a; /* white on it is 11:1 */
+      --danger: #ff8b7b;
+      --danger-soft: #3b1f1c;
+      --warning: #ffb46b;
+      --warning-soft: #3a2b14;
+      --avatar: #3a4452;
+      --lift: 0 1px 2px rgb(0 0 0 / 50%), 0 4px 10px rgb(0 0 0 / 40%);
+      --lift-high: 0 2px 4px rgb(0 0 0 / 60%), 0 12px 28px rgb(0 0 0 / 55%);
+    }
   }
   /* Anton's fallbacks, sized to Anton's width (83% of Arial Narrow Bold, 68% of Arial Bold) and
      line height (ascent 1.18, descent 0.33), measured in Chromium. A phone without either uses its
@@ -463,7 +507,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     place-items: center;
     min-height: 48px;
     padding: 0.25rem 0.5rem;
-    color: var(--blue);
+    color: var(--blue-text);
     font-family: var(--display);
     font-size: 1.375rem;
     letter-spacing: 0.02em;
@@ -510,7 +554,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     cursor: pointer;
   }
   button:hover {
-    background: var(--blue-dark);
+    background: var(--blue-hover);
   }
   /* The other actions, outlined, and a link that stands on its own looks the same: it still goes
      somewhere, so it stays a link to screen readers (UI-12). Red is for what removes or deletes. */
@@ -554,12 +598,12 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   }
   button.danger,
   a.button.danger {
-    color: #b42318;
-    border-color: #b42318;
+    color: var(--danger);
+    border-color: var(--danger);
   }
   button.danger:hover,
   a.button.danger:hover {
-    background: #fef3f2;
+    background: var(--danger-soft);
   }
   a.button.primary {
     color: white;
@@ -567,7 +611,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     border-color: var(--blue);
   }
   a.button.primary:hover {
-    background: var(--blue-dark);
+    background: var(--blue-hover);
   }
   /* A form's buttons: Cancel and the main action side by side, the main one wider (UI-06). */
   .form-actions {
@@ -642,7 +686,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     font: inherit;
   }
   ::placeholder {
-    color: #6b7280; /* 4.8:1 on white */
+    color: var(--placeholder);
     opacity: 1;
   }
   /* A question above its field, and no grey boxes around a group of choices. */
@@ -823,7 +867,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     line-height: 1.25rem;
     color: white;
     text-align: center;
-    background: #b42318;
+    background: #b42318; /* the same red in both themes: white on it is 6.6:1 */
     border-radius: 0;
   }
   /* Heard, not seen. */
@@ -838,7 +882,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   .offline {
     margin: 0 0 1rem;
     padding: 0.5rem 0.75rem;
-    color: #171717;
+    color: #171717; /* the same pale yellow in both themes, so it stands out */
     background: #fef3c7;
     border-radius: 0;
   }
@@ -859,6 +903,17 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   /* Darker on hover, like a button's FABA blue (UI-25). */
   .tabs .post:hover .square {
     background: var(--orange-dark);
+  }
+
+  /* In the dark, a select's arrow is light, like the words, and Discover's logo is a light grey,
+     6.6:1 on its dark tile (UI-33). */
+  @media (prefers-color-scheme: dark) {
+    :where(select) {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23eef2f8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    }
+    .tabs .tile .mark {
+      filter: grayscale(1) brightness(1.7);
+    }
   }
 
   /* High contrast: no shadows, just plain borders in the system's colors. */
