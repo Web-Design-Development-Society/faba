@@ -31,6 +31,10 @@ export const onRequest = defineMiddleware(async (context, next) => {
   // Prerendered pages are built once for everyone, so there's no session to read.
   if (context.isPrerendered) return next();
 
+  // Astro routes unmatched requests through the server-rendered 404 page. Let that response
+  // render before checking sign-in, so unknown URLs stay 404s instead of becoming login redirects.
+  if (context.routePattern === '/404') return noStore(await next(), context.cookies);
+
   const supabase = createSupabase(context);
   context.locals.supabase = supabase;
 
