@@ -6,10 +6,12 @@
 //
 // The member's profile is a card at the top (UI-11): their photo in a large circle, their name,
 // department, bio and interests, with Edit profile and See my profile. The settings are rows with
-// icons under it, then the calendar feed in its own card.
+// icons under it, then the calendar feed in its own card, and how to add FABA to the home screen
+// (UI-31), with a sheet of steps for iPhone and one for Android.
 import { actions, isInputError } from 'astro:actions';
 import Avatar from '../components/Avatar.astro';
 import Icon from '../components/Icon.astro';
+import Sheet from '../components/Sheet.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
 import { FLASH_MESSAGES, takeFlash } from '../lib/server/flash';
@@ -116,6 +118,75 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
     </form>
     {hasFeed && !feed ? <p>Resetting makes a new link, and the old one stops working.</p> : null}
   </section>
+
+  {/* How to open FABA from the home screen, like an app (UI-31), from Apple's and Google's own
+      steps. It hides once FABA is opened that way, since there's nothing left to do. */}
+  <section class="card" id="home-screen" aria-labelledby="home-screen-heading">
+    <h2 id="home-screen-heading">Add FABA to your home screen</h2>
+    <p>
+      FABA then opens from an icon, like an app, in its own window. On an iPhone, that's also how it
+      can send you push notifications.
+    </p>
+    <div class="phones">
+      <button type="button" class="secondary" commandfor="iphone-steps" command="show-modal">
+        On iPhone
+      </button>
+      <button type="button" class="secondary" commandfor="android-steps" command="show-modal">
+        On Android
+      </button>
+    </div>
+  </section>
+  <Sheet id="iphone-steps" title="Add FABA on iPhone">
+    <ol class="steps">
+      <li>Open FABA in Safari.</li>
+      <li>
+        Tap <strong>⋯</strong>, then <strong>Share</strong>. If your tabs are at the bottom or the
+        top, tap the <strong>Share</strong> button instead.
+      </li>
+      <li>
+        Scroll down and tap <strong>Add to Home Screen</strong>. Not there? At the bottom of the
+        list, tap <strong>Edit Actions</strong> and add it.
+      </li>
+      <li>
+        Turn on <strong>Open as Web App</strong>.
+      </li>
+      <li>
+        Tap <strong>Add</strong>.
+      </li>
+    </ol>
+    <p>FABA's icon is on your Home Screen. Tap it to open FABA like an app.</p>
+    <p>
+      <a
+        href="https://support.apple.com/guide/iphone/open-as-web-app-iphea86e5236/ios"
+        target="_blank"
+        rel="noopener"
+      >
+        Apple's steps
+      </a>
+    </p>
+  </Sheet>
+  <Sheet id="android-steps" title="Add FABA on Android">
+    <ol class="steps">
+      <li>Open FABA in Chrome.</li>
+      <li>
+        Tap <strong>⋮</strong> (More), at the right of the address bar.
+      </li>
+      <li>
+        Tap <strong>Install and create shortcut</strong>, then <strong>Install</strong>.
+      </li>
+      <li>Follow the steps on the screen.</li>
+    </ol>
+    <p>FABA's icon is on your home screen. Tap it to open FABA like an app.</p>
+    <p>
+      <a
+        href="https://support.google.com/chrome/answer/9658361?co=GENIE.Platform%3DAndroid"
+        target="_blank"
+        rel="noopener"
+      >
+        Google's steps
+      </a>
+    </p>
+  </Sheet>
 
   {/* Away from everything else (PROF-05). */}
   <p class="delete">
@@ -234,9 +305,36 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
   .settings form {
     margin: 0;
   }
-  #calendar-feed h2 {
+  #calendar-feed h2,
+  #home-screen h2 {
     margin: 0 0 0.5rem;
     font-size: 1.125rem;
+  }
+  /* The two phones' buttons side by side, each half the card. */
+  .phones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .phones button {
+    flex: 1 1 8rem;
+  }
+  /* "iPhone" keeps its small i, so the sheets' titles show as written, not capitalized (UI-30). */
+  :global(#iphone-steps-title),
+  :global(#android-steps-title) {
+    text-transform: none;
+  }
+  .steps {
+    display: grid;
+    gap: 0.5rem;
+    margin: 0 0 1rem;
+    padding-left: 1.5rem;
+  }
+  /* Opened from the home screen, there's nothing left to do. */
+  @media (display-mode: standalone) {
+    #home-screen {
+      display: none;
+    }
   }
   .link code {
     overflow-wrap: anywhere;
