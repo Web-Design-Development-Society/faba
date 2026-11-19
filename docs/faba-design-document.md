@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-31`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-32`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-31           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-32           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2776,6 +2776,27 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - UI-11's description of Me
     - section 7.3's Me line
   - Size: S, one developer, including the tests.
+
+#### UI-32 · A New activity form that pops
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member about to post, I want New activity to stand out a little more, so that posting feels inviting, without the page becoming loud.
+- **Mockup:** `mockups/new_activity_border.png`.
+- **Acceptance criteria:**
+  - **The warm paper behind the form has a 2 px orange border** (`--orange`, `#EE6D34`, the **＋ Post** button's), on New and Edit activity.
+  - **New activity's heading strip is a deeper orange with white words** (`--orange-deep`, `#B8481A`), in place of white paper with navy words. It keeps its tilt, its shadow and its square corners.
+  - **It meets the contrast rule:** white on the deeper orange is 5.3:1. The mockup's white on `#EE6D34` was only 3.1:1, under the 5:1 that text on the page meets.
+  - **Everything else stays calm:** the page's solid grey background (UI-29), the warm paper, and the rest of the form are unchanged.
+  - In high-contrast mode, the border and the strip give way to the system's colors, as elsewhere.
+  - At 320 px, 412 px and desktop, nothing scrolls sideways and the axe checks pass.
+  - **Tests:** the look tests check the border on New and Edit activity, and the heading's colors.
+- **Dependencies:** UI-25, UI-29.
+- **Notes / edge cases:**
+  - **Why:** a thin orange edge and an orange heading make the form inviting, while the small amount of orange keeps the page from tiring older eyes.
+  - **Mark these when it's built:**
+    - UI-25's criteria about the warm paper
+    - section 7.7, and the Look line in section 7.17
+  - Size: XS, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
 
