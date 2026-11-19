@@ -39,7 +39,7 @@ self.addEventListener('push', (event) => {
       body: message.body || '',
       tag: message.id,
       renotify: Boolean(message.id),
-      icon: '/icons/icon-192.png',
+      icon: '/favicon/web-app-manifest-192x192.png',
       data: { url: message.url || '/notifications' },
     })
   );

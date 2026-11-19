@@ -5,10 +5,10 @@ test('FABA has a manifest and icons so it can be installed', async ({ page, requ
   await page.goto('/');
   await expect(page.locator('link[rel="manifest"]')).toHaveAttribute(
     'href',
-    '/manifest.webmanifest'
+    '/favicon/site.webmanifest'
   );
 
-  const manifest = await (await request.get('/manifest.webmanifest')).json();
+  const manifest = await (await request.get('/favicon/site.webmanifest')).json();
   expect(manifest.name).toBe('FABA');
   expect(manifest.display).toBe('standalone');
   for (const icon of manifest.icons) {

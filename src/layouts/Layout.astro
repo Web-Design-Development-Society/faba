@@ -36,11 +36,23 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="icon" href="/favicon.ico" />
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
-    <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#006cc2" />
+    <meta
+      name="description"
+      content="Find and organize activities with BYU-Idaho faculty in Rexburg. FABA is an independent community run by the Faculty Association Board."
+    />
+    <meta name="theme-color" content="#f4f7fb" />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="FABA" />
+    <meta property="og:title" content={title === 'FABA' ? title : `${title} · FABA`} />
+    <meta
+      property="og:description"
+      content="Find and organize activities with BYU-Idaho faculty in Rexburg. FABA is an independent community run by the Faculty Association Board."
+    />
+    <link rel="icon" type="image/svg+xml" href="/favicon/favicon.svg" />
+    <link rel="icon" type="image/png" sizes="96x96" href="/favicon/favicon-96x96.png" />
+    <link rel="icon" href="/favicon/favicon.ico" />
+    <link rel="apple-touch-icon" href="/favicon/apple-touch-icon.png" />
+    <link rel="manifest" href="/favicon/site.webmanifest" />
     <link rel="preload" href={anton} as="font" type="font/woff2" crossorigin />
     <title>{title === 'FABA' ? title : `${title} · FABA`}</title>
   </head>
