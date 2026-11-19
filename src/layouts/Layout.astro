@@ -109,8 +109,12 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
           Discover
         </a>
         <a href="/plans" aria-current={current('plans')}>
+          {/* The same ✓ as ✓ Going, in the same face, since Plans is what the member is going to
+              (UI-35). The label names it. */}
           <span class="tile">
-            <Icon name="calendar" size={24} />
+            <span class="check" aria-hidden="true">
+              ✓
+            </span>
           </span>
           Plans
         </a>
@@ -845,6 +849,14 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     width: 2rem;
     height: auto;
     filter: grayscale(1) brightness(0.7);
+  }
+  /* Plans' check, in black, as big as the icons beside it (UI-35): 17.9:1 on the white tile and
+     13.5:1 on the light blue one, and the text's soft white in the dark (UI-33). */
+  .tabs .tile .check {
+    color: var(--ink);
+    font-family: var(--display);
+    font-size: 1.625rem;
+    line-height: 1;
   }
   .tabs [aria-current]::after {
     position: absolute;
