@@ -71,6 +71,8 @@ test('in the dark, the page, its cards and its paper are dark, and orange stays'
 });
 
 test('in the dark, every page is readable', async ({ page, poster, host, crowd }) => {
+  // Thirteen pages, each with axe, which takes WebKit on CI longer than the usual 30 seconds.
+  test.slow();
   const id = await host.post();
   // An unread alert, for its card and dot on Alerts.
   await poster.admin
