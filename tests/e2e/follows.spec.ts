@@ -13,6 +13,15 @@ test('a member follows a category from Discover, and the button says so', async 
   await expect(follow).toHaveAttribute('aria-pressed', 'false');
   await expectAccessible(page);
 
+  // It's in the filters' row, just after Clear filters, rather than on a line of its own, on a
+  // phone too.
+  const [clear, button] = [
+    (await page.getByRole('link', { name: 'Clear filters' }).boundingBox())!,
+    (await follow.boundingBox())!,
+  ];
+  expect(Math.abs(button.y - clear.y)).toBeLessThan(1);
+  expect(button.x).toBeGreaterThan(clear.x + clear.width);
+
   await follow.click();
   await expect(page.getByRole('status')).toHaveText(
     "You're following it. New activities will show up in your notifications."
