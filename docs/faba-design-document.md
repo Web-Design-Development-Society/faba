@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-35`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19` to `NOTIF-21`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-35`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -650,7 +650,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | Activities             |                  | ACT-01 to ACT-06   | ACT-07 to ACT-09, ACT-11    | ACT-10                             |                    |          | ACT-12                             |
 | RSVP                   |                  | RSVP-01 to RSVP-03 | RSVP-04 to RSVP-06, RSVP-08 | RSVP-07, RSVP-09                   |                    |          |                                    |
 | Search                 |                  |                    | SRCH-01 to SRCH-03          |                                    |                    |          |                                    |
-| Notifications          |                  |                    | NOTIF-01 to NOTIF-08        | NOTIF-09, NOTIF-10                 |                    | NOTIF-13 | NOTIF-19, NOTIF-20                 |
+| Notifications          |                  |                    | NOTIF-01 to NOTIF-08        | NOTIF-09, NOTIF-10                 |                    | NOTIF-13 | NOTIF-19 to NOTIF-21               |
 | Moderation             |                  | MOD-01 to MOD-06   | MOD-07                      | MOD-08                             |                    |          |                                    |
 | Groups / recurring     |                  |                    |                             | GRP-01 to GRP-05, REC-01 to REC-04 |                    |          | GRP-06                             |
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
@@ -1794,6 +1794,27 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - It is opt-in, and each notification type can be turned on or off for push (NOTIF-10).
 - **Dependencies:** PWA-01; NOTIF-10.
 - **Notes / edge cases:** None.
+
+#### NOTIF-21 · Remove alerts
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want to remove alerts I'm done with, so that Alerts stays short and the ones that matter are easy to find.
+- **Acceptance criteria:**
+  - **Each alert has a Remove button:** an × at the card's top right, at least 44 by 44 px, in the muted text color. Its name says which alert, such as "Remove alert: Sunrise hike". Removing one takes it off the list and says "Alert removed."
+  - **Earlier has a Clear button** at the right of its heading. It removes every alert that's been read, on every page of the list, and says "Earlier alerts cleared." Its name is "Clear earlier alerts". New alerts stay until they're read or removed one at a time, so a cancellation can't be cleared before it's seen.
+  - **Removing an unread alert marks it read too,** so the badge counts only what's on the list.
+  - **After removing one, the list comes back where it was:** at the alert that took its place, with All or Unread and the page as they were. Removing several in a row doesn't jump to the top.
+  - **A removed alert stays removed,** but one that comes back as new shows again, as new. An example is a second change to the same activity, which updates the alert that was sent (the dedupe window in 8.8).
+  - The rest of the card is still one button that opens the alert (UI-20). The × is the one thing added beside its three lines.
+  - It works without JavaScript, like the rest of Alerts. High-contrast mode shows the × in the system's text color.
+  - **Tests:**
+    - pgTAP: a member removes only their own alerts, one or all the read ones; removing marks an alert read; a repeat brings a removed one back; a removed reminder isn't sent again.
+    - Playwright: removing one, Clear, the badge, the place in the list, and the axe checks.
+- **Dependencies:** NOTIF-01, UI-20.
+- **Notes / edge cases:**
+  - **Why removed alerts are hidden, not deleted:** the reminder job, and the 10-minute window for changes, look for the alert that was already sent. Deleting it would send the same reminder again. A removed alert gets a `removed_at` time, and the nightly job deletes it with the rest after 90 days (FR-NOT-5).
+  - Removing can't be undone. Nothing else goes with it: the activity is still on Plans and Discover, and a push that was already sent still opens it.
+  - Size: S.
 
 #### ACT-12 · Comments on activities
 
