@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-30`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-31`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-30           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-31           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2751,6 +2751,30 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - UI-14's criteria about headings in capitals
     - the Look line in section 7.17
   - Size: XS, one developer, including the tests.
+
+#### UI-31 · Add FABA to the home screen
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member on my phone, I want to know how to add FABA to my home screen and open it as an app, so that it's one tap away, in its own window, and, on iPhone, can send me alerts.
+- **Acceptance criteria:**
+  - **A card under Calendar feed on Me,** headed **Add FABA to your home screen**. It says, in a sentence or two, that FABA then opens from an icon like an app, and that on an iPhone that's also how it can send push notifications (NOTIF-20).
+  - **Two buttons, On iPhone and On Android,** each opening a sheet of numbered steps, in FABA's own words:
+    - **iPhone, in Safari:** open FABA, tap ⋯ then **Share** (or the **Share** button, when the tabs are at the bottom or top), tap **Add to Home Screen** (or add it with **Edit Actions** if it's missing), turn on **Open as Web App**, then tap **Add**.
+    - **Android, in Chrome:** open FABA, tap ⋮ (**More**), tap **Install and create shortcut**, then **Install**, and follow the steps on the screen.
+    - Each sheet ends with a link to the phone maker's own page: Apple's or Google's.
+  - **It hides itself once FABA is opened from the home screen,** since there's nothing left to do.
+  - **The iPhone note on the Notifications settings page links here,** for the full steps.
+  - The sheets work without JavaScript, like every sheet.
+  - At 320 px, 412 px and desktop, nothing scrolls sideways and the axe checks pass.
+  - **Tests:** an E2E test opens each sheet and checks its steps and link, and checks that the card is gone when FABA runs as an installed app.
+- **Dependencies:** PWA-01, NOTIF-20, UI-11.
+- **Notes / edge cases:**
+  - **Sources:** Apple's "Turn a website into an app in Safari on iPhone" (support.apple.com/guide/iphone/open-as-web-app-iphea86e5236/ios) and Google's "Use web apps" for Chrome on Android (support.google.com/chrome/answer/9658361). Check them when a new iOS or Chrome changes the names.
+  - **Other browsers** aren't covered. Apple's page is for Safari, and Google's for Chrome.
+  - **Mark these when it's built:**
+    - UI-11's description of Me
+    - section 7.3's Me line
+  - Size: S, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
 
