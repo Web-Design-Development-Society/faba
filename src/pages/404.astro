@@ -1,0 +1,157 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const quips = [
+  'This page RSVP’d “maybe” and never showed up.',
+  'We checked the roster. This page is not on the team.',
+  'Looks like this link took a wrong turn on the way to Rexburg.',
+  'This page has left the group chat. No forwarding address.',
+  'The activity was canceled. By “activity,” we mean this URL.',
+  'We searched every department. Not a single page found.',
+  'This page is somewhere between “on my way” and “what room?”',
+  'The only thing happening here is a 404.',
+  'This URL brought snacks, but forgot the actual page.',
+  'No page, no plans, and somehow still a full calendar.',
+];
+
+const quip = quips[Math.floor(Math.random() * quips.length)];
+---
+
+<Layout title="Page not found">
+  <section class="not-found" aria-labelledby="not-found-title">
+    <p class="eyebrow">Lost in the faculty lounge?</p>
+    <p class="code" aria-hidden="true">404</p>
+    <h1 id="not-found-title">Well, this is awkward.</h1>
+    <p class="quip">{quip}</p>
+    <p class="help">
+      The link may be broken, or this page may have moved on to bigger and better things.
+    </p>
+    <div class="actions">
+      <a class="home" href="/discover">Back to Discover</a>
+      <a class="search" href="/search">Search FABA</a>
+    </div>
+    <span class="sticker" aria-hidden="true">NOT<br />HERE!</span>
+  </section>
+</Layout>
+
+<style>
+  .not-found {
+    position: relative;
+    box-sizing: border-box;
+    width: 100%;
+    margin: clamp(0.75rem, 4vh, 2rem) auto;
+    padding: clamp(1rem, 5vw, 2.5rem);
+    overflow: hidden;
+    background: white;
+    box-shadow: 8px 10px 0 var(--navy);
+    text-align: center;
+  }
+
+  .eyebrow {
+    margin: 0;
+    color: var(--blue);
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .code {
+    margin: 0.25rem 0 -0.35rem;
+    color: var(--blue);
+    font-family: var(--display);
+    font-size: clamp(4.5rem, 18vh, 9rem);
+    line-height: 0.95;
+    letter-spacing: -0.04em;
+  }
+
+  h1 {
+    margin: 0.5rem 0;
+    font-family: var(--display);
+    font-size: clamp(1.75rem, 6vw, 3rem);
+    font-weight: 400;
+    line-height: 1;
+    text-transform: uppercase;
+  }
+
+  .quip {
+    max-width: 29rem;
+    margin: 0.75rem auto;
+    font-size: clamp(1.0625rem, 4vw, 1.35rem);
+    font-weight: 750;
+  }
+
+  .help {
+    max-width: 28rem;
+    margin: 0 auto;
+    line-height: 1.5;
+  }
+
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+
+  .actions a {
+    display: inline-block;
+    padding: 0.8rem 1rem;
+    font-weight: 800;
+    text-decoration: none;
+  }
+
+  .home {
+    background: var(--blue);
+    color: white;
+  }
+
+  .search {
+    border: 2px solid var(--blue);
+    color: var(--blue);
+  }
+
+  .sticker {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    display: grid;
+    width: 3.5rem;
+    aspect-ratio: 1;
+    place-content: center;
+    transform: rotate(9deg);
+    background: #f6c94d;
+    color: var(--navy);
+    font-size: 0.7rem;
+    font-weight: 900;
+    line-height: 1.05;
+  }
+
+  @media (max-width: 28rem) {
+    .sticker {
+      top: 0.5rem;
+      right: 0.5rem;
+      width: 2.75rem;
+      font-size: 0.55rem;
+    }
+  }
+
+  @media (max-height: 42rem) {
+    .not-found {
+      margin-block: 0.5rem;
+      padding-block: 0.75rem;
+    }
+
+    .code {
+      font-size: clamp(4rem, 14vh, 6rem);
+    }
+
+    .quip {
+      margin-block: 0.5rem;
+    }
+
+    .actions {
+      margin-top: 0.75rem;
+    }
+  }
+</style>
