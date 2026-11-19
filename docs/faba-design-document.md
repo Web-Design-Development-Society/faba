@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-29`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19`, `NOTIF-20`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-30`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-29           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-30           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2728,6 +2728,29 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - UI-25's criteria about the warm gradient
     - the Look line in section 7.17
   - Size: S, one developer, including the tests.
+
+#### UI-30 · Headers in title case
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want headings and card titles in ordinary capitals rather than all capitals, so that they're quicker to read.
+- **Acceptance criteria:**
+  - **Headers start each word with a capital,** by CSS (`text-transform: capitalize`), in place of all capitals. They stay in the display face. That covers:
+    - every page's heading and its parts' headings, such as **Date And Time** and **Who's Going**, and sheets' titles
+    - an activity card's title, a group card's name, and the activity's or group's name on an alert
+    - Discover's day labels, such as **Today**, and the section headings on Search and Alerts
+    - the 404 page's heading
+  - **What isn't a header stays in capitals:** buttons (UI-22), tabs, the bottom bar's labels, the filter buttons, the cards' date column and badges such as **You're hosting**, and the motto.
+  - **The words are unchanged,** so screen readers, search and copied text read them as written.
+  - At 320 px, 412 px and desktop, nothing scrolls sideways and the axe checks pass.
+  - **Tests:** the look tests check that headings and card titles are capitalized, and that buttons and tabs are still in capitals.
+- **Dependencies:** UI-14, UI-22.
+- **Notes / edge cases:**
+  - **Why:** words in all capitals are harder to read, especially in long titles.
+  - **Every word gets a capital,** small ones too, since CSS can't tell them apart: "Revenge Of The Babysat", "Date And Time". A title's other letters stay as its organizer typed them.
+  - **Mark these when it's built:**
+    - UI-14's criteria about headings in capitals
+    - the Look line in section 7.17
+  - Size: XS, one developer, including the tests.
 
 #### GRP-06 · No limit on starting groups
 
