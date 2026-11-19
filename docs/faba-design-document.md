@@ -1800,7 +1800,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 - **Role:** Member · **Priority:** Should · **Phase:** 6
 - **Story:** As a member, I want to remove alerts I'm done with, so that Alerts stays short and the ones that matter are easy to find.
 - **Acceptance criteria:**
-  - **Each alert has a Remove button:** an × at the card's top right, at least 44 by 44 px, in the muted text color. Its name says which alert, such as "Remove alert: Sunrise hike". Removing one takes it off the list and says "Alert removed."
+  - **Each alert has a Remove button:** an × at the card's top right, at least 44 by 44 px, in the muted text color. Its name says which alert, with what happened and then the name, as the card is read, such as "Remove alert: Cancelled, Sunrise hike". Removing one takes it off the list and says "Alert removed."
   - **Earlier has a Clear button** at the right of its heading. It removes every alert that's been read, on every page of the list, and says "Earlier alerts cleared." Its name is "Clear earlier alerts". New alerts stay until they're read or removed one at a time, so a cancellation can't be cleared before it's seen.
   - **Removing an unread alert marks it read too,** so the badge counts only what's on the list.
   - **After removing one, the list comes back where it was:** at the alert that took its place, with All or Unread and the page as they were. Removing several in a row doesn't jump to the top.
