@@ -28,11 +28,11 @@ test('the organizer gets one alert for new people going', async ({ page, poster,
     .getByRole('navigation', { name: 'Main' })
     .getByRole('link', { name: /^Alerts/ });
   await expect(alerts).toHaveAccessibleName('Alerts 1 unread');
-  await expect(page.getByRole('region', { name: 'New' }).getByRole('button')).toHaveText([
+  await expect(page.getByRole('region', { name: 'New' }).getByRole('listitem')).toHaveText([
     /Unread: 3 new people are going\s*Pickleball/,
   ]);
   await expectAccessible(page);
 
-  await page.getByRole('button', { name: /3 new people are going/ }).click();
+  await page.getByRole('button', { name: /^Unread: 3 new people are going/ }).click();
   await expect(page).toHaveURL(`/activities/${activity!.id}`);
 });
