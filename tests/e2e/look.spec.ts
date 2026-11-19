@@ -152,14 +152,18 @@ test("the main tabs' headings are for screen readers, and New activity keeps its
   const size = parseFloat(await heading.evaluate((el) => getComputedStyle(el).fontSize));
   expect(size).toBeGreaterThanOrEqual(36);
   expect((await heading.boundingBox())!.height).toBeLessThan(size * 1.6);
-  // It sits on its own strip of white paper, with square corners and a shadow (UI-16).
-  expect(await paper(heading)).toBe('ffffff');
+  // It sits on its own strip of paper, with square corners and a shadow (UI-16): white words on a
+  // deeper orange, 5.3:1, so it pops (UI-32).
+  expect(await paper(heading)).toBe('b8481a');
+  await expect(heading).toHaveCSS('color', 'rgb(255, 255, 255)');
   await expectSquare(heading);
   // New activity is warm (UI-25): its form is on a piece of warm paper, on the same solid grey as
   // every other page, with no gradient (UI-29).
   const main = page.locator('main');
   const html = page.locator('html');
   await expect(main).toHaveCSS('background-color', WARM_PAPER);
+  // A thin orange edge, the Post button's orange (UI-32).
+  await expect(main).toHaveCSS('border-top', `2px solid ${ORANGE}`);
   await expect(main).toHaveCSS('box-shadow', 'none');
   await expect(main).toHaveCSS('border-top-left-radius', '0px');
   await expect(html).toHaveCSS('background-image', 'none');
@@ -201,6 +205,7 @@ test("Edit activity is warm too, for its organizer, but not when they can't edit
   await expect(page.getByRole('heading', { level: 1 })).toHaveText('Edit activity');
   await expect(page.locator('html')).toHaveCSS('background-color', PAGE);
   await expect(page.locator('main')).toHaveCSS('background-color', WARM_PAPER);
+  await expect(page.locator('main')).toHaveCSS('border-top', `2px solid ${ORANGE}`);
   // Back sits on the warm paper too.
   expect(await unreadableOnPage(page)).toEqual([]);
   await expectAccessible(page);
