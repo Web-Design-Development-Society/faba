@@ -11,6 +11,7 @@ import { notifications } from './notifications';
 import { profile } from './profile';
 import { reports } from './reports';
 import { rsvps } from './rsvps';
+import { theme } from './theme';
 
 export const server = {
   activities,
@@ -25,4 +26,5 @@ export const server = {
   profile,
   reports,
   rsvps,
+  theme,
 };

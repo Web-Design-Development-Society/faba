@@ -14,6 +14,7 @@ import '@fontsource/anton/latin-400.css';
 import anton from '@fontsource/anton/files/anton-latin-400-normal.woff2?url';
 import Icon from '../components/Icon.astro';
 import { badge } from '../lib/notifications';
+import { THEME_COLOR, THEME_COOKIE, themeFrom } from '../lib/theme';
 
 interface Props {
   title: string;
@@ -30,9 +31,12 @@ interface Props {
 const { title, tab, post = '/activities/new', warm = false, paper = false } = Astro.props;
 const unread = Astro.locals.member?.unread_count ?? 0;
 const current = (item: string) => (item === tab ? ('page' as const) : undefined);
+// Light or Dark, if the member chose one on Me (UI-34). Prerendered pages, such as About, have no
+// request to read it from, so they follow the device.
+const theme = Astro.isPrerendered ? 'device' : themeFrom(Astro.cookies.get(THEME_COOKIE)?.value);
 ---
 
-<html lang="en" class:list={{ warm, paper }}>
+<html lang="en" class:list={{ warm, paper }} data-theme={theme === 'device' ? undefined : theme}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -40,9 +44,20 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
       name="description"
       content="Find and organize activities with BYU-Idaho faculty in Rexburg. FABA is an independent community run by the Faculty Association Board."
     />
-    <meta name="theme-color" content="#f4f7fb" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0f141b" media="(prefers-color-scheme: dark)" />
-    <meta name="color-scheme" content="light dark" />
+    {/* The browser bar's color, and the browser's own fields and scrollbars, in the page's theme. */}
+    {theme === 'device' ? (
+      <>
+        <meta
+          name="theme-color"
+          content={THEME_COLOR.light}
+          media="(prefers-color-scheme: light)"
+        />
+        <meta name="theme-color" content={THEME_COLOR.dark} media="(prefers-color-scheme: dark)" />
+      </>
+    ) : (
+      <meta name="theme-color" content={THEME_COLOR[theme]} />
+    )}
+    <meta name="color-scheme" content={theme === 'device' ? 'light dark' : theme} />
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="FABA" />
     <meta property="og:title" content={title === 'FABA' ? title : `${title} · FABA`} />
@@ -234,15 +249,20 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
     --warning-soft: #fffaeb;
     --placeholder: #6b7280; /* 4.8:1 on white */
     --avatar: #dddddd;
+    /* A select's arrow, in the headings' navy, and Discover's logo in greyscale at 70% brightness,
+       so its lighter figure is 5.5:1 on the white tile and 4.1:1 on the light blue one (UI-28). */
+    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230f1f3d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    --mark-filter: grayscale(1) brightness(0.7);
     /* Fields, date pickers and scrollbars follow the theme. */
     color-scheme: light dark;
     /* Anton has one weight, so a heading asked for bold stays Anton, not a smeared copy of it. */
     font-synthesis: none;
   }
-  /* Dark mode, when the device asks for it (UI-33): the same look in the dark, every pair checked
-     against the same rules, text at least 4.5:1 and controls 3:1. Orange stays as it is. */
+  /* Dark mode, when the device asks for it (UI-33) and Match device is chosen on Me (UI-34): the
+     same look in the dark, every pair checked against the same rules, text at least 4.5:1 and
+     controls 3:1. Orange stays as it is. */
   @media (prefers-color-scheme: dark) {
-    :root {
+    :root:not([data-theme='light']) {
       --page: #0f141b;
       --paper: #171d26;
       --card: #1e2631;
@@ -266,7 +286,45 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
       --avatar: #3a4452;
       --lift: 0 1px 2px rgb(0 0 0 / 50%), 0 4px 10px rgb(0 0 0 / 40%);
       --lift-high: 0 2px 4px rgb(0 0 0 / 60%), 0 12px 28px rgb(0 0 0 / 55%);
+      /* A light arrow, like the words, and Discover's logo a light grey, 6.6:1 on its dark tile. */
+      --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23eef2f8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+      --mark-filter: grayscale(1) brightness(1.7);
     }
+  }
+  /* Dark chosen on Me (UI-34), whatever the device says: the same colors as above, which a test
+     checks token by token, and the browser's own parts dark too. Light chosen there is the light
+     theme, with the browser's parts light. */
+  :root[data-theme='dark'] {
+    --page: #0f141b;
+    --paper: #171d26;
+    --card: #1e2631;
+    --paper-warm: #221b16;
+    --sky: #1c3754;
+    --blue-soft: #1a2a40;
+    --ink: #e7eaee; /* 12.6:1 on a card */
+    --navy: #eef2f8; /* headings: 13.6:1 on a card */
+    --muted: #a9b2bf; /* 7.1:1 on a card, 5.7:1 on sky */
+    --line: #2e3846;
+    --border: #8792a2; /* 4.8:1 on a card */
+    --placeholder: #9aa4b1;
+    --blue: #0a74cf; /* white on it is 4.76:1, and as a border 3.2:1 on a card */
+    --blue-text: #6db3ff; /* 6.9:1 on a card, 5.5:1 on sky */
+    --blue-dark: #8fc5ff; /* links: 8.4:1 on a card */
+    --navy-surface: #2c3c5a; /* white on it is 11:1 */
+    --danger: #ff8b7b;
+    --danger-soft: #3b1f1c;
+    --warning: #ffb46b;
+    --warning-soft: #3a2b14;
+    --avatar: #3a4452;
+    --lift: 0 1px 2px rgb(0 0 0 / 50%), 0 4px 10px rgb(0 0 0 / 40%);
+    --lift-high: 0 2px 4px rgb(0 0 0 / 60%), 0 12px 28px rgb(0 0 0 / 55%);
+    /* A light arrow, like the words, and Discover's logo a light grey, 6.6:1 on its dark tile. */
+    --select-arrow: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23eef2f8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    --mark-filter: grayscale(1) brightness(1.7);
+    color-scheme: dark;
+  }
+  :root[data-theme='light'] {
+    color-scheme: light;
   }
   /* Anton's fallbacks, sized to Anton's width (83% of Arial Narrow Bold, 68% of Arial Bold) and
      line height (ascent 1.18, descent 0.33), measured in Chromium. A phone without either uses its
@@ -662,7 +720,7 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   :where(select) {
     padding-right: 2.5rem;
     appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230f1f3d' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-image: var(--select-arrow);
     background-repeat: no-repeat;
     background-position: right 0.75rem center;
     background-size: 1.25rem;
@@ -838,13 +896,12 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   .tabs [aria-current] .tile {
     background: var(--sky);
   }
-  /* Discover's FABA logo, in greyscale at 70% brightness, so its lighter figure is 5.5:1 on the
-     white tile and 4.1:1 on the light blue one (UI-28). */
+  /* Discover's FABA logo, in greyscale (UI-28), as bright as the theme's --mark-filter makes it. */
   .tabs .tile .mark {
     display: block;
     width: 2rem;
     height: auto;
-    filter: grayscale(1) brightness(0.7);
+    filter: var(--mark-filter);
   }
   .tabs [aria-current]::after {
     position: absolute;
@@ -903,17 +960,6 @@ const current = (item: string) => (item === tab ? ('page' as const) : undefined)
   /* Darker on hover, like a button's FABA blue (UI-25). */
   .tabs .post:hover .square {
     background: var(--orange-dark);
-  }
-
-  /* In the dark, a select's arrow is light, like the words, and Discover's logo is a light grey,
-     6.6:1 on its dark tile (UI-33). */
-  @media (prefers-color-scheme: dark) {
-    :where(select) {
-      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23eef2f8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
-    }
-    .tabs .tile .mark {
-      filter: grayscale(1) brightness(1.7);
-    }
   }
 
   /* High contrast: no shadows, just plain borders in the system's colors. */

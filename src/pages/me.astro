@@ -7,17 +7,31 @@
 // The member's profile is a card at the top (UI-11): their photo in a large circle, their name,
 // department, bio and interests, with Edit profile and See my profile. The settings are rows with
 // icons under it, then the calendar feed in its own card, and how to add FABA to the home screen
-// (UI-31), with a sheet of steps for iPhone and one for Android.
+// (UI-31), with a sheet of steps for iPhone and one for Android. The Theme card, under the settings,
+// chooses light or dark for this device, or follows its setting (UI-34).
 import { actions, isInputError } from 'astro:actions';
 import Avatar from '../components/Avatar.astro';
 import Icon from '../components/Icon.astro';
 import Sheet from '../components/Sheet.astro';
 import Status from '../components/Status.astro';
 import Layout from '../layouts/Layout.astro';
-import { FLASH_MESSAGES, takeFlash } from '../lib/server/flash';
+import { FLASH_MESSAGES, setFlash, takeFlash } from '../lib/server/flash';
+import { THEME_COOKIE, themeFrom } from '../lib/theme';
 
 const { supabase, member, user } = Astro.locals;
 if (!user) return Astro.redirect('/auth/login');
+
+const chosen = Astro.getActionResult(actions.theme.choose);
+if (chosen && !chosen.error) {
+  setFlash(Astro.cookies, Astro.url, 'theme_saved');
+  return Astro.redirect('/me#theme', 303);
+}
+const theme = themeFrom(Astro.cookies.get(THEME_COOKIE)?.value);
+const THEME_CHOICES = [
+  ['device', 'Match device'],
+  ['light', 'Light'],
+  ['dark', 'Dark'],
+] as const;
 
 const flash = takeFlash(Astro.cookies);
 
@@ -97,6 +111,25 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
       </button>
     </form>
   </nav>
+
+  {/* Light or dark for this device, or its own setting (UI-34). A choice saves at once, and Save is
+      for when JavaScript is off. */}
+  <section class="card" id="theme" aria-labelledby="theme-heading">
+    <h2 id="theme-heading">Theme</h2>
+    <p>Match device follows your phone's or computer's light or dark setting.</p>
+    <form method="post" action={actions.theme.choose.queryString} data-theme-form>
+      <fieldset class="choices">
+        <legend class="visually-hidden">Theme</legend>
+        {THEME_CHOICES.map(([value, label]) => (
+          <label>
+            <input type="radio" name="theme" value={value} checked={value === theme} />
+            {label}
+          </label>
+        ))}
+      </fieldset>
+      <button data-theme-save>Save</button>
+    </form>
+  </section>
 
   <section class="card" id="calendar-feed" aria-labelledby="calendar-feed-heading">
     <h2 id="calendar-feed-heading">Calendar feed</h2>
@@ -336,6 +369,11 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
       display: none;
     }
   }
+  /* The chips end the card, as the calendar's button does. Without JavaScript, Save sits under
+     them. */
+  #theme fieldset {
+    margin: 0;
+  }
   .link code {
     overflow-wrap: anywhere;
   }
@@ -344,3 +382,7 @@ const interests = categories?.filter(({ id }) => profile?.interests.includes(id)
     text-align: center;
   }
 </style>
+
+<script>
+  import '../scripts/theme';
+</script>
