@@ -70,8 +70,10 @@ test('selected things are FABA blue, and the bar keeps its five items', async ({
   // The other is white with FABA blue words (UI-29).
   expect(await paper(halves.getByRole('link', { name: 'Groups' }))).toBe('ffffff');
   await expect(halves.getByRole('link', { name: 'Groups' })).toHaveCSS('color', BLUE);
-  // Any time, the date chosen until another is, is FABA blue in the Date list.
+  // Any time, the date chosen until another is, is FABA blue in the Date list, behind Filters
+  // (UI-36).
   const filters = page.getByRole('navigation', { name: 'Filters' });
+  await filters.getByRole('button', { name: 'Filters' }).click();
   await filters.locator('summary', { hasText: /^Date/ }).click();
   await expect(filters.getByRole('link', { name: 'Any time' })).toHaveCSS('background-color', BLUE);
   await page.keyboard.press('Escape');

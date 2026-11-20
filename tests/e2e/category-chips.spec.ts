@@ -1,5 +1,5 @@
 // Discover's category chips (ACT-06), behind the Category button beside Date, the only two filters
-// (UI-04, UI-09).
+// (UI-04, UI-09), which are behind Filters until one is on (UI-36).
 import type { Page } from '@playwright/test';
 import { expect, expectAccessible, test } from './fixtures';
 
@@ -34,6 +34,7 @@ test('a chip shows only its category, and says it is chosen', async ({ page, sig
   await page.goto('/discover');
   const chips = filters(page);
   await expect(page.getByRole('heading', { name: 'Upcoming activities' })).toBeVisible();
+  await chips.getByRole('button', { name: 'Filters' }).click();
   // Just Category and Date: no pills on the page, and nothing else to tap.
   await expect(chips.locator('summary')).toHaveText(['Category', 'Date']);
   await expect(chips.getByRole('link', { name: 'All', exact: true })).toHaveCount(0);
@@ -90,6 +91,8 @@ test('a chip shows only its category, and says it is chosen', async ({ page, sig
   await chips.getByRole('link', { name: 'Clear filters' }).click();
   await expect(page).toHaveURL('/discover');
   await expect(page.getByRole('link', { name: hike })).toBeVisible();
+  // With nothing chosen, they're tucked away again.
+  await expect(category(page)).toBeHidden();
 });
 
 test('a category with nothing coming up invites the member to post one', async ({

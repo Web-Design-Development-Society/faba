@@ -9,10 +9,16 @@
 // weekend, then Pick dates with From and To. The choices are links, and Pick dates is a GET form,
 // so a filter can be shared. A date keeps the category, and a category keeps the dates, as in
 // /discover?when=weekend&cat=outdoors. On Search they keep the words too. Clear filters shows
-// whenever a filter is on. What the page puts in the slot, such as Discover's Follow button for
-// the chosen category, comes after it in the same row.
+// whenever a filter is on, and what the page puts in the slot, such as Discover's Follow button for
+// the chosen category, comes after it.
 //
 // On Search before searching (`browse`), the categories show as chips to browse instead.
+//
+// On Discover (`collapsible`), the row is hidden behind a Filters button, at the right on the line
+// of the first day's heading, until the member wants it (UI-36). Shown, Category and Date are on
+// the first line with Filters at its right, and Clear filters and Follow on the next. It starts
+// shown when a filter is on, so the member sees what the feed is filtered by. Without JavaScript
+// it's always shown, with no button.
 import { isIcon } from '../lib/icons';
 import { formatDay, WHENS, type When } from '../lib/time';
 import Icon from './Icon.astro';
@@ -27,9 +33,11 @@ interface Props {
   dates?: { when?: When; from?: string; to?: string };
   /** True for links to Discover's categories, as on Search before searching. */
   browse?: boolean;
+  /** True to hide the row behind a Filters button until a filter is on (UI-36). */
+  collapsible?: boolean;
 }
 
-const { categories, page, query, dates = {}, browse } = Astro.props;
+const { categories, page, query, dates = {}, browse, collapsible } = Astro.props;
 const now = new Date();
 const cat = query.get('cat');
 const chosenCategory = categories.find(({ id }) => id === cat);
@@ -83,6 +91,7 @@ const kept = [...query].filter(
 const words = new URLSearchParams([...query].filter(([name]) => ['q', 'past'].includes(name)));
 const clear = words.size ? `${page}?${words}` : page;
 const on = !!chosenCategory || !anyTime;
+const shown = on || !!wrong;
 ---
 
 {browse ? (
@@ -99,67 +108,88 @@ const on = !!chosenCategory || !anyTime;
     </ul>
   </nav>
 ) : (
-  <nav aria-label="Filters" class="filters">
+  <>
     {wrong && (
-      <p role="alert">Those dates don't work together. Pick a start on or before the end.</p>
+      <p role="alert" class="wrong">
+        Those dates don't work together. Pick a start on or before the end.
+      </p>
     )}
-    <div class="tools">
-      {kinds.length > 0 && (
-        <details class="menu" data-menu>
-          <summary class:list={{ on: !!chosenCategory }}>
-            {chosenCategory ? `Category: ${chosenCategory.name}` : 'Category'}
-          </summary>
-          <ul class="chips panel">
-            {kinds.map(({ name, icon, chosen, href }) => (
-              <li>
-                <a href={href} aria-current={chosen ? 'page' : undefined}>
-                  {icon && !chosen && <Icon name={icon} />}
-                  {name}
-                </a>
-              </li>
-            ))}
-          </ul>
-        </details>
+    <nav aria-label="Filters" class:list={['filters', { collapsible, shown }]}>
+      {collapsible && (
+        <button
+          type="button"
+          class="toggle"
+          aria-expanded={shown ? 'true' : 'false'}
+          aria-controls="filter-tools"
+          data-filters-toggle
+        >
+          Filters
+        </button>
       )}
-      <details class="menu" data-menu>
-        <summary class:list={{ on: !anyTime }}>{dateLabel ? `Date: ${dateLabel}` : 'Date'}</summary>
-        <div class="panel">
-          <ul class="whens">
-            {whens.map(({ name, chosen, href }) => (
-              <li>
-                <a href={href} aria-current={chosen ? 'page' : undefined}>
-                  {name}
-                </a>
-              </li>
-            ))}
-          </ul>
-          <form method="get" action={page} class="pick" data-pick-dates>
-            {kept.map(([name, value]) => (
-              <input type="hidden" name={name} value={value} />
-            ))}
-            <fieldset>
-              <legend>Pick dates</legend>
-              <p>
-                <label for="filter-from">From</label>
-                <input id="filter-from" type="date" name="from" value={dates.from} />
-              </p>
-              <p>
-                <label for="filter-to">To</label>
-                <input id="filter-to" type="date" name="to" value={dates.to} />
-              </p>
-            </fieldset>
-            <button>Show activities</button>
-          </form>
+      <div class="tools" id="filter-tools">
+        <div class="menus">
+          {kinds.length > 0 && (
+            <details class="menu" data-menu>
+              <summary class:list={{ on: !!chosenCategory }}>
+                {chosenCategory ? `Category: ${chosenCategory.name}` : 'Category'}
+              </summary>
+              <ul class="chips panel">
+                {kinds.map(({ name, icon, chosen, href }) => (
+                  <li>
+                    <a href={href} aria-current={chosen ? 'page' : undefined}>
+                      {icon && !chosen && <Icon name={icon} />}
+                      {name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+          <details class="menu" data-menu>
+            <summary class:list={{ on: !anyTime }}>
+              {dateLabel ? `Date: ${dateLabel}` : 'Date'}
+            </summary>
+            <div class="panel">
+              <ul class="whens">
+                {whens.map(({ name, chosen, href }) => (
+                  <li>
+                    <a href={href} aria-current={chosen ? 'page' : undefined}>
+                      {name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              <form method="get" action={page} class="pick" data-pick-dates>
+                {kept.map(([name, value]) => (
+                  <input type="hidden" name={name} value={value} />
+                ))}
+                <fieldset>
+                  <legend>Pick dates</legend>
+                  <p>
+                    <label for="filter-from">From</label>
+                    <input id="filter-from" type="date" name="from" value={dates.from} />
+                  </p>
+                  <p>
+                    <label for="filter-to">To</label>
+                    <input id="filter-to" type="date" name="to" value={dates.to} />
+                  </p>
+                </fieldset>
+                <button>Show activities</button>
+              </form>
+            </div>
+          </details>
         </div>
-      </details>
-      {on && (
-        <a href={clear} class="clear button">
-          Clear filters
-        </a>
-      )}
-      <slot />
-    </div>
-  </nav>
+        {on && (
+          <div class="more">
+            <a href={clear} class="clear button">
+              Clear filters
+            </a>
+            <slot />
+          </div>
+        )}
+      </div>
+    </nav>
+  </>
 )}
 
 <script>
@@ -179,6 +209,15 @@ const on = !!chosenCategory || !anyTime;
       menu.querySelector('summary')?.focus();
     });
   }
+  // Filters shows or hides Discover's row (UI-36). Hiding it closes an open panel.
+  for (const toggle of document.querySelectorAll<HTMLButtonElement>('[data-filters-toggle]')) {
+    toggle.addEventListener('click', () => {
+      const shown = toggle.getAttribute('aria-expanded') !== 'true';
+      toggle.setAttribute('aria-expanded', String(shown));
+      toggle.closest('.filters')?.classList.toggle('shown', shown);
+      if (!shown) for (const menu of menus) menu.open = false;
+    });
+  }
   // Dates left empty stay out of the link. Without JavaScript they're in it, and readDates()
   // ignores them.
   for (const form of document.querySelectorAll<HTMLFormElement>('[data-pick-dates]')) {
@@ -189,19 +228,103 @@ const on = !!chosenCategory || !anyTime;
 </script>
 
 <style>
+  /* The panels drop down from the filters, the whole width of the page. */
   .filters {
+    position: relative;
     margin-top: 0.75rem;
   }
-  .filters > p {
-    margin: 0 0 0.5rem;
+  .wrong {
+    margin: 0.75rem 0 0;
   }
-  /* Category, Date, Clear filters and Follow, in one row that wraps on a narrow phone. */
+  .wrong + .filters {
+    margin-top: 0.5rem;
+  }
+  /* Category, Date, Clear filters and Follow, in one row that wraps on a narrow phone. Beside
+     Discover's Filters button, it wraps in the room left of it. */
   .tools {
-    position: relative;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 0.5rem;
+  }
+  .menus,
+  .more {
+    display: contents;
+  }
+  /* Discover's Filters (UI-36): quiet words in the display face, with a caret before them, at the
+     right. It's there only with JavaScript, which hides the row until it's tapped. Hidden, the row
+     takes no room, so Filters sits on the line of the first day's heading, and what comes next
+     wraps around it. */
+  .toggle {
+    display: none;
+  }
+  :global(html[data-js]) .toggle {
+    display: inline-flex;
+    float: right;
+    align-items: center;
+    gap: 0.375rem;
+    min-width: 44px;
+    min-height: 48px;
+    margin: 0 0 0 0.5rem;
+    padding: 0 0 0 0.25rem;
+    color: var(--navy);
+    font-size: 1.0625rem;
+    letter-spacing: 0.04em;
+    background: none;
+  }
+  /* As tall as Category and Date, and level with the day's heading while they're hidden. */
+  :global(html[data-js]) .filters:not(.shown) .toggle {
+    margin-top: -0.25rem;
+  }
+  .toggle:hover {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 0.15em;
+    background: none;
+  }
+  /* The caret points left while the row is hidden, and down once it's shown, as Category's turns. */
+  .toggle::before {
+    width: 0.5rem;
+    height: 0.5rem;
+    content: '';
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(135deg);
+  }
+  .shown .toggle::before {
+    margin-top: -0.25rem;
+    transform: rotate(45deg);
+  }
+  :global(html[data-js]) .collapsible:not(.shown) .tools {
+    display: none;
+  }
+  /* Shown: Category and Date on the first line, with Filters at its right, and Clear filters and
+     Follow on the next, the whole width. */
+  :global(html[data-js]) .collapsible.shown {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.5rem;
+    align-items: start;
+  }
+  :global(html[data-js]) .collapsible.shown .tools {
+    display: contents;
+  }
+  :global(html[data-js]) .collapsible.shown .menus,
+  :global(html[data-js]) .collapsible.shown .more {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  :global(html[data-js]) .collapsible.shown .menus {
+    grid-area: 1 / 1;
+  }
+  :global(html[data-js]) .collapsible.shown .toggle {
+    grid-area: 1 / 2;
+    margin: 0;
+  }
+  :global(html[data-js]) .collapsible.shown .more {
+    grid-area: 2 / 1 / 3 / 3;
   }
   /* Bordered boxes with a caret, their labels in the display face, as in the mockup (UI-14). */
   summary {

@@ -106,6 +106,7 @@ test("Category's and Date's lists have the same room around their choices", asyn
 }) => {
   await signInAs('member');
   await page.goto('/discover');
+  await filters(page).getByRole('button', { name: 'Filters' }).click();
   for (const list of ['Category', 'Date'] as const) {
     await button(page, list).click();
     const panel = filters(page).locator('details[open] .panel');
