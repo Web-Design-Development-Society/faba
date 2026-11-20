@@ -1,5 +1,15 @@
 ---
-// The landing page for visitors. Signed-in members go straight to Discover.
+// The landing page for visitors (UI-37). Signed-in members go straight to Discover.
+//
+// The big FABA logo is at the top, in the middle, with the motto under it, in place of the header
+// strip. Its two people give each other a high five once: they swing in from the sides, their
+// raised hands meet at the top, and a few short lines flash where they touch. With Reduce motion
+// on, the logo is simply there. Then a sentence on what FABA is, three short points, and Continue
+// with Google, which is there from the start: the animation moves only the logo.
+//
+// The people are cut from the logo with a clear background, one picture each, so each can move on
+// its own. The wordmark is a mask the page colors, navy in the light and soft white in the dark.
+import Icon from '../components/Icon.astro';
 import SignIn from '../components/SignIn.astro';
 import Layout from '../layouts/Layout.astro';
 import { safeNextPath, signInErrorMessage } from '../lib/server/auth';
@@ -11,11 +21,251 @@ const error = signInErrorMessage(Astro.url.searchParams.get('error'));
 const next = safeNextPath(Astro.url.searchParams.get('next'));
 ---
 
-<Layout title="FABA">
-  <h1>FABA</h1>
-  <p>Find and share activities with other BYU-Idaho faculty in Rexburg.</p>
-  <SignIn next={next} error={error} />
-  <p>
-    For BYU-Idaho faculty with a byui.edu account. <a href="/about">What is FABA?</a>
-  </p>
+<Layout title="FABA" splash>
+  <div class="hello">
+    {/* The logo is the page's heading, so screen readers hear "FABA". */}
+    <h1 class="logo">
+      <span class="visually-hidden">FABA</span>
+      <span class="people" aria-hidden="true">
+        <img
+          class="person left"
+          src="/brand/faba-person-left.webp"
+          alt=""
+          width="312"
+          height="426"
+          fetchpriority="high"
+        />
+        <img
+          class="person right"
+          src="/brand/faba-person-right.webp"
+          alt=""
+          width="312"
+          height="426"
+          fetchpriority="high"
+        />
+        {/* The lines that flash where their hands meet. */}
+        <svg class="spark" viewBox="-20 -20 40 24" focusable="false">
+          <path d="M-6-4-14-12M-2-6-4-17M2-6 4-17M6-4 14-12M-8 0-17-2M8 0 17-2"></path>
+        </svg>
+      </span>
+      <span class="wordmark" aria-hidden="true"></span>
+    </h1>
+    <p class="tagline">Bringing faculty together!</p>
+  </div>
+
+  <p class="lede">FABA helps BYU-Idaho faculty find each other outside work.</p>
+  <ul class="points">
+    <li>
+      <Icon name="search" />
+      <span>
+        <strong>Find something to do:</strong> a hike on Saturday, a board game night, lunch with
+        someone from another department.
+      </span>
+    </li>
+    <li>
+      <Icon name="people" />
+      <span>
+        <strong>Say I'm in</strong> and see who else is going.
+      </span>
+    </li>
+    <li>
+      <Icon name="plus" />
+      <span>
+        <strong>Post your own</strong> activity in or near Rexburg, or start a group.
+      </span>
+    </li>
+  </ul>
+
+  <div class="start">
+    <SignIn next={next} error={error} />
+    <p>
+      For BYU-Idaho faculty with a byui.edu account. <a href="/about">What is FABA?</a>
+    </p>
+  </div>
 </Layout>
+
+<style>
+  /* The logo and motto, in the middle at the top. */
+  .hello {
+    margin: 1.5rem 0 1.75rem;
+    text-align: center;
+  }
+  .logo {
+    display: grid;
+    justify-items: center;
+    gap: 0.875rem;
+    width: 12.5rem;
+    margin: 0 auto;
+  }
+  /* The two people side by side, each half of the logo, so they meet in the middle. */
+  .people {
+    position: relative;
+    display: flex;
+    width: 100%;
+  }
+  .person {
+    display: block;
+    width: 50%;
+    height: auto;
+  }
+  /* The wordmark, in the headings' navy, which is soft white in the dark (UI-33). */
+  .wordmark {
+    display: block;
+    width: 99%;
+    aspect-ratio: 619 / 166;
+    background: var(--navy);
+    -webkit-mask: url('/brand/faba-wordmark.webp') center / contain no-repeat;
+    mask: url('/brand/faba-wordmark.webp') center / contain no-repeat;
+  }
+  /* The motto (UI-08), bigger than in the header strip. */
+  .tagline {
+    margin: 0.875rem 0 0;
+    font-family: var(--display);
+    font-size: 1.375rem;
+    letter-spacing: 0.04em;
+    color: var(--navy);
+    text-transform: uppercase;
+  }
+
+  /* The high five, once (UI-37). Each person swings in from the side, pivoting at their feet,
+     leans in just enough for their hands to touch, and settles back into the logo, whose hands
+     are a little apart. The lines flash as they touch, then go. */
+  .left {
+    transform-origin: 12% 100%;
+    animation: high-five-left 1.4s 0.2s cubic-bezier(0.3, 0, 0.3, 1) both;
+  }
+  .right {
+    transform-origin: 88% 100%;
+    animation: high-five-right 1.4s 0.2s cubic-bezier(0.3, 0, 0.3, 1) both;
+  }
+  @keyframes high-five-left {
+    0% {
+      opacity: 0;
+      transform: translateX(-16%) rotate(-26deg);
+    }
+    40% {
+      opacity: 1;
+      transform: translateX(-5%) rotate(-14deg);
+    }
+    60% {
+      transform: translateX(0.3%) rotate(1deg);
+    }
+    76% {
+      transform: translateX(-0.3%) rotate(-0.6deg);
+    }
+    100% {
+      transform: none;
+    }
+  }
+  @keyframes high-five-right {
+    0% {
+      opacity: 0;
+      transform: translateX(16%) rotate(26deg);
+    }
+    40% {
+      opacity: 1;
+      transform: translateX(5%) rotate(14deg);
+    }
+    60% {
+      transform: translateX(-0.3%) rotate(-1deg);
+    }
+    76% {
+      transform: translateX(0.3%) rotate(0.6deg);
+    }
+    100% {
+      transform: none;
+    }
+  }
+  .spark {
+    position: absolute;
+    top: -14%;
+    left: 50%;
+    width: 30%;
+    overflow: visible;
+    fill: none;
+    stroke: var(--orange);
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    opacity: 0;
+    transform: translateX(-50%);
+    animation: high-five-spark 1.4s 0.2s ease-out both;
+  }
+  @keyframes high-five-spark {
+    0%,
+    57% {
+      opacity: 0;
+      transform: translateX(-50%) scale(0.4);
+    }
+    64% {
+      opacity: 1;
+      transform: translateX(-50%) scale(1);
+    }
+    88%,
+    100% {
+      opacity: 0;
+      transform: translateX(-50%) scale(1.2);
+    }
+  }
+  /* With Reduce motion on, the logo is simply there. */
+  @media (prefers-reduced-motion: reduce) {
+    .person,
+    .spark {
+      animation: none;
+    }
+  }
+
+  /* What FABA is, in a sentence and three short points. */
+  .lede {
+    max-width: 26rem;
+    margin: 0 auto 1rem;
+    font-size: 1.1875rem;
+    line-height: 1.4;
+    text-align: center;
+  }
+  .points {
+    display: grid;
+    gap: 0.75rem;
+    max-width: 26rem;
+    margin: 0 auto 1.75rem;
+    padding: 0;
+    list-style: none;
+  }
+  .points li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    line-height: 1.4;
+  }
+  .points :global(.icon) {
+    margin-top: 0.1rem;
+    color: var(--blue-text);
+  }
+  .points strong {
+    color: var(--navy);
+  }
+
+  /* Continue with Google, wide and in the middle, with the note under it. */
+  .start {
+    max-width: 26rem;
+    margin: 0 auto;
+    text-align: center;
+  }
+  .start :global(button) {
+    width: 100%;
+    min-height: 52px;
+  }
+  .start p {
+    margin: 0.875rem 0 0;
+  }
+
+  /* High contrast: the wordmark in the system's text color, and no flash. */
+  @media (forced-colors: active) {
+    .wordmark {
+      forced-color-adjust: none;
+      background: CanvasText;
+    }
+    .spark {
+      display: none;
+    }
+  }
+</style>

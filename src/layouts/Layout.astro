@@ -26,9 +26,18 @@ interface Props {
   warm?: boolean;
   /** Cream paper behind the content, for a page that reads top to bottom (UI-26). */
   paper?: boolean;
+  /** No header strip, for the landing page, whose own big logo takes its place (UI-37). */
+  splash?: boolean;
 }
 
-const { title, tab, post = '/activities/new', warm = false, paper = false } = Astro.props;
+const {
+  title,
+  tab,
+  post = '/activities/new',
+  warm = false,
+  paper = false,
+  splash = false,
+} = Astro.props;
 const unread = Astro.locals.member?.unread_count ?? 0;
 const current = (item: string) => (item === tab ? ('page' as const) : undefined);
 // Light or Dark, if the member chose one on Me (UI-34). Prerendered pages, such as About, have no
@@ -87,25 +96,27 @@ const theme = Astro.isPrerendered ? 'device' : themeFrom(Astro.cookies.get(THEME
     <p class="offline" data-offline role="status" hidden>
       You're offline. We'll keep what you typed.
     </p>
-    <header class="site">
-      <a href="/discover" class="brand">
-        <img src="/brand/faba-mark.png" alt="" width="49" height="36" />
-        <span>FABA</span>
-      </a>
-      {/* The motto (UI-08), beside the link, so the link's name stays FABA. */}
-      <p class="motto">Bringing faculty together!</p>
-      {/* Search, at the strip's right on every page with the bottom bar (UI-19). */}
-      {tab && (
-        <a
-          href="/search"
-          class="site-search"
-          aria-label="Search"
-          aria-current={Astro.url.pathname === '/search' ? 'page' : undefined}
-        >
-          <Icon name="search" size={24} />
+    {!splash && (
+      <header class="site">
+        <a href="/discover" class="brand">
+          <img src="/brand/faba-mark.png" alt="" width="49" height="36" />
+          <span>FABA</span>
         </a>
-      )}
-    </header>
+        {/* The motto (UI-08), beside the link, so the link's name stays FABA. */}
+        <p class="motto">Bringing faculty together!</p>
+        {/* Search, at the strip's right on every page with the bottom bar (UI-19). */}
+        {tab && (
+          <a
+            href="/search"
+            class="site-search"
+            aria-label="Search"
+            aria-current={Astro.url.pathname === '/search' ? 'page' : undefined}
+          >
+            <Icon name="search" size={24} />
+          </a>
+        )}
+      </header>
+    )}
     <main id="content">
       <slot />
     </main>
