@@ -168,7 +168,7 @@ Tap counts assume the user is signed in and starts on the Home (Discover) screen
 
 ### J1. Signing in with Google (first time)
 
-1. The visitor opens FABA and sees the landing page: a one-sentence purpose statement, a **Continue with Google** button, and a note that the app is for BYU-Idaho faculty with an `@byui.edu` account.
+1. The visitor opens FABA and sees the landing page (UI-37): the big FABA logo, whose two people give each other a high five, the motto, a one-sentence purpose statement with three short points, a **Continue with Google** button, and a note that the app is for BYU-Idaho faculty with an `@byui.edu` account.
 2. They tap **Continue with Google**. Google shows the account chooser, pre-filtered toward `byui.edu` accounts by the `hd` hint.
 3. They choose their `@byui.edu` account and consent. Only the basic scopes are requested: name, email, and profile picture.
 4. FABA lands them on **Welcome** (a single screen). Their display name and photo are prefilled from Google. They see three short community guidelines, one checkbox ("I'm a BYU-Idaho faculty member and I'll follow these guidelines"), and a **Let's go** button.
