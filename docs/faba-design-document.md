@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19` to `NOTIF-21`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-36`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19` to `NOTIF-21`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-37`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-36           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-37           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2906,6 +2906,26 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 - **Dependencies:** UI-09, NOTIF-09.
 - **Notes / edge cases:**
   - The filter links still work as before, so a shared link with a filter opens with the row shown.
+  - Size: S.
+
+#### UI-37 · A landing page that says hello
+
+- **Role:** Visitor · **Priority:** Should · **Phase:** 6
+- **Story:** As a faculty member opening FABA for the first time, I want a welcoming first page that shows what FABA is, so that I know what I'm signing up for.
+- **Acceptance criteria:**
+  - **The big FABA logo is at the top, in the middle:** the two people and the FABA wordmark, about 200 px wide on a phone, with the motto **Bringing faculty together!** under it. On this page it takes the place of the header strip, so the logo isn't shown twice.
+  - **The two people give each other a high five, once:** they swing in from the sides, their raised hands meet at the top, and a few short lines flash where they touch. It takes about a second and a half, and it doesn't loop.
+  - **With Reduce motion on,** the logo is simply there, with no animation.
+  - **A clear explanation:** a sentence on what FABA is, then three short points: find something to do, say **I'm in** and see who's going, and post your own.
+  - **Continue with Google** comes next, with the note that FABA is for BYU-Idaho faculty with a byui.edu account and the **What is FABA?** link. The button is there from the start: the animation moves only the logo and holds nothing back.
+  - Screen readers hear the logo as the page's heading, "FABA". The lines are hidden from them.
+  - **Dark theme** (UI-33): the wordmark is the soft white of the text, and the people keep their blues.
+  - The pictures are cut from the logo with a clear background, sharp on a 3× screen, and small.
+  - The page works as before: signed-in members go straight to Discover, and a sign-in error shows above the button.
+  - **Tests:** the landing test checks the logo, the motto, the explanation and the button, that the animation runs once, and that there's none with Reduce motion. The axe checks pass in both themes.
+- **Dependencies:** UI-01, UI-08, UI-33; AUTH-01.
+- **Notes / edge cases:**
+  - **Not a loading splash:** "Content first, no splash" (section 7.1) is about screens that hold the content back. This page's words and button are in the first response, and only the logo moves.
   - Size: S.
 
 #### GRP-06 · No limit on starting groups
