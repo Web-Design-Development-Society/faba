@@ -121,8 +121,15 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
   <h2 id="upcoming" class="visually-hidden">
     Upcoming activities
   </h2>
-  {/* Follow sits beside Clear filters, in the filters' row. */}
-  <Filters categories={chips ?? []} page="/discover" query={Astro.url.searchParams} dates={dates}>
+  {/* Follow sits beside Clear filters, in the filters' row, which is tucked away behind a Filters
+      button until a filter is on (UI-36). */}
+  <Filters
+    categories={chips ?? []}
+    page="/discover"
+    query={Astro.url.searchParams}
+    dates={dates}
+    collapsible
+  >
     {category && (
       <FollowButton
         kind="category"
@@ -208,8 +215,11 @@ const days = Map.groupBy(activities, ({ starts_at }) => rexburgDate(new Date(sta
     color: var(--navy);
     text-transform: capitalize;
   }
-  /* minmax(0, 1fr) keeps a card with a long place on one line from widening the column. */
+  /* minmax(0, 1fr) keeps a card with a long place on one line from widening the column. A list
+     starts below the Filters button, which sits on the first day's heading (UI-36), so its first
+     card is full width. */
   ul {
+    clear: right;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: 0.75rem;

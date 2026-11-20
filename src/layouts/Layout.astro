@@ -40,6 +40,11 @@ const theme = Astro.isPrerendered ? 'device' : themeFrom(Astro.cookies.get(THEME
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    {/* Marks that JavaScript is on before the page draws, so what it tucks away, such as Discover's
+        filters (UI-36), doesn't show first and then hide. Without it, they're shown. */}
+    <script is:inline>
+      document.documentElement.dataset.js = '';
+    </script>
     <meta
       name="description"
       content="Find and organize activities with BYU-Idaho faculty in Rexburg. FABA is an independent community run by the Faculty Association Board."

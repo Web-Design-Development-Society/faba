@@ -3230,6 +3230,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
   - **Date** has **Any time**, **Today**, **This week** and **This weekend**, then **Pick dates** with From and To.
   - The choices are links (`?when=weekend&cat=outdoors`, `?from=2026-11-20&to=2026-11-22`), so a filter can be shared. A chosen one is FABA blue with a check.
 - **Combining filters:** a category and dates combine with AND. **Clear filters** shows whenever a filter is on.
+- **Out of the way on Discover** (UI-36): the filters are hidden behind **Filters**, quiet words with a caret at the right, on the line of the first day's heading. Tapping it shows **Category** and **Date** with **Filters** at their right, and **Clear filters** and **Follow** on the next line when a filter is on. The row starts shown when a filter is on. Without JavaScript it's always shown, and Search always shows it.
 - **Removed** (UI-09): the row of date pills (UI-04), and More filters' **Has spots left** and tags (SRCH-03). Older links with `?spots=` or `?tag=` ignore them.
 
 ### 7.11 Empty states
