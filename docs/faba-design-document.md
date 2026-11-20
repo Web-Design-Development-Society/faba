@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19` to `NOTIF-21`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-35`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19` to `NOTIF-21`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-36`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-35           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-36           |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -2889,6 +2889,24 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - **Why a character, not a drawn icon:** Anton has no ✓, so each device draws ✓ Going's from its own symbol font. The same character in the same face matches it on every device, where a drawn icon would match it on none.
   - The calendar icon stays everywhere else, such as Me's Calendar feed row and the date field.
   - Size: XS.
+
+#### UI-36 · Filters out of the way on Discover
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want Discover's filters tucked away until I want them, so that the feed comes first and the buttons don't distract me.
+- **Acceptance criteria:**
+  - **Discover's filters are hidden at first.** In their place, **Filters** is a quiet button at the right, on the line of the first day's heading, such as **Tomorrow**. It's in the display face in capitals, in navy, with a caret before it, and at least 44 by 44 px.
+  - **Tapping Filters shows the row:** **Category**, **Date**, and **Clear filters** and **Follow** when a filter is on. **Filters** stays at the row's right, and tapping it again hides the row. Its caret points left when the row is hidden and down when it's shown, as the Category and Date carets turn.
+  - **The row starts shown when a filter is on,** such as a chosen category or dates, or when the dates in the link don't work, so the member sees what the feed is filtered by and can clear it.
+  - Hiding the row closes an open Category or Date panel.
+  - Screen readers hear **Filters** as a button that's expanded or collapsed.
+  - **Without JavaScript,** the row is always shown and there's no **Filters** button, as before. The page knows JavaScript is on before it draws, so the row doesn't flash and then hide.
+  - Search keeps its filters shown, since there they're part of searching.
+  - **Tests:** the filters test checks that the row starts hidden, that Filters shows and hides it and says so, that it starts shown with a category chosen, and that it's always shown without JavaScript. The axe checks pass both ways.
+- **Dependencies:** UI-09, NOTIF-09.
+- **Notes / edge cases:**
+  - The filter links still work as before, so a shared link with a filter opens with the row shown.
+  - Size: S.
 
 #### GRP-06 · No limit on starting groups
 
