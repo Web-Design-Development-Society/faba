@@ -334,6 +334,7 @@ export type Database = {
           capacity: number | null;
           category_id: string;
           cost_note: string | null;
+          cover_image_id: string | null;
           created_at: string;
           description: string | null;
           duration: string | null;
@@ -359,6 +360,7 @@ export type Database = {
           capacity?: number | null;
           category_id: string;
           cost_note?: string | null;
+          cover_image_id?: string | null;
           created_at?: string;
           description?: string | null;
           duration?: string | null;
@@ -383,6 +385,7 @@ export type Database = {
           capacity?: number | null;
           category_id?: string;
           cost_note?: string | null;
+          cover_image_id?: string | null;
           created_at?: string;
           description?: string | null;
           duration?: string | null;
@@ -409,6 +412,13 @@ export type Database = {
             columns: ['category_id'];
             isOneToOne: false;
             referencedRelation: 'categories';
+            referencedColumns: ['id'];
+          },
+          {
+            foreignKeyName: 'activity_series_cover_image_id_fkey';
+            columns: ['cover_image_id'];
+            isOneToOne: false;
+            referencedRelation: 'images';
             referencedColumns: ['id'];
           },
           {
@@ -2280,6 +2290,7 @@ export type Database = {
         Args: { turned_off: string[]; turned_on: string[] };
         Returns: undefined;
       };
+      share_cover_with_series: { Args: { activity_id: string }; Returns: number };
       suspend_member: { Args: { reason: string; user_id: string }; Returns: undefined };
       sync_my_identity: { Args: Record<PropertyKey, never>; Returns: string };
       transfer_group: {

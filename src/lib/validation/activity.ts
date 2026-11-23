@@ -2,6 +2,7 @@
 // (ACT-05). The limits match the activities table's CHECK constraints, and create_activity() and
 // update_activity() check the time rules again.
 import { z } from 'astro/zod';
+import { ALT_MAX, MAX_BYTES } from '../media';
 import { REPEATS, type Repeats } from '../series';
 import { rexburgInstant } from '../time';
 
@@ -107,6 +108,31 @@ function checkRepeats({ date, repeats, until_date }: Series, ctx: z.RefinementCt
 }
 
 /** The date and times as the instants the database functions take. */
+/**
+ * A picture chosen while posting is a JPEG, PNG or WebP under 2 MB, and needs a description
+ * (MEDIA-02). The type is the one the browser named, so a photo the device couldn't shrink, such as
+ * an iPhone's HEIC without JavaScript, is caught here. The Action checks the file's own bytes too.
+ */
+function checkPicture({ picture, alt }: { picture?: File; alt?: string }, ctx: z.RefinementCtx) {
+  if (!picture || picture.size === 0) return;
+  if (picture.size > MAX_BYTES) {
+    ctx.addIssue({ code: 'custom', path: ['picture'], message: 'Use a picture under 2 MB.' });
+  } else if (!['image/jpeg', 'image/png', 'image/webp'].includes(picture.type)) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['picture'],
+      message: 'Use a JPEG, PNG or WebP picture.',
+    });
+  }
+  if (!alt) {
+    ctx.addIssue({
+      code: 'custom',
+      path: ['alt'],
+      message: "Describe the picture for people who can't see it.",
+    });
+  }
+}
+
 function toInstants<T extends Times>({ date, start_time, end_time, ...activity }: T) {
   const { startsAt, endsAt } = activityTimes(date, start_time, end_time);
   return { ...activity, starts_at: startsAt.toISOString(), ends_at: endsAt?.toISOString() };
@@ -173,10 +199,17 @@ export const newActivity = z
       .enum(Object.keys(REPEATS) as Repeats[], { error: 'Choose how often it repeats.' })
       .default('none'),
     until_date: z.iso.date({ error: 'Choose a last date, or leave it empty.' }).optional(),
+    // MEDIA-02. A cover picture, chosen while posting, with the small and medium copies the device
+    // made, and its description. A file field left empty sends an empty file, which is none.
+    picture: z.instanceof(File).optional(),
+    thumb: z.instanceof(File).optional(),
+    medium: z.instanceof(File).optional(),
+    alt: z.string().trim().max(ALT_MAX, `Use ${ALT_MAX} characters or fewer.`).optional(),
   })
   .superRefine(checkTimes)
   .superRefine(checkGroup)
   .superRefine(checkRepeats)
+  .superRefine(checkPicture)
   .transform(toInstants);
 
 /**
@@ -192,6 +225,10 @@ export const activityChanges = z
     visibility: true,
     repeats: true,
     until_date: true,
+    picture: true,
+    thumb: true,
+    medium: true,
+    alt: true,
   })
   .extend({
     id: z.uuid(),

@@ -52,6 +52,15 @@ function enhance(form: HTMLFormElement) {
     }
   });
 
+  // A picture needs its description, but only once one is chosen (MEDIA-02).
+  const cover = form.querySelector<HTMLInputElement>('input[data-cover]');
+  const alt = form.querySelector<HTMLInputElement>('input[data-cover-alt]');
+  if (cover && alt) {
+    const need = () => (alt.required = !!cover.files?.length);
+    cover.addEventListener('change', need);
+    need();
+  }
+
   // Only the create form keeps a draft. The edit form starts from what's saved (ACT-04).
   if (!('draft' in form.dataset)) return;
 

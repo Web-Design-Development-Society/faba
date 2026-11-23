@@ -56,6 +56,7 @@ export const FLASH_MESSAGES = {
   upload_alt: "Describe the picture for people who can't see it.",
   upload_forbidden: 'Only the organizers can change the picture.',
   upload_failed: "The picture didn't save. Try again.",
+  upload_after_posting: "Posted! The picture didn't save, so try adding it again here.",
   board: 'Marked as a board activity.',
   not_board: 'No longer a board activity.',
   announced: 'Announced to every member.',

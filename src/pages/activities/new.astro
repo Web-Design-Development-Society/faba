@@ -6,9 +6,11 @@
 // and times. Organizers of a group choose it, and whether the activity is for its members only
 // (GRP-03). A group's Post an activity opens it with ?group= that group. Under More options,
 // Repeats makes it a series: weekly, every 2 weeks or monthly, through a last date or rolling on
-// (REC-01). Its form is on warm paper, to make posting feel exciting (UI-25).
+// (REC-01). Its form is on warm paper, to make posting feel exciting (UI-25). It can carry a picture,
+// saved as the cover, which a series shows on every date (MEDIA-02).
 import { actions, isInputError } from 'astro:actions';
 import ActivityFields from '../../components/ActivityFields.astro';
+import CoverField from '../../components/CoverField.astro';
 import FieldError from '../../components/FieldError.astro';
 import Layout from '../../layouts/Layout.astro';
 import { monthlyLabels, REPEATS } from '../../lib/series';
@@ -18,13 +20,21 @@ import { suggestedStart } from '../../lib/validation/activity';
 
 const result = Astro.getActionResult(actions.activities.create);
 if (result && !result.error) {
-  setFlash(Astro.cookies, Astro.url, 'posted');
-  return Astro.redirect(`/activities/${result.data.id}`, 303);
+  // A picture that didn't save is offered again on the activity's page (MEDIA-02).
+  const failed = result.data.picture === 'failed';
+  setFlash(Astro.cookies, Astro.url, failed ? 'upload_after_posting' : 'posted');
+  return Astro.redirect(`/activities/${result.data.id}${failed ? '#picture' : ''}`, 303);
 }
 
 // What was typed, after a failed post. The Action read a copy of the request.
 const typed = result?.error ? await Astro.request.formData() : undefined;
-const value = (name: string) => typed?.get(name)?.toString() || undefined;
+const value = (name: string) => {
+  const sent = typed?.get(name);
+  return typeof sent === 'string' && sent ? sent : undefined;
+};
+// A picture was chosen, which the browser can't keep when the form comes back (MEDIA-02).
+const sentPicture = typed?.get('picture');
+const pictureAgain = sentPicture instanceof File && sentPicture.size > 0;
 
 const fields: Record<string, string[] | undefined> = isInputError(result?.error)
   ? result.error.fields
@@ -109,7 +119,9 @@ const back = referrer ?? (original ? `/activities/${original.id}` : '/discover')
   <form
     method="post"
     action={actions.activities.create.queryString}
+    enctype="multipart/form-data"
     data-activity-form
+    data-picture
     data-draft
     data-typed={typed || original || suggested.group_id ? '' : undefined}
   >
@@ -122,6 +134,12 @@ const back = referrer ?? (original ? `/activities/${original.id}` : '/discover')
       <input type="hidden" name="copied_from_id" value={shown('copied_from_id')} />
     )}
     <ActivityFields value={shown} errors={fields} categories={categories ?? []}>
+      <CoverField
+        slot="picture"
+        alt={value('alt')}
+        errors={{ picture: fields.picture, alt: fields.alt }}
+        again={pictureAgain}
+      />
       <fieldset slot="more" class="repeats">
         <legend>Repeats</legend>
         <p>
@@ -220,6 +238,7 @@ const back = referrer ?? (original ? `/activities/${original.id}` : '/discover')
 
 <script>
   import '../../scripts/activity-form';
+  import '../../scripts/pictures';
 </script>
 
 <style>

@@ -1,4 +1,5 @@
-// Shrinking a picture on the device before it uploads (MEDIA-01, src/components/PictureUpload.astro).
+// Shrinking a picture on the device before it uploads (MEDIA-01, src/components/PictureUpload.astro),
+// and New activity's picture (MEDIA-02, src/components/CoverField.astro).
 // A phone's photo is usually 3 to 5 MB, over the 2 MB limit, and an iPhone's starts out as HEIC.
 // A picture bigger than 1600 px on its longest side, over 2 MB, or not a JPEG, PNG or WebP is
 // redrawn as a JPEG at most 1600 px on its longest side. Redrawing also leaves out what the photo
@@ -101,7 +102,10 @@ for (const form of document.querySelectorAll<HTMLFormElement>('form[data-picture
     if (!input || !file || form.dataset.shrunk === 'yes') return;
     event.preventDefault();
 
-    const button = form.querySelector<HTMLButtonElement>('button');
+    // The button that posted it, such as New activity's Post activity (MEDIA-02).
+    const button =
+      (event.submitter as HTMLButtonElement | null) ??
+      form.querySelector<HTMLButtonElement>('button');
     const label = button?.textContent ?? '';
     if (button) {
       button.disabled = true;
