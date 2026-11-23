@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19` to `NOTIF-21`, `ACT-12`, `MEDIA-01`, `UI-02` to `UI-37`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19` to `NOTIF-21`, `ACT-12`, `MEDIA-01`, `MEDIA-02`, `UI-02` to `UI-37`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, UI-02 to UI-37           |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, MEDIA-02, UI-02 to UI-37 |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
 
@@ -1836,6 +1836,28 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - Pages with images stay within the performance budget (PERF-01).
 - **Dependencies:** MOD-08.
 - **Notes / edge cases:** Revisits WH-07. Update the privacy notice and the Content Security Policy's `img-src` before launch. (Since UI-27, on 2026-11-17, a cover or banner also has a medium copy cut to the page's shape, which phones show, and browsers keep pictures for 5 minutes, then hear "not changed" when theirs is current.)
+
+#### MEDIA-02 · A picture when posting
+
+- **Role:** Activity organizer · **Priority:** Should · **Phase:** 6
+- **Story:** As an organizer, I want to add a picture while I post my activity, so that it has its cover from the start, without opening it again to add one.
+- **Acceptance criteria:**
+  - **New activity has an optional picture,** after the description: a file field for a JPEG, PNG or WebP, and **Describe it for people who can't see it**, which is needed only when a picture is chosen. It's shrunk on the device as on the activity's page (MEDIA-01, UI-27).
+  - **Posting saves the picture as the activity's cover,** so the activity shows it from the first moment, on its page and its card.
+  - **A repeating series shows the picture on every date** (REC-01): the dates it makes when it's posted, and the ones it adds later as it rolls on. All the dates share the one picture. A date that's given its own picture from its page keeps that one.
+  - **A picture that won't do,** such as one over 2 MB or a file that isn't a picture, is caught before anything is posted. The form comes back with what was typed and says why, next to the picture. A browser can't keep a chosen file, so it asks for the picture again.
+  - **If the picture can't be saved after the activity is posted,** the activity is still posted. Its page says the picture didn't save and offers the picture form to try again.
+  - Adding or changing the cover from the activity's page works as before.
+  - It works without JavaScript. Then the picture uploads as it is, and one over 2 MB is refused.
+  - **Tests:**
+    - pgTAP: a series' dates share its cover, a date with its own cover keeps it, dates added later get it, and only the organizer can share it.
+    - Playwright: posting with a picture shows it, a series' later date shows it, a missing description and a file that isn't a picture come back with the reason, and the axe checks pass.
+- **Dependencies:** MEDIA-01, REC-01, ACT-03.
+- **Notes / edge cases:**
+  - Found when the board tried FABA: a picture could only be added after posting.
+  - The picture belongs to the series' first date, and the other dates point to it. If a moderator hides that date, the other dates show no picture rather than a broken one.
+  - Post again (ACT-07) doesn't copy the picture.
+  - Size: M.
 
 #### LEAG-09 · Playoff brackets
 
