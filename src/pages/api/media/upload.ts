@@ -1,29 +1,20 @@
 // Uploading a picture for an activity's cover, a group's banner (MEDIA-01) or the member's own
 // profile photo (UI-11). It works without
 // JavaScript: a form posts here, and the page it came from says what happened. The Worker checks the
-// file's own bytes, stores it under a random key in the bucket, then asks Postgres to point the
-// activity or group at it. Postgres checks who's allowed, and the Worker deletes the file again if
-// that fails, so the bucket never keeps a picture nothing points to. With JavaScript, the device also
+// file's own bytes, stores it under a random key in the bucket (src/lib/server/pictures.ts), then
+// asks Postgres to point the activity or group at it. Postgres checks who's allowed, and the Worker
+// deletes the file again if that fails, so the bucket never keeps a picture nothing points to. New
+// activity stores its picture the same way (MEDIA-02). With JavaScript, the device also
 // sends a small copy for cards (UI-03), and for a cover or banner a medium copy for phones (UI-27),
 // each kept beside it. One that isn't a picture, or is too big, is left out. A
 // profile photo needs no description, since it's the member's face, and replacing it deletes the
 // old one's files, so a member's old photos aren't kept.
 import type { APIRoute } from 'astro';
-import { env } from 'cloudflare:workers';
-import {
-  ALT_MAX,
-  MEDIUM_MAX_BYTES,
-  mediumKey,
-  pictureProblem,
-  sniffPicture,
-  THUMB_MAX_BYTES,
-  thumbKey,
-} from '../../../lib/media';
+import { ALT_MAX } from '../../../lib/media';
 import { setFlash } from '../../../lib/server/flash';
+import { drop, refusal, store } from '../../../lib/server/pictures';
 
 export const prerender = false;
-
-const bucket = () => (env as unknown as { MEDIA: MediaBucket }).MEDIA;
 
 // Where the form came from: an activity or group page, or Edit profile, and nowhere else.
 const backFrom = (value: FormDataEntryValue | null) => {
@@ -67,29 +58,16 @@ export const POST = (async ({ locals, request, cookies, url, redirect }) => {
     return fail('upload_alt');
   }
 
-  const bytes = new Uint8Array(await file.arrayBuffer());
-  const problem = pictureProblem(file.size, bytes);
-  if (problem) {
-    if (problem.startsWith('Choose')) return fail('upload_missing');
-    if (problem.includes('2 MB')) return fail('upload_too_big');
-    return fail('upload_type');
-  }
-  const type = sniffPicture(bytes)!;
+  const refused = await refusal(file);
+  if (refused) return fail(refused);
 
-  const folder = { activity: 'activities', group: 'groups', profile: 'profiles' }[target];
-  const key = `${folder}/${crypto.randomUUID()}`;
-  await bucket().put(key, bytes.buffer, { httpMetadata: { contentType: type } });
-  /** Keeps the device's copy from `field` at `copy`, if it's a picture no bigger than `max`. */
-  const keep = async (field: string, max: number, copy: string) => {
-    const sent = form.get(field);
-    if (!(sent instanceof File) || sent.size === 0 || sent.size > max) return;
-    const made = new Uint8Array(await sent.arrayBuffer());
-    const madeType = sniffPicture(made);
-    if (madeType)
-      await bucket().put(copy, made.buffer, { httpMetadata: { contentType: madeType } });
-  };
-  await keep('thumb', THUMB_MAX_BYTES, thumbKey(key));
-  if (target !== 'profile') await keep('medium', MEDIUM_MAX_BYTES, mediumKey(key));
+  const folder = ({ activity: 'activities', group: 'groups', profile: 'profiles' } as const)[
+    target
+  ];
+  const { key, type } = await store(folder, file, {
+    thumb: form.get('thumb'),
+    medium: form.get('medium'),
+  });
 
   const { data: replaced, error } =
     target === 'profile'
@@ -115,7 +93,7 @@ export const POST = (async ({ locals, request, cookies, url, redirect }) => {
           });
 
   if (error) {
-    await bucket().delete([key, thumbKey(key), mediumKey(key)]);
+    await drop(key);
     return fail(
       error.message.includes('NOT_ORGANIZER') || error.message.includes('NOT_GROUP_ORGANIZER')
         ? 'upload_forbidden'
@@ -124,9 +102,7 @@ export const POST = (async ({ locals, request, cookies, url, redirect }) => {
   }
 
   // A profile photo it replaced goes from the bucket too.
-  if (target === 'profile' && typeof replaced === 'string') {
-    await bucket().delete([replaced, thumbKey(replaced)]);
-  }
+  if (target === 'profile' && typeof replaced === 'string') await drop(replaced);
   setFlash(
     cookies,
     url,

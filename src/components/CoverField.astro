@@ -1,0 +1,77 @@
+---
+// New activity's picture (MEDIA-02): an optional cover, saved when the activity is posted, and its
+// description, which is needed only when a picture is chosen. src/scripts/pictures.ts shrinks a big
+// photo on the device first and makes its small and medium copies, as on the activity's page
+// (MEDIA-01, UI-27). A browser can't keep a chosen file when the form comes back, so it asks for the
+// picture again.
+import { ALT_MAX, SHAPES } from '../lib/media';
+import FieldError from './FieldError.astro';
+
+interface Props {
+  /** The description typed, when the form comes back. */
+  alt?: string;
+  errors: { picture?: string[]; alt?: string[] };
+  /** True when the form came back after a picture was chosen. */
+  again?: boolean;
+}
+
+const { alt, errors, again = false } = Astro.props;
+const described = (id: string, error?: string[]) =>
+  [id, error && `${id.replace('-hint', '')}-error`].filter(Boolean).join(' ');
+---
+
+<fieldset class="cover">
+  <legend>Picture (optional)</legend>
+  {again && !errors.picture && <p class="again">Choose the picture again to post it.</p>}
+  <p>
+    <label for="picture">A photo for the top of the activity and its card</label>
+    <span id="picture-hint" class="hint">
+      A JPEG, PNG or WebP. A big photo is made smaller on your device before it uploads, and where
+      it was taken is left out.
+    </span>
+    <input
+      id="picture"
+      name="picture"
+      type="file"
+      accept="image/jpeg,image/png,image/webp"
+      data-cover
+      aria-describedby={described('picture-hint', errors.picture)}
+      aria-invalid={errors.picture ? 'true' : undefined}
+    />
+    <FieldError name="picture" errors={errors.picture} />
+  </p>
+  {/* The small copy for cards (UI-03) and the medium copy for phones (UI-27). */}
+  <input name="thumb" type="file" hidden data-thumb />
+  <input name="medium" type="file" hidden data-medium data-shape={SHAPES.activity} />
+  <p>
+    <label for="alt">Describe it for people who can't see it</label>
+    <span id="alt-hint" class="hint">
+      Needed when you add a picture.
+    </span>
+    <input
+      id="alt"
+      name="alt"
+      type="text"
+      maxlength={ALT_MAX}
+      value={alt}
+      data-cover-alt
+      aria-describedby={described('alt-hint', errors.alt)}
+      aria-invalid={errors.alt ? 'true' : undefined}
+    />
+    <FieldError name="alt" errors={errors.alt} />
+  </p>
+</fieldset>
+
+<style>
+  /* A section of the form, its question as big as the others (UI-06). */
+  legend {
+    font-size: 1.125rem;
+  }
+  p {
+    margin: 0 0 1rem;
+  }
+  .again {
+    font-weight: 600;
+    color: var(--warning);
+  }
+</style>

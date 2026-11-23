@@ -309,3 +309,40 @@ describe('newActivity repeats', () => {
     ).not.toHaveProperty('repeats');
   });
 });
+
+describe('a picture when posting (MEDIA-02)', () => {
+  const file = (bytes: number, type: string) => new File([new Uint8Array(bytes)], 'p', { type });
+
+  it('is optional, and an empty file field is no picture', () => {
+    expect(errors({})).toEqual({});
+    expect(errors({ picture: file(0, 'application/octet-stream') })).toEqual({});
+  });
+
+  it('needs a description, and is a JPEG, PNG or WebP under 2 MB', () => {
+    expect(errors({ picture: file(10, 'image/png'), alt: 'Our court' })).toEqual({});
+    expect(errors({ picture: file(10, 'image/png') })).toEqual({
+      alt: "Describe the picture for people who can't see it.",
+    });
+    expect(errors({ picture: file(10, 'image/png'), alt: '   ' })).toEqual({
+      alt: "Describe the picture for people who can't see it.",
+    });
+    expect(errors({ picture: file(10, 'image/heic'), alt: 'Our court' })).toEqual({
+      picture: 'Use a JPEG, PNG or WebP picture.',
+    });
+    expect(errors({ picture: file(2 * 1024 * 1024 + 1, 'image/jpeg'), alt: 'Our court' })).toEqual({
+      picture: 'Use a picture under 2 MB.',
+    });
+  });
+
+  it('is left out of edits', () => {
+    expect(
+      activityChanges.parse({
+        ...valid,
+        id: '7c9e6679-7425-40de-944b-e07fc1f90ae7',
+        version: 1,
+        picture: file(10, 'image/png'),
+        alt: 'Our court',
+      })
+    ).not.toHaveProperty('picture');
+  });
+});

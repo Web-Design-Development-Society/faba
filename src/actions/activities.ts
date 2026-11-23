@@ -3,6 +3,7 @@ import { ActionError, defineAction } from 'astro:actions';
 import { z } from 'astro/zod';
 import type { Json } from '../lib/db.types';
 import { actionErrorFor } from '../lib/server/errors';
+import { drop, refusal, store } from '../lib/server/pictures';
 import {
   activityChanges,
   cancellation,
@@ -12,6 +13,46 @@ import {
   ACTIVITY,
 } from '../lib/validation/activity';
 import { newUpdate } from '../lib/validation/update';
+
+/**
+ * Stores the picture chosen while posting and makes it activity `id`'s cover (MEDIA-02). For a date
+ * in a series, every date shows it, and the ones the series adds later too. The activity is posted
+ * either way, so this says whether the picture saved rather than throwing.
+ */
+async function saveCover(
+  locals: App.Locals,
+  id: string,
+  picture: File,
+  copies: { thumb?: File; medium?: File },
+  alt: string
+): Promise<'saved' | 'failed'> {
+  let key: string | null = null;
+  try {
+    const stored = await store('activities', picture, copies);
+    key = stored.key;
+    const { error } = await locals.supabase.rpc('set_activity_cover', {
+      activity_id: id,
+      r2_key: stored.key,
+      content_type: stored.type,
+      bytes: stored.bytes,
+      alt,
+    });
+    if (error) throw error;
+    key = null;
+    // A one-off activity has no series, and this does nothing.
+    const { error: shared } = await locals.supabase.rpc('share_cover_with_series', {
+      activity_id: id,
+    });
+    if (shared) console.warn(JSON.stringify({ cover: 'not shared', error: shared.message }));
+    return 'saved';
+  } catch (error) {
+    console.warn(
+      JSON.stringify({ cover: 'failed', error: error instanceof Error ? error.message : error })
+    );
+    if (key) await drop(key);
+    return 'failed';
+  }
+}
 
 /** Saves `patch` to activity `id`, if it's still at `version` (ACT-04). Returns its id. */
 async function update(locals: App.Locals, id: string, version: number, patch: Json) {
@@ -34,24 +75,44 @@ export const activities = {
   create: defineAction({
     accept: 'form',
     input: newActivity,
-    handler: async ({ repeats, until_date, ...activity }, { locals }) => {
+    handler: async (
+      { repeats, until_date, picture, thumb, medium, alt, ...activity },
+      { locals }
+    ) => {
       if (!locals.user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
+      // MEDIA-02. A picture that won't do is caught before anything is posted.
+      const cover = picture && picture.size > 0 ? picture : null;
+      const refused = cover && (await refusal(cover));
+      if (refused) {
+        throw new ActionError({
+          code: 'BAD_REQUEST',
+          message:
+            refused === 'upload_too_big'
+              ? 'Use a picture under 2 MB.'
+              : 'Use a JPEG, PNG or WebP picture.',
+        });
+      }
+
+      let id: string;
       if (repeats !== 'none') {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars -- A series isn't a copy.
         const { copied_from_id, ...series } = activity;
-        const { data: id, error } = await locals.supabase.rpc('create_series', {
+        const { data, error } = await locals.supabase.rpc('create_series', {
           ...series,
           freq: repeats,
           until_date,
         });
         if (error) throw new ActionError(actionErrorFor(error));
-        return { id };
+        id = data;
+      } else {
+        const { data, error } = await locals.supabase.rpc('create_activity', activity);
+        if (error) throw new ActionError(actionErrorFor(error));
+        id = data;
       }
 
-      const { data: id, error } = await locals.supabase.rpc('create_activity', activity);
-      if (error) throw new ActionError(actionErrorFor(error));
-      return { id };
+      if (!cover) return { id, picture: 'none' as const };
+      return { id, picture: await saveCover(locals, id, cover, { thumb, medium }, alt ?? '') };
     },
   }),
 

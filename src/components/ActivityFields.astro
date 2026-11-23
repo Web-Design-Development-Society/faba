@@ -139,6 +139,8 @@ const moreOptions =
   >{value('description')}</textarea>
   <FieldError name="description" errors={errors.description} />
 </p>
+{/* New activity's picture (MEDIA-02). Editing changes the cover from the activity's page. */}
+<slot name="picture" />
 <details class="more" open={moreOptions}>
   <summary>More options</summary>
   <p>

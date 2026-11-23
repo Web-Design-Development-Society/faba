@@ -18,6 +18,9 @@ export default defineConfig({
   // Supabase cookies hold the session, so Astro sessions and their KV namespace aren't needed.
   session: false,
   prefetch: true,
+  // New activity can carry a picture (MEDIA-02): up to 2 MB, with its small and medium copies,
+  // which Astro's 1 MB limit for an Action's form would refuse.
+  security: { actionBodySizeLimit: 3 * 1024 * 1024 },
   env: {
     // Secrets are checked when src/middleware.ts imports astro:env/server, so a missing one fails
     // every request. Checking them at build time too would break CI builds, which have no secrets.
