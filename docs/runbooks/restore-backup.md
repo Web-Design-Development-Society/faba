@@ -7,7 +7,7 @@ Restore the database only when data is lost or corrupted (design document sectio
 
 ## What there is to restore
 
-- **Production** goes on Supabase's Pro plan, which backs the database up every day and keeps the last 7 days (FND-09, DP-8). Point-in-time recovery is an add-on to consider once real usage begins.
+- **Production** starts on Supabase's free plan, which has no backups ([ADR-019](../adr/019-free-production-database.md)). The only copy is a dump a technical owner took by hand before a risky migration ([release.md](release.md)), and loading one back is a manual job with no dashboard button. Once production moves to Pro, it backs up every day and keeps the last 7 days, and the steps below apply. Point-in-time recovery is an add-on to consider once real usage begins.
 - **Staging** is on the free plan, which has no backups. Its data is synthetic, so run **Seed staging** from the Actions tab instead.
 
 Supabase's [backups guide](https://supabase.com/docs/guides/platform/backups) has the current dashboard steps.

@@ -35,6 +35,8 @@ Local, preview and staging use the Cloudflare and Supabase free plans until laun
 
 **Still open:** who pays for production hosting, and which plan it starts on. Owner: Zack Alvey, to settle with the board by 2026-11-13. The pilot runs in production ([ADR-013](013-synthetic-staging-pilot-in-production.md)), so this must be settled before the pilot starts.
 
+**Settled on 2026-11-24:** production starts on the free plan, kept awake by a daily ping ([ADR-019](019-free-production-database.md)).
+
 ## Consequences
 
 - FND-06 replaces `@astrojs/node` with `@astrojs/cloudflare`, replaces `compose.yml` and `scripts/init-db.*` with Supabase migrations and `supabase/seed.sql`, and updates `CONTRIBUTING.md`. Contributors still need Docker, because the Supabase CLI runs on it.
