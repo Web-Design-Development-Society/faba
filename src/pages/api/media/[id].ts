@@ -3,11 +3,13 @@
 // cache is private, since the picture belongs to a member's view of FABA, and short, so a picture a
 // moderator hides goes quickly. After that, a browser whose copy is still current hears "not
 // changed" (304) instead of getting the picture again (UI-27). Cards ask for its small copy
-// (?size=thumb, UI-03), and covers and banners for its medium copy on a phone (?size=medium,
-// UI-27). A picture added without JavaScript, or before UI-27, has none, so they get the picture.
+// (?size=thumb, UI-03), and banners for its medium copy on a phone (?size=medium, UI-27). Covers
+// ask for theirs as ?size=whole, since a cover's is the whole picture (MEDIA-03), so a cover's
+// older copy, cut to 16:9, is never shown. A picture added without JavaScript, or before UI-27,
+// has none, and a cover added before MEDIA-03 has no whole one, so they get the picture.
 import type { APIRoute } from 'astro';
 import { env } from 'cloudflare:workers';
-import { mediumKey, thumbKey } from '../../../lib/media';
+import { mediumKey, thumbKey, wholeKey } from '../../../lib/media';
 
 export const prerender = false;
 
@@ -35,7 +37,13 @@ export const GET = (async ({ params, locals, url, request }) => {
   const bucket = (env as unknown as { MEDIA: MediaBucket }).MEDIA;
   const size = url.searchParams.get('size');
   const copy =
-    size === 'thumb' ? thumbKey(image.r2_key) : size === 'medium' ? mediumKey(image.r2_key) : null;
+    size === 'thumb'
+      ? thumbKey(image.r2_key)
+      : size === 'medium'
+        ? mediumKey(image.r2_key)
+        : size === 'whole'
+          ? wholeKey(image.r2_key)
+          : null;
   const object = (copy ? await bucket.get(copy) : null) ?? (await bucket.get(image.r2_key));
   if (!object) return new Response(null, { status: 404 });
 

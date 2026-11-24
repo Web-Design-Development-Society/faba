@@ -7,8 +7,9 @@
 //
 // Every picture also gets a small copy, at most 640 px, which cards show so Discover doesn't
 // download whole photos (UI-03). A cover or banner also gets a medium copy, which a phone shows on
-// the activity's or group's page: the middle of the picture at the shape the page shows it, at most
-// 1080 px wide (UI-27).
+// the activity's or group's page (UI-27): a cover's is the whole picture, at most 1080 px on its
+// longest side, since the page shows it whole (MEDIA-03), and a banner's is the middle of the
+// picture at the banner's 3:1, at most 1080 px wide.
 //
 // Without JavaScript, or when the browser can't read the file, it uploads as it is, and the server
 // says what's wrong, next to the form.
@@ -20,6 +21,7 @@ import {
   mediumCrop,
   THUMB_MAX_BYTES,
   THUMB_SIDE,
+  wholeCopy,
 } from '../lib/media';
 
 const KEPT = ['image/jpeg', 'image/png', 'image/webp'];
@@ -55,12 +57,13 @@ async function redraw(
 /**
  * The picture redrawn smaller, or null when it's fine as it is, and its small copy for cards, at
  * most `side` px. A profile photo's is smaller, since faces are small (UI-11). With `shape`, a
- * cover or banner also gets its medium copy at that shape (UI-27).
+ * banner also gets its medium copy at that shape, and a cover, with 'whole', its medium copy of
+ * the whole picture (UI-27, MEDIA-03).
  */
 async function prepare(
   file: File,
   side = THUMB_SIDE,
-  shape?: number
+  shape?: number | 'whole'
 ): Promise<{ picture: File | null; thumb: File | null; middle: File | null }> {
   const bitmap = await createImageBitmap(file);
   try {
@@ -77,7 +80,12 @@ async function prepare(
       THUMB_MAX_BYTES,
       `${name}-small.jpg`
     );
-    const medium = shape ? mediumCrop(width, height, shape) : null;
+    const medium =
+      shape === 'whole'
+        ? wholeCopy(width, height)
+        : shape
+          ? mediumCrop(width, height, shape)
+          : null;
     const middle = medium
       ? await redraw(bitmap, medium.size, MEDIUM_MAX_BYTES, `${name}-medium.jpg`, medium.crop)
       : null;
@@ -112,11 +120,12 @@ for (const form of document.querySelectorAll<HTMLFormElement>('form[data-picture
       button.textContent = 'Getting the picture ready…';
     }
     try {
+      // A banner's medium copy is cut to its data-shape, and a cover's, with none, is whole.
       const medium = form.querySelector<HTMLInputElement>('input[data-medium]');
       const { picture, thumb, middle } = await prepare(
         file,
         Number(form.dataset.thumbSide) || undefined,
-        Number(medium?.dataset.shape) || undefined
+        medium ? Number(medium.dataset.shape) || 'whole' : undefined
       );
       if (picture) choose(input, picture);
       const small = form.querySelector<HTMLInputElement>('input[data-thumb]');

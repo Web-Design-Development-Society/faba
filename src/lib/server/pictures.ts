@@ -12,6 +12,7 @@ import {
   THUMB_MAX_BYTES,
   thumbKey,
   type PictureType,
+  wholeKey,
 } from '../media';
 
 const bucket = () => (env as unknown as { MEDIA: MediaBucket }).MEDIA;
@@ -37,8 +38,8 @@ export async function refusal(file: File): Promise<Refusal | null> {
 
 /**
  * Stores `file` under a random key in `folder`, with the device's small copy and, for a cover or
- * banner, its medium copy, each left out if it isn't a picture or is too big. Check refusal()
- * first.
+ * banner, its medium copy, each left out if it isn't a picture or is too big. A cover's medium copy
+ * is the whole picture, kept under a name of its own (MEDIA-03). Check refusal() first.
  */
 export async function store(
   folder: 'activities' | 'groups' | 'profiles',
@@ -60,11 +61,14 @@ export async function store(
       await bucket().put(copy, made.buffer, { httpMetadata: { contentType: madeType } });
   };
   await keep(copies.thumb, THUMB_MAX_BYTES, thumbKey(key));
-  if (folder !== 'profiles') await keep(copies.medium, MEDIUM_MAX_BYTES, mediumKey(key));
+  if (folder !== 'profiles') {
+    const at = folder === 'activities' ? wholeKey(key) : mediumKey(key);
+    await keep(copies.medium, MEDIUM_MAX_BYTES, at);
+  }
   return { key, type, bytes: file.size };
 }
 
-/** Deletes the picture at `key` and its copies. */
+/** Deletes the picture at `key` and its copies, including a cover's cut copy from before MEDIA-03. */
 export async function drop(key: string) {
-  await bucket().delete([key, thumbKey(key), mediumKey(key)]);
+  await bucket().delete([key, thumbKey(key), mediumKey(key), wholeKey(key)]);
 }
