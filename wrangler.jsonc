@@ -4,7 +4,8 @@
   // Astro answers requests, and the Cron Trigger below sends pushes (src/worker.ts).
   "main": "./src/worker.ts",
   "compatibility_date": "2026-10-23",
-  // Every minute, send the pushes that are due (NOTIF-20).
+  // Every minute, send the pushes that are due (NOTIF-20). Once a day, the same run keeps a free
+  // Supabase project from pausing (OPS-05).
   "triggers": { "crons": ["* * * * *"] },
   // Smart Placement runs the Worker near the Supabase database it calls most, not near the visitor,
   // which keeps page loads fast as queries grow (PERF-01).
@@ -25,13 +26,15 @@
   },
   // Deployed environments. Astro picks one at build time (`CLOUDFLARE_ENV=staging astro build`),
   // and `wrangler deploy` then deploys what was built. Vars aren't inherited, so each environment
-  // lists them all. Production comes with FND-09.
+  // lists them all.
   "env": {
     // The faba-staging Worker. PR previews are versions of it with their own URLs (FND-08).
     "staging": {
       "workers_dev": true,
       "preview_urls": true,
       "placement": { "mode": "smart" },
+      // Workers Logs, where the push sender and the daily keep-awake ping say how they went.
+      "observability": { "enabled": true },
       // Only the deployed Worker runs it, not PR previews.
       "triggers": { "crons": ["* * * * *"] },
       "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "faba-media-staging" }],
@@ -43,6 +46,27 @@
         "LOG_LEVEL": "info",
         // Its private key is the VAPID_PRIVATE_KEY secret. Push stays off until it's set.
         "VAPID_PUBLIC_KEY": "BHsbq03K18-jGqkyVMuGfF_7UznfYImGvnHd2tajOttPDYYJ16NK5yGb5qPYRoIgCtpTN7ayHsUzLbnjQuv40b8",
+      },
+    },
+    // The faba Worker, for real members at tofaba.org (FND-09). A release deploys it, after a
+    // technical owner approves (docs/runbooks/release.md). Its database is on Supabase's free plan
+    // (ADR-019). It has no workers.dev address and no preview URLs, so tofaba.org is the only way in.
+    "production": {
+      "name": "faba",
+      "workers_dev": false,
+      "preview_urls": false,
+      "routes": [{ "pattern": "tofaba.org", "custom_domain": true }],
+      "placement": { "mode": "smart" },
+      "observability": { "enabled": true },
+      "triggers": { "crons": ["* * * * *"] },
+      "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "faba-media-production" }],
+      "vars": {
+        "SITE_URL": "https://tofaba.org",
+        "SUPABASE_URL": "https://ncfuqxwvpxkqfjjcbpuo.supabase.co",
+        "SUPABASE_PUBLISHABLE_KEY": "sb_publishable_q40mPAjQjbxY-MBPkaWjvA_DOrPb5pk",
+        "ALLOWED_EMAIL_DOMAIN": "byui.edu",
+        "LOG_LEVEL": "info",
+        // Push stays off until this and the VAPID_PRIVATE_KEY secret are both set.
       },
     },
   },
