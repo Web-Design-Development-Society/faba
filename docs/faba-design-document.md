@@ -1835,7 +1835,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - Images are reportable, and moderators can hide them.
   - Pages with images stay within the performance budget (PERF-01).
 - **Dependencies:** MOD-08.
-- **Notes / edge cases:** Revisits WH-07. Update the privacy notice and the Content Security Policy's `img-src` before launch. (Since UI-27, on 2026-11-17, a cover or banner also has a medium copy cut to the page's shape, which phones show, and browsers keep pictures for 5 minutes, then hear "not changed" when theirs is current. Since MEDIA-03, on 2026-11-23, an activity's page shows its whole cover, never cut, with the page's paper beside a tall one, and its medium copy is the whole picture.)
+- **Notes / edge cases:** Revisits WH-07. Update the privacy notice and the Content Security Policy's `img-src` before launch. (Since UI-27, on 2026-11-17, a cover or banner also has a medium copy cut to the page's shape, which phones show, and browsers keep pictures for 5 minutes, then hear "not changed" when theirs is current. Since MEDIA-03, on 2026-11-23, an activity's page shows its whole cover, never cut, with the page's paper beside a tall one, and its medium copy is the whole picture. Since MEDIA-04, on 2026-11-24, each picture keeps its width and height, so a cover's space is its shape before it loads.)
 
 #### MEDIA-02 · A picture when posting
 
@@ -1870,7 +1870,7 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
     - **The limit:** a picture is at most 24rem (384 px) tall, or half the screen's height on a short screen, so a tall photo doesn't fill the screen.
   - **The phone copy is the whole picture** (UI-27): at most 1080 px on its longest side, not the 16:9 middle. A 1200 by 1600 px photo's copy is 810 by 1080 px.
   - **Older covers show whole too.** A cover added before this has a phone copy cut to 16:9. The new copy is kept under a new name, so an older cover's page shows its full picture, whole, and the cut copy is never shown.
-  - **Before the picture loads,** its space is 16:9, as now. A taller picture then takes the space it needs, up to the limit.
+  - **Before the picture loads,** its space is 16:9, as now. A taller picture then takes the space it needs, up to the limit. (Since MEDIA-04, a picture with its width and height kept has its own shape's space from the start.)
   - **Nothing else changes:**
     - Cards' small square pictures (UI-03) are still cut to a square.
     - A group's banner is still a 3:1 strip across its page.
@@ -3350,7 +3350,7 @@ A **bottom navigation bar** on phones. It grows by phase, but never past 5 items
 - **Navigations:** Astro link prefetch on tap and viewport for primary links, and CSS cross-document view transitions for a smooth, app-like feel with zero JavaScript.
 - **Buttons:** show an inline spinner and disable themselves while submitting, which prevents double posts. The label remains visible.
 - **Partial content** ("Show more", unread badge): skeleton rows sized like the real content, so the page does not shift.
-- **Pictures** (UI-27): cards' pictures and faces load as they scroll into view. On a phone, an activity's cover is a medium copy of the whole picture, at most 1080 px on its longest side (MEDIA-03), and a group's banner a medium copy cut to its 3:1 strip, at most 1080 px wide, not the whole photo. A browser keeps a picture for 5 minutes, then asks again and hears "not changed" when its copy is current.
+- **Pictures** (UI-27): cards' pictures and faces load as they scroll into view. On a phone, an activity's cover is a medium copy of the whole picture, at most 1080 px on its longest side (MEDIA-03), and a group's banner a medium copy cut to its 3:1 strip, at most 1080 px wide, not the whole photo. A browser keeps a picture for 5 minutes, then asks again and hears "not changed" when its copy is current. A cover whose width and height were kept has its shape's space before it loads, so the page doesn't move (MEDIA-04).
 - **Slow responses:** if an action takes longer than 3 seconds, show "Still working…". After 10 seconds, show a retry option.
 
 ### 7.13 Error states

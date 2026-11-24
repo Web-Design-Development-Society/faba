@@ -100,6 +100,131 @@ export function sniffPicture(bytes: Uint8Array): PictureType | null {
   return null;
 }
 
+/** The longest side a picture's kept size can have, as for a JPEG. A bigger one's isn't kept. */
+export const SIDE_LIMIT = 65535;
+
+/** A picture's width and height in pixels, as it shows. */
+export interface PictureSize {
+  width: number;
+  height: number;
+}
+
+/**
+ * The width and height of the `type` picture in `bytes` as a browser shows it, read from its header
+ * (MEDIA-04), or null if they can't be read. A JPEG turned on its side by its orientation tag, as a
+ * phone's photo can be, is the other way round, since browsers turn it.
+ */
+export function pictureSize(bytes: Uint8Array, type: PictureType): PictureSize | null {
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let size: PictureSize | null;
+  try {
+    size =
+      type === 'image/jpeg'
+        ? jpegSize(view)
+        : type === 'image/png'
+          ? pngSize(view)
+          : webpSize(view);
+  } catch {
+    // A header cut short reads past the end.
+    return null;
+  }
+  const fits = (side: number) => side >= 1 && side <= SIDE_LIMIT;
+  return size && fits(size.width) && fits(size.height) ? size : null;
+}
+
+/** A PNG's size, from its first chunk, IHDR, after the 8-byte signature and the chunk's length. */
+function pngSize(view: DataView): PictureSize | null {
+  if (view.getUint32(12) !== 0x49484452) return null; // IHDR
+  return { width: view.getUint32(16), height: view.getUint32(20) };
+}
+
+/** A WebP's size, from its first chunk: a lossy picture, a lossless one, or the extended header. */
+function webpSize(view: DataView): PictureSize | null {
+  const chunk = view.getUint32(12);
+  if (chunk === 0x56503820) {
+    // "VP8 ": after the frame's tag and start code, 14 bits each, little-endian.
+    if (view.getUint8(23) !== 0x9d || view.getUint8(24) !== 0x01 || view.getUint8(25) !== 0x2a) {
+      return null;
+    }
+    return { width: view.getUint16(26, true) & 0x3fff, height: view.getUint16(28, true) & 0x3fff };
+  }
+  if (chunk === 0x5650384c) {
+    // "VP8L": after its signature, 14 bits each, less one.
+    if (view.getUint8(20) !== 0x2f) return null;
+    const bits = view.getUint32(21, true);
+    return { width: (bits & 0x3fff) + 1, height: ((bits >>> 14) & 0x3fff) + 1 };
+  }
+  if (chunk === 0x56503858) {
+    // "VP8X": after its flags, 24 bits each, little-endian, less one.
+    const side = (at: number) => view.getUint16(at, true) + (view.getUint8(at + 2) << 16) + 1;
+    return { width: side(24), height: side(27) };
+  }
+  return null;
+}
+
+/**
+ * A JPEG's size, from its frame header (SOF), which comes before its picture data. An Exif segment
+ * before it can say it's turned on its side.
+ */
+function jpegSize(view: DataView): PictureSize | null {
+  let sideways = false;
+  let at = 2;
+  while (at + 1 < view.byteLength) {
+    if (view.getUint8(at) !== 0xff) return null;
+    const marker = view.getUint8(at + 1);
+    if (marker === 0xff) {
+      // Padding before a marker.
+      at += 1;
+      continue;
+    }
+    // Markers with nothing after them.
+    if (marker === 0x01 || (marker >= 0xd0 && marker <= 0xd8)) {
+      at += 2;
+      continue;
+    }
+    // The picture's data, or its end, before its size.
+    if (marker === 0xda || marker === 0xd9) return null;
+    const length = view.getUint16(at + 2);
+    if (marker === 0xe1 && !sideways) sideways = turnedOnSide(view, at + 4, length - 2);
+    // Every frame header but DHT (C4), JPG (C8) and DAC (CC), which share their range.
+    if (marker >= 0xc0 && marker <= 0xcf && ![0xc4, 0xc8, 0xcc].includes(marker)) {
+      const height = view.getUint16(at + 5);
+      const width = view.getUint16(at + 7);
+      return sideways ? { width: height, height: width } : { width, height };
+    }
+    at += 2 + length;
+  }
+  return null;
+}
+
+/**
+ * Whether the APP1 segment at `start`, `length` bytes long, is Exif whose orientation is 5 to 8,
+ * which turns the picture a quarter turn. Anything else, or Exif that can't be read, isn't.
+ */
+function turnedOnSide(view: DataView, start: number, length: number): boolean {
+  try {
+    // "Exif" and two zero bytes, then a TIFF header: its byte order and where IFD0 is.
+    if (view.getUint32(start) !== 0x45786966 || view.getUint16(start + 4) !== 0) return false;
+    const tiff = start + 6;
+    const order = view.getUint16(tiff);
+    if (order !== 0x4949 && order !== 0x4d4d) return false;
+    const little = order === 0x4949;
+    const ifd = tiff + view.getUint32(tiff + 4, little);
+    const entries = view.getUint16(ifd, little);
+    for (let i = 0; i < entries; i++) {
+      const entry = ifd + 2 + i * 12;
+      if (entry + 12 > start + length) return false;
+      if (view.getUint16(entry, little) === 0x0112) {
+        const orientation = view.getUint16(entry + 8, little);
+        return orientation >= 5 && orientation <= 8;
+      }
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 /** Why a file can't be a picture, or null when it can. Only the file's size and first bytes count. */
 export function pictureProblem(size: number, bytes: Uint8Array): string | null {
   if (size === 0) return 'Choose a picture to upload.';

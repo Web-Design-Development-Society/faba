@@ -6,9 +6,16 @@
 // the person who added it can report it. A phone gets its medium copy, 1080 px, and a wide, sharp
 // screen the full picture, which the browser picks from how wide the page shows it (UI-27). A
 // cover's medium copy is the whole picture, and a banner's is cut to its strip. One without a
-// medium copy is served whole either way.
+// medium copy is served whole either way. A cover whose width and height were kept takes its own
+// shape before it loads, so the page doesn't move (MEDIA-04).
 interface Props {
-  image: { id: string; alt: string; uploaded_by: string | null };
+  image: {
+    id: string;
+    alt: string;
+    uploaded_by: string | null;
+    width?: number | null;
+    height?: number | null;
+  };
   /** The member viewing the page. */
   viewer: string;
   /** A cover shows whole. A banner is a wide strip, 3:1. */
@@ -26,6 +33,8 @@ const medium = `${full}?size=${shape === 'cover' ? 'whole' : 'medium'}`;
     srcset={`${medium} 1080w, ${full} 1600w`}
     sizes="(min-width: 40rem) 36rem, calc(100vw - 3rem)"
     alt={image.alt}
+    width={image.width ?? undefined}
+    height={image.height ?? undefined}
     decoding="async"
   />
   {image.uploaded_by !== viewer && (
@@ -44,16 +53,18 @@ const medium = `${full}?size=${shape === 'cover' ? 'whole' : 'medium'}`;
   img {
     display: block;
     width: 100%;
+    height: auto;
     border-radius: 0;
   }
   /* The whole picture at its own shape, up to the limit, and the page's paper beside a tall one.
-     Until it loads, its space is 16:9. */
+     Until it loads, its space is its width and height's shape, or 16:9 if they weren't kept. */
   .cover img {
-    aspect-ratio: auto 16 / 9;
-    height: auto;
     max-height: min(24rem, 50svh);
     object-fit: contain;
     background: var(--paper);
+  }
+  .cover img:not([width]) {
+    aspect-ratio: auto 16 / 9;
   }
   .banner img {
     aspect-ratio: 3 / 1;

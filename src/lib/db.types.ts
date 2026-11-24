@@ -801,6 +801,7 @@ export type Database = {
           content_type: string;
           created_at: string;
           group_id: string | null;
+          height: number | null;
           hidden_at: string | null;
           hidden_by: string | null;
           hidden_reason: string | null;
@@ -808,6 +809,7 @@ export type Database = {
           profile_id: string | null;
           r2_key: string;
           uploaded_by: string | null;
+          width: number | null;
         };
         ComputedFields: never;
         Insert: {
@@ -817,6 +819,7 @@ export type Database = {
           content_type: string;
           created_at?: string;
           group_id?: string | null;
+          height?: number | null;
           hidden_at?: string | null;
           hidden_by?: string | null;
           hidden_reason?: string | null;
@@ -824,6 +827,7 @@ export type Database = {
           profile_id?: string | null;
           r2_key: string;
           uploaded_by?: string | null;
+          width?: number | null;
         };
         Update: {
           activity_id?: string | null;
@@ -832,6 +836,7 @@ export type Database = {
           content_type?: string;
           created_at?: string;
           group_id?: string | null;
+          height?: number | null;
           hidden_at?: string | null;
           hidden_by?: string | null;
           hidden_reason?: string | null;
@@ -839,6 +844,7 @@ export type Database = {
           profile_id?: string | null;
           r2_key?: string;
           uploaded_by?: string | null;
+          width?: number | null;
         };
         Relationships: [
           {
@@ -2258,7 +2264,9 @@ export type Database = {
           alt: string;
           bytes: number;
           content_type: string;
+          height?: number;
           r2_key: string;
+          width?: number;
         };
         Returns: string;
       };
@@ -2273,7 +2281,9 @@ export type Database = {
           bytes: number;
           content_type: string;
           group_id: string;
+          height?: number;
           r2_key: string;
+          width?: number;
         };
         Returns: string;
       };
@@ -2283,7 +2293,13 @@ export type Database = {
       };
       set_notification_preferences: { Args: { off: string[] }; Returns: undefined };
       set_profile_photo: {
-        Args: { bytes: number; content_type: string; r2_key: string };
+        Args: {
+          bytes: number;
+          content_type: string;
+          height?: number;
+          r2_key: string;
+          width?: number;
+        };
         Returns: string;
       };
       set_push_preferences: {
