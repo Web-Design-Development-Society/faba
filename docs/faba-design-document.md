@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19` to `NOTIF-21`, `ACT-12`, `MEDIA-01`, `MEDIA-02`, `UI-02` to `UI-37`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19` to `NOTIF-21`, `ACT-12`, `MEDIA-01` to `MEDIA-03`, `UI-02` to `UI-37`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -641,24 +641,24 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 ### 6.2 Story index
 
-| Area                   | Phase 0          | Phase 1            | Phase 2                     | Phase 3                            | Phase 4            | Phase 5  | Phase 6                            |
-| ---------------------- | ---------------- | ------------------ | --------------------------- | ---------------------------------- | ------------------ | -------- | ---------------------------------- |
-| Foundation             | FND-02 to FND-11 |                    |                             |                                    |                    |          |                                    |
-| Auth                   |                  | AUTH-01 to AUTH-05 |                             |                                    |                    |          |                                    |
-| Profiles               |                  | PROF-01 to PROF-05 |                             |                                    |                    |          |                                    |
-| Public pages           |                  | INFO-01            |                             |                                    |                    |          |                                    |
-| Activities             |                  | ACT-01 to ACT-06   | ACT-07 to ACT-09, ACT-11    | ACT-10                             |                    |          | ACT-12                             |
-| RSVP                   |                  | RSVP-01 to RSVP-03 | RSVP-04 to RSVP-06, RSVP-08 | RSVP-07, RSVP-09                   |                    |          |                                    |
-| Search                 |                  |                    | SRCH-01 to SRCH-03          |                                    |                    |          |                                    |
-| Notifications          |                  |                    | NOTIF-01 to NOTIF-08        | NOTIF-09, NOTIF-10                 |                    | NOTIF-13 | NOTIF-19 to NOTIF-21               |
-| Moderation             |                  | MOD-01 to MOD-06   | MOD-07                      | MOD-08                             |                    |          |                                    |
-| Groups / recurring     |                  |                    |                             | GRP-01 to GRP-05, REC-01 to REC-04 |                    |          | GRP-06                             |
-| History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                    |
-| Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                            |
-| Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                    |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01, MEDIA-02, UI-02 to UI-37 |
-| Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                   |
-| Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01 |
+| Area                   | Phase 0          | Phase 1            | Phase 2                     | Phase 3                            | Phase 4            | Phase 5  | Phase 6                              |
+| ---------------------- | ---------------- | ------------------ | --------------------------- | ---------------------------------- | ------------------ | -------- | ------------------------------------ |
+| Foundation             | FND-02 to FND-11 |                    |                             |                                    |                    |          |                                      |
+| Auth                   |                  | AUTH-01 to AUTH-05 |                             |                                    |                    |          |                                      |
+| Profiles               |                  | PROF-01 to PROF-05 |                             |                                    |                    |          |                                      |
+| Public pages           |                  | INFO-01            |                             |                                    |                    |          |                                      |
+| Activities             |                  | ACT-01 to ACT-06   | ACT-07 to ACT-09, ACT-11    | ACT-10                             |                    |          | ACT-12                               |
+| RSVP                   |                  | RSVP-01 to RSVP-03 | RSVP-04 to RSVP-06, RSVP-08 | RSVP-07, RSVP-09                   |                    |          |                                      |
+| Search                 |                  |                    | SRCH-01 to SRCH-03          |                                    |                    |          |                                      |
+| Notifications          |                  |                    | NOTIF-01 to NOTIF-08        | NOTIF-09, NOTIF-10                 |                    | NOTIF-13 | NOTIF-19 to NOTIF-21                 |
+| Moderation             |                  | MOD-01 to MOD-06   | MOD-07                      | MOD-08                             |                    |          |                                      |
+| Groups / recurring     |                  |                    |                             | GRP-01 to GRP-05, REC-01 to REC-04 |                    |          | GRP-06                               |
+| History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                      |
+| Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                              |
+| Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                      |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01 to MEDIA-03, UI-02 to UI-37 |
+| Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                     |
+| Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01   |
 
 ### 6.3 Phase 0 stories
 
@@ -1858,6 +1858,36 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - The picture belongs to the series' first date, and the other dates point to it. If a moderator hides that date, the other dates show no picture rather than a broken one.
   - Post again (ACT-07) doesn't copy the picture.
   - Size: M.
+
+#### MEDIA-03 · The whole picture on an activity
+
+- **Role:** Member · **Priority:** Should · **Phase:** 6
+- **Story:** As a member, I want to see an activity's whole picture on its page, so that a photo of a person or a poster isn't cut off.
+- **Acceptance criteria:**
+  - **An activity's page shows its whole cover, never cut.**
+    - A wide picture spans the page's width, as now.
+    - A tall picture is as tall as the limit and centered. The space beside it is the page's paper color (`--paper`), in light and dark, so it reads as part of the page.
+    - **The limit:** a picture is at most 24rem (384 px) tall, or half the screen's height on a short screen, so a tall photo doesn't fill the screen.
+  - **The phone copy is the whole picture** (UI-27): at most 1080 px on its longest side, not the 16:9 middle. A 1200 by 1600 px photo's copy is 810 by 1080 px.
+  - **Older covers show whole too.** A cover added before this has a phone copy cut to 16:9. The new copy is kept under a new name, so an older cover's page shows its full picture, whole, and the cut copy is never shown.
+  - **Before the picture loads,** its space is 16:9, as now. A taller picture then takes the space it needs, up to the limit.
+  - **Nothing else changes:**
+    - Cards' small square pictures (UI-03) are still cut to a square.
+    - A group's banner is still a 3:1 strip across its page.
+    - Adding, reporting and hiding a picture work as before.
+  - It works without JavaScript. Then the picture has no phone copy, and the page shows the full picture, whole.
+  - **Tests:**
+    - Playwright: a tall phone photo shows whole on its page, no taller than the limit, with `--paper` beside it, and a phone gets its 810 by 1080 px copy. A wide picture spans the page with nothing beside it, and a cover with an older cut copy shows its full picture.
+    - Unit: the whole copy's size, for a tall, a wide and a small picture.
+- **Dependencies:** MEDIA-01, MEDIA-02, UI-27.
+- **Notes / edge cases:**
+  - Found when the board tried FABA: a portrait cover showed only a band across its middle.
+  - **A tall picture can move the page down a little as it loads,** since the page doesn't know its shape until then. Keeping each picture's width and height when it's added would prevent that. Leave it for later unless it's noticed.
+  - **Mark these when it's built:**
+    - UI-27's acceptance criteria, which say a cover's copy is cut to 16:9
+    - MEDIA-01's notes
+    - section 7.12
+  - Size: S.
 
 #### LEAG-09 · Playoff brackets
 
