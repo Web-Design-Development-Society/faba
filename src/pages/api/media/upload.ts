@@ -64,7 +64,7 @@ export const POST = (async ({ locals, request, cookies, url, redirect }) => {
   const folder = ({ activity: 'activities', group: 'groups', profile: 'profiles' } as const)[
     target
   ];
-  const { key, type } = await store(folder, file, {
+  const { key, type, size } = await store(folder, file, {
     thumb: form.get('thumb'),
     medium: form.get('medium'),
   });
@@ -75,6 +75,7 @@ export const POST = (async ({ locals, request, cookies, url, redirect }) => {
           r2_key: key,
           content_type: type,
           bytes: file.size,
+          ...size,
         })
       : target === 'group'
         ? await locals.supabase.rpc('set_group_banner', {
@@ -83,6 +84,7 @@ export const POST = (async ({ locals, request, cookies, url, redirect }) => {
             content_type: type,
             bytes: file.size,
             alt,
+            ...size,
           })
         : await locals.supabase.rpc('set_activity_cover', {
             activity_id: id,
@@ -90,6 +92,7 @@ export const POST = (async ({ locals, request, cookies, url, redirect }) => {
             content_type: type,
             bytes: file.size,
             alt,
+            ...size,
           });
 
   if (error) {

@@ -72,6 +72,9 @@ test('a photo chosen while posting is the activity’s cover from the start', as
   await expect
     .poll(() => cover.evaluate((img: HTMLImageElement) => img.currentSrc))
     .toContain('?size=whole');
+  // And its size, the photo made smaller on the device, is kept (MEDIA-04).
+  await expect(cover).toHaveAttribute('width', '1200');
+  await expect(cover).toHaveAttribute('height', '1600');
 
   // Its card on Discover shows it too.
   await page.goto('/discover');

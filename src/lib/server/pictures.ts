@@ -1,16 +1,19 @@
 // Storing a picture in the bucket (MEDIA-01), for /api/media/upload and for New activity's picture
 // (MEDIA-02). The Worker checks the file's own bytes and stores it under a random key, with the
 // small and medium copies the device made beside it, if they're pictures no bigger than they should
-// be. Postgres then points the activity, group or profile at it, and if that fails, drop() deletes
-// the files again, so the bucket never keeps a picture nothing points to.
+// be, and reads its width and height from it (MEDIA-04). Postgres then points the activity, group
+// or profile at it, and if that fails, drop() deletes the files again, so the bucket never keeps a
+// picture nothing points to.
 import { env } from 'cloudflare:workers';
 import {
   MEDIUM_MAX_BYTES,
   mediumKey,
   pictureProblem,
+  pictureSize,
   sniffPicture,
   THUMB_MAX_BYTES,
   thumbKey,
+  type PictureSize,
   type PictureType,
   wholeKey,
 } from '../media';
@@ -20,11 +23,15 @@ const bucket = () => (env as unknown as { MEDIA: MediaBucket }).MEDIA;
 /** Why a picture was refused, as a flash message's name. */
 export type Refusal = 'upload_missing' | 'upload_too_big' | 'upload_type';
 
-/** A stored picture: its key in the bucket, its type and its size. */
+/**
+ * A stored picture: its key in the bucket, its type, how many bytes it is, and its width and height
+ * as it shows (MEDIA-04), or null if they couldn't be read.
+ */
 export interface Stored {
   key: string;
   type: PictureType;
   bytes: number;
+  size: PictureSize | null;
 }
 
 /** Why `file` can't be stored, or null when it can. Reads its first bytes. */
@@ -65,7 +72,7 @@ export async function store(
     const at = folder === 'activities' ? wholeKey(key) : mediumKey(key);
     await keep(copies.medium, MEDIUM_MAX_BYTES, at);
   }
-  return { key, type, bytes: file.size };
+  return { key, type, bytes: file.size, size: pictureSize(bytes, type) };
 }
 
 /** Deletes the picture at `key` and its copies, including a cover's cut copy from before MEDIA-03. */

@@ -1,6 +1,6 @@
-// Pictures for activities and groups (MEDIA-01), their medium copies for phones (UI-27), and a
-// cover shown whole (MEDIA-03). The pgTAP tests cover who can set and hide them, and the unit tests
-// cover the file checks and sizes.
+// Pictures for activities and groups (MEDIA-01), their medium copies for phones (UI-27), a cover
+// shown whole (MEDIA-03), and its space before it loads (MEDIA-04). The pgTAP tests cover who can
+// set and hide them, and the unit tests cover the file checks and sizes.
 import type { Locator, Page } from '@playwright/test';
 import { crc32, deflateSync } from 'node:zlib';
 import { expect, expectAccessible, test } from './fixtures';
@@ -115,7 +115,7 @@ async function expectWhole(page: Page, picture: Locator, shape: number) {
   await expect(picture).toHaveCSS('background-color', PAPER);
   const across = (await picture.locator('..').boundingBox())!.width;
   const limit = Math.min(24 * 16, page.viewportSize()!.height / 2);
-  // Until the picture loads, its box is 16:9.
+  // Until the picture loads, its box is its kept size's shape (MEDIA-04), or 16:9.
   await expect
     .poll(async () => {
       const box = (await picture.boundingBox())!;
@@ -173,6 +173,9 @@ test('a photo from a phone is made smaller on the device, and saves', async ({ p
   // The full picture is at most 1600 px on its longest side.
   const full = (await picture.getAttribute('src'))!.replace('?size=whole', '');
   expect(await sizeOf(page, full)).toEqual([1200, 1600]);
+  // The page knows its size before it loads (MEDIA-04).
+  await expect(picture).toHaveAttribute('width', '1200');
+  await expect(picture).toHaveAttribute('height', '1600');
   // The tall photo shows whole, as tall as the limit, not as tall as the screen, with the page's
   // paper beside it.
   await expectWhole(page, picture, 3 / 4);
@@ -180,11 +183,12 @@ test('a photo from a phone is made smaller on the device, and saves', async ({ p
   expect(box.height * (3 / 4)).toBeLessThan(box.width - 16);
   const { data: saved } = await poster.admin
     .from('images')
-    .select('content_type, bytes')
+    .select('content_type, bytes, width, height')
     .eq('alt', 'The game table')
     .single();
   expect(saved!.content_type).toBe('image/jpeg');
   expect(saved!.bytes).toBeLessThanOrEqual(TWO_MB);
+  expect([saved!.width, saved!.height]).toEqual([1200, 1600]);
 });
 
 test('a wide photo spans the page, with nothing beside it', async ({ page, poster }) => {
@@ -203,6 +207,8 @@ test('a wide photo spans the page, with nothing beside it', async ({ page, poste
     .toContain('?size=whole');
   const shown = await picture.evaluate((img: HTMLImageElement) => img.currentSrc);
   expect(await sizeOf(page, shown)).toEqual([1080, 608]);
+  await expect(picture).toHaveAttribute('width', '1600');
+  await expect(picture).toHaveAttribute('height', '900');
   // Its box is its own shape, so the paper never shows.
   await expectWhole(page, picture, 16 / 9);
   await expectShape(page, picture, 16 / 9);
@@ -353,5 +359,53 @@ test.describe('without JavaScript', () => {
     expect(src).toContain('?size=whole');
     expect(Buffer.from(await (await page.request.get(src)).body())).toEqual(tall);
     await expectWhole(page, picture, 3 / 4);
+    // The Worker read its size from the file, with no JavaScript (MEDIA-04).
+    await expect(picture).toHaveAttribute('width', '300');
+    await expect(picture).toHaveAttribute('height', '400');
+  });
+
+  test('before a cover loads, its space is already its shape, so the page doesn’t move', async ({
+    page,
+    poster,
+  }) => {
+    /** An activity whose cover is `width` by `height`, or has no size, as one added before. */
+    const withCover = async (alt: string, size: { width: number; height: number } | null) => {
+      const id = await makeActivity(poster);
+      const { data: image } = await poster.admin
+        .from('images')
+        .insert({
+          r2_key: `activities/${crypto.randomUUID()}`,
+          content_type: 'image/jpeg',
+          bytes: 300_000,
+          alt,
+          activity_id: id,
+          uploaded_by: poster.id,
+          ...size,
+        })
+        .select('id')
+        .single();
+      await poster.admin.from('activities').update({ cover_image_id: image!.id }).eq('id', id);
+      return id;
+    };
+    // Pictures never arrive, so the page is as it is before they load.
+    let asked = 0;
+    await page.route('**/api/media/**', () => {
+      asked++;
+    });
+
+    const tall = await withCover('A swimmer on the block', { width: 1200, height: 1600 });
+    await page.goto(`/activities/${tall}`, { waitUntil: 'domcontentloaded' });
+    const picture = page.getByRole('img', { name: 'A swimmer on the block' });
+    await expect(picture).toHaveAttribute('width', '1200');
+    await expect.poll(() => asked).toBeGreaterThan(0);
+    // As tall as the limit, as it will be once it loads (MEDIA-03), not 16:9.
+    await expectWhole(page, picture, 3 / 4);
+
+    // One added before has no size, and keeps a 16:9 space.
+    const older = await withCover('An older cover', null);
+    await page.goto(`/activities/${older}`, { waitUntil: 'domcontentloaded' });
+    const before = page.getByRole('img', { name: 'An older cover' });
+    await expect(before).not.toHaveAttribute('width');
+    await expectWhole(page, before, 16 / 9);
   });
 });

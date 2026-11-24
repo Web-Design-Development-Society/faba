@@ -36,6 +36,7 @@ async function saveCover(
       content_type: stored.type,
       bytes: stored.bytes,
       alt,
+      ...stored.size,
     });
     if (error) throw error;
     key = null;
