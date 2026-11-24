@@ -4,12 +4,20 @@ How a change on `main` reaches production, and how to undo it (FND-08, design do
 
 ## Before the first release
 
-Production doesn't exist yet (FND-09). Until it does, a release stops at **Check the environment is set up**, before anything changes. To set it up:
+Production is the `faba` Worker at `tofaba.org`, set up in `env.production` in `wrangler.jsonc` (FND-09). Its database is the Supabase project `ncfuqxwvpxkqfjjcbpuo`, on the free plan, which has no backups ([ADR-019](../adr/019-free-production-database.md)). Until the GitHub secrets are in, a release stops at **Check the environment is set up**, before anything changes.
 
-1. **Supabase.** Create the production project in a US West region, and match the settings in [supabase-settings.md](supabase-settings.md). It starts on the free plan, which has no backups ([ADR-019](../adr/019-free-production-database.md)). Add the production Google OAuth client to its Auth settings.
-2. **`wrangler.jsonc`.** Add `env.production`, copying `env.staging`: its own `SITE_URL`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, R2 bucket and custom domain, `LOG_LEVEL` set to `info`, the Cron Trigger, and a `VAPID_PUBLIC_KEY` from `npm run push:keys`. Leave out `workers_dev` and `preview_urls`.
-3. **Worker secrets.** `npx wrangler secret put <NAME> --env production` for `SUPABASE_SECRET_KEY`, `VAPID_PRIVATE_KEY` (the pair's private key) and `SENTRY_DSN`.
-4. **GitHub.** The `production` environment (Settings → Environments) needs one of the repository's admins to approve each deploy, and allows deploys only from `main` and from tags matching `v*`. Add its secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF` and `SUPABASE_DB_PASSWORD`.
+Before the first release:
+
+1. **Supabase and Google.** Match the production settings in [supabase-settings.md](supabase-settings.md), all but the hook, which waits for the first deploy.
+2. **The picture bucket.** `npx wrangler r2 bucket create faba-media-production`. The deploy fails without it.
+3. **GitHub.** The `production` environment (Settings → Environments) needs one of the repository's admins to approve each deploy, and allows deploys only from `main` and from tags matching `v*`. Add its secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF` and `SUPABASE_DB_PASSWORD`. Make the Cloudflare token from the **Edit Cloudflare Workers** template, with the `tofaba.org` zone, since the deploy attaches the custom domain.
+
+Then release as below. Right after the first deploy, before anyone signs in:
+
+4. **Turn on the byui.edu hook** ([supabase-settings.md](supabase-settings.md#production-faba-at-tofabaorg)). The migrations made the function it calls. Check it with a personal Gmail account.
+5. **Worker secrets.** `npx wrangler secret put SUPABASE_SECRET_KEY --env production`, with the project's secret key from **Project Settings → API Keys**. Account deletion needs it. The `faba` Worker exists only once it's deployed, so this waits for the first release.
+6. **Push, when you want it.** Run `npm run push:keys`. Put the public key in `env.production.vars.VAPID_PUBLIC_KEY` in `wrangler.jsonc` through a pull request, and the private key in with `npx wrangler secret put VAPID_PRIVATE_KEY --env production`. Push stays off until both are in.
+7. **Appoint the first admins** ([roles.md](roles.md)), at least 2.
 
 The accounts belong to the FABA organization, with at least 2 owners and MFA, never one volunteer's personal account.
 

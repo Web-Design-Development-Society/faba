@@ -24,6 +24,22 @@ To check the hook, try to sign in to staging with a personal Gmail account. FABA
 
 While the Google consent screen is in **Testing** mode, Google only lets the test users listed in Google Cloud sign in. Add the accounts you test with, including any personal account you use to check the hook.
 
-## Production
+## Production (`faba`, at `tofaba.org`)
 
-Set up with FND-09. It uses the same settings, with the production URLs and the production Google client.
+The project `ncfuqxwvpxkqfjjcbpuo`, on the free plan ([ADR-019](../adr/019-free-production-database.md)). Open it at <https://supabase.com/dashboard>, then:
+
+| Setting                       | Where                                             | Value                                                                                                                                  |
+| ----------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| Google sign-in                | **Authentication → Sign In / Providers → Google** | Enabled, with the client ID and secret of the "FABA production" Google OAuth client                                                    |
+| Email sign-in                 | **Authentication → Sign In / Providers → Email**  | Disabled                                                                                                                               |
+| Other providers and anonymous | **Authentication → Sign In / Providers**          | All disabled                                                                                                                           |
+| Site URL                      | **Authentication → URL Configuration**            | `https://tofaba.org`                                                                                                                   |
+| Redirect URLs                 | **Authentication → URL Configuration**            | `https://tofaba.org/**` only                                                                                                           |
+| byui.edu hook                 | **Authentication → Hooks → Before User Created**  | Enabled, type **Postgres**, schema `private`, function `before_user_created`. It rejects every account that isn't `byui.edu` (ADR-005) |
+| Refresh tokens                | **Authentication → Sessions**                     | Rotation on, with a 10-second reuse interval (the defaults)                                                                            |
+| Inactivity timeout            | **Authentication → Sessions**                     | Not on the free plan. Set 30 days (AUTH-03) when production moves to Pro                                                               |
+| Exposed schemas               | **Project Settings → Data API**                   | `public` and `graphql_public` only. Never expose `private`                                                                             |
+
+**The hook waits for the first release.** The migrations make `private.before_user_created`, so it can't be chosen before then. Turn it on right after the first deploy, before anyone signs in ([release.md](release.md#before-the-first-release)), then check it with a personal Gmail account as for staging.
+
+The "FABA production" client's authorized redirect URI is `https://ncfuqxwvpxkqfjjcbpuo.supabase.co/auth/v1/callback`. Its consent screen lists `tofaba.org` as an authorized domain, with `https://tofaba.org` as the home page and `https://tofaba.org/privacy` as the privacy policy. It's **published**, not in **Testing**, so any `byui.edu` account can sign in.
