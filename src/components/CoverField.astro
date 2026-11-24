@@ -4,7 +4,7 @@
 // photo on the device first and makes its small and medium copies, as on the activity's page
 // (MEDIA-01, UI-27). A browser can't keep a chosen file when the form comes back, so it asks for the
 // picture again.
-import { ALT_MAX, SHAPES } from '../lib/media';
+import { ALT_MAX } from '../lib/media';
 import FieldError from './FieldError.astro';
 
 interface Props {
@@ -40,9 +40,10 @@ const described = (id: string, error?: string[]) =>
     />
     <FieldError name="picture" errors={errors.picture} />
   </p>
-  {/* The small copy for cards (UI-03) and the medium copy for phones (UI-27). */}
+  {/* The small copy for cards (UI-03), and the medium copy for phones (UI-27), which is the whole
+      picture, since the page shows it whole (MEDIA-03). */}
   <input name="thumb" type="file" hidden data-thumb />
-  <input name="medium" type="file" hidden data-medium data-shape={SHAPES.activity} />
+  <input name="medium" type="file" hidden data-medium />
   <p>
     <label for="alt">Describe it for people who can't see it</label>
     <span id="alt-hint" class="hint">

@@ -24,20 +24,30 @@ export function thumbKey(key: string): string {
 }
 
 /**
- * The width of a cover's or banner's medium copy (UI-27), which a phone shows: the picture fills
- * the page's width, about 350 px on a screen two or three times as dense.
+ * The width of a banner's medium copy (UI-27), and the longest side of a cover's (MEDIA-03), which
+ * a phone shows: the picture spans the page's width, about 350 px on a screen two or three times as
+ * dense.
  */
 export const MEDIUM_WIDTH = 1080;
 
-/** The shape the page shows a picture at, width over height: a cover 16:9, a banner 3:1. */
-export const SHAPES = { activity: 16 / 9, group: 3 } as const;
+/** A group's banner is a wide strip across its page, 3:1, width over height. */
+export const BANNER_SHAPE = 3;
 
 /** The most a medium copy weighs. At 1080 px wide, a JPEG is usually 100 to 300 KB. */
 export const MEDIUM_MAX_BYTES = 400 * 1024;
 
-/** Where a cover's or banner's medium copy is kept in the bucket, beside the picture. */
+/** Where a banner's medium copy is kept in the bucket, beside the picture. */
 export function mediumKey(key: string): string {
   return `${key}-medium`;
+}
+
+/**
+ * Where a cover's medium copy is kept, beside the picture. It's the whole picture (MEDIA-03), and
+ * has a name of its own, so a cover added before then, whose medium copy is cut to 16:9, shows its
+ * full picture, never the cut copy.
+ */
+export function wholeKey(key: string): string {
+  return `${key}-whole`;
 }
 
 /** `width` by `height` scaled down to fit within `max` on its longest side. Never scaled up. */
@@ -47,9 +57,9 @@ export function fitWithin(width: number, height: number, max = MAX_SIDE) {
 }
 
 /**
- * A cover's or banner's medium copy: the middle of a `width` by `height` picture at `shape`, as
- * the page shows it, then at most 1080 px wide (UI-27). A tall phone photo keeps only the band the
- * page shows, so its copy is a fraction of the picture. Never scaled up.
+ * A banner's medium copy: the middle of a `width` by `height` picture at `shape`, as the page shows
+ * it, then at most 1080 px wide (UI-27). A tall phone photo keeps only the band the page shows, so
+ * its copy is a fraction of the picture. Never scaled up.
  */
 export function mediumCrop(width: number, height: number, shape: number) {
   const [sw, sh] = width / height > shape ? [height * shape, height] : [width, width / shape];
@@ -62,6 +72,17 @@ export function mediumCrop(width: number, height: number, shape: number) {
       sh: Math.round(sh),
     },
     size: { width: out, height: Math.round(out / shape) },
+  };
+}
+
+/**
+ * A cover's medium copy: the whole `width` by `height` picture, since the page shows it whole
+ * (MEDIA-03), at most 1080 px on its longest side. Never scaled up.
+ */
+export function wholeCopy(width: number, height: number) {
+  return {
+    crop: { sx: 0, sy: 0, sw: width, sh: height },
+    size: fitWithin(width, height, MEDIUM_WIDTH),
   };
 }
 

@@ -1,24 +1,29 @@
 ---
-// An activity's cover or a group's banner (MEDIA-01), across the page's width at a fixed shape, so a
-// tall phone photo doesn't fill the screen. The middle of the picture shows, and the edges that
-// don't fit are cut off. Anyone but the person who added it can report it. A phone gets its medium
-// copy, 1080 px wide, and a wide, sharp screen the full picture, which the browser picks from how
-// wide the page shows it (UI-27). One without a medium copy is served whole either way.
+// An activity's cover or a group's banner (MEDIA-01), across the page's width. A cover shows whole,
+// never cut (MEDIA-03): a wide one spans the page, and a tall one is at most 24rem tall, or half a
+// short screen, so it doesn't fill the screen, centered, with the page's paper beside it. A banner
+// is a wide strip, 3:1, whose middle shows, and the edges that don't fit are cut off. Anyone but
+// the person who added it can report it. A phone gets its medium copy, 1080 px, and a wide, sharp
+// screen the full picture, which the browser picks from how wide the page shows it (UI-27). A
+// cover's medium copy is the whole picture, and a banner's is cut to its strip. One without a
+// medium copy is served whole either way.
 interface Props {
   image: { id: string; alt: string; uploaded_by: string | null };
   /** The member viewing the page. */
   viewer: string;
-  /** A cover is 16:9, as a photo usually is. A banner is a wide strip, 3:1. */
+  /** A cover shows whole. A banner is a wide strip, 3:1. */
   shape: 'cover' | 'banner';
 }
 
 const { image, viewer, shape } = Astro.props;
+const full = `/api/media/${image.id}`;
+const medium = `${full}?size=${shape === 'cover' ? 'whole' : 'medium'}`;
 ---
 
 <figure class:list={['picture', shape]}>
   <img
-    src={`/api/media/${image.id}?size=medium`}
-    srcset={`/api/media/${image.id}?size=medium 1080w, /api/media/${image.id} 1600w`}
+    src={medium}
+    srcset={`${medium} 1080w, ${full} 1600w`}
     sizes="(min-width: 40rem) 36rem, calc(100vw - 3rem)"
     alt={image.alt}
     decoding="async"
@@ -39,18 +44,24 @@ const { image, viewer, shape } = Astro.props;
   img {
     display: block;
     width: 100%;
-    aspect-ratio: 16 / 9;
-    object-fit: cover;
-    background: var(--blue-soft);
     border-radius: 0;
+  }
+  /* The whole picture at its own shape, up to the limit, and the page's paper beside a tall one.
+     Until it loads, its space is 16:9. */
+  .cover img {
+    aspect-ratio: auto 16 / 9;
+    height: auto;
+    max-height: min(24rem, 50svh);
+    object-fit: contain;
+    background: var(--paper);
   }
   .banner img {
     aspect-ratio: 3 / 1;
-  }
-  figcaption {
-    font-size: 0.875rem;
+    object-fit: cover;
+    background: var(--blue-soft);
   }
   figcaption {
     margin-top: 0.5rem;
+    font-size: 0.875rem;
   }
 </style>

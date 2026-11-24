@@ -67,10 +67,11 @@ test('a photo chosen while posting is the activity’s cover from the start', as
   await expect(page.getByRole('status')).toHaveText('Posted!');
   const cover = page.getByRole('img', { name: 'Paddles and a ball on the court' });
   await expect(cover).toBeVisible();
-  // Its medium copy, which the device made, is what a phone shows (UI-27).
+  // Its medium copy, the whole picture, which the device made, is what a phone shows (UI-27,
+  // MEDIA-03).
   await expect
     .poll(() => cover.evaluate((img: HTMLImageElement) => img.currentSrc))
-    .toContain('?size=medium');
+    .toContain('?size=whole');
 
   // Its card on Discover shows it too.
   await page.goto('/discover');
