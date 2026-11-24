@@ -6,7 +6,7 @@ How a change on `main` reaches production, and how to undo it (FND-08, design do
 
 Production doesn't exist yet (FND-09). Until it does, a release stops at **Check the environment is set up**, before anything changes. To set it up:
 
-1. **Supabase.** Create the production project on a paid plan in a US West region, check its backups, and match the settings in [supabase-settings.md](supabase-settings.md). Add the production Google OAuth client to its Auth settings.
+1. **Supabase.** Create the production project in a US West region, and match the settings in [supabase-settings.md](supabase-settings.md). It starts on the free plan, which has no backups ([ADR-019](../adr/019-free-production-database.md)). Add the production Google OAuth client to its Auth settings.
 2. **`wrangler.jsonc`.** Add `env.production`, copying `env.staging`: its own `SITE_URL`, `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, R2 bucket and custom domain, `LOG_LEVEL` set to `info`, the Cron Trigger, and a `VAPID_PUBLIC_KEY` from `npm run push:keys`. Leave out `workers_dev` and `preview_urls`.
 3. **Worker secrets.** `npx wrangler secret put <NAME> --env production` for `SUPABASE_SECRET_KEY`, `VAPID_PRIVATE_KEY` (the pair's private key) and `SENTRY_DSN`.
 4. **GitHub.** The `production` environment (Settings → Environments) needs one of the repository's admins to approve each deploy, and allows deploys only from `main` and from tags matching `v*`. Add its secrets: `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF` and `SUPABASE_DB_PASSWORD`.
@@ -17,7 +17,7 @@ The accounts belong to the FABA organization, with at least 2 owners and MFA, ne
 
 1. **Pick a time** when a maintainer is around for the next 2 hours. Avoid Fridays and exam weeks.
 2. **Check `main`.** CI and **Deploy staging** passed for the commit you're releasing, and the change works on staging.
-3. **Back up first for a risky migration**, such as one that rewrites or drops data. Take an on-demand backup in the Supabase dashboard ([restore-backup.md](restore-backup.md)).
+3. **Back up first for a risky migration**, such as one that rewrites or drops data. On the free plan, link the production project with `npx supabase link --project-ref <its ref>`, then save a copy of its data on your own computer with `npx supabase db dump --remote --data-only -f faba-<date>.sql`. It holds members' data, so keep it private, never in GitHub, and delete it once the release is fine. On Pro, take an on-demand backup in the Supabase dashboard instead ([restore-backup.md](restore-backup.md)).
 4. **Publish a release.** On GitHub, open Releases → **Draft a new release**. Type a new tag, `vX.Y.Z`, on `main`. Bump the middle number for new features, and the last for fixes only. Choose **Generate release notes**, then **Publish release**. Don't tick **Set as a pre-release**: a pre-release doesn't deploy.
 5. **Approve.** **Deploy production** starts. **Check the release** confirms the tag is on `main`, then the deploy waits for approval. One of the repository's admins opens the run in the Actions tab, chooses **Review deployments**, and approves `production`.
 6. **Watch it run:** build, migrations, the Worker, then smoke tests. If the build fails, nothing has changed. If migrations fail, the Worker isn't deployed.

@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19` to `NOTIF-21`, `ACT-12`, `MEDIA-01` to `MEDIA-04`, `UI-02` to `UI-37`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19` to `NOTIF-21`, `ACT-12`, `MEDIA-01` to `MEDIA-04`, `UI-02` to `UI-37`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-05`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -658,7 +658,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                      |
 | App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01 to MEDIA-04, UI-02 to UI-37 |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                     |
-| Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01   |
+| Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-05, PERF-01, A11Y-01   |
 
 ### 6.3 Phase 0 stories
 
@@ -762,7 +762,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 - **Role:** Technical owner · **Priority:** Must · **Phase:** 0
 - **Story:** As a technical owner, I want staging and production on separate, organization-owned accounts, so that testing never touches real data and no single volunteer holds the keys.
 - **Acceptance criteria**
-  1. Staging and production each have their own Supabase project. Production is on a paid plan in a US West region, with backups verified.
+  1. Staging and production each have their own Supabase project. Production is in a US West region. It starts on the free plan, kept awake by a daily ping (OPS-05), and moves to a paid plan with verified backups as ADR-019 sets out.
   2. The `faba-staging` and `faba` Workers serve the app on their own domains.
   3. Google OAuth clients exist for dev, staging, and production.
   4. Cloudflare, Supabase, Google Cloud, and GitHub accounts belong to a FABA organization with at least 2 owners, and MFA is required.
@@ -3076,6 +3076,28 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
   - OPS-03 found this while checking that the `minimatch` update didn't change what ESLint reports.
   - Size: S, one developer, including the test.
 
+#### OPS-05 · Keep the free production database awake
+
+- **Role:** Technical owner · **Priority:** Must · **Phase:** 6
+- **Story:** As a technical owner, I want the Worker to make a small query to the database every day, so that production can run on Supabase's free plan without being paused after a week with no activity (ADR-019).
+- **Acceptance criteria:**
+  - **Once a day, at 12:00 UTC,** the Worker's every-minute Cron Trigger also calls `public.keep_awake()` through the Data API. It uses the publishable key, so it needs no secret. No Cron Trigger is added, since the free Workers plan allows only 5 for each account.
+  - **`keep_awake()` reads nothing.** It returns `true`, the `anon` role can run it, and it isn't `SECURITY DEFINER`.
+  - **It runs whether or not push is set up.** The push sender already queries the database every minute, but only where the VAPID keys and the secret key are set.
+  - **It runs in staging and production,** which are both on the free plan.
+  - **It says how it went** in the Worker's logs: `{"keep_awake":"ok"}`, or `"failed"` with the HTTP status or the error. A failing ping shows up days before the project would pause. It never throws, so it can't stop the pushes.
+  - **Tests:**
+    - Unit: it's time to ping only at 12:00 UTC. The ping posts to `/rest/v1/rpc/keep_awake` with the publishable key, and reports a failed answer or a network error without throwing.
+    - pgTAP: `anon` can run `keep_awake()` and gets `true`, and it isn't `SECURITY DEFINER`.
+- **Dependencies:** NOTIF-20 (the Cron Trigger).
+- **Notes / edge cases:**
+  - Supabase pauses a free project after 7 days without activity, and doesn't say exactly what counts. A real query through the Data API is the surest sign of use.
+  - **Daily, not weekly.** A weekly ping lands right at the edge of the 7 days, so one missed run would pause the project. Daily gives it 7 tries.
+  - The Data API is public by design, so anyone with the publishable key can call `keep_awake()`. It reads and writes nothing, so that costs nothing.
+  - If a project pauses anyway, an owner restores it from the Supabase dashboard. Until then, every page that reads data fails.
+  - The ping can stay after production moves to Pro. It costs nothing.
+  - Size: S.
+
 ### 6.10 Won't Have Yet
 
 | ID    | Item                                               | Why not now                                                                             |
@@ -4326,7 +4348,7 @@ That is trivially small for Postgres. Correct indexes matter more for RLS-heavy 
 |                         | Local                                                              | Preview (per PR)                                                 | Staging                                         | Production                                               |
 | ----------------------- | ------------------------------------------------------------------ | ---------------------------------------------------------------- | ----------------------------------------------- | -------------------------------------------------------- |
 | **App**                 | `astro dev` (runs on `workerd` through the Cloudflare Vite plugin) | A preview version of the `faba-staging` Worker, with its own URL | The `faba-staging` Worker on `staging.<domain>` | The `faba` Worker on `<domain>`                          |
-| **Database and auth**   | Local Supabase in Docker (`supabase start`)                        | Staging Supabase project                                         | Staging Supabase project                        | Production Supabase project (paid plan)                  |
+| **Database and auth**   | Local Supabase in Docker (`supabase start`)                        | Staging Supabase project                                         | Staging Supabase project                        | Production Supabase project (free plan for now, ADR-019) |
 | **Google OAuth client** | Dev client (redirects to the local Supabase)                       | Staging client                                                   | Staging client                                  | Production client                                        |
 | **Auth providers**      | Google, plus email/password **for test users only**                | Google                                                           | Google                                          | Google only                                              |
 | **Data**                | `seed.sql` personas                                                | Synthetic staging data                                           | Synthetic data and team accounts only           | Real                                                     |
@@ -4699,11 +4721,12 @@ Each ADR has its own file in [`docs/adr/`](adr/README.md). ADRs 001 to 013 are t
 | 011 | No UI framework by default; vanilla progressive enhancement, with Preact only if needed                                     | Accepted                                                       |
 | 012 | GitHub Actions (not Cloudflare's Git integration) for CI/CD, to control the migrate-then-deploy order                       | Accepted                                                       |
 | 013 | Staging holds only synthetic data; the pilot runs in production                                                             | Accepted                                                       |
-| 014 | Replace the Node adapter and Docker Compose Postgres with Cloudflare Workers and Supabase; free tiers until launch          | Accepted. Production plan open until 2026-11-13                |
+| 014 | Replace the Node adapter and Docker Compose Postgres with Cloudflare Workers and Supabase; free tiers until launch          | Accepted. Production plan settled in ADR-019                   |
 | 015 | Any `byui.edu` account can join; no faculty attestation or allow-list                                                       | Accepted                                                       |
 | 016 | FABA runs independently of BYU-Idaho: no IT, branding, risk-management, or policy approvals                                 | Accepted                                                       |
 | 017 | Phase 1 serves in-person Rexburg activities only; no "Online" activities or "based in" field                                | Accepted                                                       |
 | 018 | Leagues are on hold; FABA starts with basic groups. Leagues are switched off in `src/lib/features.ts`, not removed          | Accepted                                                       |
+| 019 | Production starts on Supabase's free plan, kept awake by a daily ping; Pro once there's a budget, 400 MB, or a pause        | Accepted (2026-11-24)                                          |
 
 ---
 
