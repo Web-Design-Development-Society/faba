@@ -2090,6 +2090,7 @@ export type Database = {
       join_group: { Args: { group_id: string }; Returns: string };
       join_season: { Args: { kind: string; note?: string; season_id: string }; Returns: undefined };
       join_series: { Args: { activity_id: string }; Returns: number };
+      keep_awake: { Args: Record<PropertyKey, never>; Returns: boolean };
       leave_group: { Args: { group_id: string }; Returns: undefined };
       leave_series: { Args: { activity_id: string }; Returns: number };
       manages_attendees: { Args: { activity_id: string }; Returns: boolean };
