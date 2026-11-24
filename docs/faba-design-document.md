@@ -610,7 +610,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 
 **Intentionally excluded:** native apps, payments, chat. These stay out unless the board explicitly re-scopes FABA.
 
-**User stories (candidates):** `NOTIF-19` to `NOTIF-21`, `ACT-12`, `MEDIA-01` to `MEDIA-03`, `UI-02` to `UI-37`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
+**User stories (candidates):** `NOTIF-19` to `NOTIF-21`, `ACT-12`, `MEDIA-01` to `MEDIA-04`, `UI-02` to `UI-37`, `GRP-06`, `LEAG-09`, `PRIV-01`, `PRIV-02`, `PERF-01`, `A11Y-01`, `OPS-02` to `OPS-04`.
 
 **Definition of done:** this is an ongoing phase. Review it each semester against the metrics and costs.
 
@@ -656,7 +656,7 @@ Every phase ends in a production release that is usable on its own. If funding o
 | History / calendar     |                  | HIST-02            |                             | HIST-01, CAL-01                    |                    |          |                                      |
 | Leagues                |                  |                    |                             |                                    | LEAG-01 to LEAG-08 |          | LEAG-09                              |
 | Analytics              |                  |                    |                             |                                    |                    | ANLY-01  |                                      |
-| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01 to MEDIA-03, UI-02 to UI-37 |
+| App and media          |                  |                    |                             | PWA-01, UI-01                      |                    |          | MEDIA-01 to MEDIA-04, UI-02 to UI-37 |
 | Privacy                |                  |                    |                             |                                    |                    |          | PRIV-01, PRIV-02                     |
 | Operations and quality |                  | OPS-01             |                             |                                    |                    |          | OPS-02 to OPS-04, PERF-01, A11Y-01   |
 
@@ -1882,11 +1882,34 @@ Estimated and prioritized at the end of Phase 0 (FND-02). Build in this order: e
 - **Dependencies:** MEDIA-01, MEDIA-02, UI-27.
 - **Notes / edge cases:**
   - Found when the board tried FABA: a portrait cover showed only a band across its middle.
-  - **A tall picture can move the page down a little as it loads,** since the page doesn't know its shape until then. Keeping each picture's width and height when it's added would prevent that. Leave it for later unless it's noticed.
+  - **A tall picture can move the page down a little as it loads,** since the page doesn't know its shape until then. Keeping each picture's width and height when it's added would prevent that (MEDIA-04).
   - **Mark these when it's built:**
     - UI-27's acceptance criteria, which say a cover's copy is cut to 16:9
     - MEDIA-01's notes
     - section 7.12
+  - Size: S.
+
+#### MEDIA-04 · A picture's space before it loads
+
+- **Role:** Member · **Priority:** Could · **Phase:** 6
+- **Story:** As a member, I want an activity's page to keep its picture's space while the picture loads, so that what I'm reading doesn't move down under me.
+- **Acceptance criteria:**
+  - **A picture's width and height are kept when it's added,** for a cover, a banner and a profile photo: from the page, from New activity (MEDIA-02) and without JavaScript.
+    - **The Worker reads them from the file,** as it reads the type (MEDIA-01), not from what the device says, so they can't be faked and need no JavaScript.
+    - **A phone photo turned on its side,** with a JPEG's orientation tag, is kept the way it shows, as browsers turn it.
+    - A file whose size can't be read is kept as before, with no size.
+  - **Before an activity's cover loads,** its space is already its shape, up to the limit (MEDIA-03). A tall picture's space is as tall as the limit, and a wide one's as tall as it will be. Then the page doesn't move as it loads.
+  - **A cover added before this has no size,** so its space is 16:9 until it loads, as now.
+  - **Nothing else changes:** a banner is a 3:1 strip, and cards' pictures and faces have a fixed shape, so none of them moves as it loads.
+  - **Tests:**
+    - Unit: the width and height of a JPEG, a PNG and the three kinds of WebP, a JPEG turned on its side (both byte orders), and a file whose size can't be read.
+    - pgTAP: setting a cover, a banner and a profile photo keeps the size, and a width without a height is refused.
+    - Playwright: a phone photo's cover has its width and height, without JavaScript too, and before it loads, a tall cover's space is its own shape.
+- **Dependencies:** MEDIA-01, MEDIA-03.
+- **Notes / edge cases:**
+  - Found while building MEDIA-03.
+  - The page gives the image its width and height, and the browser keeps that shape's space until it loads.
+  - **The older covers could be given their sizes** by reading each picture from the bucket once. Leave it unless it's noticed: older pictures are on staging only.
   - Size: S.
 
 #### LEAG-09 · Playoff brackets
