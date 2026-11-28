@@ -4,11 +4,19 @@
 // (src/lib/server/push/send.ts), which runs outside any request (R-SEC-1).
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_SECRET_KEY, SUPABASE_URL } from 'astro:env/server';
+import { isSecretKey } from './secret-key';
+
+/** Whether this deployment has a secret key to delete accounts with. */
+export function canDeleteAuthUsers() {
+  return isSecretKey(SUPABASE_SECRET_KEY);
+}
 
 /** Deletes an auth user, which the database's foreign keys follow through (PROF-05). */
 export async function deleteAuthUser(id: string) {
   // It's optional in env.schema, for builds (astro.config.mjs), but every deployment sets it.
-  if (!SUPABASE_SECRET_KEY) throw new Error('SUPABASE_SECRET_KEY is missing.');
+  if (!isSecretKey(SUPABASE_SECRET_KEY)) {
+    throw new Error('SUPABASE_SECRET_KEY is missing or not a secret key.');
+  }
 
   const admin = createClient(SUPABASE_URL, SUPABASE_SECRET_KEY, {
     auth: { persistSession: false, autoRefreshToken: false },

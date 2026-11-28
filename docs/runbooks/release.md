@@ -15,7 +15,7 @@ Before the first release:
 Then release as below. Right after the first deploy, before anyone signs in:
 
 4. **Turn on the byui.edu hook** ([supabase-settings.md](supabase-settings.md#production-faba-at-tofabaorg)). The migrations made the function it calls. Check it with a personal Gmail account.
-5. **Worker secrets.** `npx wrangler secret put SUPABASE_SECRET_KEY --env production`, with the project's secret key from **Project Settings → API Keys**. Account deletion needs it. The `faba` Worker exists only once it's deployed, so this waits for the first release.
+5. **Worker secrets.** `npx wrangler secret put SUPABASE_SECRET_KEY --env production`, with the `default` key under **Secret keys** in **Project Settings → API Keys**. It starts with `sb_secret_`. The legacy `service_role` key, starting with `eyJ`, doesn't work. Account deletion needs it, and with a wrong one it logs `SUPABASE_SECRET_KEY is missing or not a secret key`. The `faba` Worker exists only once it's deployed, so this waits for the first release.
 6. **Push, when you want it.** Run `npm run push:keys`. Put the public key in `env.production.vars.VAPID_PUBLIC_KEY` in `wrangler.jsonc` through a pull request, and the private key in with `npx wrangler secret put VAPID_PRIVATE_KEY --env production`. Push stays off until both are in.
 7. **Appoint the first admins** ([roles.md](roles.md)), at least 2.
 

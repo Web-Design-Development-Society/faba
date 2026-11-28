@@ -22,8 +22,10 @@ export default defineConfig({
   // which Astro's 1 MB limit for an Action's form would refuse.
   security: { actionBodySizeLimit: 3 * 1024 * 1024 },
   env: {
-    // Secrets are checked when src/middleware.ts imports astro:env/server, so a missing one fails
-    // every request. Checking them at build time too would break CI builds, which have no secrets.
+    // Secrets are checked when src/middleware.ts imports astro:env/server, on every request, so a
+    // missing or malformed one fails every page. That's why each secret is optional and has no
+    // format check: the code that uses it checks it. Checking them at build time too would break CI
+    // builds, which have no secrets.
     validateSecrets: false,
     // Every variable FABA reads. Non-secret values live in wrangler.jsonc, and secrets in
     // .dev.vars locally (see .dev.vars.example).
@@ -37,13 +39,8 @@ export default defineConfig({
       }),
       // Optional, because astro:env/server reads every required secret when it loads, and
       // building the prerendered public pages (INFO-01) has no secrets. Only account deletion
-      // uses it, and src/lib/server/admin.ts fails without it.
-      SUPABASE_SECRET_KEY: envField.string({
-        context: 'server',
-        access: 'secret',
-        startsWith: 'sb_secret_',
-        optional: true,
-      }),
+      // uses it, and src/lib/server/secret-key.ts checks that it starts with sb_secret_.
+      SUPABASE_SECRET_KEY: envField.string({ context: 'server', access: 'secret', optional: true }),
       ALLOWED_EMAIL_DOMAIN: envField.string({ context: 'server', access: 'public' }),
       LOG_LEVEL: envField.enum({
         context: 'server',
