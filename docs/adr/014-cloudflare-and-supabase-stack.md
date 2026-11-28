@@ -37,6 +37,8 @@ Local, preview and staging use the Cloudflare and Supabase free plans until laun
 
 **Settled on 2026-11-24:** production starts on the free plan, kept awake by a daily ping ([ADR-019](019-free-production-database.md)).
 
+**Changed on 2026-11-27:** production shares staging's Google OAuth client, since BYU-Idaho's Google Workspace blocked a new one ([ADR-020](020-shared-google-client.md)).
+
 ## Consequences
 
 - FND-06 replaces `@astrojs/node` with `@astrojs/cloudflare`, replaces `compose.yml` and `scripts/init-db.*` with Supabase migrations and `supabase/seed.sql`, and updates `CONTRIBUTING.md`. Contributors still need Docker, because the Supabase CLI runs on it.
