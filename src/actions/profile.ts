@@ -3,11 +3,12 @@ import { ActionError, defineAction } from 'astro:actions';
 import { z } from 'astro/zod';
 import { env } from 'cloudflare:workers';
 import { thumbKey } from '../lib/media';
-import { deleteAuthUser } from '../lib/server/admin';
+import { canDeleteAuthUsers, deleteAuthUser } from '../lib/server/admin';
 import { actionErrorFor } from '../lib/server/errors';
 import { accountDeletion, displayName, profileChanges } from '../lib/validation/profile';
 
 const NOT_SAVED = "Your profile couldn't be saved. Please try again.";
+const NOT_DELETED = "Your account couldn't be deleted. Please try again.";
 
 export const profile = {
   /** Welcome (PROF-01): the display name, the photo or initials, and accepting the guidelines. */
@@ -112,6 +113,17 @@ export const profile = {
       const { supabase, user } = locals;
       if (!user) throw new ActionError({ code: 'UNAUTHORIZED' });
 
+      // Without the secret key, the last step would fail, so stop before anything changes.
+      if (!canDeleteAuthUsers()) {
+        console.error(
+          JSON.stringify({
+            action: 'deleteAccount',
+            message: 'SUPABASE_SECRET_KEY is missing or not a secret key',
+          })
+        );
+        throw new ActionError({ code: 'INTERNAL_SERVER_ERROR', message: NOT_DELETED });
+      }
+
       const { error } = await supabase.rpc('delete_my_account');
       if (error) throw new ActionError(actionErrorFor(error));
 
@@ -124,10 +136,7 @@ export const profile = {
       const { error: authError } = await deleteAuthUser(user.id);
       if (authError) {
         console.error(JSON.stringify({ action: 'deleteAccount', message: authError.message }));
-        throw new ActionError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: "Your account couldn't be deleted. Please try again.",
-        });
+        throw new ActionError({ code: 'INTERNAL_SERVER_ERROR', message: NOT_DELETED });
       }
     },
   }),
